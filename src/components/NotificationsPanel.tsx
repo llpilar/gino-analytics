@@ -39,8 +39,8 @@ export const NotificationsPanel = () => {
   };
 
   return (
-    <Card className="glass-card h-full border-zinc-800">
-      <CardHeader className="pb-4">
+    <Card className="glass-card h-full border-zinc-800 flex flex-col">
+      <CardHeader className="pb-4 flex-shrink-0">
         <div className="flex items-center gap-3 mb-2">
           <div className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-lg shadow-primary/50" />
           <CardTitle className="text-base font-bold tracking-wider uppercase text-white">
@@ -50,7 +50,7 @@ export const NotificationsPanel = () => {
         <p className="text-xs text-zinc-400">Últimos pedidos em tempo real</p>
       </CardHeader>
       
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-3 flex-1 overflow-y-auto">
         {isLoading ? (
           <div className="loading-pulse text-center py-8 text-zinc-500">
             <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
@@ -68,8 +68,8 @@ export const NotificationsPanel = () => {
               className="glass-card p-4 border-zinc-700/50 hover:border-primary/30 transition-all duration-300 group"
             >
               <div className="flex items-start justify-between mb-2">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 group-hover:bg-primary/20 transition-colors">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 group-hover:bg-primary/20 transition-colors flex-shrink-0">
                     <ShoppingBag className="w-4 h-4 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -77,7 +77,7 @@ export const NotificationsPanel = () => {
                     <p className="text-xs text-zinc-400 truncate">{order.customer}</p>
                   </div>
                 </div>
-                <div className="text-right ml-2">
+                <div className="text-right ml-2 flex-shrink-0">
                   <p className="text-sm font-bold text-primary whitespace-nowrap">
                     {formatCurrency(order.amount, order.currency)}
                   </p>

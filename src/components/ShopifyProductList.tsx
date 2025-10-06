@@ -32,11 +32,11 @@ export const ShopifyProductList = () => {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {[...Array(8)].map((_, i) => (
-          <Card key={i} className="p-4 bg-card border-border">
-            <Skeleton className="w-full h-48 mb-4" />
-            <Skeleton className="h-6 w-3/4 mb-2" />
-            <Skeleton className="h-4 w-full mb-2" />
-            <Skeleton className="h-8 w-1/3" />
+          <Card key={i} className="p-4 glass-card border-zinc-800">
+            <Skeleton className="w-full h-48 mb-4 bg-zinc-800/50" />
+            <Skeleton className="h-6 w-3/4 mb-2 bg-zinc-800/50" />
+            <Skeleton className="h-4 w-full mb-2 bg-zinc-800/50" />
+            <Skeleton className="h-8 w-1/3 bg-zinc-800/50" />
           </Card>
         ))}
       </div>
@@ -47,8 +47,8 @@ export const ShopifyProductList = () => {
 
   if (products.length === 0) {
     return (
-      <div className="text-center py-12 text-muted-foreground">
-        Nenhum produto encontrado
+      <div className="text-center py-12 text-zinc-400">
+        <p className="text-sm">Nenhum produto encontrado</p>
       </div>
     );
   }
@@ -68,7 +68,7 @@ export const ShopifyProductList = () => {
         return (
           <Card 
             key={product.id} 
-            className="group overflow-hidden bg-card border-border hover:border-primary/50 transition-all duration-300 neon-border-subtle"
+            className="group overflow-hidden glass-card border-zinc-800 hover:border-primary/50 transition-all duration-300"
           >
             {imageUrl && (
               <div className="aspect-square overflow-hidden bg-muted">

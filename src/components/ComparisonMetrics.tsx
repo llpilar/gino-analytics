@@ -15,7 +15,7 @@ export const ComparisonMetrics = () => {
       return acc + parseFloat(edge.node.currentTotalPriceSet?.shopMoney?.amount || '0');
     }, 0) || 0;
 
-    const change = yesterday > 0 ? ((today - yesterday) / yesterday) * 100 : 0;
+    const change = yesterday > 0 ? ((today - yesterday) / yesterday) * 100 : (today > 0 ? 100 : 0);
     
     return {
       todayRevenue: today,
@@ -25,7 +25,7 @@ export const ComparisonMetrics = () => {
     };
   }, [todayData, yesterdayData]);
 
-  if (yesterdayRevenue === 0) return null;
+  if (yesterdayRevenue === 0 && todayRevenue === 0) return null;
 
   return (
     <div className="glass-card p-4 border-zinc-800">

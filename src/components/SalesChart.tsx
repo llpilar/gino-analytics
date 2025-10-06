@@ -118,7 +118,12 @@ export const SalesChart = ({ analyticsData, isLoading }: SalesChartProps) => {
             <YAxis 
               stroke="#71717a"
               style={{ fontSize: '12px', fontWeight: '500' }}
-              tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
+              tickFormatter={(value) => {
+                if (value >= 1000000) {
+                  return `${(value / 1000000).toFixed(1)}M`;
+                }
+                return new Intl.NumberFormat('pt-BR').format(value);
+              }}
               tickLine={false}
             />
             <Tooltip 
@@ -130,6 +135,7 @@ export const SalesChart = ({ analyticsData, isLoading }: SalesChartProps) => {
               }}
               labelStyle={{ color: '#fff', fontWeight: 'bold' }}
               itemStyle={{ color: '#9EFF5E' }}
+              formatter={(value: number) => new Intl.NumberFormat('pt-BR').format(value)}
             />
             <Line 
               type="monotone" 
