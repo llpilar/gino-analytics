@@ -6,47 +6,42 @@ export const ComparisonMetrics = () => {
   const { data: todayData } = useShopifyRevenueToday();
   const { data: yesterdayData } = useShopifyRevenueYesterday();
 
-  const { todayRevenue, yesterdayRevenue, percentageChange, isIncrease } = useMemo(() => {
-    console.log('Raw todayData:', todayData);
-    console.log('Raw yesterdayData:', yesterdayData);
-    
+  const { todayRevenue, yesterdayRevenue, difference, isIncrease } = useMemo(() => {
     const today = todayData?.data?.orders?.edges?.reduce((acc: number, edge: any) => {
-      const amount = parseFloat(edge.node.currentTotalPriceSet?.shopMoney?.amount || '0');
-      const currency = edge.node.currentTotalPriceSet?.shopMoney?.currencyCode;
-      console.log('Pedido hoje - Amount:', amount, 'Currency:', currency);
-      return acc + amount;
+      return acc + parseFloat(edge.node.currentTotalPriceSet?.shopMoney?.amount || '0');
     }, 0) || 0;
 
     const yesterday = yesterdayData?.data?.orders?.edges?.reduce((acc: number, edge: any) => {
-      const amount = parseFloat(edge.node.currentTotalPriceSet?.shopMoney?.amount || '0');
-      const currency = edge.node.currentTotalPriceSet?.shopMoney?.currencyCode;
-      console.log('Pedido ontem - Amount:', amount, 'Currency:', currency);
-      return acc + amount;
+      return acc + parseFloat(edge.node.currentTotalPriceSet?.shopMoney?.amount || '0');
     }, 0) || 0;
 
     console.log('Comparativo Diário - Hoje (COP):', today, 'Ontem (COP):', yesterday);
     console.log('Total de pedidos hoje:', todayData?.data?.orders?.edges?.length);
     console.log('Total de pedidos ontem:', yesterdayData?.data?.orders?.edges?.length);
 
-    // Calcular a mudança percentual
-    let change = 0;
-    if (yesterday > 0) {
-      change = ((today - yesterday) / yesterday) * 100;
-    } else if (today > 0) {
-      change = 100; // Se ontem foi 0 e hoje teve vendas, é aumento de 100%
-    }
+    // Calcular a diferença: Hoje - Ontem
+    const diff = today - yesterday;
     
-    console.log('Mudança percentual:', change);
+    console.log('Diferença (Hoje - Ontem):', diff);
     
     return {
       todayRevenue: today,
       yesterdayRevenue: yesterday,
-      percentageChange: Math.abs(change),
-      isIncrease: change >= 0 // Positivo = aumento, Negativo = queda
+      difference: Math.abs(diff),
+      isIncrease: diff >= 0
     };
   }, [todayData, yesterdayData]);
 
   if (yesterdayRevenue === 0 && todayRevenue === 0) return null;
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
 
   return (
     <div className="glass-card p-4 border-zinc-800">
@@ -63,7 +58,7 @@ export const ComparisonMetrics = () => {
         <div className="flex-1">
           <p className="text-sm text-zinc-400 mb-1">Comparativo Diário</p>
           <p className={`text-base font-bold ${isIncrease ? 'text-green-500' : 'text-red-500'}`}>
-            {isIncrease ? '+' : '-'}{percentageChange.toFixed(1)}% vs ontem
+            {isIncrease ? '+' : '-'}{formatCurrency(difference)} vs ontem
           </p>
         </div>
       </div>
