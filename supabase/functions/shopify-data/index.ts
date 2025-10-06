@@ -22,9 +22,79 @@ serve(async (req) => {
     const { endpoint } = await req.json();
     
     let graphqlQuery = '';
+    const today = new Date().toISOString().split('T')[0];
     
     // Queries diferentes baseadas no endpoint solicitado
-    if (endpoint === 'orders') {
+    if (endpoint === 'orders-today') {
+      graphqlQuery = `
+        {
+          orders(first: 250, query: "created_at:>='${today}'") {
+            edges {
+              node {
+                id
+                name
+                createdAt
+              }
+            }
+          }
+        }
+      `;
+    } else if (endpoint === 'revenue-today') {
+      graphqlQuery = `
+        {
+          orders(first: 250, query: "created_at:>='${today}'") {
+            edges {
+              node {
+                id
+                currentTotalPriceSet {
+                  shopMoney {
+                    amount
+                    currencyCode
+                  }
+                }
+              }
+            }
+          }
+        }
+      `;
+    } else if (endpoint === 'low-stock') {
+      graphqlQuery = `
+        {
+          products(first: 50) {
+            edges {
+              node {
+                id
+                title
+                totalInventory
+                variants(first: 10) {
+                  edges {
+                    node {
+                      id
+                      inventoryQuantity
+                      sku
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      `;
+    } else if (endpoint === 'customers-today') {
+      graphqlQuery = `
+        {
+          customers(first: 250, query: "created_at:>='${today}'") {
+            edges {
+              node {
+                id
+                email
+                createdAt
+              }
+            }
+          }
+        }
+      `;
+    } else if (endpoint === 'orders') {
       graphqlQuery = `
         {
           orders(first: 10, reverse: true) {

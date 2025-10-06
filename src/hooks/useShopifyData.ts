@@ -29,6 +29,11 @@ interface ShopifyResponse {
         node: any;
       }>;
     };
+    customers?: {
+      edges: Array<{
+        node: any;
+      }>;
+    };
   };
 }
 
@@ -78,5 +83,45 @@ export const useShopifyProducts = () => {
     refetchInterval: 300000, // 5 minutos
     retry: 3,
     staleTime: 60000,
+  });
+};
+
+export const useShopifyOrdersToday = () => {
+  return useQuery({
+    queryKey: ['shopify-orders-today'],
+    queryFn: () => fetchShopifyData('orders-today'),
+    refetchInterval: 30000,
+    retry: 3,
+    staleTime: 10000,
+  });
+};
+
+export const useShopifyRevenueToday = () => {
+  return useQuery({
+    queryKey: ['shopify-revenue-today'],
+    queryFn: () => fetchShopifyData('revenue-today'),
+    refetchInterval: 30000,
+    retry: 3,
+    staleTime: 10000,
+  });
+};
+
+export const useShopifyLowStock = () => {
+  return useQuery({
+    queryKey: ['shopify-low-stock'],
+    queryFn: () => fetchShopifyData('low-stock'),
+    refetchInterval: 300000, // 5 minutos
+    retry: 3,
+    staleTime: 60000,
+  });
+};
+
+export const useShopifyCustomersToday = () => {
+  return useQuery({
+    queryKey: ['shopify-customers-today'],
+    queryFn: () => fetchShopifyData('customers-today'),
+    refetchInterval: 30000,
+    retry: 3,
+    staleTime: 10000,
   });
 };
