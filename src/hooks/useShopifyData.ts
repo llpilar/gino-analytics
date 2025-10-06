@@ -135,3 +135,13 @@ export const useShopifyCustomersToday = () => {
     staleTime: 10000,
   });
 };
+
+export const useShopifyRevenuePeriod = (period: 'today' | '3days' | '7days' | '15days' | '30days') => {
+  return useQuery({
+    queryKey: ['shopify-revenue-period', period],
+    queryFn: () => fetchShopifyData(`revenue-${period}`),
+    refetchInterval: 30000,
+    retry: 3,
+    staleTime: 10000,
+  });
+};

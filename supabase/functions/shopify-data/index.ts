@@ -79,6 +79,34 @@ serve(async (req) => {
           }
         }
       `;
+    } else if (endpoint === 'revenue-3days' || endpoint === 'revenue-7days' || endpoint === 'revenue-15days' || endpoint === 'revenue-30days') {
+      let daysAgo = 0;
+      if (endpoint === 'revenue-3days') daysAgo = 3;
+      else if (endpoint === 'revenue-7days') daysAgo = 7;
+      else if (endpoint === 'revenue-15days') daysAgo = 15;
+      else if (endpoint === 'revenue-30days') daysAgo = 30;
+      
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - daysAgo);
+      const startDateStr = startDate.toISOString().split('T')[0];
+      
+      graphqlQuery = `
+        {
+          orders(first: 250, query: "created_at:>='${startDateStr}'") {
+            edges {
+              node {
+                id
+                currentTotalPriceSet {
+                  shopMoney {
+                    amount
+                    currencyCode
+                  }
+                }
+              }
+            }
+          }
+        }
+      `;
     } else if (endpoint === 'low-stock') {
       graphqlQuery = `
         {
