@@ -3,6 +3,8 @@ import { Button } from "./ui/button";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { ProfileEditor } from "./ProfileEditor";
+import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import { NotificationsPanel } from "./NotificationsPanel";
 
 export const DashboardHeader = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -62,14 +64,23 @@ export const DashboardHeader = () => {
             </span>
           </div>
           
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="relative glass-card hover:bg-zinc-800/50"
-          >
-            <Bell className="h-5 w-5 text-white" />
-            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary animate-pulse" />
-          </Button>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="relative glass-card hover:bg-zinc-800/50"
+              >
+                <Bell className="h-5 w-5 text-white" />
+                <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary animate-pulse" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-full sm:w-96 bg-zinc-900/95 border-zinc-800 p-0">
+              <div className="h-full p-6">
+                <NotificationsPanel />
+              </div>
+            </SheetContent>
+          </Sheet>
           
           <ProfileEditor />
         </div>

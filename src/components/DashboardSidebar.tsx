@@ -1,16 +1,18 @@
 import { Home, ShoppingBag, BarChart3, Settings, Zap, LogOut } from "lucide-react";
 import { Button } from "./ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLocation } from "react-router-dom";
 
 const menuItems = [
-  { icon: Home, label: "Dashboard", active: true },
-  { icon: ShoppingBag, label: "Produtos", active: false },
-  { icon: BarChart3, label: "Análises", active: false },
-  { icon: Settings, label: "Configurações", active: false },
+  { icon: Home, label: "Dashboard", path: "/" },
+  { icon: ShoppingBag, label: "Produtos", path: "/produtos" },
+  { icon: BarChart3, label: "Análises", path: "/analises" },
+  { icon: Settings, label: "Configurações", path: "/configuracoes" },
 ];
 
 export const DashboardSidebar = () => {
   const { signOut } = useAuth();
+  const location = useLocation();
 
   return (
     <>
@@ -29,22 +31,26 @@ export const DashboardSidebar = () => {
         
         {/* Navigation */}
         <nav className="flex-1 space-y-2 p-4">
-          {menuItems.map((item) => (
-            <button
-              key={item.label}
-              className={`
-                w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold
-                transition-all duration-300 ease-in-out
-                ${item.active 
-                  ? 'glass-card-active text-primary' 
-                  : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
-                }
-              `}
-            >
-              <item.icon className="h-5 w-5" />
-              {item.label}
-            </button>
-          ))}
+          {menuItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <a
+                key={item.label}
+                href={item.path}
+                className={`
+                  w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold
+                  transition-all duration-300 ease-in-out
+                  ${isActive 
+                    ? 'glass-card-active text-primary' 
+                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
+                  }
+                `}
+              >
+                <item.icon className="h-5 w-5" />
+                {item.label}
+              </a>
+            );
+          })}
         </nav>
 
         {/* Logout Button */}
