@@ -7,28 +7,40 @@ export const ComparisonMetrics = () => {
   const { data: yesterdayData } = useShopifyRevenueYesterday();
 
   const { todayRevenue, yesterdayRevenue, difference, isIncrease } = useMemo(() => {
+    console.log('=== INÍCIO DO CÁLCULO ===');
+    console.log('Raw todayData:', todayData);
+    console.log('Raw yesterdayData:', yesterdayData);
+    
     const today = todayData?.data?.orders?.edges?.reduce((acc: number, edge: any) => {
-      return acc + parseFloat(edge.node.currentTotalPriceSet?.shopMoney?.amount || '0');
+      const amount = parseFloat(edge.node.currentTotalPriceSet?.shopMoney?.amount || '0');
+      return acc + amount;
     }, 0) || 0;
 
     const yesterday = yesterdayData?.data?.orders?.edges?.reduce((acc: number, edge: any) => {
-      return acc + parseFloat(edge.node.currentTotalPriceSet?.shopMoney?.amount || '0');
+      const amount = parseFloat(edge.node.currentTotalPriceSet?.shopMoney?.amount || '0');
+      return acc + amount;
     }, 0) || 0;
 
-    console.log('Comparativo Diário - Hoje (COP):', today, 'Ontem (COP):', yesterday);
-    console.log('Total de pedidos hoje:', todayData?.data?.orders?.edges?.length);
-    console.log('Total de pedidos ontem:', yesterdayData?.data?.orders?.edges?.length);
+    console.log('HOJE - Total (COP):', today);
+    console.log('HOJE - Pedidos:', todayData?.data?.orders?.edges?.length);
+    console.log('ONTEM - Total (COP):', yesterday);
+    console.log('ONTEM - Pedidos:', yesterdayData?.data?.orders?.edges?.length);
 
     // Calcular a diferença: Hoje - Ontem
     const diff = today - yesterday;
+    const absoluteDiff = Math.abs(diff);
+    const increase = diff >= 0;
     
-    console.log('Diferença (Hoje - Ontem):', diff);
+    console.log('DIFERENÇA (Hoje - Ontem):', diff);
+    console.log('DIFERENÇA ABSOLUTA:', absoluteDiff);
+    console.log('É AUMENTO?:', increase);
+    console.log('=== FIM DO CÁLCULO ===');
     
     return {
       todayRevenue: today,
       yesterdayRevenue: yesterday,
-      difference: Math.abs(diff),
-      isIncrease: diff >= 0
+      difference: absoluteDiff,
+      isIncrease: increase
     };
   }, [todayData, yesterdayData]);
 
