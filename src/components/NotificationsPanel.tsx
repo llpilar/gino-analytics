@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useShopifyOrders } from "@/hooks/useShopifyData";
-import { ShoppingBag, Package } from "lucide-react";
+import { Package, ShoppingBag } from "lucide-react";
 import { useMemo } from "react";
+import shopifyLogo from "@/assets/shopify-logo.png";
 
 interface OrderItem {
   name: string;
@@ -94,9 +95,9 @@ export const NotificationsPanel = () => {
                 }}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30 shadow-lg flex-shrink-0">
-                    <ShoppingBag className="w-6 h-6 text-primary" />
-                  </div>
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-lg flex-shrink-0 p-2">
+                  <img src={shopifyLogo} alt="Shopify" className="w-full h-full object-contain" />
+                </div>
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
