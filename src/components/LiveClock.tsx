@@ -2,13 +2,45 @@ import { useEffect, useState } from "react";
 
 export const LiveClock = () => {
   const [time, setTime] = useState(new Date());
+  const [location, setLocation] = useState("Carregando...");
+  const [timezone, setTimezone] = useState("UTC");
 
   useEffect(() => {
+    // Detectar timezone automaticamente
+    const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    setTimezone(detectedTimezone);
+    
+    // Tentar obter localização via geolocalização
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            // Usar API de geocoding reverso (exemplo com API pública)
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`
+            );
+            const data = await response.json();
+            setLocation(`${data.address.city || data.address.town || data.address.village || ''}, ${data.address.country}`);
+          } catch (error) {
+            // Se falhar, usar apenas o timezone
+            setLocation(detectedTimezone.replace('_', ' '));
+          }
+        },
+        () => {
+          // Se usuário negar, usar timezone
+          setLocation(detectedTimezone.replace('_', ' '));
+        }
+      );
+    } else {
+      setLocation(detectedTimezone.replace('_', ' '));
+    }
+
     const timer = setInterval(() => {
       setTime(new Date());
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString('pt-BR', {
@@ -33,6 +65,11 @@ export const LiveClock = () => {
     return date.toLocaleDateString('pt-BR', { weekday: 'long' }).toUpperCase();
   };
 
+  const getTimezoneOffset = () => {
+    const offset = -time.getTimezoneOffset() / 60;
+    return `UTC${offset >= 0 ? '+' : ''}${offset}`;
+  };
+
   return (
     <div className="metric-card">
       {/* Grid background effect */}
@@ -46,7 +83,7 @@ export const LiveClock = () => {
             {getDayOfWeek(time)}
           </span>
           <span className="text-xs text-zinc-500 tracking-wider">
-            UTC-3
+            {getTimezoneOffset()}
           </span>
         </div>
 
@@ -64,8 +101,8 @@ export const LiveClock = () => {
           <div className="text-xs font-medium text-zinc-400 tracking-widest">
             {formatDate(time)}
           </div>
-          <div className="text-xs text-zinc-500 tracking-wider">
-            BUENOS AIRES, ARGENTINA
+          <div className="text-xs text-primary tracking-wider uppercase">
+            {location}
           </div>
         </div>
       </div>

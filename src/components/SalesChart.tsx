@@ -1,15 +1,19 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Skeleton } from "./ui/skeleton";
 import { TrendingUp } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface SalesChartProps {
   analyticsData: any;
   isLoading: boolean;
 }
 
+type PeriodType = 'daily' | 'weekly' | 'monthly';
+
 export const SalesChart = ({ analyticsData, isLoading }: SalesChartProps) => {
+  const [period, setPeriod] = useState<PeriodType>('daily');
   const chartData = useMemo(() => {
     if (!analyticsData?.data?.orders?.edges) {
       return [
@@ -23,28 +27,41 @@ export const SalesChart = ({ analyticsData, isLoading }: SalesChartProps) => {
       ];
     }
 
-    const ordersByDay: { [key: string]: number } = {};
+    const ordersMap: { [key: string]: number } = {};
     
     analyticsData.data.orders.edges.forEach(({ node }: any) => {
       const date = new Date(node.createdAt);
-      const dateKey = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`;
+      let dateKey: string;
       
-      if (!ordersByDay[dateKey]) {
-        ordersByDay[dateKey] = 0;
+      if (period === 'daily') {
+        dateKey = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`;
+      } else if (period === 'weekly') {
+        // Agrupar por semana
+        const weekStart = new Date(date);
+        weekStart.setDate(date.getDate() - date.getDay());
+        dateKey = `Sem ${String(weekStart.getDate()).padStart(2, '0')}/${String(weekStart.getMonth() + 1).padStart(2, '0')}`;
+      } else {
+        // Agrupar por mês
+        dateKey = `${date.toLocaleDateString('pt-BR', { month: 'short' })}`;
+      }
+      
+      if (!ordersMap[dateKey]) {
+        ordersMap[dateKey] = 0;
       }
       
       const amount = parseFloat(node.totalPriceSet.shopMoney.amount);
-      ordersByDay[dateKey] += amount;
+      ordersMap[dateKey] += amount;
     });
 
-    return Object.entries(ordersByDay)
+    return Object.entries(ordersMap)
       .map(([data, vendas]) => ({ data, vendas }))
       .sort((a, b) => {
-        const [dayA, monthA] = a.data.split('/').map(Number);
-        const [dayB, monthB] = b.data.split('/').map(Number);
+        if (period === 'monthly') return a.data.localeCompare(b.data);
+        const [dayA, monthA] = a.data.replace('Sem ', '').split('/').map(Number);
+        const [dayB, monthB] = b.data.replace('Sem ', '').split('/').map(Number);
         return monthA === monthB ? dayA - dayB : monthA - monthB;
       });
-  }, [analyticsData]);
+  }, [analyticsData, period]);
 
   if (isLoading) {
     return <Skeleton className="h-[400px] w-full bg-zinc-800/50" />;
@@ -53,16 +70,32 @@ export const SalesChart = ({ analyticsData, isLoading }: SalesChartProps) => {
   return (
     <Card className="glass-card border-zinc-800">
       <CardHeader className="pb-4">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
-            <TrendingUp className="w-5 h-5 text-primary" />
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+              <TrendingUp className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-base font-bold tracking-wider uppercase text-white">
+                Vendas - {period === 'daily' ? 'Últimos 7 Dias' : period === 'weekly' ? 'Últimas Semanas' : 'Últimos Meses'}
+              </CardTitle>
+              <p className="text-xs text-zinc-400 mt-0.5">Performance de vendas</p>
+            </div>
           </div>
-          <div>
-            <CardTitle className="text-base font-bold tracking-wider uppercase text-white">
-              Vendas dos Últimos 7 Dias
-            </CardTitle>
-            <p className="text-xs text-zinc-400 mt-0.5">Performance de vendas</p>
-          </div>
+          
+          <Tabs value={period} onValueChange={(v) => setPeriod(v as PeriodType)}>
+            <TabsList className="bg-zinc-900/50 border border-zinc-800">
+              <TabsTrigger value="daily" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary text-xs">
+                Diário
+              </TabsTrigger>
+              <TabsTrigger value="weekly" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary text-xs">
+                Semanal
+              </TabsTrigger>
+              <TabsTrigger value="monthly" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary text-xs">
+                Mensal
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
       </CardHeader>
       

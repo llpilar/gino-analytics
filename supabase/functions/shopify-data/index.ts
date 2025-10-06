@@ -57,6 +57,28 @@ serve(async (req) => {
           }
         }
       `;
+    } else if (endpoint === 'revenue-yesterday') {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+      
+      graphqlQuery = `
+        {
+          orders(first: 250, query: "created_at:>='${yesterdayStr}' AND created_at:<'${today}'") {
+            edges {
+              node {
+                id
+                currentTotalPriceSet {
+                  shopMoney {
+                    amount
+                    currencyCode
+                  }
+                }
+              }
+            }
+          }
+        }
+      `;
     } else if (endpoint === 'low-stock') {
       graphqlQuery = `
         {

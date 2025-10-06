@@ -106,6 +106,16 @@ export const useShopifyRevenueToday = () => {
   });
 };
 
+export const useShopifyRevenueYesterday = () => {
+  return useQuery({
+    queryKey: ['shopify-revenue-yesterday'],
+    queryFn: () => fetchShopifyData('revenue-yesterday'),
+    refetchInterval: 60000,
+    retry: 3,
+    staleTime: 30000,
+  });
+};
+
 export const useShopifyLowStock = () => {
   return useQuery({
     queryKey: ['shopify-low-stock'],
