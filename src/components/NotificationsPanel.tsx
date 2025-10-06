@@ -99,18 +99,18 @@ export const NotificationsPanel = () => {
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <h4 className="font-bold text-white text-lg">{order.name}</h4>
-                      <span className="text-lg font-bold text-primary ml-3 flex-shrink-0">
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <h4 className="font-bold text-white text-lg whitespace-nowrap">{order.name}</h4>
+                      <span className="text-lg font-bold text-primary whitespace-nowrap">
                         {formatCurrency(order.amount, order.currency)}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between text-sm mb-1">
-                      <span className="text-zinc-300 truncate">{itemText}</span>
+                    <div className="flex items-center justify-between text-sm mb-1 gap-2">
+                      <span className="text-zinc-300 truncate flex-1 min-w-0">{itemText}</span>
                     </div>
-                    <div className="flex items-center justify-between text-sm text-zinc-400">
-                      <span className="truncate">{order.customer}</span>
-                      <span className="ml-2 flex-shrink-0">{order.time}</span>
+                    <div className="flex items-center justify-between text-sm text-zinc-400 gap-2">
+                      <span className="truncate flex-1 min-w-0">{order.customer}</span>
+                      <span className="whitespace-nowrap">{order.time}</span>
                     </div>
                   </div>
                 </div>
