@@ -11,7 +11,7 @@ const menuItems = [
 
 export const DashboardSidebar = () => {
   return (
-    <aside className="w-64 bg-sidebar border-r border-sidebar-border flex flex-col h-screen">
+    <aside className="hidden lg:flex w-64 bg-sidebar border-r border-sidebar-border flex-col h-screen">
       {/* Logo */}
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center gap-3">

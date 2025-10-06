@@ -40,7 +40,9 @@ export const useShopifyOrders = () => {
   return useQuery({
     queryKey: ['shopify-orders'],
     queryFn: () => fetchShopifyData('orders'),
-    refetchInterval: 30000, // Atualiza a cada 30 segundos
+    refetchInterval: 30000,
+    retry: 3,
+    staleTime: 10000,
   });
 };
 
@@ -49,6 +51,8 @@ export const useShopifySummary = () => {
     queryKey: ['shopify-summary'],
     queryFn: () => fetchShopifyData('summary'),
     refetchInterval: 30000,
+    retry: 3,
+    staleTime: 10000,
   });
 };
 
@@ -56,6 +60,8 @@ export const useShopifyAnalytics = () => {
   return useQuery({
     queryKey: ['shopify-analytics'],
     queryFn: () => fetchShopifyData('analytics'),
-    refetchInterval: 60000, // Atualiza a cada 1 minuto
+    refetchInterval: 60000,
+    retry: 3,
+    staleTime: 30000,
   });
 };

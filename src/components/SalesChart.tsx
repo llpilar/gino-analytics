@@ -71,9 +71,9 @@ export const SalesChart = ({ analyticsData, isLoading }: SalesChartProps) => {
       });
   }, [analyticsData]);
   return (
-    <Card className="bg-card border-border p-6">
-      <div className="flex items-center gap-4 mb-6">
-        <div className="flex gap-2">
+    <Card className="bg-card border-border p-4 md:p-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
+        <div className="flex gap-2 flex-wrap">
           <button className="px-4 py-2 bg-secondary text-secondary-foreground rounded font-bold text-sm neon-border-blue">
             SEMANA
           </button>
@@ -84,23 +84,23 @@ export const SalesChart = ({ analyticsData, isLoading }: SalesChartProps) => {
             ANO
           </button>
         </div>
-        <div className="flex gap-6 ml-auto">
+        <div className="flex gap-4 md:gap-6 ml-auto flex-wrap">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-[hsl(var(--neon-green))]"></div>
-            <span className="text-sm font-bold text-muted-foreground">VENDAS</span>
+            <span className="text-xs md:text-sm font-bold text-muted-foreground">VENDAS</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-[hsl(var(--neon-blue))]"></div>
-            <span className="text-sm font-bold text-muted-foreground">PEDIDOS</span>
+            <span className="text-xs md:text-sm font-bold text-muted-foreground">PEDIDOS</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-[hsl(var(--neon-orange))]"></div>
-            <span className="text-sm font-bold text-muted-foreground">GASTOS ADS</span>
+            <span className="text-xs md:text-sm font-bold text-muted-foreground">GASTOS ADS</span>
           </div>
         </div>
       </div>
 
-      <ResponsiveContainer width="100%" height={400}>
+      <ResponsiveContainer width="100%" height={300} className="md:h-[400px]">
         <LineChart data={isLoading ? [] : chartData}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
           <XAxis 

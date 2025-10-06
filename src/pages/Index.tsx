@@ -61,11 +61,11 @@ const Index = () => {
       <main className="flex-1">
         <DashboardHeader />
         
-        <div className="p-6">
-          <div className="grid grid-cols-12 gap-6">
+        <div className="p-4 md:p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Métricas principais */}
-            <div className="col-span-9">
-              <div className="grid grid-cols-3 gap-6 mb-6">
+            <div className="lg:col-span-9">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 mb-6">
                 <MetricCard
                   title="VENDAS TOTAIS (BRL)"
                   value={summaryLoading ? "Carregando..." : metrics.totalVendasBRL}
@@ -108,7 +108,7 @@ const Index = () => {
             </div>
 
             {/* Painel de notificações */}
-            <div className="col-span-3">
+            <div className="lg:col-span-3">
               <NotificationsPanel />
             </div>
           </div>
