@@ -87,30 +87,31 @@ export const NotificationsPanel = () => {
                 boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 0 20px rgba(255, 255, 255, 0.05)'
               }}
             >
-              <div className="flex items-start gap-3">
+              <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30 shadow-lg flex-shrink-0">
                   <ShoppingBag className="w-6 h-6 text-primary" />
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between mb-2">
-                    <h4 className="font-bold text-white text-base">{order.name}</h4>
-                    <span className="text-xs text-zinc-400 ml-2 flex-shrink-0">{order.time}</span>
+                  <div className="flex items-center justify-between mb-1">
+                    <h4 className="font-bold text-white text-lg">{order.name}</h4>
+                    <span className="text-lg font-bold text-primary ml-3 flex-shrink-0">
+                      {formatCurrency(order.amount, order.currency)}
+                    </span>
                   </div>
-                  
-                  <p className="text-xl font-bold text-primary mb-2">
-                    {formatCurrency(order.amount, order.currency)}
-                  </p>
-                  
-                  <p className="text-sm text-zinc-300 mb-1">
-                    {order.totalItems} {order.totalItems === 1 ? 'item' : 'itens'} de{' '}
-                    {order.items.map(item => item.productTitle).join(', ')}
-                  </p>
-                  
-                  {order.customer && (
-                    <p className="text-xs text-zinc-400">• {order.customer}</p>
-                  )}
+                  <div className="flex items-center justify-between text-sm text-zinc-400">
+                    <span className="truncate">{order.customer}</span>
+                    <span className="ml-2 flex-shrink-0">{order.time}</span>
+                  </div>
                 </div>
+              </div>
+              
+              <div className="mt-3 flex items-center gap-2 text-primary">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                  <polyline points="17 6 23 6 23 12"></polyline>
+                </svg>
+                <span className="text-sm font-semibold">Nova venda confirmada</span>
               </div>
             </div>
           ))
