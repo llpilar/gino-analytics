@@ -47,10 +47,10 @@ const Index = () => {
 
                 {/* Right Sidebar */}
                 <div className="lg:col-span-4 xl:col-span-3 space-y-4 md:space-y-6 min-w-0">
-                  <LiveClock />
                   <div className="max-h-[600px] overflow-hidden">
                     <NotificationsPanel />
                   </div>
+                  <LiveClock />
                 </div>
               </div>
             </TabsContent>
