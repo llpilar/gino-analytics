@@ -1,5 +1,6 @@
 import { Home, ShoppingBag, BarChart3, Settings, Zap, LogOut } from "lucide-react";
 import { Button } from "./ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 const menuItems = [
   { icon: Home, label: "Dashboard", active: true },
@@ -9,6 +10,8 @@ const menuItems = [
 ];
 
 export const DashboardSidebar = () => {
+  const { signOut } = useAuth();
+
   return (
     <>
       {/* Desktop Sidebar */}
@@ -47,6 +50,7 @@ export const DashboardSidebar = () => {
         {/* Logout Button */}
         <div className="p-4 border-t border-zinc-800">
           <Button
+            onClick={signOut}
             variant="ghost"
             className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-zinc-400 hover:text-white hover:bg-zinc-800/50 rounded-xl transition-all duration-300"
           >

@@ -1,9 +1,12 @@
-import { Bell, User, Menu } from "lucide-react";
+import { Bell, Menu } from "lucide-react";
 import { Button } from "./ui/button";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { ProfileEditor } from "./ProfileEditor";
 
 export const DashboardHeader = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const { profile } = useAuth();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -42,7 +45,7 @@ export const DashboardHeader = () => {
           </Button>
           <div>
             <h2 className="text-lg md:text-xl font-bold text-white">
-              Bem-vindo de volta
+              Bem-vindo de volta {profile?.name || ''}
             </h2>
             <p className="text-xs md:text-sm text-zinc-400 capitalize">
               {formatDate(currentTime)}
@@ -68,13 +71,7 @@ export const DashboardHeader = () => {
             <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary animate-pulse" />
           </Button>
           
-          <Button 
-            variant="ghost" 
-            size="icon"
-            className="glass-card hover:bg-zinc-800/50"
-          >
-            <User className="h-5 w-5 text-white" />
-          </Button>
+          <ProfileEditor />
         </div>
       </div>
     </header>
