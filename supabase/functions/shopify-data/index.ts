@@ -117,6 +117,7 @@ serve(async (req) => {
                     node {
                       price
                       compareAtPrice
+                      currencyCode
                     }
                   }
                 }

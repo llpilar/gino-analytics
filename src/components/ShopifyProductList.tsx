@@ -19,6 +19,7 @@ interface ProductNode {
       node: {
         price: string;
         compareAtPrice: string | null;
+        currencyCode: string;
       };
     }>;
   };
@@ -58,6 +59,11 @@ export const ShopifyProductList = () => {
         const imageUrl = product.images?.edges?.[0]?.node?.url;
         const price = product.variants?.edges?.[0]?.node?.price || "0.00";
         const compareAtPrice = product.variants?.edges?.[0]?.node?.compareAtPrice;
+        const currencyCode = product.variants?.edges?.[0]?.node?.currencyCode || 'COP';
+        
+        const currencySymbol = currencyCode === 'BRL' ? 'R$' : 
+                               currencyCode === 'USD' ? '$' : 
+                               '$';
 
         return (
           <Card 
@@ -84,11 +90,11 @@ export const ShopifyProductList = () => {
               <div className="flex items-center gap-2">
                 {compareAtPrice && parseFloat(compareAtPrice) > parseFloat(price) && (
                   <span className="text-sm text-muted-foreground line-through">
-                    R$ {parseFloat(compareAtPrice).toFixed(2)}
+                    {currencySymbol} {parseFloat(compareAtPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </span>
                 )}
                 <span className="text-xl font-bold text-primary">
-                  R$ {parseFloat(price).toFixed(2)}
+                  {currencySymbol} {parseFloat(price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </span>
               </div>
             </div>
