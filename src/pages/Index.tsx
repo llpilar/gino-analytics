@@ -7,6 +7,7 @@ import { NotificationsPanel } from "@/components/NotificationsPanel";
 import { ShopifyProductList } from "@/components/ShopifyProductList";
 import { ProductSalesTable } from "@/components/ProductSalesTable";
 import { LiveClock } from "@/components/LiveClock";
+import { FacebookAdsMetrics } from "@/components/FacebookAdsMetrics";
 import { useShopifyAnalytics } from "@/hooks/useShopifyData";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -43,6 +44,7 @@ const Index = () => {
                 <div className="lg:col-span-8 xl:col-span-9 space-y-4 md:space-y-6 min-w-0">
                   <DashboardMetrics />
                   <ComparisonMetrics />
+                  <FacebookAdsMetrics />
                   <SalesChart analyticsData={analyticsData} isLoading={analyticsLoading} />
                 </div>
 
