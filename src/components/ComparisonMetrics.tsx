@@ -17,7 +17,13 @@ export const ComparisonMetrics = () => {
 
     console.log('Comparativo Diário - Hoje:', today, 'Ontem:', yesterday);
 
-    const change = yesterday > 0 ? ((today - yesterday) / yesterday) * 100 : (today > 0 ? 100 : 0);
+    // Calcular a mudança percentual
+    let change = 0;
+    if (yesterday > 0) {
+      change = ((today - yesterday) / yesterday) * 100;
+    } else if (today > 0) {
+      change = 100; // Se ontem foi 0 e hoje teve vendas, é aumento de 100%
+    }
     
     console.log('Mudança percentual:', change);
     
@@ -25,7 +31,7 @@ export const ComparisonMetrics = () => {
       todayRevenue: today,
       yesterdayRevenue: yesterday,
       percentageChange: Math.abs(change),
-      isIncrease: change > 0
+      isIncrease: change >= 0 // Positivo = aumento, Negativo = queda
     };
   }, [todayData, yesterdayData]);
 
