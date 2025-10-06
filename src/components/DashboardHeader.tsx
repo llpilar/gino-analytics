@@ -1,66 +1,33 @@
-import { useEffect, useState } from "react";
+import { Bell, User } from "lucide-react";
+import { Button } from "./ui/button";
 
 export const DashboardHeader = () => {
-  const [currentTime, setCurrentTime] = useState(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString("pt-BR", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-  };
-
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString("pt-BR", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  const getLastUpdated = () => {
-    return currentTime.toLocaleTimeString("pt-BR", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-  };
-
   return (
-    <header className="border-b border-border bg-card p-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded bg-secondary/20 border border-secondary flex items-center justify-center">
-              <span className="text-secondary font-bold">O</span>
-            </div>
-            <h1 className="text-2xl font-bold tracking-wider">OVERVIEW</h1>
-          </div>
-          <span className="text-sm text-muted-foreground">
-            Last updated {getLastUpdated()}
-          </span>
+    <header className="sticky top-0 z-50 w-full liquid-glass border-b border-white/10 backdrop-blur-xl">
+      <div className="flex h-16 items-center justify-between px-6">
+        <div>
+          <h2 className="text-2xl font-black tracking-tight">
+            <span className="text-white">Dashboard</span>
+          </h2>
+          <p className="text-sm text-muted-foreground">Bem-vindo de volta</p>
         </div>
         
-        <div className="text-right">
-          <div className="text-xs text-muted-foreground uppercase mb-1">
-            {formatDate(currentTime).split(",")[0]}
-          </div>
-          <div className="text-4xl font-bold neon-text-blue">
-            {formatTime(currentTime)}
-          </div>
-          <div className="text-xs text-muted-foreground mt-1">
-            {formatDate(currentTime).split(",").slice(1).join(",")}
-          </div>
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="relative liquid-glass hover:bg-white/10 rounded-xl"
+          >
+            <Bell className="h-5 w-5" />
+            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary animate-pulse" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="liquid-glass hover:bg-white/10 rounded-xl"
+          >
+            <User className="h-5 w-5" />
+          </Button>
         </div>
       </div>
     </header>

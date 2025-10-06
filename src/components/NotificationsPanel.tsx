@@ -1,86 +1,90 @@
-import { Card } from "@/components/ui/card";
-import { CircleDot } from "lucide-react";
-
-const notifications = [
-  {
-    id: 1,
-    type: "success",
-    title: "PEDIDO CONFIRMADO",
-    message: "Novo pedido de R$ 1.247,00 foi confirmado com sucesso.",
-    date: "10/10/2025",
-    color: "green",
-  },
-  {
-    id: 2,
-    type: "info",
-    title: "META ATINGIDA",
-    message: "Você atingiu 80% da meta mensal de vendas!",
-    date: "10/10/2025",
-    color: "blue",
-  },
-  {
-    id: 3,
-    type: "warning",
-    title: "GASTO ADS ALTO",
-    message: "Seus gastos com anúncios estão 15% acima da média.",
-    date: "10/10/2025",
-    color: "orange",
-  },
-];
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useShopifyOrders } from "@/hooks/useShopifyData";
+import { ShoppingBag, TrendingUp } from "lucide-react";
+import { useMemo } from "react";
 
 export const NotificationsPanel = () => {
-  return (
-    <Card className="bg-card border-border p-6 h-full">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-secondary/20 border border-secondary flex items-center justify-center">
-            <span className="text-secondary text-xs font-bold">3</span>
-          </div>
-          <h3 className="text-sm font-bold tracking-wider">NOTIFICAÇÕES</h3>
-        </div>
-        <button className="text-xs text-primary hover:underline font-bold">
-          LIMPAR TUDO
-        </button>
-      </div>
+  const { data: ordersData } = useShopifyOrders();
 
-      <div className="space-y-4">
-        {notifications.map((notification) => (
-          <div
-            key={notification.id}
-            className="border border-border rounded-lg p-4 hover:border-primary/30 transition-all"
-          >
-            <div className="flex items-start gap-3">
-              <CircleDot 
-                className={`w-4 h-4 mt-1 ${
-                  notification.color === "green"
-                    ? "text-[hsl(var(--neon-green))]"
-                    : notification.color === "blue"
-                    ? "text-[hsl(var(--neon-blue))]"
-                    : "text-[hsl(var(--neon-orange))]"
-                }`}
-              />
-              <div className="flex-1">
-                <div className="flex items-center justify-between mb-1">
-                  <h4 className="text-sm font-bold">{notification.title}</h4>
-                  <span className="text-xs text-muted-foreground">
-                    {notification.type === "warning" ? "MÉDIO" : ""}
-                  </span>
+  const recentOrders = useMemo(() => {
+    if (!ordersData?.data?.orders?.edges) return [];
+    
+    return ordersData.data.orders.edges.slice(0, 5).map((edge: any) => ({
+      id: edge.node.id,
+      name: edge.node.name,
+      customer: edge.node.customer?.displayName || 'Cliente',
+      amount: parseFloat(edge.node.totalPriceSet?.shopMoney?.amount || '0'),
+      currency: edge.node.totalPriceSet?.shopMoney?.currencyCode || 'COP',
+      time: new Date(edge.node.createdAt).toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    }));
+  }, [ordersData]);
+
+  const formatCurrency = (amount: number, currency: string) => {
+    if (currency === 'BRL') {
+      return new Intl.NumberFormat('pt-BR', { 
+        style: 'currency', 
+        currency: 'BRL' 
+      }).format(amount);
+    }
+    return new Intl.NumberFormat('es-CO', { 
+      style: 'currency', 
+      currency: 'COP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount).replace('COP', '$');
+  };
+
+  return (
+    <Card className="glass-card h-full">
+      <CardHeader>
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-3 h-3 rounded-full bg-primary animate-pulse" />
+          <CardTitle className="text-lg font-bold tracking-wider uppercase">
+            Novas Vendas
+          </CardTitle>
+        </div>
+        <p className="text-sm text-muted-foreground">Últimos pedidos em tempo real</p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {recentOrders.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <ShoppingBag className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <p>Aguardando novos pedidos...</p>
+          </div>
+        ) : (
+          recentOrders.map((order) => (
+            <div 
+              key={order.id}
+              className="liquid-glass rounded-xl p-4 border border-white/10 hover:border-primary/30 transition-all duration-300 group"
+            >
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors">
+                    <ShoppingBag className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm text-white">{order.name}</p>
+                    <p className="text-xs text-muted-foreground">{order.customer}</p>
+                  </div>
                 </div>
-                <p className="text-sm text-muted-foreground mb-2">
-                  {notification.message}
-                </p>
-                <span className="text-xs text-muted-foreground">
-                  {notification.date}
-                </span>
+                <div className="text-right">
+                  <p className="text-sm font-bold text-primary">
+                    {formatCurrency(order.amount, order.currency)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{order.time}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-green-500">
+                <TrendingUp className="w-3 h-3" />
+                <span>Nova venda</span>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
-
-      <button className="w-full mt-6 py-3 border border-border rounded-lg text-sm font-bold hover:bg-muted transition-all">
-        MOSTRAR TODAS (3)
-      </button>
+          ))
+        )}
+      </CardContent>
     </Card>
   );
 };
