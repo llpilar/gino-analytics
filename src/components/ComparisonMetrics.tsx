@@ -7,15 +7,26 @@ export const ComparisonMetrics = () => {
   const { data: yesterdayData } = useShopifyRevenueYesterday();
 
   const { todayRevenue, yesterdayRevenue, percentageChange, isIncrease } = useMemo(() => {
+    console.log('Raw todayData:', todayData);
+    console.log('Raw yesterdayData:', yesterdayData);
+    
     const today = todayData?.data?.orders?.edges?.reduce((acc: number, edge: any) => {
-      return acc + parseFloat(edge.node.currentTotalPriceSet?.shopMoney?.amount || '0');
+      const amount = parseFloat(edge.node.currentTotalPriceSet?.shopMoney?.amount || '0');
+      const currency = edge.node.currentTotalPriceSet?.shopMoney?.currencyCode;
+      console.log('Pedido hoje - Amount:', amount, 'Currency:', currency);
+      return acc + amount;
     }, 0) || 0;
 
     const yesterday = yesterdayData?.data?.orders?.edges?.reduce((acc: number, edge: any) => {
-      return acc + parseFloat(edge.node.currentTotalPriceSet?.shopMoney?.amount || '0');
+      const amount = parseFloat(edge.node.currentTotalPriceSet?.shopMoney?.amount || '0');
+      const currency = edge.node.currentTotalPriceSet?.shopMoney?.currencyCode;
+      console.log('Pedido ontem - Amount:', amount, 'Currency:', currency);
+      return acc + amount;
     }, 0) || 0;
 
-    console.log('Comparativo Diário - Hoje:', today, 'Ontem:', yesterday);
+    console.log('Comparativo Diário - Hoje (COP):', today, 'Ontem (COP):', yesterday);
+    console.log('Total de pedidos hoje:', todayData?.data?.orders?.edges?.length);
+    console.log('Total de pedidos ontem:', yesterdayData?.data?.orders?.edges?.length);
 
     // Calcular a mudança percentual
     let change = 0;
