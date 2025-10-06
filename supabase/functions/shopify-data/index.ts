@@ -98,7 +98,7 @@ serve(async (req) => {
       let hasNextPage = true;
       let cursor = null;
       
-      while (hasNextPage && allOrders.length < 1000) { // Limite de segurança
+      while (hasNextPage && allOrders.length < 5000) { // Limite de segurança aumentado
         const paginationQuery: string = cursor 
           ? `, after: "${cursor}"` 
           : '';
