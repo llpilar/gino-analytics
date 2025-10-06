@@ -45,17 +45,14 @@
 }
 
 @layer components {
-  /* Neon Glow Effects */
+  /* Subtle Effects */
   .neon-glow {
-    text-shadow: 0 0 10px hsl(var(--primary)),
-                 0 0 20px hsl(var(--primary)),
-                 0 0 40px hsl(var(--primary));
+    /* Removed excessive glow */
   }
   
   .neon-border {
-    border-color: hsl(var(--primary));
-    box-shadow: 0 0 10px hsla(85, 100%, 69%, 0.3),
-                inset 0 0 10px hsla(85, 100%, 69%, 0.1);
+    border-color: hsl(var(--primary) / 0.3);
+    box-shadow: none;
   }
   
   .glass-card {

@@ -16,10 +16,10 @@ export const DashboardSidebar = () => {
         {/* Logo */}
         <div className="flex h-16 items-center justify-center border-b border-zinc-800">
           <div className="flex items-center gap-2">
-            <Zap className="w-7 h-7 text-primary neon-glow" />
+            <Zap className="w-7 h-7 text-primary" />
             <h1 className="text-2xl font-black tracking-tight">
               <span className="text-white">Shop</span>
-              <span className="text-primary neon-glow">Dash</span>
+              <span className="text-primary">Dash</span>
             </h1>
           </div>
         </div>
@@ -33,7 +33,7 @@ export const DashboardSidebar = () => {
                 w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold
                 transition-all duration-300 ease-in-out
                 ${item.active 
-                  ? 'glass-card-active text-primary neon-border' 
+                  ? 'glass-card-active text-primary' 
                   : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
                 }
               `}

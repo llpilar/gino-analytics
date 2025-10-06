@@ -55,7 +55,7 @@ export const LiveClock = () => {
           <div className="absolute w-24 h-24 border border-primary/20 rounded-lg transform rotate-45" />
           <div className="absolute w-20 h-20 border border-secondary/20 rounded-lg transform rotate-45" />
           
-          <div className="text-5xl md:text-6xl font-black text-white neon-glow tracking-tight">
+          <div className="text-5xl md:text-6xl font-black text-white tracking-tight">
             {formatTime(time)}
           </div>
         </div>

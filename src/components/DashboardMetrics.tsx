@@ -52,39 +52,6 @@ export const DashboardMetrics = () => {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-      {/* Pedidos de Hoje */}
-      <div className="metric-card group relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl" />
-        
-        <div className="relative z-10">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
-                <ShoppingCart className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                  Pedidos de Hoje
-                </h3>
-                <p className="text-xs text-zinc-500 mt-0.5">Tempo real</p>
-              </div>
-            </div>
-            <div className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-lg shadow-primary/50" />
-          </div>
-
-          <div className="text-5xl md:text-6xl font-black mb-3 text-white neon-glow">
-            {ordersCount}
-          </div>
-
-          <div className="flex items-center gap-2 text-primary">
-            <TrendingUp className="w-4 h-4" />
-            <span className="text-sm font-semibold">
-              {ordersCount} pedido{ordersCount !== 1 ? 's' : ''} criado{ordersCount !== 1 ? 's' : ''} hoje
-            </span>
-          </div>
-        </div>
-      </div>
-
       {/* Faturamento de Hoje */}
       <div className="metric-card group relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/5 rounded-full blur-3xl" />
@@ -131,6 +98,39 @@ export const DashboardMetrics = () => {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Pedidos de Hoje */}
+      <div className="metric-card group relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl" />
+        
+        <div className="relative z-10">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                <ShoppingCart className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                  Pedidos de Hoje
+                </h3>
+                <p className="text-xs text-zinc-500 mt-0.5">Tempo real</p>
+              </div>
+            </div>
+            <div className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-lg shadow-primary/50" />
+          </div>
+
+          <div className="text-5xl md:text-6xl font-black mb-3 text-white">
+            {ordersCount}
+          </div>
+
+          <div className="flex items-center gap-2 text-primary">
+            <TrendingUp className="w-4 h-4" />
+            <span className="text-sm font-semibold">
+              {ordersCount} pedido{ordersCount !== 1 ? 's' : ''} criado{ordersCount !== 1 ? 's' : ''} hoje
+            </span>
           </div>
         </div>
       </div>

@@ -23,13 +23,13 @@ const Index = () => {
             <TabsList className="glass-card border-zinc-800 mb-6 p-1">
               <TabsTrigger 
                 value="dashboard" 
-                className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:neon-border rounded-lg font-semibold"
+                className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary rounded-lg font-semibold"
               >
                 Dashboard
               </TabsTrigger>
               <TabsTrigger 
                 value="products" 
-                className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:neon-border rounded-lg font-semibold"
+                className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary rounded-lg font-semibold"
               >
                 Produtos
               </TabsTrigger>
