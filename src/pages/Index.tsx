@@ -1,7 +1,7 @@
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { DashboardMetrics } from "@/components/DashboardMetrics";
-import { ComparisonMetrics } from "@/components/ComparisonMetrics";
+
 import { SalesChart } from "@/components/SalesChart";
 import { NotificationsPanel } from "@/components/NotificationsPanel";
 import { ShopifyProductList } from "@/components/ShopifyProductList";
@@ -42,7 +42,6 @@ const Index = () => {
                 {/* Main Content */}
                 <div className="lg:col-span-8 xl:col-span-9 space-y-4 md:space-y-6 min-w-0">
                   <DashboardMetrics />
-                  <ComparisonMetrics />
                   <SalesChart analyticsData={analyticsData} isLoading={analyticsLoading} />
                 </div>
 
