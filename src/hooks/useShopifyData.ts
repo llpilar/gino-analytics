@@ -19,9 +19,14 @@ interface OrderNode {
 
 interface ShopifyResponse {
   data: {
-    orders: {
+    orders?: {
       edges: Array<{
         node: OrderNode;
+      }>;
+    };
+    products?: {
+      edges: Array<{
+        node: any;
       }>;
     };
   };
@@ -63,5 +68,15 @@ export const useShopifyAnalytics = () => {
     refetchInterval: 60000,
     retry: 3,
     staleTime: 30000,
+  });
+};
+
+export const useShopifyProducts = () => {
+  return useQuery({
+    queryKey: ['shopify-products'],
+    queryFn: () => fetchShopifyData('products'),
+    refetchInterval: 300000, // 5 minutos
+    retry: 3,
+    staleTime: 60000,
   });
 };

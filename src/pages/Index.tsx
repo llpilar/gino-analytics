@@ -3,8 +3,10 @@ import { DashboardHeader } from "@/components/DashboardHeader";
 import { MetricCard } from "@/components/MetricCard";
 import { SalesChart } from "@/components/SalesChart";
 import { NotificationsPanel } from "@/components/NotificationsPanel";
+import { ShopifyProductList } from "@/components/ShopifyProductList";
 import { useShopifySummary, useShopifyAnalytics } from "@/hooks/useShopifyData";
 import { useMemo } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Index = () => {
   const { data: summaryData, isLoading: summaryLoading } = useShopifySummary();
@@ -62,56 +64,69 @@ const Index = () => {
         <DashboardHeader />
         
         <div className="p-4 md:p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Métricas principais */}
-            <div className="lg:col-span-9">
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 mb-6">
-                <MetricCard
-                  title="VENDAS TOTAIS (BRL)"
-                  value={summaryLoading ? "Carregando..." : metrics.totalVendasBRL}
-                  subtitle="Últimas 24 horas"
-                  trend="up"
-                  trendValue={metrics.trendVendas}
-                  color="green"
-                />
-                <MetricCard
-                  title="VENDAS (USD)"
-                  value={summaryLoading ? "Carregando..." : metrics.totalVendasUSD}
-                  subtitle="Conversão automática"
-                  trend="up"
-                  trendValue={metrics.trendVendas}
-                  color="blue"
-                />
-                <MetricCard
-                  title="GASTOS EM ADS"
-                  value={summaryLoading ? "Carregando..." : metrics.gastosAds}
-                  subtitle="Estimativa: 15% do faturamento"
-                  trend="down"
-                  trendValue="-8%"
-                  color="orange"
-                />
+          <Tabs defaultValue="dashboard" className="w-full">
+            <TabsList className="mb-6">
+              <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+              <TabsTrigger value="products">Produtos</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="dashboard">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                {/* Métricas principais */}
+                <div className="lg:col-span-9">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 mb-6">
+                    <MetricCard
+                      title="VENDAS TOTAIS (BRL)"
+                      value={summaryLoading ? "Carregando..." : metrics.totalVendasBRL}
+                      subtitle="Últimas 24 horas"
+                      trend="up"
+                      trendValue={metrics.trendVendas}
+                      color="green"
+                    />
+                    <MetricCard
+                      title="VENDAS (USD)"
+                      value={summaryLoading ? "Carregando..." : metrics.totalVendasUSD}
+                      subtitle="Conversão automática"
+                      trend="up"
+                      trendValue={metrics.trendVendas}
+                      color="blue"
+                    />
+                    <MetricCard
+                      title="GASTOS EM ADS"
+                      value={summaryLoading ? "Carregando..." : metrics.gastosAds}
+                      subtitle="Estimativa: 15% do faturamento"
+                      trend="down"
+                      trendValue="-8%"
+                      color="orange"
+                    />
+                  </div>
+
+                  <div className="mb-6">
+                    <MetricCard
+                      title="TOTAL DE PEDIDOS"
+                      value={summaryLoading ? "Carregando..." : metrics.totalPedidos}
+                      subtitle="Últimas 24 horas"
+                      trend="up"
+                      trendValue={metrics.trendPedidos}
+                      color="green"
+                    />
+                  </div>
+
+                  {/* Gráfico de vendas */}
+                  <SalesChart analyticsData={analyticsData} isLoading={analyticsLoading} />
+                </div>
+
+                {/* Painel de notificações */}
+                <div className="lg:col-span-3">
+                  <NotificationsPanel />
+                </div>
               </div>
-
-              <div className="mb-6">
-                <MetricCard
-                  title="TOTAL DE PEDIDOS"
-                  value={summaryLoading ? "Carregando..." : metrics.totalPedidos}
-                  subtitle="Últimas 24 horas"
-                  trend="up"
-                  trendValue={metrics.trendPedidos}
-                  color="green"
-                />
-              </div>
-
-              {/* Gráfico de vendas */}
-              <SalesChart analyticsData={analyticsData} isLoading={analyticsLoading} />
-            </div>
-
-            {/* Painel de notificações */}
-            <div className="lg:col-span-3">
-              <NotificationsPanel />
-            </div>
-          </div>
+            </TabsContent>
+            
+            <TabsContent value="products">
+              <ShopifyProductList />
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
     </div>

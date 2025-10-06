@@ -95,6 +95,36 @@ serve(async (req) => {
           }
         }
       `;
+    } else if (endpoint === 'products') {
+      graphqlQuery = `
+        {
+          products(first: 20) {
+            edges {
+              node {
+                id
+                title
+                descriptionHtml
+                images(first: 1) {
+                  edges {
+                    node {
+                      url
+                      altText
+                    }
+                  }
+                }
+                variants(first: 1) {
+                  edges {
+                    node {
+                      price
+                      compareAtPrice
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      `;
     }
 
     console.log('Consultando Shopify GraphQL API...');
