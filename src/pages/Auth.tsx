@@ -39,6 +39,7 @@ export default function Auth() {
 
     try {
       if (isLogin) {
+        // A sessão já persiste automaticamente no localStorage por 30 dias
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -48,7 +49,7 @@ export default function Auth() {
 
         toast({
           title: "Login realizado!",
-          description: "Bem-vindo de volta.",
+          description: "Sessão salva por 30 dias.",
         });
       } else {
         const { error } = await supabase.auth.signUp({
