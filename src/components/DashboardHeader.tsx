@@ -45,7 +45,7 @@ export const DashboardHeader = () => {
           </Button>
           <div>
             <h2 className="text-lg md:text-xl font-bold text-white">
-              Bem-vindo de volta {profile?.name || ''}
+              Bem-vindo de volta {profile?.name?.split(' ')[0] || ''}
             </h2>
             <p className="text-xs md:text-sm text-zinc-400 capitalize">
               {formatDate(currentTime)}

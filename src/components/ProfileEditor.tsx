@@ -41,14 +41,14 @@ export function ProfileEditor() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <button className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-white/5 transition-colors">
-          <Avatar className="w-10 h-10">
+        <button className="flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 transition-colors">
+          <Avatar className="w-8 h-8 md:w-10 md:h-10">
             <AvatarImage src={profile?.avatar_url || ""} />
             <AvatarFallback className="bg-primary/20 text-primary">
-              {profile?.name?.[0]?.toUpperCase() || <User className="w-5 h-5" />}
+              {profile?.name?.[0]?.toUpperCase() || <User className="w-4 h-4 md:w-5 md:h-5" />}
             </AvatarFallback>
           </Avatar>
-          <div className="flex-1 text-left">
+          <div className="hidden md:block text-left">
             <p className="text-sm font-medium text-white">
               {profile?.name || "Usuário"}
             </p>
