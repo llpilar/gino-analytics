@@ -81,21 +81,11 @@ serve(async (req) => {
       `;
     } else if (endpoint === 'revenue-3days' || endpoint === 'revenue-7days' || endpoint === 'revenue-15days' || endpoint === 'revenue-30days') {
       let daysAgo = 0;
-      let maxResults = 250;
       
-      if (endpoint === 'revenue-3days') {
-        daysAgo = 3;
-        maxResults = 250;
-      } else if (endpoint === 'revenue-7days') {
-        daysAgo = 7;
-        maxResults = 250;
-      } else if (endpoint === 'revenue-15days') {
-        daysAgo = 15;
-        maxResults = 250;
-      } else if (endpoint === 'revenue-30days') {
-        daysAgo = 30;
-        maxResults = 250; // Shopify limita a 250 por query
-      }
+      if (endpoint === 'revenue-3days') daysAgo = 3;
+      else if (endpoint === 'revenue-7days') daysAgo = 7;
+      else if (endpoint === 'revenue-15days') daysAgo = 15;
+      else if (endpoint === 'revenue-30days') daysAgo = 30;
       
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - daysAgo);
@@ -103,23 +93,79 @@ serve(async (req) => {
       
       console.log(`Buscando pedidos dos últimos ${daysAgo} dias a partir de ${startDateStr}`);
       
-      graphqlQuery = `
-        {
-          orders(first: ${maxResults}, sortKey: CREATED_AT, reverse: true, query: "created_at:>='${startDateStr}'") {
-            edges {
-              node {
-                id
-                currentTotalPriceSet {
-                  shopMoney {
-                    amount
-                    currencyCode
+      // Para 30 dias, precisamos fazer paginação para pegar todos os pedidos
+      let allOrders: any[] = [];
+      let hasNextPage = true;
+      let cursor = null;
+      
+      while (hasNextPage && allOrders.length < 1000) { // Limite de segurança
+        const paginationQuery: string = cursor 
+          ? `, after: "${cursor}"` 
+          : '';
+        
+        const paginatedQuery: string = `
+          {
+            orders(first: 250, sortKey: CREATED_AT, reverse: true, query: "created_at:>='${startDateStr}'"${paginationQuery}) {
+              pageInfo {
+                hasNextPage
+                endCursor
+              }
+              edges {
+                node {
+                  id
+                  currentTotalPriceSet {
+                    shopMoney {
+                      amount
+                      currencyCode
+                    }
                   }
                 }
               }
             }
           }
+        `;
+        
+        const pageResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Shopify-Access-Token': shopifyAccessToken,
+          },
+          body: JSON.stringify({ query: paginatedQuery }),
+        });
+        
+        if (!pageResponse.ok) {
+          throw new Error(`Erro na paginação: ${pageResponse.status}`);
         }
-      `;
+        
+        const pageData = await pageResponse.json();
+        const orders = pageData.data?.orders?.edges || [];
+        allOrders = [...allOrders, ...orders];
+        
+        hasNextPage = pageData.data?.orders?.pageInfo?.hasNextPage || false;
+        cursor = pageData.data?.orders?.pageInfo?.endCursor || null;
+        
+        console.log(`Página carregada: ${orders.length} pedidos. Total: ${allOrders.length}`);
+      }
+      
+      console.log(`Total de pedidos encontrados para ${daysAgo} dias: ${allOrders.length}`);
+      
+      // Retornar no mesmo formato esperado
+      return new Response(
+        JSON.stringify({
+          data: {
+            orders: {
+              edges: allOrders
+            }
+          }
+        }),
+        { 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          } 
+        }
+      );
     } else if (endpoint === 'low-stock') {
       graphqlQuery = `
         {
