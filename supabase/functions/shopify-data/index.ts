@@ -81,18 +81,31 @@ serve(async (req) => {
       `;
     } else if (endpoint === 'revenue-3days' || endpoint === 'revenue-7days' || endpoint === 'revenue-15days' || endpoint === 'revenue-30days') {
       let daysAgo = 0;
-      if (endpoint === 'revenue-3days') daysAgo = 3;
-      else if (endpoint === 'revenue-7days') daysAgo = 7;
-      else if (endpoint === 'revenue-15days') daysAgo = 15;
-      else if (endpoint === 'revenue-30days') daysAgo = 30;
+      let maxResults = 250;
+      
+      if (endpoint === 'revenue-3days') {
+        daysAgo = 3;
+        maxResults = 250;
+      } else if (endpoint === 'revenue-7days') {
+        daysAgo = 7;
+        maxResults = 250;
+      } else if (endpoint === 'revenue-15days') {
+        daysAgo = 15;
+        maxResults = 250;
+      } else if (endpoint === 'revenue-30days') {
+        daysAgo = 30;
+        maxResults = 250; // Shopify limita a 250 por query
+      }
       
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - daysAgo);
       const startDateStr = startDate.toISOString().split('T')[0];
       
+      console.log(`Buscando pedidos dos últimos ${daysAgo} dias a partir de ${startDateStr}`);
+      
       graphqlQuery = `
         {
-          orders(first: 250, query: "created_at:>='${startDateStr}'") {
+          orders(first: ${maxResults}, sortKey: CREATED_AT, reverse: true, query: "created_at:>='${startDateStr}'") {
             edges {
               node {
                 id
