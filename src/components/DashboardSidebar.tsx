@@ -1,7 +1,8 @@
-import { Home, ShoppingBag, BarChart3, Settings, Zap, LogOut } from "lucide-react";
+import { Home, ShoppingBag, BarChart3, Settings, LogOut } from "lucide-react";
 import { Button } from "./ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "react-router-dom";
+import logo from "@/assets/logo.png";
 
 const menuItems = [
   { icon: Home, label: "Dashboard", path: "/" },
@@ -20,13 +21,7 @@ export const DashboardSidebar = () => {
       <aside className="hidden lg:flex lg:w-64 lg:flex-col bg-zinc-900/50 backdrop-blur-xl border-r border-zinc-800">
         {/* Logo */}
         <div className="flex h-16 items-center justify-center border-b border-zinc-800">
-          <div className="flex items-center gap-2">
-            <Zap className="w-7 h-7 text-primary" />
-            <h1 className="text-2xl font-black tracking-tight">
-              <span className="text-white">Shop</span>
-              <span className="text-primary">Dash</span>
-            </h1>
-          </div>
+          <img src={logo} alt="ShopDash Logo" className="w-12 h-12" />
         </div>
         
         {/* Navigation */}
