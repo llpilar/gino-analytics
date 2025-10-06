@@ -5,6 +5,7 @@ import { ComparisonMetrics } from "@/components/ComparisonMetrics";
 import { SalesChart } from "@/components/SalesChart";
 import { NotificationsPanel } from "@/components/NotificationsPanel";
 import { ShopifyProductList } from "@/components/ShopifyProductList";
+import { ProductSalesTable } from "@/components/ProductSalesTable";
 import { LiveClock } from "@/components/LiveClock";
 import { useShopifyAnalytics } from "@/hooks/useShopifyData";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -55,7 +56,8 @@ const Index = () => {
               </div>
             </TabsContent>
             
-            <TabsContent value="products">
+            <TabsContent value="products" className="space-y-6">
+              <ProductSalesTable />
               <ShopifyProductList />
             </TabsContent>
           </Tabs>

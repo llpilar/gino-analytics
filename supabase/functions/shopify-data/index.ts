@@ -242,6 +242,36 @@ serve(async (req) => {
           }
         }
       `;
+    } else if (endpoint === 'products-sales') {
+      // Query para pegar vendas dos últimos 30 dias com detalhes dos produtos
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      graphqlQuery = `
+        {
+          orders(first: 250, query: "created_at:>='${thirtyDaysAgo.toISOString()}'") {
+            edges {
+              node {
+                id
+                createdAt
+                lineItems(first: 50) {
+                  edges {
+                    node {
+                      quantity
+                      variant {
+                        product {
+                          id
+                          title
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      `;
     }
 
     console.log('Consultando Shopify GraphQL API...');

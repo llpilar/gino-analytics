@@ -6,10 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { User } from "lucide-react";
+import { User, LogOut } from "lucide-react";
 
 export function ProfileEditor() {
-  const { profile, updateProfile } = useAuth();
+  const { profile, updateProfile, signOut } = useAuth();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(profile?.name || "");
@@ -82,13 +82,24 @@ export function ProfileEditor() {
               className="bg-zinc-800 border-zinc-700"
             />
           </div>
-          <Button
-            type="submit"
-            className="w-full bg-primary hover:bg-primary/90"
-            disabled={loading}
-          >
-            {loading ? "Salvando..." : "Salvar"}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              type="submit"
+              className="flex-1 bg-primary hover:bg-primary/90"
+              disabled={loading}
+            >
+              {loading ? "Salvando..." : "Salvar"}
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={signOut}
+              className="flex items-center gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              Sair
+            </Button>
+          </div>
         </form>
       </DialogContent>
     </Dialog>
