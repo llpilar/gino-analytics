@@ -62,23 +62,80 @@ serve(async (req) => {
       yesterday.setDate(yesterday.getDate() - 1);
       const yesterdayStr = yesterday.toISOString().split('T')[0];
       
-      graphqlQuery = `
-        {
-          orders(first: 250, query: "created_at:>='${yesterdayStr}' AND created_at:<'${today}'") {
-            edges {
-              node {
-                id
-                currentTotalPriceSet {
-                  shopMoney {
-                    amount
-                    currencyCode
+      console.log(`Buscando pedidos de ontem: ${yesterdayStr} até ${today}`);
+      
+      // Usar paginação para pegar todos os pedidos de ontem
+      let allOrders: any[] = [];
+      let hasNextPage = true;
+      let cursor = null;
+      
+      while (hasNextPage && allOrders.length < 5000) {
+        const paginationQuery: string = cursor 
+          ? `, after: "${cursor}"` 
+          : '';
+        
+        const paginatedQuery: string = `
+          {
+            orders(first: 250, sortKey: CREATED_AT, reverse: true, query: "created_at:>='${yesterdayStr}' AND created_at:<'${today}'"${paginationQuery}) {
+              pageInfo {
+                hasNextPage
+                endCursor
+              }
+              edges {
+                node {
+                  id
+                  currentTotalPriceSet {
+                    shopMoney {
+                      amount
+                      currencyCode
+                    }
                   }
                 }
               }
             }
           }
+        `;
+        
+        const pageResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Shopify-Access-Token': shopifyAccessToken,
+          },
+          body: JSON.stringify({ query: paginatedQuery }),
+        });
+        
+        if (!pageResponse.ok) {
+          throw new Error(`Erro na paginação: ${pageResponse.status}`);
         }
-      `;
+        
+        const pageData = await pageResponse.json();
+        const orders = pageData.data?.orders?.edges || [];
+        allOrders = [...allOrders, ...orders];
+        
+        hasNextPage = pageData.data?.orders?.pageInfo?.hasNextPage || false;
+        cursor = pageData.data?.orders?.pageInfo?.endCursor || null;
+        
+        console.log(`Página carregada: ${orders.length} pedidos. Total ontem: ${allOrders.length}`);
+      }
+      
+      console.log(`Total de pedidos de ontem: ${allOrders.length}`);
+      
+      return new Response(
+        JSON.stringify({
+          data: {
+            orders: {
+              edges: allOrders
+            }
+          }
+        }),
+        { 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          } 
+        }
+      );
     } else if (endpoint === 'revenue-3days' || endpoint === 'revenue-7days' || endpoint === 'revenue-15days' || endpoint === 'revenue-30days') {
       let daysAgo = 0;
       
