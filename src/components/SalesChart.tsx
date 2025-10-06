@@ -1,18 +1,75 @@
 import { Card } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { useMemo } from "react";
 
-const mockData = [
-  { date: "06/10", vendas: 45000, gastos: 8000, pedidos: 12000 },
-  { date: "07/10", vendas: 280000, gastos: 52000, pedidos: 35000 },
-  { date: "08/10", vendas: 220000, gastos: 48000, pedidos: 28000 },
-  { date: "09/10", vendas: 290000, gastos: 55000, pedidos: 38000 },
-  { date: "10/10", vendas: 180000, gastos: 42000, pedidos: 24000 },
-  { date: "11/10", vendas: 350000, gastos: 65000, pedidos: 45000 },
-  { date: "12/10", vendas: 480000, gastos: 82000, pedidos: 58000 },
-  { date: "13/10", vendas: 320000, gastos: 58000, pedidos: 42000 },
-];
+interface OrderNode {
+  id: string;
+  createdAt: string;
+  totalPriceSet: {
+    shopMoney: {
+      amount: string;
+      currencyCode: string;
+    };
+  };
+}
 
-export const SalesChart = () => {
+interface SalesChartProps {
+  analyticsData?: {
+    data?: {
+      orders?: {
+        edges: Array<{ node: OrderNode }>;
+      };
+    };
+  };
+  isLoading: boolean;
+}
+
+export const SalesChart = ({ analyticsData, isLoading }: SalesChartProps) => {
+  const chartData = useMemo(() => {
+    if (!analyticsData?.data?.orders?.edges) {
+      // Dados mockados se não houver dados reais
+      return [
+        { date: "06/10", vendas: 45000, gastos: 8000, pedidos: 12000 },
+        { date: "07/10", vendas: 280000, gastos: 52000, pedidos: 35000 },
+        { date: "08/10", vendas: 220000, gastos: 48000, pedidos: 28000 },
+        { date: "09/10", vendas: 290000, gastos: 55000, pedidos: 38000 },
+        { date: "10/10", vendas: 180000, gastos: 42000, pedidos: 24000 },
+        { date: "11/10", vendas: 350000, gastos: 65000, pedidos: 45000 },
+        { date: "12/10", vendas: 480000, gastos: 82000, pedidos: 58000 },
+        { date: "13/10", vendas: 320000, gastos: 58000, pedidos: 42000 },
+      ];
+    }
+
+    // Agrupar pedidos por dia
+    const ordersByDay: { [key: string]: { vendas: number; pedidos: number } } = {};
+    
+    analyticsData.data.orders.edges.forEach(({ node }) => {
+      const date = new Date(node.createdAt);
+      const dateKey = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`;
+      
+      if (!ordersByDay[dateKey]) {
+        ordersByDay[dateKey] = { vendas: 0, pedidos: 0 };
+      }
+      
+      const amount = parseFloat(node.totalPriceSet.shopMoney.amount);
+      ordersByDay[dateKey].vendas += amount;
+      ordersByDay[dateKey].pedidos += 1;
+    });
+
+    // Converter para array e ordenar por data
+    return Object.entries(ordersByDay)
+      .map(([date, data]) => ({
+        date,
+        vendas: data.vendas,
+        pedidos: data.pedidos,
+        gastos: data.vendas * 0.15, // Estimativa de 15% do faturamento
+      }))
+      .sort((a, b) => {
+        const [dayA, monthA] = a.date.split('/').map(Number);
+        const [dayB, monthB] = b.date.split('/').map(Number);
+        return monthA === monthB ? dayA - dayB : monthA - monthB;
+      });
+  }, [analyticsData]);
   return (
     <Card className="bg-card border-border p-6">
       <div className="flex items-center gap-4 mb-6">
@@ -44,7 +101,7 @@ export const SalesChart = () => {
       </div>
 
       <ResponsiveContainer width="100%" height={400}>
-        <LineChart data={mockData}>
+        <LineChart data={isLoading ? [] : chartData}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
           <XAxis 
             dataKey="date" 

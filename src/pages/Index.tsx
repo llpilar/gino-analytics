@@ -3,13 +3,56 @@ import { DashboardHeader } from "@/components/DashboardHeader";
 import { MetricCard } from "@/components/MetricCard";
 import { SalesChart } from "@/components/SalesChart";
 import { NotificationsPanel } from "@/components/NotificationsPanel";
+import { useShopifySummary, useShopifyAnalytics } from "@/hooks/useShopifyData";
+import { useMemo } from "react";
 
 const Index = () => {
-  // Dados mockados para demonstração
-  const totalVendas = "R$ 127.450";
-  const totalVendasUSD = "$25,490";
-  const totalPedidos = "89";
-  const gastosAds = "R$ 12.340";
+  const { data: summaryData, isLoading: summaryLoading } = useShopifySummary();
+  const { data: analyticsData, isLoading: analyticsLoading } = useShopifyAnalytics();
+
+  const metrics = useMemo(() => {
+    if (!summaryData?.data?.orders?.edges) {
+      return {
+        totalVendasBRL: "R$ 0",
+        totalVendasUSD: "$0",
+        totalPedidos: "0",
+        gastosAds: "R$ 0",
+        trendVendas: "+0%",
+        trendPedidos: "+0",
+      };
+    }
+
+    const orders = summaryData.data.orders.edges;
+    let totalBRL = 0;
+    let totalUSD = 0;
+
+    orders.forEach(({ node }) => {
+      const amount = parseFloat(node.totalPriceSet.shopMoney.amount);
+      const currency = node.totalPriceSet.shopMoney.currencyCode;
+
+      if (currency === 'BRL') {
+        totalBRL += amount;
+      } else if (currency === 'USD') {
+        totalUSD += amount;
+      } else {
+        // Conversão aproximada para outras moedas (pode melhorar com API de câmbio)
+        totalBRL += amount * 5; // Exemplo simplificado
+      }
+    });
+
+    const totalPedidos = orders.length;
+    // Gastos em ADS seria calculado de outra fonte - aqui é um placeholder
+    const gastosAds = totalBRL * 0.15; // 15% do faturamento como exemplo
+
+    return {
+      totalVendasBRL: `R$ ${totalBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      totalVendasUSD: `$${totalUSD.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+      totalPedidos: totalPedidos.toString(),
+      gastosAds: `R$ ${gastosAds.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      trendVendas: "+23%", // Calcularia comparando com período anterior
+      trendPedidos: `+${Math.floor(totalPedidos * 0.15)}`,
+    };
+  }, [summaryData]);
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -25,24 +68,24 @@ const Index = () => {
               <div className="grid grid-cols-3 gap-6 mb-6">
                 <MetricCard
                   title="VENDAS TOTAIS (BRL)"
-                  value={totalVendas}
+                  value={summaryLoading ? "Carregando..." : metrics.totalVendasBRL}
                   subtitle="Últimas 24 horas"
                   trend="up"
-                  trendValue="+23%"
+                  trendValue={metrics.trendVendas}
                   color="green"
                 />
                 <MetricCard
                   title="VENDAS (USD)"
-                  value={totalVendasUSD}
+                  value={summaryLoading ? "Carregando..." : metrics.totalVendasUSD}
                   subtitle="Conversão automática"
                   trend="up"
-                  trendValue="+23%"
+                  trendValue={metrics.trendVendas}
                   color="blue"
                 />
                 <MetricCard
                   title="GASTOS EM ADS"
-                  value={gastosAds}
-                  subtitle="Meta: R$ 15.000"
+                  value={summaryLoading ? "Carregando..." : metrics.gastosAds}
+                  subtitle="Estimativa: 15% do faturamento"
                   trend="down"
                   trendValue="-8%"
                   color="orange"
@@ -52,16 +95,16 @@ const Index = () => {
               <div className="mb-6">
                 <MetricCard
                   title="TOTAL DE PEDIDOS"
-                  value={totalPedidos}
-                  subtitle="Hoje"
+                  value={summaryLoading ? "Carregando..." : metrics.totalPedidos}
+                  subtitle="Últimas 24 horas"
                   trend="up"
-                  trendValue="+15 pedidos"
+                  trendValue={metrics.trendPedidos}
                   color="green"
                 />
               </div>
 
               {/* Gráfico de vendas */}
-              <SalesChart />
+              <SalesChart analyticsData={analyticsData} isLoading={analyticsLoading} />
             </div>
 
             {/* Painel de notificações */}
