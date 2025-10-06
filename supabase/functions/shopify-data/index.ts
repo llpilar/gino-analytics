@@ -134,7 +134,6 @@ serve(async (req) => {
                 customer {
                   displayName
                 }
-                fulfillmentStatus
                 lineItems(first: 10) {
                   edges {
                     node {

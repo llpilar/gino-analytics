@@ -1,7 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useShopifyOrders } from "@/hooks/useShopifyData";
-import { ShoppingBag, TrendingUp, Package } from "lucide-react";
+import { ShoppingBag, Package } from "lucide-react";
 import { useMemo } from "react";
+
+interface OrderItem {
+  name: string;
+  quantity: number;
+  productTitle: string;
+  productImage?: string;
+}
 
 export const NotificationsPanel = () => {
   const { data: ordersData, isLoading } = useShopifyOrders();
@@ -9,18 +16,28 @@ export const NotificationsPanel = () => {
   const recentOrders = useMemo(() => {
     if (!ordersData?.data?.orders?.edges) return [];
     
-    return ordersData.data.orders.edges.slice(0, 5).map((edge: any) => ({
-      id: edge.node.id,
-      name: edge.node.name,
-      customer: edge.node.customer?.displayName || 'Cliente',
-      amount: parseFloat(edge.node.totalPriceSet?.shopMoney?.amount || '0'),
-      currency: edge.node.totalPriceSet?.shopMoney?.currencyCode || 'COP',
-      time: new Date(edge.node.createdAt).toLocaleTimeString('pt-BR', {
-        hour: '2-digit',
-        minute: '2-digit'
-      }),
-      status: edge.node.fulfillmentStatus || 'pending'
-    }));
+    return ordersData.data.orders.edges.slice(0, 5).map((edge: any) => {
+      const lineItems: OrderItem[] = edge.node.lineItems?.edges?.map((itemEdge: any) => ({
+        name: itemEdge.node.name,
+        quantity: itemEdge.node.quantity,
+        productTitle: itemEdge.node.variant?.product?.title || itemEdge.node.name,
+        productImage: itemEdge.node.variant?.product?.featuredImage?.url
+      })) || [];
+
+      return {
+        id: edge.node.id,
+        name: edge.node.name,
+        customer: edge.node.customer?.displayName || 'Cliente',
+        amount: parseFloat(edge.node.totalPriceSet?.shopMoney?.amount || '0'),
+        currency: edge.node.totalPriceSet?.shopMoney?.currencyCode || 'COP',
+        time: new Date(edge.node.createdAt).toLocaleTimeString('pt-BR', {
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        items: lineItems,
+        totalItems: lineItems.reduce((acc, item) => acc + item.quantity, 0)
+      };
+    });
   }, [ordersData]);
 
   const formatCurrency = (amount: number, currency: string) => {
@@ -65,28 +82,35 @@ export const NotificationsPanel = () => {
           recentOrders.map((order) => (
             <div 
               key={order.id}
-              className="glass-card p-4 border-zinc-700/50 hover:border-primary/30 transition-all duration-300 group"
+              className="relative backdrop-blur-xl bg-gradient-to-br from-white/10 to-white/5 rounded-2xl p-4 border border-white/20 shadow-2xl hover:shadow-primary/20 transition-all duration-300 animate-fade-in"
+              style={{
+                boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 0 20px rgba(255, 255, 255, 0.05)'
+              }}
             >
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 group-hover:bg-primary/20 transition-colors flex-shrink-0">
-                    <ShoppingBag className="w-4 h-4 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm text-white truncate">{order.name}</p>
-                    <p className="text-xs text-zinc-400 truncate">{order.customer}</p>
-                  </div>
+              <div className="flex items-start gap-3">
+                <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30 shadow-lg flex-shrink-0">
+                  <ShoppingBag className="w-6 h-6 text-primary" />
                 </div>
-                <div className="text-right ml-2 flex-shrink-0">
-                  <p className="text-sm font-bold text-primary whitespace-nowrap">
+                
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="font-bold text-white text-base">{order.name}</h4>
+                    <span className="text-xs text-zinc-400 ml-2 flex-shrink-0">{order.time}</span>
+                  </div>
+                  
+                  <p className="text-xl font-bold text-primary mb-2">
                     {formatCurrency(order.amount, order.currency)}
                   </p>
-                  <p className="text-xs text-zinc-500">{order.time}</p>
+                  
+                  <p className="text-sm text-zinc-300 mb-1">
+                    {order.totalItems} {order.totalItems === 1 ? 'item' : 'itens'} de{' '}
+                    {order.items.map(item => item.productTitle).join(', ')}
+                  </p>
+                  
+                  {order.customer && (
+                    <p className="text-xs text-zinc-400">• {order.customer}</p>
+                  )}
                 </div>
-              </div>
-              <div className="flex items-center gap-2 text-green-500">
-                <TrendingUp className="w-3 h-3" />
-                <span className="text-xs font-semibold">Nova venda confirmada</span>
               </div>
             </div>
           ))
