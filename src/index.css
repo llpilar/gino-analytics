@@ -6,37 +6,31 @@
 
 @layer base {
   :root {
-    --background: 240 10% 3%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 7%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 7%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 142 86% 56%;
-    --primary-foreground: 240 10% 3%;
-    --secondary: 263 70% 50%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 5% 20%;
-    --muted-foreground: 240 5% 65%;
-    --accent: 142 86% 56%;
-    --accent-foreground: 240 10% 3%;
+    --background: 240 10% 5%;
+    --foreground: 0 0% 100%;
+    --card: 240 10% 8%;
+    --card-foreground: 0 0% 100%;
+    --popover: 240 10% 8%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 85 100% 69%;
+    --primary-foreground: 240 10% 5%;
+    --secondary: 263 70% 60%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 240 5% 25%;
+    --muted-foreground: 240 5% 70%;
+    --accent: 85 100% 69%;
+    --accent-foreground: 240 10% 5%;
     --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 10% 15%;
-    --input: 240 10% 15%;
-    --ring: 142 86% 56%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 10% 20%;
+    --input: 240 10% 20%;
+    --ring: 85 100% 69%;
     --radius: 1rem;
-    --chart-1: 142 86% 56%;
-    --chart-2: 263 70% 50%;
+    --chart-1: 85 100% 69%;
+    --chart-2: 263 70% 60%;
     --chart-3: 220 70% 50%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-    
-    /* Liquid Glass Colors */
-    --glass-purple: 263 70% 50%;
-    --glass-blue: 220 70% 50%;
-    --glass-green: 142 86% 56%;
-    --glass-glow: 142 86% 56%;
   }
 
   * {
@@ -44,46 +38,62 @@
   }
   
   body {
-    @apply bg-background text-foreground;
+    @apply bg-gradient-to-br from-black via-zinc-900 to-zinc-800 text-foreground;
     font-family: 'Inter', sans-serif;
+    min-height: 100vh;
   }
 }
 
 @layer components {
-  /* Liquid Glass Effect */
-  .liquid-glass {
-    @apply bg-gradient-to-br from-white/5 via-white/10 to-white/5 
-           backdrop-blur-xl border border-white/10 
-           shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]
-           relative overflow-hidden;
-  }
-  
-  .liquid-glass::before {
-    content: '';
-    @apply absolute inset-0 bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-green-500/10
-           opacity-50 blur-2xl;
-  }
-  
-  .liquid-glass-border {
-    @apply border border-transparent bg-clip-padding;
-    background-image: linear-gradient(
-      to bottom right,
-      rgba(142, 233, 144, 0.2),
-      rgba(99, 102, 241, 0.2),
-      rgba(168, 85, 247, 0.2)
-    );
-  }
-  
+  /* Neon Glow Effects */
   .neon-glow {
-    text-shadow: 0 0 10px hsl(var(--glass-green)),
-                 0 0 20px hsl(var(--glass-green)),
-                 0 0 30px hsl(var(--glass-green));
+    text-shadow: 0 0 10px hsl(var(--primary)),
+                 0 0 20px hsl(var(--primary)),
+                 0 0 40px hsl(var(--primary));
+  }
+  
+  .neon-border {
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 10px hsla(85, 100%, 69%, 0.3),
+                inset 0 0 10px hsla(85, 100%, 69%, 0.1);
   }
   
   .glass-card {
-    @apply liquid-glass rounded-2xl p-6 
-           hover:shadow-[0_8px_32px_0_rgba(142,233,144,0.2)]
-           transition-all duration-300
-           hover:translate-y-[-2px];
+    @apply bg-zinc-900/50 backdrop-blur-xl border border-zinc-800 
+           rounded-xl shadow-xl
+           transition-all duration-300 ease-in-out
+           hover:shadow-2xl hover:border-primary/30;
+  }
+  
+  .glass-card-active {
+    @apply bg-zinc-900/70 backdrop-blur-xl border border-primary/40
+           rounded-xl shadow-xl
+           shadow-primary/20;
+  }
+  
+  .metric-card {
+    @apply glass-card p-6
+           hover:scale-[1.02] hover:bg-zinc-900/60;
+  }
+  
+  .neon-ring {
+    @apply ring-2 ring-primary/50 ring-offset-2 ring-offset-black;
+  }
+  
+  .loading-pulse {
+    @apply opacity-50 blur-sm animate-pulse;
+  }
+  
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-zinc-900;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-zinc-700 rounded-full hover:bg-zinc-600;
   }
 }

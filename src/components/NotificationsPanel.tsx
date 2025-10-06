@@ -1,10 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useShopifyOrders } from "@/hooks/useShopifyData";
-import { ShoppingBag, TrendingUp } from "lucide-react";
+import { ShoppingBag, TrendingUp, Package } from "lucide-react";
 import { useMemo } from "react";
 
 export const NotificationsPanel = () => {
-  const { data: ordersData } = useShopifyOrders();
+  const { data: ordersData, isLoading } = useShopifyOrders();
 
   const recentOrders = useMemo(() => {
     if (!ordersData?.data?.orders?.edges) return [];
@@ -18,7 +18,8 @@ export const NotificationsPanel = () => {
       time: new Date(edge.node.createdAt).toLocaleTimeString('pt-BR', {
         hour: '2-digit',
         minute: '2-digit'
-      })
+      }),
+      status: edge.node.fulfillmentStatus || 'pending'
     }));
   }, [ordersData]);
 
@@ -38,48 +39,54 @@ export const NotificationsPanel = () => {
   };
 
   return (
-    <Card className="glass-card h-full">
-      <CardHeader>
+    <Card className="glass-card h-full border-zinc-800">
+      <CardHeader className="pb-4">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-3 h-3 rounded-full bg-primary animate-pulse" />
-          <CardTitle className="text-lg font-bold tracking-wider uppercase">
+          <div className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-lg shadow-primary/50" />
+          <CardTitle className="text-base font-bold tracking-wider uppercase text-white">
             Novas Vendas
           </CardTitle>
         </div>
-        <p className="text-sm text-muted-foreground">Últimos pedidos em tempo real</p>
+        <p className="text-xs text-zinc-400">Últimos pedidos em tempo real</p>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {recentOrders.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
+      
+      <CardContent className="space-y-3">
+        {isLoading ? (
+          <div className="loading-pulse text-center py-8 text-zinc-500">
+            <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <p className="text-sm">Carregando pedidos...</p>
+          </div>
+        ) : recentOrders.length === 0 ? (
+          <div className="text-center py-8 text-zinc-500">
             <ShoppingBag className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            <p>Aguardando novos pedidos...</p>
+            <p className="text-sm">Aguardando novos pedidos...</p>
           </div>
         ) : (
           recentOrders.map((order) => (
             <div 
               key={order.id}
-              className="liquid-glass rounded-xl p-4 border border-white/10 hover:border-primary/30 transition-all duration-300 group"
+              className="glass-card p-4 border-zinc-700/50 hover:border-primary/30 transition-all duration-300 group"
             >
               <div className="flex items-start justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors">
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 group-hover:bg-primary/20 transition-colors">
                     <ShoppingBag className="w-4 h-4 text-primary" />
                   </div>
-                  <div>
-                    <p className="font-semibold text-sm text-white">{order.name}</p>
-                    <p className="text-xs text-muted-foreground">{order.customer}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm text-white truncate">{order.name}</p>
+                    <p className="text-xs text-zinc-400 truncate">{order.customer}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-primary">
+                <div className="text-right ml-2">
+                  <p className="text-sm font-bold text-primary whitespace-nowrap">
                     {formatCurrency(order.amount, order.currency)}
                   </p>
-                  <p className="text-xs text-muted-foreground">{order.time}</p>
+                  <p className="text-xs text-zinc-500">{order.time}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-1 text-xs text-green-500">
+              <div className="flex items-center gap-2 text-green-500">
                 <TrendingUp className="w-3 h-3" />
-                <span>Nova venda</span>
+                <span className="text-xs font-semibold">Nova venda confirmada</span>
               </div>
             </div>
           ))

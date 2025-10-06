@@ -7,64 +7,64 @@ export const LiveClock = () => {
     const timer = setInterval(() => {
       setTime(new Date());
     }, 1000);
-
     return () => clearInterval(timer);
   }, []);
 
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', {
+    return date.toLocaleTimeString('pt-BR', {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
-      hour12: true
+      hour12: false
     });
   };
 
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', {
+    const options: Intl.DateTimeFormatOptions = {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
       day: 'numeric'
-    }).toUpperCase();
+    };
+    return date.toLocaleDateString('pt-BR', options).toUpperCase();
   };
 
   const getDayOfWeek = (date: Date) => {
-    return date.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase();
+    return date.toLocaleDateString('pt-BR', { weekday: 'long' }).toUpperCase();
   };
 
   return (
-    <div className="glass-card relative overflow-hidden">
-      {/* Animated background grid */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(142,233,144,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(142,233,144,0.1)_1px,transparent_1px)] bg-[size:30px_30px]" />
+    <div className="metric-card">
+      {/* Grid background effect */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(158,255,94,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(158,255,94,0.1)_1px,transparent_1px)] bg-[size:20px_20px]" />
       </div>
 
       <div className="relative z-10">
-        <div className="flex items-center justify-between mb-6">
-          <span className="text-sm font-medium text-muted-foreground tracking-wider">
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-xs font-semibold text-zinc-400 tracking-widest">
             {getDayOfWeek(time)}
           </span>
-          <span className="text-sm text-muted-foreground tracking-wider">
+          <span className="text-xs text-zinc-500 tracking-wider">
             UTC-3
           </span>
         </div>
 
-        <div className="flex items-center justify-center mb-6 relative">
-          {/* Grid cube behind time */}
-          <div className="absolute w-32 h-32 border-2 border-primary/30 rounded-lg transform rotate-45 -z-10" />
-          <div className="absolute w-28 h-28 border-2 border-blue-500/30 rounded-lg transform rotate-45 -z-10" />
+        <div className="flex items-center justify-center mb-4 relative">
+          {/* Decorative grid cube */}
+          <div className="absolute w-24 h-24 border border-primary/20 rounded-lg transform rotate-45" />
+          <div className="absolute w-20 h-20 border border-secondary/20 rounded-lg transform rotate-45" />
           
-          <div className="text-6xl md:text-7xl font-black text-white tracking-tight neon-glow">
-            {formatTime(time).split(' ')[0]}
+          <div className="text-5xl md:text-6xl font-black text-white neon-glow tracking-tight">
+            {formatTime(time)}
           </div>
         </div>
 
-        <div className="text-center space-y-2">
-          <div className="text-sm font-semibold text-muted-foreground tracking-widest">
+        <div className="text-center space-y-1">
+          <div className="text-xs font-medium text-zinc-400 tracking-widest">
             {formatDate(time)}
           </div>
-          <div className="text-xs text-muted-foreground tracking-wider">
+          <div className="text-xs text-zinc-500 tracking-wider">
             BUENOS AIRES, ARGENTINA
           </div>
         </div>

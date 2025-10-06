@@ -1,48 +1,60 @@
-import { Home, ShoppingBag, BarChart3, Settings, Zap } from "lucide-react";
+import { Home, ShoppingBag, BarChart3, Settings, Zap, LogOut } from "lucide-react";
+import { Button } from "./ui/button";
+
+const menuItems = [
+  { icon: Home, label: "Dashboard", active: true },
+  { icon: ShoppingBag, label: "Produtos", active: false },
+  { icon: BarChart3, label: "Análises", active: false },
+  { icon: Settings, label: "Configurações", active: false },
+];
 
 export const DashboardSidebar = () => {
   return (
-    <aside className="hidden lg:flex lg:w-64 lg:flex-col liquid-glass border-r border-white/10">
-      <div className="flex h-16 items-center justify-center border-b border-white/10">
-        <div className="flex items-center gap-2">
-          <Zap className="w-6 h-6 text-primary neon-glow" />
-          <h1 className="text-xl font-black tracking-tight">
-            <span className="text-white">Shop</span>
-            <span className="text-primary neon-glow">Dash</span>
-          </h1>
+    <>
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:flex lg:w-64 lg:flex-col bg-zinc-900/50 backdrop-blur-xl border-r border-zinc-800">
+        {/* Logo */}
+        <div className="flex h-16 items-center justify-center border-b border-zinc-800">
+          <div className="flex items-center gap-2">
+            <Zap className="w-7 h-7 text-primary neon-glow" />
+            <h1 className="text-2xl font-black tracking-tight">
+              <span className="text-white">Shop</span>
+              <span className="text-primary neon-glow">Dash</span>
+            </h1>
+          </div>
         </div>
-      </div>
-      
-      <nav className="flex-1 space-y-2 p-4">
-        <a
-          href="#"
-          className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium liquid-glass border border-primary/30 text-primary hover:border-primary/50 transition-all duration-300"
-        >
-          <Home className="h-5 w-5" />
-          Dashboard
-        </a>
-        <a
-          href="#"
-          className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground hover:bg-white/5 transition-all duration-300"
-        >
-          <ShoppingBag className="h-5 w-5" />
-          Produtos
-        </a>
-        <a
-          href="#"
-          className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground hover:bg-white/5 transition-all duration-300"
-        >
-          <BarChart3 className="h-5 w-5" />
-          Análises
-        </a>
-        <a
-          href="#"
-          className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground hover:bg-white/5 transition-all duration-300"
-        >
-          <Settings className="h-5 w-5" />
-          Configurações
-        </a>
-      </nav>
-    </aside>
+        
+        {/* Navigation */}
+        <nav className="flex-1 space-y-2 p-4">
+          {menuItems.map((item) => (
+            <button
+              key={item.label}
+              className={`
+                w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold
+                transition-all duration-300 ease-in-out
+                ${item.active 
+                  ? 'glass-card-active text-primary neon-border' 
+                  : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
+                }
+              `}
+            >
+              <item.icon className="h-5 w-5" />
+              {item.label}
+            </button>
+          ))}
+        </nav>
+
+        {/* Logout Button */}
+        <div className="p-4 border-t border-zinc-800">
+          <Button
+            variant="ghost"
+            className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-zinc-400 hover:text-white hover:bg-zinc-800/50 rounded-xl transition-all duration-300"
+          >
+            <LogOut className="h-5 w-5" />
+            Sair
+          </Button>
+        </div>
+      </aside>
+    </>
   );
 };

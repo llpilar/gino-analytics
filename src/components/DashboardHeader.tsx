@@ -1,32 +1,79 @@
-import { Bell, User } from "lucide-react";
+import { Bell, User, Menu } from "lucide-react";
 import { Button } from "./ui/button";
+import { useEffect, useState } from "react";
 
 export const DashboardHeader = () => {
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString("pt-BR", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    });
+  };
+
   return (
-    <header className="sticky top-0 z-50 w-full liquid-glass border-b border-white/10 backdrop-blur-xl">
-      <div className="flex h-16 items-center justify-between px-6">
-        <div>
-          <h2 className="text-2xl font-black tracking-tight">
-            <span className="text-white">Dashboard</span>
-          </h2>
-          <p className="text-sm text-muted-foreground">Bem-vindo de volta</p>
-        </div>
-        
+    <header className="sticky top-0 z-50 w-full bg-zinc-900/80 backdrop-blur-xl border-b border-zinc-800">
+      <div className="flex h-16 items-center justify-between px-4 md:px-6">
+        {/* Left Section */}
         <div className="flex items-center gap-4">
           <Button 
             variant="ghost" 
-            size="icon" 
-            className="relative liquid-glass hover:bg-white/10 rounded-xl"
+            size="icon"
+            className="lg:hidden text-white hover:bg-zinc-800/50"
           >
-            <Bell className="h-5 w-5" />
+            <Menu className="h-5 w-5" />
+          </Button>
+          <div>
+            <h2 className="text-lg md:text-xl font-bold text-white">
+              Bem-vindo de volta
+            </h2>
+            <p className="text-xs md:text-sm text-zinc-400 capitalize">
+              {formatDate(currentTime)}
+            </p>
+          </div>
+        </div>
+        
+        {/* Right Section */}
+        <div className="flex items-center gap-2 md:gap-4">
+          <div className="hidden md:flex flex-col items-end">
+            <span className="text-xs text-zinc-400">Hora atual (UTC-3)</span>
+            <span className="text-xl font-bold text-primary neon-glow">
+              {formatTime(currentTime)}
+            </span>
+          </div>
+          
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="relative glass-card hover:bg-zinc-800/50"
+          >
+            <Bell className="h-5 w-5 text-white" />
             <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary animate-pulse" />
           </Button>
+          
           <Button 
             variant="ghost" 
             size="icon"
-            className="liquid-glass hover:bg-white/10 rounded-xl"
+            className="glass-card hover:bg-zinc-800/50"
           >
-            <User className="h-5 w-5" />
+            <User className="h-5 w-5 text-white" />
           </Button>
         </div>
       </div>
