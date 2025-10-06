@@ -15,13 +15,16 @@ export const ComparisonMetrics = () => {
       return acc + parseFloat(edge.node.currentTotalPriceSet?.shopMoney?.amount || '0');
     }, 0) || 0;
 
+    // Cálculo correto: (hoje - ontem) / ontem * 100
+    // Se ontem foi 100 e hoje é 150, mudança = +50%
+    // Se ontem foi 100 e hoje é 50, mudança = -50%
     const change = yesterday > 0 ? ((today - yesterday) / yesterday) * 100 : (today > 0 ? 100 : 0);
     
     return {
       todayRevenue: today,
       yesterdayRevenue: yesterday,
       percentageChange: Math.abs(change),
-      isIncrease: change >= 0
+      isIncrease: change > 0
     };
   }, [todayData, yesterdayData]);
 
