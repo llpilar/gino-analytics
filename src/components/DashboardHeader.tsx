@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ProfileEditor } from "./ProfileEditor";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import { NotificationsPanel } from "./NotificationsPanel";
+import { MobileMenu } from "./MobileMenu";
 
 export const DashboardHeader = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -38,13 +39,20 @@ export const DashboardHeader = () => {
       <div className="flex h-16 items-center justify-between px-4 md:px-6">
         {/* Left Section */}
         <div className="flex items-center gap-4">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            className="lg:hidden text-white hover:bg-zinc-800/50"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="lg:hidden text-white hover:bg-zinc-800/50"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-64 bg-zinc-900/95 border-zinc-800 p-0">
+              <MobileMenu />
+            </SheetContent>
+          </Sheet>
           <div>
             <h2 className="text-sm md:text-xl font-bold text-white">
               Bem-vindo de volta {profile?.name?.split(' ')[0] || ''}
