@@ -33,11 +33,6 @@ export function useFacebookAdAccounts() {
   return useQuery({
     queryKey: ['facebook-ad-accounts'],
     queryFn: async () => {
-      const { data: session } = await supabase.auth.getSession();
-      if (!session.session?.provider_token) {
-        throw new Error('No Facebook connection found');
-      }
-
       const { data, error } = await supabase.functions.invoke('facebook-ads', {
         body: { endpoint: 'accounts' }
       });

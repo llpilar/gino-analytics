@@ -14,10 +14,19 @@ export const FacebookAdsMetrics = () => {
 
   if (accountsError) {
     return (
-      <Alert>
-        <Facebook className="h-4 w-4" />
-        <AlertDescription>
-          Faça login com Facebook para visualizar suas métricas de anúncios.
+      <Alert className="border-blue-500/20 bg-blue-500/10">
+        <Facebook className="h-4 w-4 text-blue-400" />
+        <AlertDescription className="text-zinc-300">
+          Configure seu Facebook Access Token para visualizar as métricas de anúncios.
+          <br />
+          <a 
+            href="https://developers.facebook.com/tools/explorer/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-blue-400 hover:underline mt-2 inline-block"
+          >
+            Obter token no Graph API Explorer →
+          </a>
         </AlertDescription>
       </Alert>
     );

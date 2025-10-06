@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.74.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,31 +11,11 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Get user session from authorization header
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('No authorization header');
-    }
-
-    const { data: { user }, error: userError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    );
-
-    if (userError || !user) {
-      throw new Error('Unauthorized');
-    }
-
-    // Get Facebook access token from user's provider token
-    const { data: sessionData } = await supabase.auth.getSession();
-    const facebookToken = sessionData.session?.provider_token;
+    const facebookToken = Deno.env.get('FACEBOOK_ACCESS_TOKEN');
 
     if (!facebookToken) {
       return new Response(
-        JSON.stringify({ error: 'No Facebook token found. Please login with Facebook.' }),
+        JSON.stringify({ error: 'Facebook Access Token não configurado. Por favor, adicione o token nas configurações.' }),
         { 
           status: 401,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }

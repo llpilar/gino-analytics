@@ -80,29 +80,6 @@ export default function Auth() {
     }
   };
 
-  const handleFacebookLogin = async () => {
-    try {
-      setLoading(true);
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'facebook',
-        options: {
-          scopes: 'ads_read,business_management,read_insights',
-          redirectTo: `${window.location.origin}/`,
-        }
-      });
-
-      if (error) throw error;
-    } catch (error: any) {
-      toast({
-        title: "Erro no login",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-zinc-800 flex items-center justify-center p-4">
       <div className="glass-card p-8 w-full max-w-md border-zinc-800">
@@ -183,28 +160,6 @@ export default function Auth() {
               : "Criar Conta"}
           </Button>
         </form>
-
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-zinc-700" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-zinc-900 px-2 text-zinc-400">Ou continue com</span>
-          </div>
-        </div>
-
-        <Button
-          onClick={handleFacebookLogin}
-          disabled={loading}
-          type="button"
-          variant="outline"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white border-blue-600 font-semibold"
-        >
-          <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-          </svg>
-          Login com Facebook
-        </Button>
 
         <div className="mt-6 text-center">
           <button
