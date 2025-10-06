@@ -39,7 +39,7 @@ export const NotificationsPanel = () => {
   };
 
   return (
-    <Card className="glass-card h-full border-zinc-800 flex flex-col">
+    <Card className="glass-card border-zinc-800 flex flex-col h-full max-h-[600px]">
       <CardHeader className="pb-4 flex-shrink-0">
         <div className="flex items-center gap-3 mb-2">
           <div className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-lg shadow-primary/50" />
@@ -50,7 +50,7 @@ export const NotificationsPanel = () => {
         <p className="text-xs text-zinc-400">Últimos pedidos em tempo real</p>
       </CardHeader>
       
-      <CardContent className="space-y-3 flex-1 overflow-y-auto">
+      <CardContent className="space-y-3 flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
         {isLoading ? (
           <div className="loading-pulse text-center py-8 text-zinc-500">
             <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />

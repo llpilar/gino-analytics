@@ -119,7 +119,7 @@ serve(async (req) => {
     } else if (endpoint === 'orders') {
       graphqlQuery = `
         {
-          orders(first: 10, reverse: true) {
+          orders(first: 5, sortKey: CREATED_AT, reverse: true) {
             edges {
               node {
                 id
@@ -135,6 +135,31 @@ serve(async (req) => {
                   displayName
                 }
                 fulfillmentStatus
+                lineItems(first: 10) {
+                  edges {
+                    node {
+                      name
+                      quantity
+                      discountedTotalSet {
+                        shopMoney {
+                          amount
+                          currencyCode
+                        }
+                      }
+                      variant {
+                        sku
+                        product {
+                          id
+                          title
+                          handle
+                          featuredImage {
+                            url
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
               }
             }
           }
