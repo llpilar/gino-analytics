@@ -62,7 +62,7 @@ serve(async (req) => {
       yesterday.setDate(yesterday.getDate() - 1);
       const yesterdayStr = yesterday.toISOString().split('T')[0];
       
-      console.log(`Buscando pedidos de ontem: ${yesterdayStr} até ${today}`);
+      console.log(`[PAGINAÇÃO ATIVA] Buscando pedidos de ontem: ${yesterdayStr} até ${today}`);
       
       // Usar paginação para pegar todos os pedidos de ontem
       let allOrders: any[] = [];
@@ -116,7 +116,7 @@ serve(async (req) => {
         hasNextPage = pageData.data?.orders?.pageInfo?.hasNextPage || false;
         cursor = pageData.data?.orders?.pageInfo?.endCursor || null;
         
-        console.log(`Página carregada: ${orders.length} pedidos. Total ontem: ${allOrders.length}`);
+        console.log(`[PAGINAÇÃO] Página carregada: ${orders.length} pedidos. Total ontem: ${allOrders.length}. hasNextPage: ${hasNextPage}`);
       }
       
       console.log(`Total de pedidos de ontem: ${allOrders.length}`);
