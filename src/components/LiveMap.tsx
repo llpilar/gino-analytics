@@ -42,9 +42,10 @@ export const LiveMap = () => {
           center={[-15.7801, -47.9292]}
           zoom={4}
           className="h-full w-full"
+          scrollWheelZoom={false}
         >
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           {locations.map((location) => (
@@ -52,10 +53,12 @@ export const LiveMap = () => {
               key={location.id}
               center={[location.lat, location.lng]}
               radius={Math.max(location.visitors / 2, 5)}
-              fillColor="#3b82f6"
-              color="#1d4ed8"
-              weight={2}
-              fillOpacity={0.6}
+              pathOptions={{
+                fillColor: "#3b82f6",
+                color: "#1d4ed8",
+                weight: 2,
+                fillOpacity: 0.6,
+              }}
             >
               <Popup>
                 <div className="text-sm">
