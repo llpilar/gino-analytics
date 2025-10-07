@@ -143,7 +143,7 @@ export const useShopifyCustomersToday = () => {
 };
 
 export const useShopifyRevenuePeriod = (
-  period: 'today' | 'yesterday' | '3days' | '7days' | '15days' | '30days',
+  period: 'today' | '3days' | '7days' | '15days' | '30days',
   customDates?: { from: Date; to: Date }
 ) => {
   return useQuery({

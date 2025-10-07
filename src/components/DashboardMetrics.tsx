@@ -1,19 +1,32 @@
 import { useShopifyRevenuePeriod } from "@/hooks/useShopifyData";
 import { useMemo, useState } from "react";
 import { Skeleton } from "./ui/skeleton";
-import { TrendingUp, DollarSign, ShoppingCart } from "lucide-react";
+import { TrendingUp, DollarSign, ShoppingCart, Calendar } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Button } from "./ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { Calendar as CalendarComponent } from "./ui/calendar";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
-type PeriodType = 'today' | 'yesterday' | '3days' | '7days' | '15days' | '30days';
+type PeriodType = 'today' | '3days' | '7days' | '15days' | '30days';
 
 export const DashboardMetrics = () => {
   const [period, setPeriod] = useState<PeriodType>('today');
+  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+    from: undefined,
+    to: undefined,
+  });
+  const [useCustomRange, setUseCustomRange] = useState(false);
+  
+  const customDates = useCustomRange && dateRange?.from && dateRange?.to 
+    ? { from: dateRange.from, to: dateRange.to }
+    : undefined;
     
-  const { data: periodData, isLoading } = useShopifyRevenuePeriod(period);
+  const { data: periodData, isLoading } = useShopifyRevenuePeriod(period, customDates);
 
   const periodLabels: Record<PeriodType, string> = {
     today: 'Hoje',
-    yesterday: 'Ontem',
     '3days': 'Últimos 3 Dias',
     '7days': 'Últimos 7 Dias',
     '15days': 'Últimos 15 Dias',
@@ -70,23 +83,69 @@ export const DashboardMetrics = () => {
   return (
     <>
       {/* Period Selector */}
-      <div className="col-span-full mb-4">
+      <div className="col-span-full mb-4 flex gap-3">
         <Select 
           value={period} 
-          onValueChange={(value) => setPeriod(value as PeriodType)}
+          onValueChange={(value) => {
+            setPeriod(value as PeriodType);
+            setUseCustomRange(false);
+          }}
         >
           <SelectTrigger className="w-[240px] bg-zinc-900/50 border-zinc-800">
             <SelectValue placeholder="Selecione o período" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="today">Hoje</SelectItem>
-            <SelectItem value="yesterday">Ontem</SelectItem>
             <SelectItem value="3days">Últimos 3 Dias</SelectItem>
             <SelectItem value="7days">Últimos 7 Dias</SelectItem>
             <SelectItem value="15days">Últimos 15 Dias</SelectItem>
             <SelectItem value="30days">Últimos 30 Dias</SelectItem>
           </SelectContent>
         </Select>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-[300px] justify-start text-left font-normal bg-zinc-900/50 border-zinc-800",
+                !dateRange?.from && "text-muted-foreground"
+              )}
+            >
+              <Calendar className="mr-2 h-4 w-4" />
+              {dateRange?.from ? (
+                dateRange.to ? (
+                  <>
+                    {format(dateRange.from, "dd/MM/yyyy")} -{" "}
+                    {format(dateRange.to, "dd/MM/yyyy")}
+                  </>
+                ) : (
+                  format(dateRange.from, "dd/MM/yyyy")
+                )
+              ) : (
+                <span>Selecionar período customizado</span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <CalendarComponent
+              initialFocus
+              mode="range"
+              defaultMonth={dateRange?.from}
+              selected={{ from: dateRange?.from, to: dateRange?.to }}
+              onSelect={(range) => {
+                if (range) {
+                  setDateRange(range as any);
+                  if (range?.from && range?.to) {
+                    setUseCustomRange(true);
+                  }
+                }
+              }}
+              numberOfMonths={2}
+              className="pointer-events-auto"
+            />
+          </PopoverContent>
+        </Popover>
       </div>
 
       {/* Faturamento */}
@@ -101,7 +160,9 @@ export const DashboardMetrics = () => {
               </div>
               <div>
                 <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                  Faturamento - {periodLabels[period]}
+                  Faturamento - {useCustomRange && dateRange?.from && dateRange?.to 
+                    ? `${format(dateRange.from, "dd/MM")} - ${format(dateRange.to, "dd/MM")}`
+                    : periodLabels[period]}
                 </h3>
                 <p className="text-xs text-zinc-500 mt-0.5">Total em vendas</p>
               </div>
@@ -151,7 +212,9 @@ export const DashboardMetrics = () => {
               </div>
               <div>
                 <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                  Pedidos - {periodLabels[period]}
+                  Pedidos - {useCustomRange && dateRange?.from && dateRange?.to 
+                    ? `${format(dateRange.from, "dd/MM")} - ${format(dateRange.to, "dd/MM")}`
+                    : periodLabels[period]}
                 </h3>
                 <p className="text-xs text-zinc-500 mt-0.5">Total de pedidos</p>
               </div>
