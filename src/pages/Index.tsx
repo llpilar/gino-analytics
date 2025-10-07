@@ -1,7 +1,6 @@
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { DashboardMetrics } from "@/components/DashboardMetrics";
-
 import { SalesChart } from "@/components/SalesChart";
 import { NotificationsPanel } from "@/components/NotificationsPanel";
 import { ShopifyProductList } from "@/components/ShopifyProductList";
@@ -9,16 +8,23 @@ import { ProductSalesTable } from "@/components/ProductSalesTable";
 import { LiveClock } from "@/components/LiveClock";
 import { useShopifyAnalytics } from "@/hooks/useShopifyData";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
 const Index = () => {
   const { data: analyticsData, isLoading: analyticsLoading } = useShopifyAnalytics();
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-black via-zinc-900 to-zinc-800">
-      <DashboardSidebar />
-      
-      <main className="flex-1 min-w-0">
-        <DashboardHeader />
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full bg-gradient-to-br from-black via-zinc-900 to-zinc-800">
+        <DashboardSidebar />
+        
+        <main className="flex-1 min-w-0">
+          <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-zinc-800 bg-zinc-900/80 backdrop-blur-xl px-4 h-16">
+            <SidebarTrigger className="text-zinc-400 hover:text-white" />
+            <div className="flex-1">
+              <DashboardHeader />
+            </div>
+          </div>
         
         <div className="p-4 md:p-6 lg:p-8">
           <Tabs defaultValue="dashboard" className="w-full">
@@ -70,8 +76,9 @@ const Index = () => {
             </p>
           </div>
         </footer>
-      </main>
-    </div>
+        </main>
+      </div>
+    </SidebarProvider>
   );
 };
 

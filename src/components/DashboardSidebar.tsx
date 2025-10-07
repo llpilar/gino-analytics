@@ -1,8 +1,19 @@
 import { Home, ShoppingBag, BarChart3, Settings, LogOut } from "lucide-react";
-import { Button } from "./ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "react-router-dom";
-import logo from "@/assets/logo.png";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from "./ui/sidebar";
+import { Button } from "./ui/button";
 
 const menuItems = [
   { icon: Home, label: "Dashboard", path: "/" },
@@ -14,52 +25,64 @@ const menuItems = [
 export const DashboardSidebar = () => {
   const { signOut } = useAuth();
   const location = useLocation();
+  const { open } = useSidebar();
 
   return (
-    <>
-      {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex lg:w-64 lg:flex-col bg-zinc-900/50 backdrop-blur-xl border-r border-zinc-800">
-        {/* Logo */}
-        <div className="flex h-16 items-center justify-center border-b border-zinc-800">
-          <h1 className="text-2xl font-bold text-primary tracking-tight">Dashify</h1>
+    <Sidebar collapsible="icon" className="bg-zinc-900/50 backdrop-blur-xl border-r border-zinc-800">
+      <SidebarHeader className="border-b border-zinc-800">
+        <div className="flex h-16 items-center justify-center">
+          <h1 className={`text-2xl font-bold text-primary tracking-tight transition-opacity ${open ? 'opacity-100' : 'opacity-0'}`}>
+            Dashify
+          </h1>
         </div>
-        
-        {/* Navigation */}
-        <nav className="flex-1 space-y-2 p-4">
-          {menuItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <a
-                key={item.label}
-                href={item.path}
-                className={`
-                  w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold
-                  transition-all duration-300 ease-in-out
-                  ${isActive 
-                    ? 'glass-card-active text-primary' 
-                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
-                  }
-                `}
-              >
-                <item.icon className="h-5 w-5" />
-                {item.label}
-              </a>
-            );
-          })}
-        </nav>
+      </SidebarHeader>
 
-        {/* Logout Button */}
-        <div className="p-4 border-t border-zinc-800">
-          <Button
-            onClick={signOut}
-            variant="ghost"
-            className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-zinc-400 hover:text-white hover:bg-zinc-800/50 rounded-xl transition-all duration-300"
-          >
-            <LogOut className="h-5 w-5" />
-            Sair
-          </Button>
-        </div>
-      </aside>
-    </>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {menuItems.map((item) => {
+                const isActive = location.pathname === item.path;
+                return (
+                  <SidebarMenuItem key={item.label}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive}
+                      tooltip={item.label}
+                      className={`
+                        ${isActive 
+                          ? 'glass-card-active text-primary' 
+                          : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
+                        }
+                      `}
+                    >
+                      <a href={item.path}>
+                        <item.icon className="h-5 w-5" />
+                        <span>{item.label}</span>
+                      </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <SidebarFooter className="border-t border-zinc-800">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={signOut}
+              tooltip="Sair"
+              className="text-zinc-400 hover:text-white hover:bg-zinc-800/50"
+            >
+              <LogOut className="h-5 w-5" />
+              <span>Sair</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+    </Sidebar>
   );
 };
