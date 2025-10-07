@@ -19,7 +19,7 @@ serve(async (req) => {
       throw new Error('SHOPIFY_ACCESS_TOKEN não configurado');
     }
 
-    const { endpoint } = await req.json();
+    const { endpoint, customDates } = await req.json();
     
     let graphqlQuery = '';
     const today = new Date().toISOString().split('T')[0];
@@ -148,20 +148,32 @@ serve(async (req) => {
         }
       );
     } else if (endpoint === 'revenue-3days' || endpoint === 'revenue-7days' || endpoint === 'revenue-15days' || endpoint === 'revenue-30days') {
-      let daysAgo = 0;
+      let startDateStr: string;
+      let endDateStr: string;
       
-      if (endpoint === 'revenue-3days') daysAgo = 3;
-      else if (endpoint === 'revenue-7days') daysAgo = 7;
-      else if (endpoint === 'revenue-15days') daysAgo = 15;
-      else if (endpoint === 'revenue-30days') daysAgo = 30;
+      // Se houver datas customizadas, usar elas
+      if (customDates && customDates.from && customDates.to) {
+        startDateStr = new Date(customDates.from).toISOString().split('T')[0];
+        endDateStr = new Date(customDates.to).toISOString().split('T')[0];
+        console.log(`Buscando pedidos de período customizado: ${startDateStr} até ${endDateStr}`);
+      } else {
+        // Caso contrário, usar os períodos predefinidos
+        let daysAgo = 0;
+        
+        if (endpoint === 'revenue-3days') daysAgo = 3;
+        else if (endpoint === 'revenue-7days') daysAgo = 7;
+        else if (endpoint === 'revenue-15days') daysAgo = 15;
+        else if (endpoint === 'revenue-30days') daysAgo = 30;
+        
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - daysAgo);
+        startDateStr = startDate.toISOString().split('T')[0];
+        endDateStr = new Date().toISOString().split('T')[0];
+        
+        console.log(`Buscando pedidos dos últimos ${daysAgo} dias a partir de ${startDateStr}`);
+      }
       
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - daysAgo);
-      const startDateStr = startDate.toISOString().split('T')[0];
-      
-      console.log(`Buscando pedidos dos últimos ${daysAgo} dias a partir de ${startDateStr}`);
-      
-      // Para 30 dias, precisamos fazer paginação para pegar todos os pedidos
+      // Precisamos fazer paginação para pegar todos os pedidos
       let allOrders: any[] = [];
       let hasNextPage = true;
       let cursor = null;
@@ -171,9 +183,14 @@ serve(async (req) => {
           ? `, after: "${cursor}"` 
           : '';
         
+        // Construir query com range de datas se houver endDate
+        const dateQuery = customDates && customDates.to
+          ? `created_at:>='${startDateStr}' AND created_at:<='${endDateStr}'`
+          : `created_at:>='${startDateStr}'`;
+        
         const paginatedQuery: string = `
           {
-            orders(first: 250, sortKey: CREATED_AT, reverse: true, query: "created_at:>='${startDateStr}'"${paginationQuery}) {
+            orders(first: 250, sortKey: CREATED_AT, reverse: true, query: "${dateQuery}"${paginationQuery}) {
               pageInfo {
                 hasNextPage
                 endCursor
@@ -216,7 +233,7 @@ serve(async (req) => {
         console.log(`Página carregada: ${orders.length} pedidos. Total: ${allOrders.length}`);
       }
       
-      console.log(`Total de pedidos encontrados para ${daysAgo} dias: ${allOrders.length}`);
+      console.log(`Total de pedidos encontrados: ${allOrders.length}`);
       
       // Retornar no mesmo formato esperado
       return new Response(

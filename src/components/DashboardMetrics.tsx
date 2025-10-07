@@ -19,7 +19,11 @@ export const DashboardMetrics = () => {
   });
   const [useCustomRange, setUseCustomRange] = useState(false);
   
-  const { data: periodData, isLoading } = useShopifyRevenuePeriod(period);
+  const customDates = useCustomRange && dateRange.from && dateRange.to 
+    ? { from: dateRange.from, to: dateRange.to }
+    : undefined;
+    
+  const { data: periodData, isLoading } = useShopifyRevenuePeriod(period, customDates);
 
   const periodLabels: Record<PeriodType, string> = {
     today: 'Hoje',

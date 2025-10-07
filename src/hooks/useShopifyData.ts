@@ -37,9 +37,15 @@ interface ShopifyResponse {
   };
 }
 
-const fetchShopifyData = async (endpoint: string) => {
+const fetchShopifyData = async (endpoint: string, customDates?: { from: Date; to: Date }) => {
   const { data, error } = await supabase.functions.invoke('shopify-data', {
-    body: { endpoint },
+    body: { 
+      endpoint,
+      customDates: customDates ? {
+        from: customDates.from.toISOString(),
+        to: customDates.to.toISOString()
+      } : undefined
+    },
   });
 
   if (error) throw error;
@@ -136,12 +142,16 @@ export const useShopifyCustomersToday = () => {
   });
 };
 
-export const useShopifyRevenuePeriod = (period: 'today' | '3days' | '7days' | '15days' | '30days') => {
+export const useShopifyRevenuePeriod = (
+  period: 'today' | '3days' | '7days' | '15days' | '30days',
+  customDates?: { from: Date; to: Date }
+) => {
   return useQuery({
-    queryKey: ['shopify-revenue-period', period],
-    queryFn: () => fetchShopifyData(`revenue-${period}`),
+    queryKey: ['shopify-revenue-period', period, customDates?.from, customDates?.to],
+    queryFn: () => fetchShopifyData(`revenue-${period}`, customDates),
     refetchInterval: 30000,
     retry: 3,
     staleTime: 10000,
+    enabled: !customDates || (customDates.from !== undefined && customDates.to !== undefined),
   });
 };
