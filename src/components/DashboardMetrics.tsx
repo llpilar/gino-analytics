@@ -100,36 +100,36 @@ export const DashboardMetrics = () => {
               </div>
             </div>
 
-          {/* COP Value */}
-          <div className="mb-4">
-            <div className="text-4xl md:text-5xl font-black mb-1 text-white">
-              {formatCurrencyCOP(totalRevenueCOP)}
-            </div>
-            <p className="text-xs text-zinc-500 uppercase tracking-wider">
-              Peso Colombiano (COP)
-            </p>
-          </div>
-
-          {/* BRL Conversion Box */}
-          <div className="glass-card p-4 border-primary/20">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-zinc-400 mb-1 font-semibold">Conversão BRL</p>
-                <div className="text-xl md:text-2xl font-bold text-primary">
-                  {formatCurrencyBRL(totalRevenueBRL)}
-                </div>
+            {/* COP Value */}
+            <div className="mb-4">
+              <div className="text-4xl md:text-5xl font-black mb-1 text-white">
+                {formatCurrencyCOP(totalRevenueCOP)}
               </div>
-              <div className="text-right">
-                <div className="text-xs text-zinc-500">Taxa: 0.0014</div>
-                <div className="flex items-center gap-1 text-green-500 mt-1">
-                  <TrendingUp className="w-3 h-3" />
-                  <span className="text-xs font-semibold">Live</span>
+              <p className="text-xs text-zinc-500 uppercase tracking-wider">
+                Peso Colombiano (COP)
+              </p>
+            </div>
+
+            {/* BRL Conversion Box */}
+            <div className="glass-card p-4 border-primary/20">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-zinc-400 mb-1 font-semibold">Conversão BRL</p>
+                  <div className="text-xl md:text-2xl font-bold text-primary">
+                    {formatCurrencyBRL(totalRevenueBRL)}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs text-zinc-500">Taxa: 0.0014</div>
+                  <div className="flex items-center gap-1 text-green-500 mt-1">
+                    <TrendingUp className="w-3 h-3" />
+                    <span className="text-xs font-semibold">Live</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
         {/* Pedidos */}
         <div className="metric-card group relative overflow-hidden">
@@ -151,16 +151,16 @@ export const DashboardMetrics = () => {
               <div className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-lg shadow-primary/50" />
             </div>
 
-          <div className="text-5xl md:text-6xl font-black mb-3 text-white">
-            {ordersCount}
-          </div>
+            <div className="text-5xl md:text-6xl font-black mb-3 text-white">
+              {ordersCount}
+            </div>
 
-          <div className="flex items-center gap-2 text-primary">
-            <TrendingUp className="w-4 h-4" />
-            <span className="text-sm font-semibold">
-              {ordersCount} pedido{ordersCount !== 1 ? 's' : ''} criado{ordersCount !== 1 ? 's' : ''} hoje
-            </span>
-          </div>
+            <div className="flex items-center gap-2 text-primary">
+              <TrendingUp className="w-4 h-4" />
+              <span className="text-sm font-semibold">
+                {ordersCount} pedido{ordersCount !== 1 ? 's' : ''} no período
+              </span>
+            </div>
           </div>
         </div>
       </div>
