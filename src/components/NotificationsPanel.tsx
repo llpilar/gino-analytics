@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useShopifyOrders } from "@/hooks/useShopifyData";
-import { ShoppingBag, Package } from "lucide-react";
-import { useMemo } from "react";
+import { ShoppingBag, Package, Eye, EyeOff } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 interface OrderItem {
   name: string;
@@ -12,6 +13,7 @@ interface OrderItem {
 
 export const NotificationsPanel = () => {
   const { data: ordersData, isLoading } = useShopifyOrders();
+  const [blurProductNames, setBlurProductNames] = useState(false);
 
   const recentOrders = useMemo(() => {
     if (!ordersData?.data?.orders?.edges) return [];
@@ -58,11 +60,22 @@ export const NotificationsPanel = () => {
   return (
     <Card className="glass-card border-zinc-800 flex flex-col h-full max-h-[600px]">
       <CardHeader className="pb-4 flex-shrink-0">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-lg shadow-primary/50" />
-          <CardTitle className="text-base font-bold tracking-wider uppercase text-white">
-            Novas Vendas
-          </CardTitle>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+            <div className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-lg shadow-primary/50" />
+            <CardTitle className="text-base font-bold tracking-wider uppercase text-white">
+              Novas Vendas
+            </CardTitle>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setBlurProductNames(!blurProductNames)}
+            className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-zinc-800"
+            title={blurProductNames ? "Mostrar nomes dos produtos" : "Ocultar nomes dos produtos"}
+          >
+            {blurProductNames ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </Button>
         </div>
         <p className="text-xs text-zinc-400">Últimos pedidos em tempo real</p>
       </CardHeader>
@@ -106,7 +119,9 @@ export const NotificationsPanel = () => {
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-sm mb-1 gap-2">
-                      <span className="text-zinc-300 truncate flex-1 min-w-0">{itemText}</span>
+                      <span className={`text-zinc-300 truncate flex-1 min-w-0 transition-all duration-300 ${blurProductNames ? 'blur-sm select-none' : ''}`}>
+                        {itemText}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between text-sm text-zinc-400 gap-2">
                       <span className="truncate flex-1 min-w-0">{order.customer}</span>
