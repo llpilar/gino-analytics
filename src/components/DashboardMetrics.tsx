@@ -26,7 +26,12 @@ export const DashboardMetrics = () => {
     if (!periodData?.data?.orders?.edges) return 0;
     
     return periodData.data.orders.edges.reduce((acc: number, edge: any) => {
-      const amount = parseFloat(edge.node.currentTotalPriceSet?.shopMoney?.amount || '0');
+      // Try both possible field names
+      const amount = parseFloat(
+        edge.node.currentTotalPriceSet?.shopMoney?.amount || 
+        edge.node.totalPriceSet?.shopMoney?.amount || 
+        '0'
+      );
       return acc + amount;
     }, 0);
   }, [periodData]);
