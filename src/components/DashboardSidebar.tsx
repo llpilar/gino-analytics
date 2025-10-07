@@ -21,7 +21,7 @@ export const DashboardSidebar = () => {
       <aside className="hidden lg:flex lg:w-64 lg:flex-col bg-zinc-900/50 backdrop-blur-xl border-r border-zinc-800">
         {/* Logo */}
         <div className="flex h-16 items-center justify-center border-b border-zinc-800">
-          <img src={logo} alt="ShopDash Logo" className="w-12 h-12" />
+          <h1 className="text-2xl font-bold text-primary tracking-tight">Dashify</h1>
         </div>
         
         {/* Navigation */}

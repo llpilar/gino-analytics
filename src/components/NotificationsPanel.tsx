@@ -100,8 +100,8 @@ export const NotificationsPanel = () => {
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-1">
-                      <h4 className="font-bold text-white text-lg whitespace-nowrap">{order.name}</h4>
-                      <span className="text-lg font-bold text-primary whitespace-nowrap">
+                      <h4 className="font-bold text-white text-base truncate">{order.name}</h4>
+                      <span className="text-base font-bold text-primary shrink-0">
                         {formatCurrency(order.amount, order.currency)}
                       </span>
                     </div>
