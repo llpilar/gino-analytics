@@ -146,18 +146,18 @@ export const SalesAnalysis = () => {
 
               {/* Verso do Card */}
               <Card 
-                className={`absolute inset-0 p-4 md:p-6 border-2 ${getTypeStyles(insight.type)}`}
+                className={`absolute top-0 left-0 right-0 p-4 md:p-6 border-2 min-h-[200px] flex items-center ${getTypeStyles(insight.type)}`}
                 style={{ 
                   backfaceVisibility: 'hidden',
                   transform: 'rotateX(180deg)'
                 }}
               >
-                <div className="flex flex-col h-full justify-center gap-3 md:gap-4">
+                <div className="w-full space-y-3 md:space-y-4">
                   <div className="flex items-start gap-2">
                     <DollarSign className="w-4 md:w-5 h-4 md:h-5 text-primary mt-0.5 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-xs md:text-sm font-semibold text-primary mb-2">Recomendação:</p>
-                      <p className="text-sm md:text-base text-zinc-300">{insight.recommendation}</p>
+                      <p className="text-sm md:text-base text-zinc-300 break-words">{insight.recommendation}</p>
                     </div>
                   </div>
                   <p className="text-xs text-zinc-500 text-center">Clique para voltar</p>
