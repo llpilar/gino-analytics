@@ -5,7 +5,10 @@ export const useLiveShopify = () => {
   return useQuery({
     queryKey: ["live-shopify"],
     queryFn: async () => {
-      // Buscar pedidos de hoje
+      const today = new Date();
+      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      
+      // Buscar pedidos
       const { data: ordersResponse, error: ordersError } = await supabase.functions.invoke('shopify-data', {
         body: { endpoint: 'orders' }
       });
@@ -15,11 +18,9 @@ export const useLiveShopify = () => {
         throw ordersError;
       }
 
-      console.log('Resposta da API:', ordersResponse);
-
-      // Processar pedidos
+      // Processar pedidos e filtrar apenas de hoje
       const ordersData = ordersResponse?.data?.orders?.edges || [];
-      const orders = ordersData.map((edge: any) => ({
+      const allOrders = ordersData.map((edge: any) => ({
         id: edge.node.id,
         name: edge.node.name,
         createdAt: edge.node.createdAt,
@@ -27,19 +28,26 @@ export const useLiveShopify = () => {
         customer: edge.node.customer?.displayName,
       }));
 
-      // Calcular totais
-      const totalRevenue = orders.reduce((sum: number, order: any) => sum + order.totalPrice, 0);
-      const orderCount = orders.length;
+      // Filtrar apenas pedidos de hoje
+      const ordersToday = allOrders.filter((order: any) => {
+        const orderDate = new Date(order.createdAt);
+        return orderDate >= startOfDay;
+      });
+
+      // Calcular totais apenas dos pedidos de hoje
+      const totalRevenue = ordersToday.reduce((sum: number, order: any) => sum + order.totalPrice, 0);
+      const orderCount = ordersToday.length;
 
       // Buscar produtos
       const { data: productsResponse } = await supabase.functions.invoke('shopify-data', {
         body: { endpoint: 'products' }
       });
 
-      const products = productsResponse?.data?.products?.edges || [];
+      const productsData = productsResponse?.data?.products?.edges || [];
+      const products = productsData.map((edge: any) => edge.node);
 
       return {
-        orders,
+        orders: ordersToday,
         products,
         totalRevenue,
         orderCount,
