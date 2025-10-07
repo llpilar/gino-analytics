@@ -44,11 +44,7 @@ serve(async (req) => {
       yesterday.setDate(yesterday.getDate() - 1);
       const yesterdayStr = yesterday.toISOString().split('T')[0];
       
-      const twoDaysAgo = new Date();
-      twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
-      const twoDaysAgoStr = twoDaysAgo.toISOString().split('T')[0];
-      
-      console.log(`Buscando pedidos de ontem: ${yesterdayStr}`);
+      console.log(`[PAGINAÇÃO ATIVA] Buscando pedidos de ontem: ${yesterdayStr} até ${today}`);
       
       // Usar paginação para pegar todos os pedidos de ontem
       let allOrders: any[] = [];
@@ -70,7 +66,6 @@ serve(async (req) => {
               edges {
                 node {
                   id
-                  createdAt
                   currentTotalPriceSet {
                     shopMoney {
                       amount
@@ -98,29 +93,15 @@ serve(async (req) => {
         
         const pageData = await pageResponse.json();
         const orders = pageData.data?.orders?.edges || [];
-        
-        // Filtrar apenas pedidos de ontem (excluir pedidos de hoje)
-        const yesterdayOrders = orders.filter((edge: any) => {
-          const orderDate = edge.node.createdAt.split('T')[0];
-          return orderDate === yesterdayStr;
-        });
-        
-        allOrders = [...allOrders, ...yesterdayOrders];
+        allOrders = [...allOrders, ...orders];
         
         hasNextPage = pageData.data?.orders?.pageInfo?.hasNextPage || false;
         cursor = pageData.data?.orders?.pageInfo?.endCursor || null;
         
-        console.log(`Página carregada: ${orders.length} pedidos, ${yesterdayOrders.length} de ontem. Total: ${allOrders.length}`);
+        console.log(`[PAGINAÇÃO] Página carregada: ${orders.length} pedidos. Total ontem: ${allOrders.length}. hasNextPage: ${hasNextPage}`);
       }
       
       console.log(`Total de pedidos de ontem: ${allOrders.length}`);
-      
-      // Calcular total para debug
-      const totalYesterday = allOrders.reduce((sum, edge) => {
-        const amount = parseFloat(edge.node.currentTotalPriceSet?.shopMoney?.amount || '0');
-        return sum + amount;
-      }, 0);
-      console.log(`Total de faturamento de ontem: ${totalYesterday} COP`);
       
       return new Response(
         JSON.stringify({
