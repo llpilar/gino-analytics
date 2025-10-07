@@ -1,6 +1,6 @@
 import { Home, ShoppingBag, BarChart3, Activity, Settings, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -57,10 +57,10 @@ export const DashboardSidebar = () => {
                         }
                       `}
                     >
-                      <a href={item.path}>
+                      <Link to={item.path}>
                         <item.icon className="h-5 w-5" />
                         <span>{item.label}</span>
-                      </a>
+                      </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );

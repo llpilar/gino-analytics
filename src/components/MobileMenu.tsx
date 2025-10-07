@@ -1,7 +1,7 @@
 import { Home, ShoppingBag, BarChart3, Activity, Settings, Zap, LogOut } from "lucide-react";
 import { Button } from "./ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 
 const menuItems = [
   { icon: Home, label: "Dashboard", path: "/" },
@@ -33,9 +33,9 @@ export const MobileMenu = () => {
         {menuItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
-            <a
+            <Link
               key={item.label}
-              href={item.path}
+              to={item.path}
               className={`
                 w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold
                 transition-all duration-300 ease-in-out
@@ -47,7 +47,7 @@ export const MobileMenu = () => {
             >
               <item.icon className="h-5 w-5" />
               {item.label}
-            </a>
+            </Link>
           );
         })}
       </nav>

@@ -1,6 +1,5 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { LiveMetrics } from "@/components/LiveMetrics";
-import { LiveMap } from "@/components/LiveMap";
 import { ActiveSessions } from "@/components/ActiveSessions";
 
 const LiveView = () => {
@@ -16,7 +15,9 @@ const LiveView = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
-            <LiveMap />
+            <div className="text-center p-12 border-2 border-dashed border-muted rounded-lg">
+              <p className="text-muted-foreground">Mapa em desenvolvimento</p>
+            </div>
           </div>
           <div>
             <ActiveSessions />
