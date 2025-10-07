@@ -112,20 +112,21 @@ export const SalesAnalysis = () => {
         {insights.map((insight, index) => (
           <div 
             key={index}
-            className="relative min-h-[200px] cursor-pointer"
+            className="relative cursor-pointer"
             onClick={() => toggleFlip(index)}
             style={{ perspective: '1000px' }}
           >
             <div 
-              className={`relative w-full transition-transform duration-500`}
+              className="relative w-full transition-transform duration-500"
               style={{
                 transformStyle: 'preserve-3d',
-                transform: insight.flipped ? 'rotateX(180deg)' : 'rotateX(0deg)'
+                transform: insight.flipped ? 'rotateX(180deg)' : 'rotateX(0deg)',
+                minHeight: '200px'
               }}
             >
               {/* Frente do Card */}
               <Card 
-                className={`p-4 md:p-6 border-2 ${getTypeStyles(insight.type)}`}
+                className={`p-4 md:p-6 border-2 ${getTypeStyles(insight.type)} ${insight.flipped ? 'invisible' : 'visible'}`}
                 style={{ backfaceVisibility: 'hidden' }}
               >
                 <div className="flex items-start gap-3 md:gap-4">
@@ -146,7 +147,7 @@ export const SalesAnalysis = () => {
 
               {/* Verso do Card */}
               <Card 
-                className={`absolute top-0 left-0 right-0 p-4 md:p-6 border-2 min-h-[200px] flex items-center ${getTypeStyles(insight.type)}`}
+                className={`absolute top-0 left-0 right-0 bottom-0 p-4 md:p-6 border-2 flex items-center ${getTypeStyles(insight.type)} ${insight.flipped ? 'visible' : 'invisible'}`}
                 style={{ 
                   backfaceVisibility: 'hidden',
                   transform: 'rotateX(180deg)'
