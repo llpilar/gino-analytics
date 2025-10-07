@@ -71,13 +71,13 @@ export const LiveClock = () => {
   };
 
   return (
-    <div className="metric-card">
+    <div className="metric-card flex flex-col h-full">
       {/* Grid background effect */}
       <div className="absolute inset-0 opacity-10 pointer-events-none">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(158,255,94,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(158,255,94,0.1)_1px,transparent_1px)] bg-[size:20px_20px]" />
       </div>
 
-      <div className="relative z-10">
+      <div className="relative z-10 flex flex-col justify-between h-full">
         <div className="flex items-center justify-between mb-4">
           <span className="text-xs font-semibold text-zinc-400 tracking-widest">
             {getDayOfWeek(time)}
@@ -87,21 +87,21 @@ export const LiveClock = () => {
           </span>
         </div>
 
-        <div className="flex items-center justify-center mb-4 relative">
+        <div className="flex-1 flex items-center justify-center relative">
           {/* Decorative grid cube */}
           <div className="absolute w-24 h-24 border border-primary/20 rounded-lg transform rotate-45" />
           <div className="absolute w-20 h-20 border border-secondary/20 rounded-lg transform rotate-45" />
           
-          <div className="text-5xl md:text-6xl font-black text-white tracking-tight">
+          <div className="text-5xl md:text-6xl lg:text-7xl font-black text-white tracking-tight">
             {formatTime(time)}
           </div>
         </div>
 
-        <div className="text-center space-y-1">
+        <div className="text-center space-y-2 mt-4">
           <div className="text-xs font-medium text-zinc-400 tracking-widest">
             {formatDate(time)}
           </div>
-          <div className="text-xs text-primary tracking-wider uppercase">
+          <div className="text-xs text-primary tracking-wider uppercase font-semibold">
             {location}
           </div>
         </div>
