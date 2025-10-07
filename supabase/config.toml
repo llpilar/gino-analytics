@@ -1,1 +1,10 @@
 project_id = "eyevvanvdvcxdqyxzwfr"
+
+[functions.facebook-ads]
+verify_jwt = false
+
+[functions.shopify-data]
+verify_jwt = false
+
+[functions.sales-analysis]
+verify_jwt = false

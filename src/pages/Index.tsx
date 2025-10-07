@@ -5,6 +5,7 @@ import { NotificationsPanel } from "@/components/NotificationsPanel";
 import { ShopifyProductList } from "@/components/ShopifyProductList";
 import { ProductSalesTable } from "@/components/ProductSalesTable";
 import { LiveClock } from "@/components/LiveClock";
+import { SalesAnalysis } from "@/components/SalesAnalysis";
 import { useShopifyAnalytics } from "@/hooks/useShopifyData";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -47,6 +48,11 @@ const Index = () => {
                   <NotificationsPanel />
                 </div>
               </div>
+            </div>
+
+            {/* Third Row: AI Analysis */}
+            <div className="mt-6">
+              <SalesAnalysis />
             </div>
           </TabsContent>
           
