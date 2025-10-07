@@ -124,7 +124,7 @@ export const NotificationsPanel = () => {
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-sm text-zinc-400 gap-2">
-                      <span className="truncate flex-1 min-w-0">{order.customer}</span>
+                      <span className={`truncate flex-1 min-w-0 transition-all duration-300 ${blurProductNames ? 'blur-sm select-none' : ''}`}>{order.customer}</span>
                       <span className="whitespace-nowrap">{order.time}</span>
                     </div>
                   </div>
