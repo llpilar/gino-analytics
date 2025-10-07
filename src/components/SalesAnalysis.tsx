@@ -112,54 +112,52 @@ export const SalesAnalysis = () => {
         {insights.map((insight, index) => (
           <div 
             key={index}
-            className="relative h-[180px] cursor-pointer perspective-1000"
+            className="relative min-h-[200px] cursor-pointer"
             onClick={() => toggleFlip(index)}
             style={{ perspective: '1000px' }}
           >
             <div 
-              className={`relative w-full h-full transition-transform duration-500 preserve-3d ${
-                insight.flipped ? 'rotate-y-180' : ''
-              }`}
+              className={`relative w-full transition-transform duration-500`}
               style={{
                 transformStyle: 'preserve-3d',
-                transform: insight.flipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
+                transform: insight.flipped ? 'rotateX(180deg)' : 'rotateX(0deg)'
               }}
             >
               {/* Frente do Card */}
               <Card 
-                className={`absolute inset-0 p-6 border-2 backface-hidden ${getTypeStyles(insight.type)}`}
+                className={`p-4 md:p-6 border-2 ${getTypeStyles(insight.type)}`}
                 style={{ backfaceVisibility: 'hidden' }}
               >
-                <div className="flex items-start gap-4 h-full">
-                  <div className="mt-1">
+                <div className="flex items-start gap-3 md:gap-4">
+                  <div className="mt-1 flex-shrink-0">
                     {getIcon(insight.type)}
                   </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold text-white mb-2">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-base md:text-lg font-bold text-white mb-2">
                       {insight.title}
                     </h3>
-                    <p className="text-zinc-400">
+                    <p className="text-sm md:text-base text-zinc-400 mb-3">
                       {insight.description}
                     </p>
-                    <p className="text-xs text-zinc-500 mt-4">Clique para ver a recomendação</p>
+                    <p className="text-xs text-zinc-500">Clique para ver a recomendação</p>
                   </div>
                 </div>
               </Card>
 
               {/* Verso do Card */}
               <Card 
-                className={`absolute inset-0 p-6 border-2 backface-hidden ${getTypeStyles(insight.type)}`}
+                className={`absolute inset-0 p-4 md:p-6 border-2 ${getTypeStyles(insight.type)}`}
                 style={{ 
                   backfaceVisibility: 'hidden',
-                  transform: 'rotateY(180deg)'
+                  transform: 'rotateX(180deg)'
                 }}
               >
-                <div className="flex flex-col h-full justify-center gap-4">
+                <div className="flex flex-col h-full justify-center gap-3 md:gap-4">
                   <div className="flex items-start gap-2">
-                    <DollarSign className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="text-sm font-semibold text-primary mb-2">Recomendação:</p>
-                      <p className="text-zinc-300">{insight.recommendation}</p>
+                    <DollarSign className="w-4 md:w-5 h-4 md:h-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs md:text-sm font-semibold text-primary mb-2">Recomendação:</p>
+                      <p className="text-sm md:text-base text-zinc-300">{insight.recommendation}</p>
                     </div>
                   </div>
                   <p className="text-xs text-zinc-500 text-center">Clique para voltar</p>
