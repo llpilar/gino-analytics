@@ -1,4 +1,4 @@
-import { Home, ShoppingBag, BarChart3, Settings, Zap, LogOut } from "lucide-react";
+import { Home, ShoppingBag, BarChart3, Activity, Settings, Zap, LogOut } from "lucide-react";
 import { Button } from "./ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "react-router-dom";
@@ -7,6 +7,7 @@ const menuItems = [
   { icon: Home, label: "Dashboard", path: "/" },
   { icon: ShoppingBag, label: "Produtos", path: "/produtos" },
   { icon: BarChart3, label: "Análises", path: "/analises" },
+  { icon: Activity, label: "Live View", path: "/live-view" },
   { icon: Settings, label: "Configurações", path: "/configuracoes" },
 ];
 
