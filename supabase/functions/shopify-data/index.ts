@@ -40,12 +40,23 @@ serve(async (req) => {
         }
       `;
     } else if (endpoint === 'revenue-today') {
+      // Ajustar para timezone da Colômbia (UTC-5)
+      const now = new Date();
+      const colombiaOffset = -5 * 60; // -5 horas em minutos
+      const localOffset = now.getTimezoneOffset();
+      const totalOffset = colombiaOffset - localOffset;
+      const colombiaTime = new Date(now.getTime() + (totalOffset * 60 * 1000));
+      const todayInColombia = colombiaTime.toISOString().split('T')[0];
+      
+      console.log(`Buscando pedidos de hoje na Colômbia: ${todayInColombia}, UTC hoje: ${today}`);
+      
       graphqlQuery = `
         {
-          orders(first: 250, query: "created_at:>='${today}'") {
+          orders(first: 250, query: "created_at:>='${todayInColombia}'") {
             edges {
               node {
                 id
+                createdAt
                 currentTotalPriceSet {
                   shopMoney {
                     amount
