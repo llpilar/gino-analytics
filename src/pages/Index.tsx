@@ -31,16 +31,22 @@ const Index = () => {
           </TabsList>
           
           <TabsContent value="dashboard" className="space-y-6">
+            {/* First Row: Metrics + Clock */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
-              {/* Main Content */}
-              <div className="lg:col-span-8 xl:col-span-9 space-y-4 md:space-y-6 min-w-0">
+              <div className="lg:col-span-8 xl:col-span-9">
                 <DashboardMetrics />
+              </div>
+              <div className="lg:col-span-4 xl:col-span-3">
+                <LiveClock />
+              </div>
+            </div>
+
+            {/* Second Row: Sales Chart + Notifications */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
+              <div className="lg:col-span-8 xl:col-span-9">
                 <SalesChart analyticsData={analyticsData} isLoading={analyticsLoading} />
               </div>
-
-              {/* Right Sidebar */}
-              <div className="lg:col-span-4 xl:col-span-3 space-y-4 md:space-y-6 min-w-0">
-                <LiveClock />
+              <div className="lg:col-span-4 xl:col-span-3">
                 <div className="max-h-[600px] overflow-hidden">
                   <NotificationsPanel />
                 </div>
