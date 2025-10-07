@@ -19,7 +19,7 @@ export const DashboardMetrics = () => {
   });
   const [useCustomRange, setUseCustomRange] = useState(false);
   
-  const customDates = useCustomRange && dateRange.from && dateRange.to 
+  const customDates = useCustomRange && dateRange?.from && dateRange?.to 
     ? { from: dateRange.from, to: dateRange.to }
     : undefined;
     
@@ -134,9 +134,11 @@ export const DashboardMetrics = () => {
               defaultMonth={dateRange?.from}
               selected={{ from: dateRange?.from, to: dateRange?.to }}
               onSelect={(range) => {
-                setDateRange(range as any);
-                if (range?.from && range?.to) {
-                  setUseCustomRange(true);
+                if (range) {
+                  setDateRange(range as any);
+                  if (range?.from && range?.to) {
+                    setUseCustomRange(true);
+                  }
                 }
               }}
               numberOfMonths={2}
