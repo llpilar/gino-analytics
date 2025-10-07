@@ -38,18 +38,16 @@ const Index = () => {
             </TabsList>
             
             <TabsContent value="dashboard" className="space-y-6">
-              {/* Primeira linha: Faturamento, Pedidos e Relógio */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-                <DashboardMetrics />
-                <LiveClock />
-              </div>
-
-              {/* Segunda linha: Gráfico de Vendas e Novas Vendas */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
-                <div className="lg:col-span-8 xl:col-span-9 min-w-0">
+                {/* Main Content */}
+                <div className="lg:col-span-8 xl:col-span-9 space-y-4 md:space-y-6 min-w-0">
+                  <DashboardMetrics />
                   <SalesChart analyticsData={analyticsData} isLoading={analyticsLoading} />
                 </div>
-                <div className="lg:col-span-4 xl:col-span-3 min-w-0">
+
+                {/* Right Sidebar */}
+                <div className="lg:col-span-4 xl:col-span-3 space-y-4 md:space-y-6 min-w-0">
+                  <LiveClock />
                   <div className="max-h-[600px] overflow-hidden">
                     <NotificationsPanel />
                   </div>
