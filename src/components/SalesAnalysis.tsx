@@ -10,6 +10,7 @@ interface AnalysisInsight {
   title: string;
   description: string;
   recommendation: string;
+  flipped?: boolean;
 }
 
 export const SalesAnalysis = () => {
@@ -93,6 +94,12 @@ export const SalesAnalysis = () => {
     );
   }
 
+  const toggleFlip = (index: number) => {
+    setInsights(prev => prev.map((insight, i) => 
+      i === index ? { ...insight, flipped: !insight.flipped } : insight
+    ));
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3 mb-6">
@@ -103,34 +110,63 @@ export const SalesAnalysis = () => {
 
       <div className="grid gap-4">
         {insights.map((insight, index) => (
-          <Card 
-            key={index} 
-            className={cn(
-              "p-6 border-2 transition-all hover:shadow-lg",
-              getTypeStyles(insight.type)
-            )}
+          <div 
+            key={index}
+            className="relative h-[180px] cursor-pointer perspective-1000"
+            onClick={() => toggleFlip(index)}
+            style={{ perspective: '1000px' }}
           >
-            <div className="flex items-start gap-4">
-              <div className="mt-1">
-                {getIcon(insight.type)}
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-bold text-white mb-2">
-                  {insight.title}
-                </h3>
-                <p className="text-zinc-400 mb-3">
-                  {insight.description}
-                </p>
-                <div className="flex items-start gap-2 p-3 rounded-lg bg-zinc-900/50 border border-zinc-800">
-                  <DollarSign className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-xs font-semibold text-primary mb-1">Recomendação:</p>
-                    <p className="text-sm text-zinc-300">{insight.recommendation}</p>
+            <div 
+              className={`relative w-full h-full transition-transform duration-500 preserve-3d ${
+                insight.flipped ? 'rotate-y-180' : ''
+              }`}
+              style={{
+                transformStyle: 'preserve-3d',
+                transform: insight.flipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
+              }}
+            >
+              {/* Frente do Card */}
+              <Card 
+                className={`absolute inset-0 p-6 border-2 backface-hidden ${getTypeStyles(insight.type)}`}
+                style={{ backfaceVisibility: 'hidden' }}
+              >
+                <div className="flex items-start gap-4 h-full">
+                  <div className="mt-1">
+                    {getIcon(insight.type)}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-white mb-2">
+                      {insight.title}
+                    </h3>
+                    <p className="text-zinc-400">
+                      {insight.description}
+                    </p>
+                    <p className="text-xs text-zinc-500 mt-4">Clique para ver a recomendação</p>
                   </div>
                 </div>
-              </div>
+              </Card>
+
+              {/* Verso do Card */}
+              <Card 
+                className={`absolute inset-0 p-6 border-2 backface-hidden ${getTypeStyles(insight.type)}`}
+                style={{ 
+                  backfaceVisibility: 'hidden',
+                  transform: 'rotateY(180deg)'
+                }}
+              >
+                <div className="flex flex-col h-full justify-center gap-4">
+                  <div className="flex items-start gap-2">
+                    <DollarSign className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-semibold text-primary mb-2">Recomendação:</p>
+                      <p className="text-zinc-300">{insight.recommendation}</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-zinc-500 text-center">Clique para voltar</p>
+                </div>
+              </Card>
             </div>
-          </Card>
+          </div>
         ))}
 
         {insights.length === 0 && (
