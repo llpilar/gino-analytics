@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 type PeriodType = 'today' | '3days' | '7days' | '15days' | '30days';
 
 export const DashboardMetrics = () => {
-  const [period, setPeriod] = useState<PeriodType>('today');
+  const [period, setPeriod] = useState<PeriodType>('7days');
   const { data: periodData, isLoading } = useShopifyRevenuePeriod(period);
 
   const periodLabels: Record<PeriodType, string> = {
