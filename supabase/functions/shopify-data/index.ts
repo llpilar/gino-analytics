@@ -115,6 +115,13 @@ serve(async (req) => {
       
       console.log(`Total de pedidos de ontem: ${allOrders.length}`);
       
+      // Calcular total para debug
+      const totalYesterday = allOrders.reduce((sum, edge) => {
+        const amount = parseFloat(edge.node.currentTotalPriceSet?.shopMoney?.amount || '0');
+        return sum + amount;
+      }, 0);
+      console.log(`Total de faturamento de ontem: ${totalYesterday} COP`);
+      
       return new Response(
         JSON.stringify({
           data: {
