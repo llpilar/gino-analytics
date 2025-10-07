@@ -22,8 +22,6 @@ export const DashboardMetrics = () => {
   const customDates = useCustomRange && dateRange?.from && dateRange?.to 
     ? { from: dateRange.from, to: dateRange.to }
     : undefined;
-  
-  console.log('DashboardMetrics - useCustomRange:', useCustomRange, 'customDates:', customDates);
     
   const { data: periodData, isLoading } = useShopifyRevenuePeriod(period, customDates);
 

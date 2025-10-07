@@ -21,8 +21,6 @@ serve(async (req) => {
 
     const { endpoint, customDates } = await req.json();
     
-    console.log('Edge Function - endpoint:', endpoint, 'customDates:', customDates);
-    
     let graphqlQuery = '';
     const today = new Date().toISOString().split('T')[0];
     
@@ -36,35 +34,6 @@ serve(async (req) => {
                 id
                 name
                 createdAt
-              }
-            }
-          }
-        }
-      `;
-    } else if (endpoint === 'revenue-today') {
-      // Ajustar para timezone do Brasil (UTC-3)
-      const now = new Date();
-      const brasilOffset = -3 * 60; // -3 horas em minutos
-      const localOffset = now.getTimezoneOffset();
-      const totalOffset = brasilOffset - localOffset;
-      const brasilTime = new Date(now.getTime() + (totalOffset * 60 * 1000));
-      const todayInBrasil = brasilTime.toISOString().split('T')[0];
-      
-      console.log(`Buscando pedidos de hoje no Brasil: ${todayInBrasil}, hora no Brasil: ${brasilTime.toISOString()}`);
-      
-      graphqlQuery = `
-        {
-          orders(first: 250, query: "created_at:>='${todayInBrasil}'") {
-            edges {
-              node {
-                id
-                createdAt
-                currentTotalPriceSet {
-                  shopMoney {
-                    amount
-                    currencyCode
-                  }
-                }
               }
             }
           }
@@ -448,6 +417,23 @@ serve(async (req) => {
         }
       `;
     }
+    
+    // Se não tiver graphqlQuery definido (foi processado com paginação acima), não fazer nada mais
+    if (!graphqlQuery) {
+      return new Response(
+        JSON.stringify({ error: 'Query já foi processada acima' }),
+        { 
+          status: 400,
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          } 
+        }
+      );
+    }
+    
+    // Remover bloco duplicado - revenue-today agora é processado apenas no bloco principal acima
+    // (linhas 152-256)
 
     console.log('Consultando Shopify GraphQL API...');
     
