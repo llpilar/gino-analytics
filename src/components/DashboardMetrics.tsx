@@ -22,6 +22,8 @@ export const DashboardMetrics = () => {
   const customDates = useCustomRange && dateRange?.from && dateRange?.to 
     ? { from: dateRange.from, to: dateRange.to }
     : undefined;
+  
+  console.log('DashboardMetrics - useCustomRange:', useCustomRange, 'customDates:', customDates);
     
   const { data: periodData, isLoading } = useShopifyRevenuePeriod(period, customDates);
 
@@ -160,7 +162,9 @@ export const DashboardMetrics = () => {
               </div>
               <div>
                 <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                  Faturamento - {periodLabels[period]}
+                  Faturamento - {useCustomRange && dateRange?.from && dateRange?.to 
+                    ? `${format(dateRange.from, "dd/MM")} - ${format(dateRange.to, "dd/MM")}`
+                    : periodLabels[period]}
                 </h3>
                 <p className="text-xs text-zinc-500 mt-0.5">Total em vendas</p>
               </div>
@@ -210,7 +214,9 @@ export const DashboardMetrics = () => {
               </div>
               <div>
                 <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                  Pedidos - {periodLabels[period]}
+                  Pedidos - {useCustomRange && dateRange?.from && dateRange?.to 
+                    ? `${format(dateRange.from, "dd/MM")} - ${format(dateRange.to, "dd/MM")}`
+                    : periodLabels[period]}
                 </h3>
                 <p className="text-xs text-zinc-500 mt-0.5">Total de pedidos</p>
               </div>

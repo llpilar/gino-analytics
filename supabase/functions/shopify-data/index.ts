@@ -21,6 +21,8 @@ serve(async (req) => {
 
     const { endpoint, customDates } = await req.json();
     
+    console.log('Edge Function - endpoint:', endpoint, 'customDates:', customDates);
+    
     let graphqlQuery = '';
     const today = new Date().toISOString().split('T')[0];
     
@@ -147,7 +149,7 @@ serve(async (req) => {
           } 
         }
       );
-    } else if (endpoint === 'revenue-3days' || endpoint === 'revenue-7days' || endpoint === 'revenue-15days' || endpoint === 'revenue-30days') {
+    } else if (endpoint === 'revenue-3days' || endpoint === 'revenue-7days' || endpoint === 'revenue-15days' || endpoint === 'revenue-30days' || endpoint === 'revenue-today') {
       let startDateStr: string;
       let endDateStr: string;
       
@@ -160,7 +162,8 @@ serve(async (req) => {
         // Caso contrário, usar os períodos predefinidos
         let daysAgo = 0;
         
-        if (endpoint === 'revenue-3days') daysAgo = 3;
+        if (endpoint === 'revenue-today') daysAgo = 0;
+        else if (endpoint === 'revenue-3days') daysAgo = 3;
         else if (endpoint === 'revenue-7days') daysAgo = 7;
         else if (endpoint === 'revenue-15days') daysAgo = 15;
         else if (endpoint === 'revenue-30days') daysAgo = 30;

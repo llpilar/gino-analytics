@@ -38,6 +38,8 @@ interface ShopifyResponse {
 }
 
 const fetchShopifyData = async (endpoint: string, customDates?: { from: Date; to: Date }) => {
+  console.log('fetchShopifyData - endpoint:', endpoint, 'customDates:', customDates);
+  
   const { data, error } = await supabase.functions.invoke('shopify-data', {
     body: { 
       endpoint,
