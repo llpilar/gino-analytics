@@ -1,64 +1,52 @@
-import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Eye, ShoppingCart, TrendingUp, Users } from "lucide-react";
-
-interface Metrics {
-  visitorsOnline: number;
-  activeCheckouts: number;
-  revenueToday: number;
-  conversionRate: number;
-}
+import { Eye, ShoppingCart, TrendingUp, Package } from "lucide-react";
+import { useLiveShopify } from "@/hooks/useLiveShopify";
 
 export const LiveMetrics = () => {
-  const [metrics, setMetrics] = useState<Metrics>({
-    visitorsOnline: 0,
-    activeCheckouts: 0,
-    revenueToday: 0,
-    conversionRate: 0,
-  });
-
-  useEffect(() => {
-    // Simular dados em tempo real
-    const interval = setInterval(() => {
-      setMetrics({
-        visitorsOnline: Math.floor(Math.random() * 50) + 10,
-        activeCheckouts: Math.floor(Math.random() * 10),
-        revenueToday: Math.random() * 5000 + 1000,
-        conversionRate: Math.random() * 5 + 1,
-      });
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, []);
+  const { data, isLoading } = useLiveShopify();
 
   const metricCards = [
     {
-      title: "Visitantes Online",
-      value: metrics.visitorsOnline,
-      icon: Eye,
-      color: "text-blue-500",
-      format: (val: number) => val.toString(),
-    },
-    {
-      title: "Checkouts Ativos",
-      value: metrics.activeCheckouts,
+      title: "Pedidos Hoje",
+      value: data?.orderCount || 0,
       icon: ShoppingCart,
       color: "text-green-500",
       format: (val: number) => val.toString(),
     },
     {
       title: "Faturamento Hoje",
-      value: metrics.revenueToday,
+      value: data?.totalRevenue || 0,
       icon: TrendingUp,
       color: "text-purple-500",
-      format: (val: number) => `R$ ${val.toFixed(2)}`,
+      format: (val: number) => {
+        const formatted = new Intl.NumberFormat('pt-BR', {
+          style: 'currency',
+          currency: 'BRL',
+        }).format(val);
+        return formatted;
+      },
     },
     {
-      title: "Taxa de Conversão",
-      value: metrics.conversionRate,
-      icon: Users,
+      title: "Produtos Ativos",
+      value: data?.products?.length || 0,
+      icon: Package,
+      color: "text-blue-500",
+      format: (val: number) => val.toString(),
+    },
+    {
+      title: "Ticket Médio",
+      value: data?.orderCount && data?.orderCount > 0 
+        ? (data?.totalRevenue || 0) / data.orderCount 
+        : 0,
+      icon: Eye,
       color: "text-orange-500",
-      format: (val: number) => `${val.toFixed(1)}%`,
+      format: (val: number) => {
+        const formatted = new Intl.NumberFormat('pt-BR', {
+          style: 'currency',
+          currency: 'BRL',
+        }).format(val);
+        return formatted;
+      },
     },
   ];
 
@@ -70,7 +58,7 @@ export const LiveMetrics = () => {
             <div>
               <p className="text-sm text-muted-foreground">{metric.title}</p>
               <p className="text-2xl font-bold mt-2">
-                {metric.format(metric.value)}
+                {isLoading ? "..." : metric.format(metric.value)}
               </p>
             </div>
             <metric.icon className={`h-8 w-8 ${metric.color}`} />
