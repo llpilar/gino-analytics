@@ -80,7 +80,7 @@ serve(async (req) => {
       let hasNextPage = true;
       let cursor = null;
       
-      while (hasNextPage && allOrders.length < 5000) {
+      while (hasNextPage && allOrders.length < 10000) {
         const paginationQuery: string = cursor 
           ? `, after: "${cursor}"` 
           : '';
@@ -166,7 +166,7 @@ serve(async (req) => {
       let hasNextPage = true;
       let cursor = null;
       
-      while (hasNextPage && allOrders.length < 5000) { // Limite de segurança aumentado
+      while (hasNextPage && allOrders.length < 10000) { // Limite de segurança aumentado
         const paginationQuery: string = cursor 
           ? `, after: "${cursor}"` 
           : '';

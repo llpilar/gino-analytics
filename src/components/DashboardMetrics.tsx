@@ -67,6 +67,22 @@ export const DashboardMetrics = () => {
 
   return (
     <>
+      {/* Period Selector */}
+      <div className="col-span-full mb-4">
+        <Select value={period} onValueChange={(value) => setPeriod(value as PeriodType)}>
+          <SelectTrigger className="w-[240px] bg-zinc-900/50 border-zinc-800">
+            <SelectValue placeholder="Selecione o período" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="today">Hoje</SelectItem>
+            <SelectItem value="3days">Últimos 3 Dias</SelectItem>
+            <SelectItem value="7days">Últimos 7 Dias</SelectItem>
+            <SelectItem value="15days">Últimos 15 Dias</SelectItem>
+            <SelectItem value="30days">Últimos 30 Dias</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* Faturamento */}
       <div className="metric-card group relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/5 rounded-full blur-3xl" />
