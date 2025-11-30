@@ -74,62 +74,81 @@ export const LiveCommandCenter = () => {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 min-h-[calc(100vh-120px)]">
-          {/* Left: Globe */}
-          <div className="flex items-center justify-center">
-            <LiveGlobe className="w-full h-full max-h-[600px]" />
+      <div className="relative z-10 px-4 py-6">
+        <div className="flex flex-col lg:flex-row gap-6 min-h-[calc(100vh-120px)]">
+          {/* Left: Globe - 40% width on large screens */}
+          <div className="lg:w-[40%] flex items-center justify-center">
+            <div className="relative w-full aspect-square max-w-[700px]">
+              <LiveGlobe className="w-full h-full" />
+            </div>
           </div>
 
-          {/* Right: Metrics */}
-          <div className="flex flex-col gap-6 justify-center">
-            {/* Sales Per Minute */}
-            <LEDDisplay
-              label="SALES PER MINUTE"
-              value={formatCurrency(parseFloat(salesPerMinute))}
-              size="xl"
-              color="amber"
-            />
+          {/* Right: Metrics - 60% width on large screens */}
+          <div className="lg:w-[60%] flex flex-col gap-4 justify-center px-4">
+            {/* Sales Per Minute - Large Display */}
+            <div className="animate-fade-in">
+              <LEDDisplay
+                label="SALES PER MINUTE"
+                value={formatCurrency(parseFloat(salesPerMinute))}
+                size="xl"
+                color="amber"
+              />
+            </div>
 
-            {/* Orders & Shoppers */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* Orders & Shoppers Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in" style={{ animationDelay: "0.1s" }}>
               <LEDDisplay
                 label="ORDERS PER MINUTE"
                 value={ordersPerMinute}
-                size="md"
+                size="lg"
                 color="amber"
               />
               <LEDDisplay
                 label="UNIQUE SHOPPERS"
                 value={uniqueShoppers}
-                size="md"
+                size="lg"
                 color="amber"
               />
             </div>
 
             {/* Top Live Banner */}
-            <LEDDisplay
-              value="TOP LIVE"
-              size="lg"
-              color="amber"
-            />
+            <div className="animate-fade-in" style={{ animationDelay: "0.2s" }}>
+              <LEDDisplay
+                value="🔥 TOP LIVE"
+                size="lg"
+                color="green"
+              />
+            </div>
 
-            {/* Total Stats */}
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <div className="glass-card p-6 border-primary/20">
-                <div className="text-zinc-400 text-sm font-semibold uppercase tracking-wider mb-2">
-                  Total Revenue Today
+            {/* Total Stats - Enhanced Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in" style={{ animationDelay: "0.3s" }}>
+              <div className="glass-card p-6 border-primary/30 hover:border-primary/50 hover:scale-105 transition-all duration-300">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-3 h-3 bg-primary rounded-full animate-pulse" />
+                  <div className="text-zinc-400 text-xs font-bold uppercase tracking-wider">
+                    Total Revenue Today
+                  </div>
                 </div>
-                <div className="text-3xl font-black text-primary">
+                <div className="text-3xl md:text-4xl font-black text-primary drop-shadow-[0_0_10px_rgba(163,230,53,0.5)]">
                   {formatCurrency(totalRevenue)}
                 </div>
-              </div>
-              <div className="glass-card p-6 border-green-500/20">
-                <div className="text-zinc-400 text-sm font-semibold uppercase tracking-wider mb-2">
-                  Total Orders Today
+                <div className="mt-2 text-xs text-zinc-500">
+                  Real-time tracking
                 </div>
-                <div className="text-3xl font-black text-green-500">
+              </div>
+              
+              <div className="glass-card p-6 border-green-500/30 hover:border-green-500/50 hover:scale-105 transition-all duration-300">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+                  <div className="text-zinc-400 text-xs font-bold uppercase tracking-wider">
+                    Total Orders Today
+                  </div>
+                </div>
+                <div className="text-3xl md:text-4xl font-black text-green-500 drop-shadow-[0_0_10px_rgba(34,197,94,0.5)]">
                   {ordersCount}
+                </div>
+                <div className="mt-2 text-xs text-zinc-500">
+                  Live order count
                 </div>
               </div>
             </div>
