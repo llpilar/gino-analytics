@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { LEDDisplay } from "./LEDDisplay";
-import { LiveGlobe } from "./LiveGlobe";
+import { ColombiaGlobe3D } from "./ColombiaGlobe3D";
 import { useShopifyRevenueToday, useShopifyAnalytics } from "@/hooks/useShopifyData";
 import { format } from "date-fns";
 import { Skeleton } from "./ui/skeleton";
@@ -142,18 +142,19 @@ export const LiveCommandCenter = () => {
           {/* Middle: Globe + Side Panel */}
           <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
             
-            {/* Center: Globe */}
+            {/* Center: 3D Colombia Globe */}
             <div className="lg:col-span-2 flex items-center justify-center animate-fade-in" style={{ animationDelay: "0.1s" }}>
               <div className="relative w-full max-w-[700px] aspect-square" 
                    style={{ 
                      transform: 'rotateX(5deg) translateZ(50px)',
                      transformStyle: 'preserve-3d'
                    }}>
-                <LiveGlobe className="w-full h-full" />
-                {/* Globe base glow */}
+                <ColombiaGlobe3D className="w-full h-full" />
+                {/* Globe base shadow */}
                 <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-3/4 h-8 bg-primary/30 rounded-full blur-3xl" />
-                {/* Ambient glow */}
-                <div className="absolute inset-0 bg-gradient-radial from-primary/20 via-transparent to-transparent blur-3xl -z-10" />
+                {/* Ambient glow rings */}
+                <div className="absolute inset-0 bg-gradient-radial from-primary/20 via-transparent to-transparent blur-3xl -z-10 animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-radial from-blue-500/10 via-transparent to-transparent blur-3xl -z-10 animate-pulse" style={{ animationDelay: '0.5s' }} />
               </div>
             </div>
 
