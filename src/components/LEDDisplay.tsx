@@ -44,25 +44,28 @@ export const LEDDisplay = ({ value, label, size = "lg", color = "amber" }: LEDDi
   };
 
   return (
-    <div className={cn("relative p-6 rounded-xl border-2 border-zinc-800/50 overflow-hidden", bgGlowClasses[color])}>
-      {/* LED Grid Background */}
+    <div className={cn("relative p-6 rounded-2xl border-2 border-zinc-800/30 overflow-hidden bg-zinc-950/80 backdrop-blur-sm", bgGlowClasses[color])}>
+      {/* LED Dot Matrix Background - More Dense */}
       <div 
-        className="absolute inset-0 opacity-20"
+        className="absolute inset-0 opacity-25"
         style={{
-          backgroundImage: `radial-gradient(circle, ${color === 'amber' ? '#f59e0b' : color === 'green' ? '#22c55e' : color === 'red' ? '#ef4444' : '#3b82f6'} 1px, transparent 1px)`,
-          backgroundSize: '8px 8px'
+          backgroundImage: `radial-gradient(circle, ${color === 'amber' ? '#f59e0b' : color === 'green' ? '#22c55e' : color === 'red' ? '#ef4444' : '#3b82f6'} 1.5px, transparent 1.5px)`,
+          backgroundSize: '10px 10px'
         }}
       />
+      
+      {/* Inner Glow */}
+      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/40" />
       
       {/* Display */}
       <div className="relative z-10">
         {label && (
-          <div className="text-xs md:text-sm font-bold text-zinc-400 uppercase tracking-widest mb-2">
+          <div className="text-xs md:text-sm font-bold text-white/70 uppercase tracking-[0.3em] mb-3 drop-shadow-lg">
             {label}
           </div>
         )}
         <div className={cn(
-          "font-mono font-black tracking-wider",
+          "font-mono font-black tracking-tight leading-none",
           sizeClasses[size],
           colorClasses[color],
           glowClasses[color]
@@ -71,10 +74,19 @@ export const LEDDisplay = ({ value, label, size = "lg", color = "amber" }: LEDDi
         </div>
       </div>
 
-      {/* Scanline Effect */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent animate-pulse" />
+      {/* Scanline Effect - More Visible */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/10 to-transparent animate-pulse" 
+             style={{ animationDuration: '3s' }} />
       </div>
+      
+      {/* Border Glow */}
+      <div className={cn("absolute inset-0 rounded-2xl opacity-50", 
+        color === 'amber' ? 'shadow-[inset_0_0_20px_rgba(245,158,11,0.3)]' :
+        color === 'green' ? 'shadow-[inset_0_0_20px_rgba(34,197,94,0.3)]' :
+        color === 'red' ? 'shadow-[inset_0_0_20px_rgba(239,68,68,0.3)]' :
+        'shadow-[inset_0_0_20px_rgba(59,130,246,0.3)]'
+      )} />
     </div>
   );
 };
