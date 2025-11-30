@@ -146,5 +146,16 @@ export const ColombiaGlobe3D = ({ className }: ColombiaGlobe3DProps) => {
     };
   }, []);
 
-  return <div ref={mountRef} className={className} />;
+  return (
+    <div 
+      ref={mountRef} 
+      className={className}
+      style={{ 
+        width: '100%', 
+        height: '100%',
+        minHeight: '400px',
+        position: 'relative'
+      }} 
+    />
+  );
 };
