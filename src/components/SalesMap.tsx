@@ -269,129 +269,135 @@ export const SalesMap = () => {
         </CardContent>
       </Card>
 
-      {/* Metrics by Country and Top Cities - Combined */}
+      {/* Top Countries */}
       {data?.metrics && data.metrics.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-          {/* Top 3 Countries */}
-          {data.metrics.slice(0, 3).map((metric, index) => (
-            <Card 
-              key={metric.countryCode}
-              className="bg-black/80 border-2 border-green-500/30 backdrop-blur-xl hover:scale-105 transition-transform"
-            >
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center border border-green-500/30">
-                      <span className="text-lg font-bold text-green-400">#{index + 1}</span>
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-white">Top Países</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {data.metrics.slice(0, 3).map((metric, index) => (
+              <Card 
+                key={metric.countryCode}
+                className="bg-black/80 border-2 border-green-500/30 backdrop-blur-xl hover:scale-[1.02] transition-transform"
+              >
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center border border-green-500/30 shrink-0">
+                        <span className="text-sm font-bold text-green-400">#{index + 1}</span>
+                      </div>
+                      <h3 className="font-bold text-white truncate">{metric.country}</h3>
                     </div>
-                    <h3 className="font-bold text-white">{metric.country}</h3>
-                  </div>
-                  <MapPin className="h-5 w-5 text-green-400" />
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-400">Total Revenue</span>
-                    <span className="text-lg font-bold text-green-400">
-                      {formatCurrency(metric.totalRevenue)}
-                    </span>
+                    <MapPin className="h-5 w-5 text-green-400 shrink-0" />
                   </div>
                   
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-400 flex items-center gap-1">
-                      <TrendingUp className="h-3 w-3" />
-                      Pedidos
-                    </span>
-                    <span className="text-sm font-bold text-white">
-                      {metric.orderCount}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-400 flex items-center gap-1">
-                      <DollarSign className="h-3 w-3" />
-                      Ticket Médio
-                    </span>
-                    <span className="text-sm font-bold text-cyan-400">
-                      {formatCurrency(metric.avgOrderValue)}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Progress bar */}
-                <div className="mt-4 h-2 bg-gray-800 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full transition-all duration-500"
-                    style={{ 
-                      width: `${Math.min((metric.totalRevenue / (data.metrics[0]?.totalRevenue || 1)) * 100, 100)}%` 
-                    }}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-
-          {/* Top 3 Cities */}
-          {data?.topCities && data.topCities.map((city: any, index: number) => (
-            <Card 
-              key={`${city.city}-${city.countryCode}`}
-              className="bg-black/80 border-2 border-cyan-500/30 backdrop-blur-xl hover:scale-105 transition-transform"
-            >
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30">
-                      <span className="text-lg font-bold text-cyan-400">#{index + 1}</span>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs text-gray-400 whitespace-nowrap">Receita Total</span>
+                      <span className="text-base font-bold text-green-400 truncate">
+                        {formatCurrency(metric.totalRevenue)}
+                      </span>
                     </div>
-                    <div>
-                      <h3 className="font-bold text-white">{city.city}</h3>
-                      <p className="text-xs text-gray-400">{city.country}</p>
+                    
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs text-gray-400 flex items-center gap-1 whitespace-nowrap">
+                        <TrendingUp className="h-3 w-3 shrink-0" />
+                        Pedidos
+                      </span>
+                      <span className="text-sm font-bold text-white">
+                        {metric.orderCount}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs text-gray-400 flex items-center gap-1 whitespace-nowrap">
+                        <DollarSign className="h-3 w-3 shrink-0" />
+                        Ticket Médio
+                      </span>
+                      <span className="text-sm font-bold text-cyan-400 truncate">
+                        {formatCurrency(metric.avgOrderValue)}
+                      </span>
                     </div>
                   </div>
-                  <div className="text-xs font-bold text-cyan-400">TOP {index + 1}</div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-400">Revenue Total</span>
-                    <span className="text-lg font-bold text-cyan-400">
-                      {formatCurrency(city.totalRevenue)}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-400 flex items-center gap-1">
-                      <TrendingUp className="h-3 w-3" />
-                      Pedidos
-                    </span>
-                    <span className="text-sm font-bold text-white">
-                      {city.orderCount}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-400 flex items-center gap-1">
-                      <DollarSign className="h-3 w-3" />
-                      Ticket Médio
-                    </span>
-                    <span className="text-sm font-bold text-purple-400">
-                      {formatCurrency(city.avgOrderValue)}
-                    </span>
-                  </div>
-                </div>
 
-                {/* Progress bar */}
-                <div className="mt-4 h-2 bg-gray-800 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-500"
-                    style={{ 
-                      width: `${Math.min((city.totalRevenue / (data.topCities[0]?.totalRevenue || 1)) * 100, 100)}%` 
-                    }}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                  <div className="mt-4 h-2 bg-gray-800 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full transition-all duration-500"
+                      style={{ 
+                        width: `${Math.min((metric.totalRevenue / (data.metrics[0]?.totalRevenue || 1)) * 100, 100)}%` 
+                      }}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Top 5 Cities */}
+      {data?.topCities && data.topCities.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-white">Top 5 Cidades</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            {data.topCities.map((city: any, index: number) => (
+              <Card 
+                key={`${city.city}-${city.countryCode}`}
+                className="bg-black/80 border-2 border-cyan-500/30 backdrop-blur-xl hover:scale-[1.02] transition-transform"
+              >
+                <CardContent className="p-5">
+                  <div className="flex items-start justify-between mb-4 gap-2">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30 shrink-0">
+                        <span className="text-sm font-bold text-cyan-400">#{index + 1}</span>
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="font-bold text-white truncate">{city.city}</h3>
+                        <p className="text-xs text-gray-400 truncate">{city.country}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs text-gray-400 whitespace-nowrap">Receita</span>
+                      <span className="text-base font-bold text-cyan-400 truncate">
+                        {formatCurrency(city.totalRevenue)}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs text-gray-400 flex items-center gap-1 whitespace-nowrap">
+                        <TrendingUp className="h-3 w-3 shrink-0" />
+                        Pedidos
+                      </span>
+                      <span className="text-sm font-bold text-white">
+                        {city.orderCount}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs text-gray-400 flex items-center gap-1 whitespace-nowrap">
+                        <DollarSign className="h-3 w-3 shrink-0" />
+                        Ticket
+                      </span>
+                      <span className="text-sm font-bold text-purple-400 truncate">
+                        {formatCurrency(city.avgOrderValue)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 h-2 bg-gray-800 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-500"
+                      style={{ 
+                        width: `${Math.min((city.totalRevenue / (data.topCities[0]?.totalRevenue || 1)) * 100, 100)}%` 
+                      }}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       )}
 
