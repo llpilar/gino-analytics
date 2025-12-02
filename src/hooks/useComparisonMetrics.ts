@@ -11,31 +11,19 @@ interface ComparisonData {
 }
 
 const fetchOrdersForPeriod = async (startDate: Date, endDate: Date) => {
-  const startISO = startDate.toISOString().split('T')[0];
-  const endISO = endDate.toISOString().split('T')[0];
-  
   const { data } = await supabase.functions.invoke('shopify-data', {
     body: {
-      query: `{
-        orders(first: 250, query: "created_at:${startISO}") {
-          edges {
-            node {
-              id
-              totalPriceSet {
-                shopMoney {
-                  amount
-                }
-              }
-            }
-          }
-        }
-      }`
+      endpoint: 'revenue-today',
+      customDates: {
+        from: startDate.toISOString(),
+        to: endDate.toISOString()
+      }
     }
   });
 
   const orders = data?.data?.orders?.edges || [];
   const totalRevenue = orders.reduce((acc: number, edge: any) => {
-    const amount = parseFloat(edge.node.totalPriceSet?.shopMoney?.amount || '0');
+    const amount = parseFloat(edge.node.currentTotalPriceSet?.shopMoney?.amount || '0');
     return acc + amount;
   }, 0);
 
@@ -47,7 +35,7 @@ const fetchOrdersForPeriod = async (startDate: Date, endDate: Date) => {
 
 const calculateComparison = (current: number, previous: number): ComparisonData => {
   const change = current - previous;
-  const changePercent = previous > 0 ? (change / previous) * 100 : 100;
+  const changePercent = previous > 0 ? (change / previous) * 100 : (current > 0 ? 100 : 0);
   
   return {
     current,
@@ -64,7 +52,6 @@ export const useDailyComparison = () => {
     queryFn: async () => {
       const today = startOfDay(new Date());
       const yesterday = startOfDay(subDays(new Date(), 1));
-      const twoDaysAgo = startOfDay(subDays(new Date(), 2));
 
       const [todayData, yesterdayData] = await Promise.all([
         fetchOrdersForPeriod(today, new Date()),
