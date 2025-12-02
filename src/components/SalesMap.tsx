@@ -17,11 +17,36 @@ export const SalesMap = () => {
   const { data, isLoading } = useSalesLocation();
 
   useEffect(() => {
-    const savedToken = localStorage.getItem('MAPBOX_PUBLIC_TOKEN');
-    if (savedToken) {
-      setMapboxToken(savedToken);
-      setIsTokenSet(true);
-    }
+    // Try to get token from backend/secrets via edge function
+    const fetchToken = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-mapbox-token`, {
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
+          }
+        });
+        
+        if (response.ok) {
+          const { token } = await response.json();
+          if (token) {
+            setMapboxToken(token);
+            setIsTokenSet(true);
+            return;
+          }
+        }
+      } catch (error) {
+        console.log('Token not configured in backend, using local storage fallback');
+      }
+
+      // Fallback to localStorage
+      const savedToken = localStorage.getItem('MAPBOX_PUBLIC_TOKEN');
+      if (savedToken) {
+        setMapboxToken(savedToken);
+        setIsTokenSet(true);
+      }
+    };
+
+    fetchToken();
   }, []);
 
   useEffect(() => {
