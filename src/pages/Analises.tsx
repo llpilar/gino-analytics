@@ -8,6 +8,8 @@ import { useDailyComparison, useWeeklyComparison, useMonthlyComparison } from "@
 import { ComparisonBadge } from "@/components/ComparisonBadge";
 import { VariantPerformance } from "@/components/VariantPerformance";
 import { PageHeader } from "@/components/PageHeader";
+import { CurrencyToggle } from "@/components/CurrencyToggle";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 export default function Analises() {
   const { data: analyticsData, isLoading: analyticsLoading } = useShopifyAnalytics();
@@ -15,6 +17,7 @@ export default function Analises() {
   const { data: dailyComparison } = useDailyComparison();
   const { data: weeklyComparison } = useWeeklyComparison();
   const { data: monthlyComparison } = useMonthlyComparison();
+  const { formatCurrency } = useCurrency();
 
   // Calculate metrics
   const metrics = useMemo(() => {
@@ -41,15 +44,6 @@ export default function Analises() {
       growth: 23.5 // Mock growth percentage
     };
   }, [revenueData]);
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('es-CO', { 
-      style: 'currency', 
-      currency: 'COP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(value).replace('COP', '$');
-  };
 
   const statCards = [
     {
@@ -98,11 +92,14 @@ export default function Analises() {
     <DashboardWrapper>
       <div className="container mx-auto p-6 md:p-8 lg:p-12 min-h-screen">
         {/* Header */}
-        <PageHeader 
-          title="Analytics Command"
-          subtitle="Real-time performance monitoring & insights"
-          icon={<BarChart3 className="h-8 w-8 text-cyan-400" />}
-        />
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+          <PageHeader 
+            title="Analytics Command"
+            subtitle="Real-time performance monitoring & insights"
+            icon={<BarChart3 className="h-8 w-8 text-cyan-400" />}
+          />
+          <CurrencyToggle />
+        </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
