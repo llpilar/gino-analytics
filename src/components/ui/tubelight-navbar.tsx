@@ -5,6 +5,8 @@ import { motion } from "framer-motion"
 import { Link, useLocation } from "react-router-dom"
 import { LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useCurrency } from "@/contexts/CurrencyContext"
+import { Switch } from "@/components/ui/switch"
 
 interface NavItem {
   name: string
@@ -15,12 +17,18 @@ interface NavItem {
 interface NavBarProps {
   items: NavItem[]
   className?: string
+  showCurrencyToggle?: boolean
 }
 
-export function NavBar({ items, className }: NavBarProps) {
+export function NavBar({ items, className, showCurrencyToggle = true }: NavBarProps) {
   const location = useLocation()
   const [activeTab, setActiveTab] = useState(items[0].name)
   const [isMobile, setIsMobile] = useState(false)
+  const { currency, setCurrency } = useCurrency()
+
+  const handleCurrencyToggle = (checked: boolean) => {
+    setCurrency(checked ? 'BRL' : 'COP')
+  }
 
   useEffect(() => {
     // Update active tab based on current route
@@ -89,6 +97,32 @@ export function NavBar({ items, className }: NavBarProps) {
             </Link>
           )
         })}
+
+        {/* Currency Toggle with Divider */}
+        {showCurrencyToggle && (
+          <>
+            <div className="h-6 w-px bg-cyan-500/30 mx-1" />
+            <div className="flex items-center gap-2 px-3 py-1.5">
+              <span className={cn(
+                "text-xs font-bold transition-colors",
+                currency === 'COP' ? 'text-cyan-400' : 'text-gray-500'
+              )}>
+                COP
+              </span>
+              <Switch
+                checked={currency === 'BRL'}
+                onCheckedChange={handleCurrencyToggle}
+                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-cyan-500 h-5 w-9"
+              />
+              <span className={cn(
+                "text-xs font-bold transition-colors",
+                currency === 'BRL' ? 'text-green-400' : 'text-gray-500'
+              )}>
+                BRL
+              </span>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )
