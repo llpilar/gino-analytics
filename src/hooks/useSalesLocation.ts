@@ -46,32 +46,26 @@ const fetchSalesLocation = async (): Promise<{
   sales: SaleLocation[];
   metrics: LocationMetrics[];
 }> => {
-  // Buscar pedidos dos últimos 30 dias
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  
-  const { data, error } = await supabase.functions.invoke('shopify-data', {
-    body: { 
-      endpoint: 'revenue-30days',
-      customDates: {
-        from: thirtyDaysAgo.toISOString(),
-        to: new Date().toISOString()
-      }
-    },
-  });
+      // Buscar dados de vendas para análise
+      const { data: salesData, error } = await supabase.functions.invoke('shopify-data', {
+        body: { endpoint: 'revenue-30days' }
+      });
 
   if (error) throw error;
 
-  const orders = data?.data?.orders?.edges || [];
+  const orders = salesData?.data?.orders?.edges || [];
   
   // Processar vendas individuais
   const sales: SaleLocation[] = orders.map((edge: any) => {
     const order = edge.node;
     const amount = parseFloat(order.currentTotalPriceSet?.shopMoney?.amount || '0');
     
-    // Assumir Colômbia como padrão (já que a loja é colombiana)
-    const countryCode = 'CO';
-    const country = 'Colombia';
+    // Pegar localização real ou assumir Colômbia como padrão
+    const shippingAddress = order.shippingAddress;
+    const countryCode = shippingAddress?.countryCode || 'CO';
+    const country = shippingAddress?.country || 'Colombia';
+    const city = shippingAddress?.city;
+    const province = shippingAddress?.provinceCode;
     
     return {
       orderId: order.id,
@@ -79,6 +73,8 @@ const fetchSalesLocation = async (): Promise<{
       amount,
       country,
       countryCode,
+      city,
+      province,
       coordinates: COUNTRY_COORDINATES[countryCode],
       createdAt: order.createdAt
     };

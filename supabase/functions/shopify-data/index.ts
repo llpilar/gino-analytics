@@ -170,11 +170,19 @@ serve(async (req) => {
               edges {
                 node {
                   id
+                  name
+                  createdAt
                   currentTotalPriceSet {
                     shopMoney {
                       amount
                       currencyCode
                     }
+                  }
+                  shippingAddress {
+                    city
+                    provinceCode
+                    countryCode
+                    country
                   }
                 }
               }
@@ -275,8 +283,29 @@ serve(async (req) => {
                     currencyCode
                   }
                 }
+                displayFulfillmentStatus
+                fulfillmentOrders(first: 5) {
+                  edges {
+                    node {
+                      status
+                      deliveryMethod {
+                        methodType
+                      }
+                    }
+                  }
+                }
+                shippingAddress {
+                  city
+                  provinceCode
+                  countryCode
+                  country
+                  address1
+                  zip
+                }
                 customer {
                   displayName
+                  email
+                  phone
                 }
                 lineItems(first: 10) {
                   edges {
@@ -398,6 +427,12 @@ serve(async (req) => {
               node {
                 id
                 createdAt
+                shippingAddress {
+                  city
+                  provinceCode
+                  countryCode
+                  country
+                }
                 lineItems(first: 50) {
                   edges {
                     node {
@@ -414,6 +449,33 @@ serve(async (req) => {
                       }
                     }
                   }
+                }
+              }
+            }
+          }
+        }
+      `;
+    } else if (endpoint === 'customers') {
+      graphqlQuery = `
+        {
+          customers(first: 100, sortKey: TOTAL_SPENT, reverse: true) {
+            edges {
+              node {
+                id
+                displayName
+                email
+                phone
+                createdAt
+                numberOfOrders
+                amountSpent {
+                  amount
+                  currencyCode
+                }
+                addresses(first: 1) {
+                  city
+                  provinceCode
+                  countryCode
+                  country
                 }
               }
             }
