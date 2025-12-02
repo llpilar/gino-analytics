@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { MapPin, TrendingUp, DollarSign } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSalesLocation } from "@/hooks/useSalesLocation";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
@@ -15,6 +16,7 @@ export const SalesMap = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const { data, isLoading } = useSalesLocation();
+  const { formatCurrency } = useCurrency();
 
   useEffect(() => {
     // Try to get token from backend/secrets via edge function
@@ -179,15 +181,6 @@ export const SalesMap = () => {
       setMapboxToken(tempToken);
       setIsTokenSet(true);
     }
-  };
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('es-CO', { 
-      style: 'currency', 
-      currency: 'COP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(value).replace('COP', '$');
   };
 
   if (!isTokenSet) {
