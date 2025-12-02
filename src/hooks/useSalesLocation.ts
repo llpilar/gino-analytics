@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useDateFilter } from "@/contexts/DateFilterContext";
 
 interface SaleLocation {
   orderId: string;
@@ -90,14 +91,20 @@ const getCoordinates = (city?: string, country?: string, countryCode?: string): 
   return undefined;
 };
 
-const fetchSalesLocation = async (): Promise<{
+const fetchSalesLocation = async (dateRange: { from: Date; to: Date }): Promise<{
   sales: SaleLocation[];
   metrics: LocationMetrics[];
   topCities?: any[];
 }> => {
       // Buscar dados de vendas para análise
       const { data: salesData, error } = await supabase.functions.invoke('shopify-data', {
-        body: { endpoint: 'revenue-30days' }
+        body: { 
+          endpoint: 'revenue-30days',
+          customDates: {
+            from: dateRange.from.toISOString(),
+            to: dateRange.to.toISOString()
+          }
+        }
       });
 
   if (error) throw error;
@@ -191,9 +198,11 @@ const fetchSalesLocation = async (): Promise<{
 };
 
 export const useSalesLocation = () => {
+  const { dateRange } = useDateFilter();
+  
   return useQuery({
-    queryKey: ['sales-location'],
-    queryFn: fetchSalesLocation,
+    queryKey: ['sales-location', dateRange.from, dateRange.to],
+    queryFn: () => fetchSalesLocation(dateRange),
     refetchInterval: 300000, // 5 minutos
     retry: 3,
     staleTime: 60000,

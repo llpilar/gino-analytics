@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useDateFilter } from "@/contexts/DateFilterContext";
 
 interface OrderNode {
   id: string;
@@ -53,9 +54,11 @@ const fetchShopifyData = async (endpoint: string, customDates?: { from: Date; to
 };
 
 export const useShopifyOrders = () => {
+  const { dateRange } = useDateFilter();
+  
   return useQuery({
-    queryKey: ['shopify-orders'],
-    queryFn: () => fetchShopifyData('orders'),
+    queryKey: ['shopify-orders', dateRange.from, dateRange.to],
+    queryFn: () => fetchShopifyData('orders', dateRange),
     refetchInterval: 30000,
     retry: 3,
     staleTime: 10000,
@@ -63,9 +66,11 @@ export const useShopifyOrders = () => {
 };
 
 export const useShopifySummary = () => {
+  const { dateRange } = useDateFilter();
+  
   return useQuery({
-    queryKey: ['shopify-summary'],
-    queryFn: () => fetchShopifyData('summary'),
+    queryKey: ['shopify-summary', dateRange.from, dateRange.to],
+    queryFn: () => fetchShopifyData('summary', dateRange),
     refetchInterval: 30000,
     retry: 3,
     staleTime: 10000,
@@ -73,9 +78,11 @@ export const useShopifySummary = () => {
 };
 
 export const useShopifyAnalytics = () => {
+  const { dateRange } = useDateFilter();
+  
   return useQuery({
-    queryKey: ['shopify-analytics'],
-    queryFn: () => fetchShopifyData('analytics'),
+    queryKey: ['shopify-analytics', dateRange.from, dateRange.to],
+    queryFn: () => fetchShopifyData('analytics', dateRange),
     refetchInterval: 60000,
     retry: 3,
     staleTime: 30000,
@@ -93,9 +100,11 @@ export const useShopifyProducts = () => {
 };
 
 export const useShopifyOrdersToday = () => {
+  const { dateRange } = useDateFilter();
+  
   return useQuery({
-    queryKey: ['shopify-orders-today'],
-    queryFn: () => fetchShopifyData('orders-today'),
+    queryKey: ['shopify-orders-today', dateRange.from, dateRange.to],
+    queryFn: () => fetchShopifyData('orders-today', dateRange),
     refetchInterval: 30000,
     retry: 3,
     staleTime: 10000,
@@ -103,22 +112,14 @@ export const useShopifyOrdersToday = () => {
 };
 
 export const useShopifyRevenueToday = () => {
+  const { dateRange } = useDateFilter();
+  
   return useQuery({
-    queryKey: ['shopify-revenue-today'],
-    queryFn: () => fetchShopifyData('revenue-today'),
+    queryKey: ['shopify-revenue-today', dateRange.from, dateRange.to],
+    queryFn: () => fetchShopifyData('revenue-today', dateRange),
     refetchInterval: 30000,
     retry: 3,
     staleTime: 10000,
-  });
-};
-
-export const useShopifyRevenueYesterday = () => {
-  return useQuery({
-    queryKey: ['shopify-revenue-yesterday'],
-    queryFn: () => fetchShopifyData('revenue-yesterday'),
-    refetchInterval: 60000,
-    retry: 3,
-    staleTime: 30000,
   });
 };
 
@@ -133,25 +134,13 @@ export const useShopifyLowStock = () => {
 };
 
 export const useShopifyCustomersToday = () => {
+  const { dateRange } = useDateFilter();
+  
   return useQuery({
-    queryKey: ['shopify-customers-today'],
-    queryFn: () => fetchShopifyData('customers-today'),
+    queryKey: ['shopify-customers-today', dateRange.from, dateRange.to],
+    queryFn: () => fetchShopifyData('customers-today', dateRange),
     refetchInterval: 30000,
     retry: 3,
     staleTime: 10000,
-  });
-};
-
-export const useShopifyRevenuePeriod = (
-  period: 'today' | '3days' | '7days' | '15days' | '30days',
-  customDates?: { from: Date; to: Date }
-) => {
-  return useQuery({
-    queryKey: ['shopify-revenue-period', period, customDates?.from, customDates?.to],
-    queryFn: () => fetchShopifyData(`revenue-${period}`, customDates),
-    refetchInterval: 30000,
-    retry: 3,
-    staleTime: 10000,
-    enabled: !customDates || (customDates.from !== undefined && customDates.to !== undefined),
   });
 };
