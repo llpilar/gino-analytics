@@ -68,27 +68,23 @@ export const NotificationCenter = () => {
     <Popover>
       <PopoverTrigger asChild>
         <Button 
-          variant="outline" 
+          variant="ghost" 
           size="icon"
-          className="relative border-gray-700/50 hover:border-cyan-500/50 hover:bg-cyan-500/10"
+          className="relative glass-card hover:bg-zinc-800/50"
         >
-          <Bell className="h-5 w-5" />
+          <Bell className="h-5 w-5 text-white" />
           {unreadCount > 0 && (
-            <Badge 
-              className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-gradient-to-r from-pink-500 to-red-500 border-0"
-            >
-              {unreadCount}
-            </Badge>
+            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary animate-pulse" />
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0 bg-black/95 border-2 border-gray-800/50 backdrop-blur-xl" align="end">
-        <div className="flex items-center justify-between p-4 border-b border-gray-800/50">
+      <PopoverContent className="w-80 p-0 bg-zinc-900/95 border-zinc-800 backdrop-blur-xl" align="end">
+        <div className="flex items-center justify-between p-4 border-b border-zinc-800">
           <div className="flex items-center gap-2">
-            <Bell className="h-5 w-5 text-cyan-400" />
-            <h3 className="font-bold text-gray-200">Notificações</h3>
+            <Bell className="h-5 w-5 text-primary" />
+            <h3 className="font-bold text-white">Notificações</h3>
             {unreadCount > 0 && (
-              <Badge className="bg-pink-500/20 text-pink-400 border-pink-500/40">
+              <Badge className="bg-primary/20 text-primary border-primary/40">
                 {unreadCount}
               </Badge>
             )}
@@ -98,9 +94,9 @@ export const NotificationCenter = () => {
               variant="ghost" 
               size="sm" 
               onClick={markAllAsRead}
-              className="text-xs text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10"
+              className="text-xs text-primary hover:text-primary hover:bg-primary/10"
             >
-              Marcar todas como lidas
+              Marcar todas
             </Button>
           )}
         </div>
@@ -122,9 +118,9 @@ export const NotificationCenter = () => {
                   } hover:scale-[1.02]`}
                 >
                   <div className="flex items-start justify-between mb-1">
-                    <h4 className="font-bold text-sm text-gray-200">{notification.title}</h4>
+                    <h4 className="font-bold text-sm text-white">{notification.title}</h4>
                     {!notification.read && (
-                      <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
+                      <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
                     )}
                   </div>
                   <p className="text-xs text-gray-400 mb-2">{notification.message}</p>
