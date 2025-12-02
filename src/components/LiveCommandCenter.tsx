@@ -55,8 +55,7 @@ export const LiveCommandCenter = () => {
   return (
     <div className="min-h-screen w-full relative overflow-hidden bg-black">
       {/* Background with shooting stars and static stars */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(163,230,53,0.15)_0%,rgba(0,0,0,0)_80%)]" />
+      <div className="absolute inset-0 bg-black">
         <div className="stars-bg absolute inset-0" />
       </div>
 
@@ -94,11 +93,11 @@ export const LiveCommandCenter = () => {
         maxDelay={4000}
       />
       
-      {/* Ambient Lighting Effects */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-[120px]" />
-      <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-pink-500/20 rounded-full blur-[120px]" />
-      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-green-500/10 rounded-full blur-[150px]" />
-      <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[150px]" />
+      {/* Subtle Ambient Lighting Effects */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-[150px]" />
+      <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-pink-500/10 rounded-full blur-[150px]" />
+      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-green-500/5 rounded-full blur-[180px]" />
+      <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-[180px]" />
 
       {/* Header Bar */}
       <div className="relative z-20 flex items-center justify-between px-4 md:px-8 py-3 border-b border-zinc-800/50 bg-black/80 backdrop-blur-xl">
