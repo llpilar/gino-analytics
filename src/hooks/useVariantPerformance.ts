@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useDateFilter } from "@/contexts/DateFilterContext";
 
 interface VariantPerformance {
   variantId: string;
@@ -11,9 +12,15 @@ interface VariantPerformance {
   sku?: string;
 }
 
-const fetchVariantPerformance = async (): Promise<VariantPerformance[]> => {
+const fetchVariantPerformance = async (dateRange: { from: Date; to: Date }): Promise<VariantPerformance[]> => {
   const { data, error } = await supabase.functions.invoke('shopify-data', {
-    body: { endpoint: 'products-sales' },
+    body: { 
+      endpoint: 'products-sales',
+      customDates: {
+        from: dateRange.from.toISOString(),
+        to: dateRange.to.toISOString()
+      }
+    },
   });
 
   if (error) throw error;
@@ -57,9 +64,11 @@ const fetchVariantPerformance = async (): Promise<VariantPerformance[]> => {
 };
 
 export const useVariantPerformance = () => {
+  const { dateRange } = useDateFilter();
+  
   return useQuery({
-    queryKey: ['variant-performance'],
-    queryFn: fetchVariantPerformance,
+    queryKey: ['variant-performance', dateRange.from, dateRange.to],
+    queryFn: () => fetchVariantPerformance(dateRange),
     refetchInterval: 300000, // 5 minutos
     retry: 3,
     staleTime: 60000,

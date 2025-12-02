@@ -4,10 +4,16 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TrendingUp, Package } from "lucide-react";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { useDateFilter } from "@/contexts/DateFilterContext";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export const VariantPerformance = () => {
   const { data: variants, isLoading } = useVariantPerformance();
   const { formatCurrency } = useCurrency();
+  const { dateRange } = useDateFilter();
+
+  const periodLabel = `${format(dateRange.from, "dd/MM", { locale: ptBR })} - ${format(dateRange.to, "dd/MM/yyyy", { locale: ptBR })}`;
 
   if (isLoading) {
     return (
@@ -37,7 +43,7 @@ export const VariantPerformance = () => {
           <TrendingUp className="h-5 w-5" />
           Variantes com Melhor Performance
         </CardTitle>
-        <CardDescription>Top 10 variantes mais vendidas nos últimos 30 dias</CardDescription>
+        <CardDescription>Top 10 variantes mais vendidas no período selecionado ({periodLabel})</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
