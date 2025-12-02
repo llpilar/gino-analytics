@@ -88,7 +88,8 @@ export const SalesMap = () => {
           .setHTML(`
             <div class="p-3 bg-black/90 rounded-lg border border-green-500/30">
               <h3 class="font-bold text-green-400">${sale.orderName}</h3>
-              <p class="text-sm text-gray-300">${sale.city || sale.country}</p>
+              ${sale.city ? `<p class="text-sm text-gray-300">${sale.city}${sale.province ? `, ${sale.province}` : ''}</p>` : ''}
+              <p class="text-xs text-gray-400">${sale.country}</p>
               <p class="text-lg font-bold text-green-400 mt-2">
                 $${sale.amount.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
               </p>
