@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { SalesMap } from "@/components/SalesMap";
 import { useDailyComparison, useWeeklyComparison, useMonthlyComparison } from "@/hooks/useComparisonMetrics";
 import { ComparisonBadge } from "@/components/ComparisonBadge";
+import { VariantPerformance } from "@/components/VariantPerformance";
 
 export default function Analises() {
   const { data: analyticsData, isLoading: analyticsLoading } = useShopifyAnalytics();
@@ -234,6 +235,11 @@ export default function Analises() {
             </div>
             <SalesMap />
           </div>
+        </div>
+
+        {/* Variant Performance Section */}
+        <div className="mb-8">
+          <VariantPerformance />
         </div>
 
         {/* Temporal Comparisons */}
