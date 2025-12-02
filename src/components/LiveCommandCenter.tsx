@@ -154,38 +154,88 @@ export const LiveCommandCenter = () => {
 
       {/* Main Content - Orbital System */}
       <div className="relative z-10 h-screen flex items-center justify-center p-4 pt-20">
-        {/* Container central com grid */}
-        <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-          
-          {/* Left Side: 3D Globe */}
-          <div className="flex items-center justify-center">
-            <div className="relative w-full max-w-[600px] aspect-square">
-              {/* Orbital rings */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="absolute w-[560px] h-[560px] border border-cyan-500/20 rounded-full animate-spin" style={{ animationDuration: "60s" }} />
-                <div className="absolute w-[640px] h-[640px] border border-purple-500/20 rounded-full animate-spin" style={{ animationDuration: "80s" }} />
-                <div className="absolute w-[680px] h-[680px] border border-pink-500/10 rounded-full animate-spin" style={{ animationDuration: "100s" }} />
-              </div>
-
-              {/* Globe */}
-              <div className="relative z-10 w-full h-full">
-                <Globe className="w-full h-full" />
-                {/* Efeitos de brilho pulsante ao redor do globo */}
-                <div className="absolute inset-0 bg-gradient-radial from-cyan-500/30 via-cyan-500/10 to-transparent blur-3xl animate-pulse" style={{ animationDuration: "3s" }} />
-                <div className="absolute inset-0 bg-gradient-radial from-blue-500/20 via-transparent to-transparent blur-2xl animate-pulse" style={{ animationDuration: "4s", animationDelay: "0.5s" }} />
-                
-                {/* Anel de energia ao redor */}
-                <div className="absolute inset-0 rounded-full border-2 border-cyan-500/30 animate-ping" style={{ animationDuration: "3s" }} />
-              </div>
-            </div>
+        {/* Central Globe with Orbital Satellites */}
+        <div className="relative w-[700px] h-[700px] flex items-center justify-center">
+          {/* Orbital rings */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="absolute w-[560px] h-[560px] border border-cyan-500/20 rounded-full animate-spin" style={{ animationDuration: "60s" }} />
+            <div className="absolute w-[640px] h-[640px] border border-purple-500/20 rounded-full animate-spin" style={{ animationDuration: "80s" }} />
+            <div className="absolute w-[680px] h-[680px] border border-pink-500/10 rounded-full animate-spin" style={{ animationDuration: "100s" }} />
           </div>
 
-          {/* Right Side: Data Stream Card with 3D Pin Effect */}
-          <div className="flex items-center justify-center lg:justify-start">
-            <PinContainer
-              title="Live Data Stream"
-              containerClassName="w-full max-w-sm"
-            >
+          {/* Globe */}
+          <div className="relative z-10 w-[500px] h-[500px]">
+            <Globe className="w-full h-full" />
+            {/* Efeitos de brilho pulsante ao redor do globo */}
+            <div className="absolute inset-0 bg-gradient-radial from-cyan-500/30 via-cyan-500/10 to-transparent blur-3xl animate-pulse" style={{ animationDuration: "3s" }} />
+            <div className="absolute inset-0 bg-gradient-radial from-blue-500/20 via-transparent to-transparent blur-2xl animate-pulse" style={{ animationDuration: "4s", animationDelay: "0.5s" }} />
+            
+            {/* Anel de energia ao redor */}
+            <div className="absolute inset-0 rounded-full border-2 border-cyan-500/30 animate-ping" style={{ animationDuration: "3s" }} />
+          </div>
+
+          {/* Orbital Satellites */}
+          {satellites.map((satellite, index) => {
+            const pos = getSatellitePosition(satellite.angle, satellite.distance);
+            return (
+              <div
+                key={index}
+                className="absolute w-40 h-40 flex items-center justify-center"
+                style={{
+                  left: `calc(50% + ${pos.x}px)`,
+                  top: `calc(50% + ${pos.y}px)`,
+                  transform: "translate(-50%, -50%)",
+                }}
+              >
+                <div className={`relative group cursor-pointer`}>
+                  {/* Connection line to center */}
+                  <div 
+                    className="absolute w-1 bg-gradient-to-b from-transparent via-cyan-500/30 to-transparent"
+                    style={{
+                      height: `${satellite.distance}px`,
+                      left: "50%",
+                      bottom: "50%",
+                      transformOrigin: "bottom",
+                      transform: `translateX(-50%) rotate(${-satellite.angle - rotationAngle}deg)`,
+                    }}
+                  />
+                  
+                  {/* Satellite card */}
+                  <div className={`relative p-4 rounded-2xl bg-black/80 border-2 border-transparent bg-gradient-to-br ${satellite.color} backdrop-blur-xl
+                    hover:scale-110 transition-all duration-300 shadow-2xl`}
+                    style={{
+                      boxShadow: `0 0 30px rgba(6, 182, 212, 0.3)`,
+                    }}
+                  >
+                    <div className="absolute inset-0 bg-black/90 rounded-2xl" />
+                    <div className="relative z-10">
+                      <div className="text-3xl mb-2 text-center">{satellite.icon}</div>
+                      <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider text-center mb-1">
+                        {satellite.label}
+                      </div>
+                      <div className={`text-xl font-black text-transparent bg-clip-text bg-gradient-to-r ${satellite.color} text-center`}>
+                        {satellite.value}
+                      </div>
+                    </div>
+                    
+                    {/* Glow effect */}
+                    <div className={`absolute inset-0 rounded-2xl blur-xl opacity-50 bg-gradient-to-br ${satellite.color} -z-10`} />
+                  </div>
+
+                  {/* Pulse animation */}
+                  <div className="absolute inset-0 rounded-2xl border-2 border-cyan-500/50 animate-ping" />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Right Side: Data Stream Card with 3D Pin Effect */}
+        <div className="absolute right-8 top-1/2 -translate-y-1/2">
+          <PinContainer
+            title="Live Data Stream"
+            containerClassName="w-full"
+          >
               <div className="w-80 space-y-4">
                 {/* Main Data Stream Card */}
                 <div className="flex flex-col tracking-tight w-full">
@@ -266,8 +316,6 @@ export const LiveCommandCenter = () => {
               </div>
             </PinContainer>
           </div>
-          
-        </div>
       </div>
 
       <style>{`
