@@ -80,9 +80,9 @@ export const DashboardSidebar = () => {
         {/* Currency Toggle */}
         <SidebarGroup>
           <SidebarGroupContent>
-            <div className={`px-3 py-4 ${open ? '' : 'flex justify-center'}`}>
-              {open ? (
-                <div className="flex items-center justify-between gap-2 bg-zinc-800/50 rounded-lg px-3 py-2 border border-zinc-700/50">
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <div className="flex items-center justify-center gap-2 px-2 py-3">
                   <Label 
                     className={`text-xs font-medium transition-colors ${currency === 'COP' ? 'text-cyan-400' : 'text-zinc-500'}`}
                   >
@@ -91,7 +91,7 @@ export const DashboardSidebar = () => {
                   <Switch
                     checked={currency === 'BRL'}
                     onCheckedChange={handleCurrencyToggle}
-                    className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-cyan-500 scale-90"
+                    className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-cyan-500"
                   />
                   <Label 
                     className={`text-xs font-medium transition-colors ${currency === 'BRL' ? 'text-green-400' : 'text-zinc-500'}`}
@@ -99,14 +99,8 @@ export const DashboardSidebar = () => {
                     BRL
                   </Label>
                 </div>
-              ) : (
-                <div className="flex flex-col items-center gap-1 text-xs font-medium text-zinc-400">
-                  <span className={currency === 'COP' ? 'text-cyan-400' : 'text-green-400'}>
-                    {currency}
-                  </span>
-                </div>
-              )}
-            </div>
+              </SidebarMenuItem>
+            </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
