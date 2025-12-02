@@ -387,7 +387,7 @@ serve(async (req) => {
         }
       `;
     } else if (endpoint === 'products-sales') {
-      // Query para pegar vendas dos últimos 30 dias com detalhes dos produtos
+      // Query para pegar vendas dos últimos 30 dias com detalhes dos produtos e variantes
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       
@@ -403,6 +403,10 @@ serve(async (req) => {
                     node {
                       quantity
                       variant {
+                        id
+                        title
+                        sku
+                        price
                         product {
                           id
                           title
