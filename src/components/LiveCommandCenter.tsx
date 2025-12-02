@@ -162,7 +162,12 @@ export const LiveCommandCenter = () => {
           {/* Globe */}
           <div className="relative z-10 w-full h-full">
             <Globe className="w-full h-full" />
-            <div className="absolute inset-0 bg-gradient-radial from-cyan-500/20 via-transparent to-transparent blur-3xl animate-pulse" />
+            {/* Efeitos de brilho pulsante ao redor do globo */}
+            <div className="absolute inset-0 bg-gradient-radial from-cyan-500/30 via-cyan-500/10 to-transparent blur-3xl animate-pulse" style={{ animationDuration: "3s" }} />
+            <div className="absolute inset-0 bg-gradient-radial from-blue-500/20 via-transparent to-transparent blur-2xl animate-pulse" style={{ animationDuration: "4s", animationDelay: "0.5s" }} />
+            
+            {/* Anel de energia ao redor */}
+            <div className="absolute inset-0 rounded-full border-2 border-cyan-500/30 animate-ping" style={{ animationDuration: "3s" }} />
           </div>
 
           {/* Orbital Satellites */}
