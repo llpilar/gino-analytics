@@ -8,12 +8,19 @@ import { useShopifyRevenueToday, useShopifyAnalytics } from "@/hooks/useShopifyD
 import { format } from "date-fns";
 import { Skeleton } from "./ui/skeleton";
 import { LayoutDashboard, BarChart3, Package, Settings } from "lucide-react";
+import { NotificationCenter } from "./NotificationCenter";
+import { ComparisonBadge } from "./ComparisonBadge";
+import { useDailyComparison } from "@/hooks/useComparisonMetrics";
+import { useRealtimeOrders } from "@/hooks/useRealtimeOrders";
+import { Toaster } from "./ui/toaster";
 
 export const LiveCommandCenter = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [rotationAngle, setRotationAngle] = useState(0);
   const { data: revenueData, isLoading: revenueLoading } = useShopifyRevenueToday();
   const { data: analyticsData } = useShopifyAnalytics();
+  const { data: dailyComparison } = useDailyComparison();
+  const { orderCount: realtimeOrderCount } = useRealtimeOrders();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -137,8 +144,9 @@ export const LiveCommandCenter = () => {
       <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-green-500/5 rounded-full blur-[180px]" />
       <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-[180px]" />
 
-      {/* Clock Widget - Top Right */}
-      <div className="fixed top-4 right-4 z-40">
+      {/* Clock Widget & Notification Center - Top Right */}
+      <div className="fixed top-4 right-4 z-40 flex items-center gap-3">
+        <NotificationCenter />
         <div className="px-6 py-3 rounded-full bg-black/80 border-2 border-cyan-500/30 backdrop-blur-xl shadow-lg shadow-cyan-500/20">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
@@ -254,7 +262,15 @@ export const LiveCommandCenter = () => {
                   <div className="space-y-3">
                     {/* Revenue Today */}
                     <div className="p-4 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/10 border-2 border-cyan-500/40 backdrop-blur-sm">
-                      <div className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Revenue Today</div>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="text-xs text-gray-400 font-bold uppercase tracking-wider">Revenue Today</div>
+                        {dailyComparison?.revenue && (
+                          <ComparisonBadge 
+                            changePercent={dailyComparison.revenue.changePercent}
+                            isPositive={dailyComparison.revenue.isPositive}
+                          />
+                        )}
+                      </div>
                       <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
                         {formatCurrency(totalRevenue)}
                       </div>
@@ -269,7 +285,16 @@ export const LiveCommandCenter = () => {
                     {/* Orders Grid */}
                     <div className="grid grid-cols-2 gap-3">
                       <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/10 border-2 border-purple-500/40 backdrop-blur-sm">
-                        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Orders</div>
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Orders</div>
+                          {dailyComparison?.orders && (
+                            <ComparisonBadge 
+                              changePercent={dailyComparison.orders.changePercent}
+                              isPositive={dailyComparison.orders.isPositive}
+                              label=""
+                            />
+                          )}
+                        </div>
                         <div className="text-2xl font-black text-purple-400">{ordersCount}</div>
                         <div className="text-[9px] text-gray-500 mt-0.5">Total today</div>
                       </div>
@@ -317,6 +342,9 @@ export const LiveCommandCenter = () => {
             </PinContainer>
           </div>
       </div>
+
+      {/* Toaster for notifications */}
+      <Toaster />
 
       <style>{`
         .stars-bg {

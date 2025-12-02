@@ -1,0 +1,125 @@
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { startOfDay, subDays, startOfWeek, subWeeks, startOfMonth, subMonths } from 'date-fns';
+
+interface ComparisonData {
+  current: number;
+  previous: number;
+  change: number;
+  changePercent: number;
+  isPositive: boolean;
+}
+
+const fetchOrdersForPeriod = async (startDate: Date, endDate: Date) => {
+  const startISO = startDate.toISOString().split('T')[0];
+  const endISO = endDate.toISOString().split('T')[0];
+  
+  const { data } = await supabase.functions.invoke('shopify-data', {
+    body: {
+      query: `{
+        orders(first: 250, query: "created_at:${startISO}") {
+          edges {
+            node {
+              id
+              totalPriceSet {
+                shopMoney {
+                  amount
+                }
+              }
+            }
+          }
+        }
+      }`
+    }
+  });
+
+  const orders = data?.data?.orders?.edges || [];
+  const totalRevenue = orders.reduce((acc: number, edge: any) => {
+    const amount = parseFloat(edge.node.totalPriceSet?.shopMoney?.amount || '0');
+    return acc + amount;
+  }, 0);
+
+  return {
+    revenue: totalRevenue,
+    orderCount: orders.length
+  };
+};
+
+const calculateComparison = (current: number, previous: number): ComparisonData => {
+  const change = current - previous;
+  const changePercent = previous > 0 ? (change / previous) * 100 : 100;
+  
+  return {
+    current,
+    previous,
+    change,
+    changePercent,
+    isPositive: change >= 0
+  };
+};
+
+export const useDailyComparison = () => {
+  return useQuery({
+    queryKey: ['daily-comparison'],
+    queryFn: async () => {
+      const today = startOfDay(new Date());
+      const yesterday = startOfDay(subDays(new Date(), 1));
+      const twoDaysAgo = startOfDay(subDays(new Date(), 2));
+
+      const [todayData, yesterdayData] = await Promise.all([
+        fetchOrdersForPeriod(today, new Date()),
+        fetchOrdersForPeriod(yesterday, today)
+      ]);
+
+      return {
+        revenue: calculateComparison(todayData.revenue, yesterdayData.revenue),
+        orders: calculateComparison(todayData.orderCount, yesterdayData.orderCount)
+      };
+    },
+    refetchInterval: 60000 // Refetch every minute
+  });
+};
+
+export const useWeeklyComparison = () => {
+  return useQuery({
+    queryKey: ['weekly-comparison'],
+    queryFn: async () => {
+      const thisWeekStart = startOfWeek(new Date());
+      const lastWeekStart = startOfWeek(subWeeks(new Date(), 1));
+      const lastWeekEnd = startOfWeek(new Date());
+
+      const [thisWeekData, lastWeekData] = await Promise.all([
+        fetchOrdersForPeriod(thisWeekStart, new Date()),
+        fetchOrdersForPeriod(lastWeekStart, lastWeekEnd)
+      ]);
+
+      return {
+        revenue: calculateComparison(thisWeekData.revenue, lastWeekData.revenue),
+        orders: calculateComparison(thisWeekData.orderCount, lastWeekData.orderCount)
+      };
+    },
+    refetchInterval: 300000 // Refetch every 5 minutes
+  });
+};
+
+export const useMonthlyComparison = () => {
+  return useQuery({
+    queryKey: ['monthly-comparison'],
+    queryFn: async () => {
+      const thisMonthStart = startOfMonth(new Date());
+      const lastMonthStart = startOfMonth(subMonths(new Date(), 1));
+      const lastMonthEnd = startOfMonth(new Date());
+
+      const [thisMonthData, lastMonthData] = await Promise.all([
+        fetchOrdersForPeriod(thisMonthStart, new Date()),
+        fetchOrdersForPeriod(lastMonthStart, lastMonthEnd)
+      ]);
+
+      return {
+        revenue: calculateComparison(thisMonthData.revenue, lastMonthData.revenue),
+        orders: calculateComparison(thisMonthData.orderCount, lastMonthData.orderCount)
+      };
+    },
+    refetchInterval: 600000 // Refetch every 10 minutes
+  });
+};
