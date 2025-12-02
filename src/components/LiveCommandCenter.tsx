@@ -8,6 +8,7 @@ import { Skeleton } from "./ui/skeleton";
 
 export const LiveCommandCenter = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [rotationAngle, setRotationAngle] = useState(0);
   const { data: revenueData, isLoading: revenueLoading } = useShopifyRevenueToday();
   const { data: analyticsData } = useShopifyAnalytics();
 
@@ -16,6 +17,14 @@ export const LiveCommandCenter = () => {
       setCurrentTime(new Date());
     }, 1000);
     return () => clearInterval(timer);
+  }, []);
+
+  // Orbital rotation animation
+  useEffect(() => {
+    const rotationTimer = setInterval(() => {
+      setRotationAngle((prev) => (prev + 0.5) % 360);
+    }, 50);
+    return () => clearInterval(rotationTimer);
   }, []);
 
   // Calculate metrics
@@ -52,6 +61,49 @@ export const LiveCommandCenter = () => {
     );
   }
 
+  // Orbital satellites data
+  const satellites = [
+    {
+      label: "REVENUE",
+      value: formatCurrency(totalRevenue),
+      color: "from-cyan-500 to-blue-500",
+      icon: "💰",
+      angle: 0,
+      distance: 280,
+    },
+    {
+      label: "ORDERS",
+      value: ordersCount.toString(),
+      color: "from-green-500 to-emerald-500",
+      icon: "📦",
+      angle: 90,
+      distance: 320,
+    },
+    {
+      label: "$/MIN",
+      value: formatCurrency(parseFloat(salesPerMinute)),
+      color: "from-purple-500 to-pink-500",
+      icon: "⚡",
+      angle: 180,
+      distance: 300,
+    },
+    {
+      label: "SHOPPERS",
+      value: uniqueShoppers,
+      color: "from-orange-500 to-red-500",
+      icon: "👥",
+      angle: 270,
+      distance: 340,
+    },
+  ];
+
+  const getSatellitePosition = (baseAngle: number, distance: number) => {
+    const angle = (baseAngle + rotationAngle) * (Math.PI / 180);
+    const x = Math.cos(angle) * distance;
+    const y = Math.sin(angle) * distance;
+    return { x, y };
+  };
+
   return (
     <div className="min-h-screen w-full relative overflow-hidden bg-black">
       {/* Background with shooting stars and static stars */}
@@ -60,38 +112,10 @@ export const LiveCommandCenter = () => {
       </div>
 
       {/* Multiple shooting star layers with neon colors */}
-      <ShootingStars
-        starColor="#a3e635"
-        trailColor="#84cc16"
-        minSpeed={15}
-        maxSpeed={35}
-        minDelay={800}
-        maxDelay={2500}
-      />
-      <ShootingStars
-        starColor="#3b82f6"
-        trailColor="#60a5fa"
-        minSpeed={10}
-        maxSpeed={25}
-        minDelay={1500}
-        maxDelay={3500}
-      />
-      <ShootingStars
-        starColor="#a855f7"
-        trailColor="#c084fc"
-        minSpeed={20}
-        maxSpeed={40}
-        minDelay={1000}
-        maxDelay={3000}
-      />
-      <ShootingStars
-        starColor="#ec4899"
-        trailColor="#f472b6"
-        minSpeed={12}
-        maxSpeed={30}
-        minDelay={1200}
-        maxDelay={4000}
-      />
+      <ShootingStars starColor="#a3e635" trailColor="#84cc16" minSpeed={15} maxSpeed={35} minDelay={800} maxDelay={2500} />
+      <ShootingStars starColor="#3b82f6" trailColor="#60a5fa" minSpeed={10} maxSpeed={25} minDelay={1500} maxDelay={3500} />
+      <ShootingStars starColor="#a855f7" trailColor="#c084fc" minSpeed={20} maxSpeed={40} minDelay={1000} maxDelay={3000} />
+      <ShootingStars starColor="#ec4899" trailColor="#f472b6" minSpeed={12} maxSpeed={30} minDelay={1200} maxDelay={4000} />
       
       {/* Subtle Ambient Lighting Effects */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-[150px]" />
@@ -100,181 +124,153 @@ export const LiveCommandCenter = () => {
       <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-[180px]" />
 
       {/* Header Bar */}
-      <div className="relative z-20 flex items-center justify-between px-4 md:px-8 py-3 border-b border-zinc-800/50 bg-black/80 backdrop-blur-xl">
-        <div className="flex items-center gap-3 md:gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-primary to-green-400 rounded-lg flex items-center justify-center font-black text-black text-sm md:text-base shadow-lg shadow-primary/50">
+      <div className="relative z-20 flex items-center justify-between px-4 md:px-8 py-4 border-b border-cyan-500/30 bg-black/90 backdrop-blur-xl">
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 via-purple-500 to-pink-500 rounded-lg flex items-center justify-center font-black text-black text-xl shadow-lg shadow-cyan-500/50 animate-pulse">
               SD
             </div>
-            <h1 className="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-green-400">SHOPDASH</h1>
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-ping" />
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full" />
           </div>
-          <div className="flex items-center gap-2 px-3 py-1 bg-red-500/20 border border-red-500/50 rounded-full backdrop-blur-sm">
-            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50" />
-            <span className="text-red-500 font-bold text-xs md:text-sm uppercase tracking-wider">LIVE</span>
+          <div>
+            <h1 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400">
+              SHOPDASH COMMAND
+            </h1>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50" />
+              <span className="text-red-400 font-bold text-xs uppercase tracking-widest">LIVE MONITORING</span>
+            </div>
           </div>
         </div>
-        <div className="text-sm md:text-base font-mono font-bold text-zinc-300 tracking-wider">
-          {format(currentTime, "EEE MMM dd - HH:mm:ss 'GMT'")}
+        <div className="text-sm font-mono font-bold text-cyan-300 tracking-wider border border-cyan-500/30 px-4 py-2 rounded-lg bg-cyan-500/5">
+          {format(currentTime, "HH:mm:ss")}
         </div>
       </div>
 
-      {/* 3D Desk Perspective View */}
-      <div className="relative z-10 h-[calc(100vh-70px)]" style={{ perspective: '2000px' }}>
-        <div className="absolute inset-0 flex flex-col items-center justify-center p-4 md:p-8">
-          
-          {/* Top: Large LED Display Banner */}
-          <div className="w-full max-w-6xl mb-8 animate-fade-in">
-            <div className="relative p-6 md:p-10 rounded-3xl border-4 border-amber-500/40 bg-gradient-to-r from-black via-amber-950/60 to-black overflow-hidden shadow-2xl shadow-amber-500/20">
-              {/* LED Matrix Background */}
-              <div 
-                className="absolute inset-0 opacity-40"
+      {/* Main Content - Orbital System */}
+      <div className="relative z-10 h-[calc(100vh-88px)] flex items-center justify-center p-4">
+        {/* Central Globe */}
+        <div className="relative w-[500px] h-[500px] flex items-center justify-center">
+          {/* Orbital rings */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="absolute w-[560px] h-[560px] border border-cyan-500/20 rounded-full animate-spin" style={{ animationDuration: "60s" }} />
+            <div className="absolute w-[640px] h-[640px] border border-purple-500/20 rounded-full animate-spin" style={{ animationDuration: "80s" }} />
+            <div className="absolute w-[680px] h-[680px] border border-pink-500/10 rounded-full animate-spin" style={{ animationDuration: "100s" }} />
+          </div>
+
+          {/* Globe */}
+          <div className="relative z-10 w-full h-full">
+            <Globe className="w-full h-full" />
+            <div className="absolute inset-0 bg-gradient-radial from-cyan-500/20 via-transparent to-transparent blur-3xl animate-pulse" />
+          </div>
+
+          {/* Orbital Satellites */}
+          {satellites.map((satellite, index) => {
+            const pos = getSatellitePosition(satellite.angle, satellite.distance);
+            return (
+              <div
+                key={index}
+                className="absolute w-40 h-40 flex items-center justify-center"
                 style={{
-                  backgroundImage: 'radial-gradient(circle, #f59e0b 2px, transparent 2px)',
-                  backgroundSize: '16px 16px'
+                  left: `calc(50% + ${pos.x}px)`,
+                  top: `calc(50% + ${pos.y}px)`,
+                  transform: "translate(-50%, -50%)",
                 }}
-              />
-              
-              {/* Main Display */}
-              <div className="relative z-10">
-                <div className="text-center mb-4">
-                  <div className="text-xs md:text-sm font-bold text-amber-400/80 uppercase tracking-[0.5em] mb-2">
-                    SALES PER MINUTE
-                  </div>
-                  <div className="text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-amber-500 font-mono tracking-tight drop-shadow-[0_0_30px_rgba(245,158,11,1)]">
-                    {formatCurrency(parseFloat(salesPerMinute))}
-                  </div>
-                </div>
-                
-                {/* Bottom Row Metrics */}
-                <div className="grid grid-cols-2 gap-4 md:gap-8 mt-6">
-                  <div className="text-center">
-                    <div className="text-xs font-bold text-amber-400/70 uppercase tracking-widest mb-1">
-                      Orders per minute
+              >
+                <div className={`relative group cursor-pointer`}>
+                  {/* Connection line to center */}
+                  <div 
+                    className="absolute w-1 bg-gradient-to-b from-transparent via-cyan-500/30 to-transparent"
+                    style={{
+                      height: `${satellite.distance}px`,
+                      left: "50%",
+                      bottom: "50%",
+                      transformOrigin: "bottom",
+                      transform: `translateX(-50%) rotate(${-satellite.angle - rotationAngle}deg)`,
+                    }}
+                  />
+                  
+                  {/* Satellite card */}
+                  <div className={`relative p-4 rounded-2xl bg-black/80 border-2 border-transparent bg-gradient-to-br ${satellite.color} backdrop-blur-xl
+                    hover:scale-110 transition-all duration-300 shadow-2xl`}
+                    style={{
+                      boxShadow: `0 0 30px rgba(6, 182, 212, 0.3)`,
+                    }}
+                  >
+                    <div className="absolute inset-0 bg-black/90 rounded-2xl" />
+                    <div className="relative z-10">
+                      <div className="text-3xl mb-2 text-center">{satellite.icon}</div>
+                      <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider text-center mb-1">
+                        {satellite.label}
+                      </div>
+                      <div className={`text-xl font-black text-transparent bg-clip-text bg-gradient-to-r ${satellite.color} text-center`}>
+                        {satellite.value}
+                      </div>
                     </div>
-                    <div className="text-2xl md:text-4xl lg:text-5xl font-black text-amber-500 font-mono drop-shadow-[0_0_20px_rgba(245,158,11,0.8)]">
-                      {ordersPerMinute}
-                    </div>
+                    
+                    {/* Glow effect */}
+                    <div className={`absolute inset-0 rounded-2xl blur-xl opacity-50 bg-gradient-to-br ${satellite.color} -z-10`} />
                   </div>
-                  <div className="text-center">
-                    <div className="text-xs font-bold text-amber-400/70 uppercase tracking-widest mb-1">
-                      Unique shoppers
-                    </div>
-                    <div className="text-2xl md:text-4xl lg:text-5xl font-black text-amber-500 font-mono drop-shadow-[0_0_20px_rgba(245,158,11,0.8)]">
-                      {uniqueShoppers}
-                    </div>
-                  </div>
+
+                  {/* Pulse animation */}
+                  <div className="absolute inset-0 rounded-2xl border-2 border-cyan-500/50 animate-ping" />
                 </div>
               </div>
-              
-              {/* Scanlines */}
-              <div className="absolute inset-0 pointer-events-none opacity-20">
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/10 to-transparent animate-pulse" style={{ animationDuration: '4s' }} />
+            );
+          })}
+        </div>
+
+        {/* Side Panel - Data Stream */}
+        <div className="absolute right-8 top-1/2 -translate-y-1/2 w-80 space-y-4">
+          <div className="p-6 rounded-2xl bg-black/80 border border-cyan-500/30 backdrop-blur-xl">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-3 h-3 bg-cyan-500 rounded-full animate-pulse" />
+              <h3 className="text-sm font-black text-cyan-400 uppercase tracking-wider">Data Stream</h3>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="p-3 rounded-lg bg-gradient-to-r from-cyan-500/10 to-transparent border-l-2 border-cyan-500">
+                <div className="text-xs text-gray-400 mb-1">Orders/Min Rate</div>
+                <div className="text-2xl font-black text-cyan-400">{ordersPerMinute}</div>
               </div>
               
-              {/* Glow borders */}
-              <div className="absolute inset-0 border-4 border-amber-500/30 rounded-3xl animate-pulse pointer-events-none" />
+              <div className="p-3 rounded-lg bg-gradient-to-r from-purple-500/10 to-transparent border-l-2 border-purple-500">
+                <div className="text-xs text-gray-400 mb-1">Active Sessions</div>
+                <div className="text-2xl font-black text-purple-400">{uniqueShoppers}</div>
+              </div>
+              
+              <div className="p-3 rounded-lg bg-gradient-to-r from-pink-500/10 to-transparent border-l-2 border-pink-500">
+                <div className="text-xs text-gray-400 mb-1">System Status</div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  <span className="text-sm font-bold text-green-400">OPERATIONAL</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Middle: Globe + Side Panel */}
-          <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
-            
-            {/* Center: 3D Globe */}
-            <div className="lg:col-span-2 flex items-center justify-center animate-fade-in" style={{ animationDelay: "0.1s" }}>
-              <div className="relative w-full max-w-[700px] aspect-square" 
-                   style={{ 
-                     transform: 'rotateX(5deg) translateZ(50px)',
-                     transformStyle: 'preserve-3d'
-                   }}>
-                <Globe className="w-full h-full" />
-                {/* Globe base shadow */}
-                <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-3/4 h-8 bg-primary/30 rounded-full blur-3xl" />
-                {/* Ambient glow rings */}
-                <div className="absolute inset-0 bg-gradient-radial from-primary/20 via-transparent to-transparent blur-3xl -z-10 animate-pulse" />
-                <div className="absolute inset-0 bg-gradient-radial from-blue-500/10 via-transparent to-transparent blur-3xl -z-10 animate-pulse" style={{ animationDelay: '0.5s' }} />
-              </div>
+          {/* Mini stats */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="p-3 rounded-lg bg-black/80 border border-cyan-500/20 backdrop-blur-xl">
+              <div className="text-[10px] text-gray-500 uppercase mb-1">Uptime</div>
+              <div className="text-sm font-black text-cyan-400">99.9%</div>
             </div>
-
-            {/* Right: Side Monitor Panel */}
-            <div className="lg:col-span-1 animate-fade-in" style={{ animationDelay: "0.2s" }}>
-              <div className="glass-card p-6 border-primary/30 space-y-4"
-                   style={{
-                     transform: 'rotateY(-5deg) translateZ(30px)',
-                     transformStyle: 'preserve-3d'
-                   }}>
-                
-                {/* Title */}
-                <div className="text-center mb-4">
-                  <div className="text-lg font-black text-primary uppercase tracking-wider drop-shadow-[0_0_10px_rgba(163,230,53,0.6)]">
-                    Live Stats
-                  </div>
-                </div>
-
-                {/* Revenue Card */}
-                <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-green-500/10 border border-primary/30 hover:border-primary/50 transition-all duration-300">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-                    <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                      Total Revenue
-                    </div>
-                  </div>
-                  <div className="text-2xl md:text-3xl font-black text-primary drop-shadow-[0_0_15px_rgba(163,230,53,0.5)]">
-                    {formatCurrency(totalRevenue)}
-                  </div>
-                  <div className="text-[10px] text-zinc-500 mt-1 uppercase tracking-wider">
-                    Today • Real-time
-                  </div>
-                </div>
-
-                {/* Orders Card */}
-                <div className="p-4 rounded-xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30 hover:border-green-500/50 transition-all duration-300">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                    <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                      Total Orders
-                    </div>
-                  </div>
-                  <div className="text-2xl md:text-3xl font-black text-green-500 drop-shadow-[0_0_15px_rgba(34,197,94,0.5)]">
-                    {ordersCount}
-                  </div>
-                  <div className="text-[10px] text-zinc-500 mt-1 uppercase tracking-wider">
-                    Today • Live count
-                  </div>
-                </div>
-
-                {/* Status Indicators */}
-                <div className="grid grid-cols-2 gap-2 pt-4 border-t border-zinc-800">
-                  <div className="text-center p-2">
-                    <div className="text-xs text-zinc-500 uppercase tracking-wide mb-1">Status</div>
-                    <div className="flex items-center justify-center gap-1">
-                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                      <span className="text-xs font-bold text-green-500">Active</span>
-                    </div>
-                  </div>
-                  <div className="text-center p-2">
-                    <div className="text-xs text-zinc-500 uppercase tracking-wide mb-1">Mode</div>
-                    <div className="text-xs font-bold text-primary">Live</div>
-                  </div>
-                </div>
-              </div>
+            <div className="p-3 rounded-lg bg-black/80 border border-purple-500/20 backdrop-blur-xl">
+              <div className="text-[10px] text-gray-500 uppercase mb-1">Latency</div>
+              <div className="text-sm font-black text-purple-400">12ms</div>
             </div>
-
           </div>
         </div>
       </div>
 
-      {/* Decorative Elements */}
-      <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
-      <div className="absolute top-1/2 right-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl" />
-
-      {/* CSS for static stars background */}
       <style>{`
         .stars-bg {
           background-image: 
-            radial-gradient(2px 2px at 20px 30px, #a3e635, rgba(0,0,0,0)),
-            radial-gradient(2px 2px at 40px 70px, #3b82f6, rgba(0,0,0,0)),
-            radial-gradient(2px 2px at 50px 160px, #a855f7, rgba(0,0,0,0)),
-            radial-gradient(2px 2px at 90px 40px, #ec4899, rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 20px 30px, #06b6d4, rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 40px 70px, #8b5cf6, rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 50px 160px, #ec4899, rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 90px 40px, #a3e635, rgba(0,0,0,0)),
             radial-gradient(2px 2px at 130px 80px, #60a5fa, rgba(0,0,0,0)),
             radial-gradient(2px 2px at 160px 120px, #84cc16, rgba(0,0,0,0)),
             radial-gradient(1px 1px at 200px 50px, #fff, rgba(0,0,0,0)),
@@ -283,13 +279,17 @@ export const LiveCommandCenter = () => {
           background-repeat: repeat;
           background-size: 350px 250px;
           animation: twinkle 5s ease-in-out infinite;
-          opacity: 0.6;
+          opacity: 0.4;
         }
 
         @keyframes twinkle {
-          0% { opacity: 0.5; }
-          50% { opacity: 0.8; }
-          100% { opacity: 0.5; }
+          0% { opacity: 0.3; }
+          50% { opacity: 0.6; }
+          100% { opacity: 0.3; }
+        }
+
+        .bg-gradient-radial {
+          background: radial-gradient(circle, var(--tw-gradient-stops));
         }
       `}</style>
     </div>
