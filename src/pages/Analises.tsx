@@ -1,12 +1,18 @@
 import { DashboardWrapper } from "@/components/DashboardWrapper";
-import { BarChart3, TrendingUp, TrendingDown, DollarSign, ShoppingCart, Users, Activity } from "lucide-react";
+import { BarChart3, TrendingUp, TrendingDown, DollarSign, ShoppingCart, Users, Activity, MapPin } from "lucide-react";
 import { SalesChart } from "@/components/SalesChart";
 import { useShopifyAnalytics, useShopifyRevenueToday } from "@/hooks/useShopifyData";
 import { useMemo } from "react";
+import { SalesMap } from "@/components/SalesMap";
+import { useDailyComparison, useWeeklyComparison, useMonthlyComparison } from "@/hooks/useComparisonMetrics";
+import { ComparisonBadge } from "@/components/ComparisonBadge";
 
 export default function Analises() {
   const { data: analyticsData, isLoading: analyticsLoading } = useShopifyAnalytics();
   const { data: revenueData } = useShopifyRevenueToday();
+  const { data: dailyComparison } = useDailyComparison();
+  const { data: weeklyComparison } = useWeeklyComparison();
+  const { data: monthlyComparison } = useMonthlyComparison();
 
   // Calculate metrics
   const metrics = useMemo(() => {
@@ -203,7 +209,7 @@ export default function Analises() {
         </div>
 
         {/* Bottom Stats Bar */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
             { label: "Bounce Rate", value: "32.4%", color: "text-orange-400" },
             { label: "Session Duration", value: "4:32", color: "text-cyan-400" },
@@ -215,6 +221,127 @@ export default function Analises() {
               <div className={`text-2xl font-black ${item.color}`}>{item.value}</div>
             </div>
           ))}
+        </div>
+
+        {/* Sales Map Section */}
+        <div className="mb-8">
+          <div className="p-6 rounded-2xl bg-black/80 border-2 border-cyan-500/30 backdrop-blur-xl shadow-2xl shadow-cyan-500/10">
+            <div className="flex items-center gap-2 mb-6">
+              <MapPin className="h-6 w-6 text-cyan-400" />
+              <h2 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
+                Mapa de Vendas
+              </h2>
+            </div>
+            <SalesMap />
+          </div>
+        </div>
+
+        {/* Temporal Comparisons */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Daily Comparison */}
+          <div className="p-6 rounded-2xl bg-black/80 border-2 border-green-500/30 backdrop-blur-xl">
+            <h3 className="text-sm font-black text-gray-400 uppercase tracking-wider mb-4">Hoje vs Ontem</h3>
+            {dailyComparison && (
+              <div className="space-y-4">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-gray-500">Revenue</span>
+                    <ComparisonBadge 
+                      changePercent={dailyComparison.revenue.changePercent}
+                      isPositive={dailyComparison.revenue.isPositive}
+                      label=""
+                    />
+                  </div>
+                  <div className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-400">
+                    {formatCurrency(dailyComparison.revenue.current)}
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-gray-500">Pedidos</span>
+                    <ComparisonBadge 
+                      changePercent={dailyComparison.orders.changePercent}
+                      isPositive={dailyComparison.orders.isPositive}
+                      label=""
+                    />
+                  </div>
+                  <div className="text-2xl font-black text-green-400">
+                    {dailyComparison.orders.current}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Weekly Comparison */}
+          <div className="p-6 rounded-2xl bg-black/80 border-2 border-purple-500/30 backdrop-blur-xl">
+            <h3 className="text-sm font-black text-gray-400 uppercase tracking-wider mb-4">Semana Atual vs Anterior</h3>
+            {weeklyComparison && (
+              <div className="space-y-4">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-gray-500">Revenue</span>
+                    <ComparisonBadge 
+                      changePercent={weeklyComparison.revenue.changePercent}
+                      isPositive={weeklyComparison.revenue.isPositive}
+                      label=""
+                    />
+                  </div>
+                  <div className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+                    {formatCurrency(weeklyComparison.revenue.current)}
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-gray-500">Pedidos</span>
+                    <ComparisonBadge 
+                      changePercent={weeklyComparison.orders.changePercent}
+                      isPositive={weeklyComparison.orders.isPositive}
+                      label=""
+                    />
+                  </div>
+                  <div className="text-2xl font-black text-purple-400">
+                    {weeklyComparison.orders.current}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Monthly Comparison */}
+          <div className="p-6 rounded-2xl bg-black/80 border-2 border-cyan-500/30 backdrop-blur-xl">
+            <h3 className="text-sm font-black text-gray-400 uppercase tracking-wider mb-4">Mês Atual vs Anterior</h3>
+            {monthlyComparison && (
+              <div className="space-y-4">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-gray-500">Revenue</span>
+                    <ComparisonBadge 
+                      changePercent={monthlyComparison.revenue.changePercent}
+                      isPositive={monthlyComparison.revenue.isPositive}
+                      label=""
+                    />
+                  </div>
+                  <div className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
+                    {formatCurrency(monthlyComparison.revenue.current)}
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-gray-500">Pedidos</span>
+                    <ComparisonBadge 
+                      changePercent={monthlyComparison.orders.changePercent}
+                      isPositive={monthlyComparison.orders.isPositive}
+                      label=""
+                    />
+                  </div>
+                  <div className="text-2xl font-black text-cyan-400">
+                    {monthlyComparison.orders.current}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </DashboardWrapper>
