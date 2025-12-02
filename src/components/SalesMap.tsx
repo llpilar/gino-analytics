@@ -269,9 +269,10 @@ export const SalesMap = () => {
         </CardContent>
       </Card>
 
-      {/* Metrics by Country */}
+      {/* Metrics by Country and Top Cities - Combined */}
       {data?.metrics && data.metrics.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+          {/* Top 3 Countries */}
           {data.metrics.slice(0, 3).map((metric, index) => (
             <Card 
               key={metric.countryCode}
@@ -329,13 +330,9 @@ export const SalesMap = () => {
               </CardContent>
             </Card>
           ))}
-        </div>
-      )}
 
-      {/* Top 3 Cities */}
-      {data?.topCities && data.topCities.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {data.topCities.map((city: any, index: number) => (
+          {/* Top 3 Cities */}
+          {data?.topCities && data.topCities.map((city: any, index: number) => (
             <Card 
               key={`${city.city}-${city.countryCode}`}
               className="bg-black/80 border-2 border-cyan-500/30 backdrop-blur-xl hover:scale-105 transition-transform"
