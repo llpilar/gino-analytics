@@ -82,96 +82,111 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-zinc-800 flex items-center justify-center p-4">
-      <div className="glass-card p-8 w-full max-w-md border-zinc-800">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Zap className="w-8 h-8 text-primary" />
-            <h1 className="text-3xl font-black tracking-tight">
-              <span className="text-white">Shop</span>
-              <span className="text-primary">Dash</span>
-            </h1>
-          </div>
-          <h2 className="text-2xl font-bold text-white mb-2">
-            {isLogin ? "Bem-vindo de volta" : "Criar conta"}
-          </h2>
-          <p className="text-zinc-400">
-            {isLogin ? "Faça login na sua conta" : "Crie sua conta para começar"}
-          </p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-zinc-800 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-20 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+      </div>
 
-        <form onSubmit={handleAuth} className="space-y-4">
-          {!isLogin && (
+      <div className="relative w-full max-w-md">
+        {/* Main card */}
+        <div className="bg-black/60 border-2 border-cyan-500/30 backdrop-blur-xl rounded-2xl p-8 shadow-2xl">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-cyan-500/20 to-orange-500/20 border-2 border-cyan-500/40">
+                <Zap className="w-8 h-8 text-cyan-400" />
+              </div>
+              <h1 className="text-4xl font-black tracking-tight">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-orange-400">
+                  ShopDash
+                </span>
+              </h1>
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2">
+              {isLogin ? "Bem-vindo de volta" : "Criar conta"}
+            </h2>
+            <p className="text-gray-400">
+              {isLogin ? "Faça login na sua conta" : "Crie sua conta para começar"}
+            </p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleAuth} className="space-y-5">
+            {!isLogin && (
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-white font-medium">
+                  Nome
+                </Label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="Seu nome"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required={!isLogin}
+                  className="bg-zinc-900/70 border-2 border-zinc-700/50 focus:border-cyan-500/50 text-white placeholder:text-zinc-500 h-11 rounded-lg transition-all"
+                />
+              </div>
+            )}
+
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-zinc-200">
-                Nome
+              <Label htmlFor="email" className="text-white font-medium">
+                Email
               </Label>
               <Input
-                id="name"
-                type="text"
-                placeholder="Seu nome"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required={!isLogin}
-                className="bg-zinc-900/50 border-zinc-700 text-white placeholder:text-zinc-500"
+                id="email"
+                type="email"
+                placeholder="seu@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="bg-zinc-900/70 border-2 border-zinc-700/50 focus:border-cyan-500/50 text-white placeholder:text-zinc-500 h-11 rounded-lg transition-all"
               />
             </div>
-          )}
 
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-zinc-200">
-              Email
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="seu@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="bg-zinc-900/50 border-zinc-700 text-white placeholder:text-zinc-500"
-            />
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-white font-medium">
+                Senha
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                className="bg-zinc-900/70 border-2 border-zinc-700/50 focus:border-cyan-500/50 text-white placeholder:text-zinc-500 h-11 rounded-lg transition-all"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full h-11 bg-gradient-to-r from-cyan-500 to-orange-500 hover:from-cyan-600 hover:to-orange-600 text-white font-bold rounded-lg shadow-lg shadow-cyan-500/20 transition-all"
+              disabled={loading}
+            >
+              {loading
+                ? "Carregando..."
+                : isLogin
+                ? "Entrar"
+                : "Criar Conta"}
+            </Button>
+          </form>
+
+          {/* Toggle login/signup */}
+          <div className="mt-6 pt-6 border-t border-zinc-700/50 text-center">
+            <button
+              type="button"
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-sm text-gray-400 hover:text-cyan-400 transition-colors font-medium"
+            >
+              {isLogin
+                ? "Não tem uma conta? Cadastre-se"
+                : "Já tem uma conta? Faça login"}
+            </button>
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-zinc-200">
-              Senha
-            </Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              className="bg-zinc-900/50 border-zinc-700 text-white placeholder:text-zinc-500"
-            />
-          </div>
-
-          <Button
-            type="submit"
-            className="w-full bg-primary hover:bg-primary/90"
-            disabled={loading}
-          >
-            {loading
-              ? "Carregando..."
-              : isLogin
-              ? "Entrar"
-              : "Criar Conta"}
-          </Button>
-        </form>
-
-        <div className="mt-6 text-center">
-          <button
-            type="button"
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-sm text-zinc-400 hover:text-white transition-colors"
-          >
-            {isLogin
-              ? "Não tem uma conta? Cadastre-se"
-              : "Já tem uma conta? Faça login"}
-          </button>
         </div>
       </div>
     </div>
