@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { LEDDisplay } from "./LEDDisplay";
 import { Globe } from "./ui/globe-feature-section";
+import { ShootingStars } from "./ui/shooting-stars";
 import { useShopifyRevenueToday, useShopifyAnalytics } from "@/hooks/useShopifyData";
 import { format } from "date-fns";
 import { Skeleton } from "./ui/skeleton";
@@ -52,9 +53,46 @@ export const LiveCommandCenter = () => {
   }
 
   return (
-    <div className="min-h-screen w-full relative overflow-hidden bg-gradient-to-b from-zinc-900 via-black to-zinc-950">
-      {/* Desk Surface Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-zinc-900/50 to-zinc-800/30" />
+    <div className="min-h-screen w-full relative overflow-hidden bg-black">
+      {/* Background with shooting stars and static stars */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(163,230,53,0.15)_0%,rgba(0,0,0,0)_80%)]" />
+        <div className="stars-bg absolute inset-0" />
+      </div>
+
+      {/* Multiple shooting star layers with neon colors */}
+      <ShootingStars
+        starColor="#a3e635"
+        trailColor="#84cc16"
+        minSpeed={15}
+        maxSpeed={35}
+        minDelay={800}
+        maxDelay={2500}
+      />
+      <ShootingStars
+        starColor="#3b82f6"
+        trailColor="#60a5fa"
+        minSpeed={10}
+        maxSpeed={25}
+        minDelay={1500}
+        maxDelay={3500}
+      />
+      <ShootingStars
+        starColor="#a855f7"
+        trailColor="#c084fc"
+        minSpeed={20}
+        maxSpeed={40}
+        minDelay={1000}
+        maxDelay={3000}
+      />
+      <ShootingStars
+        starColor="#ec4899"
+        trailColor="#f472b6"
+        minSpeed={12}
+        maxSpeed={30}
+        minDelay={1200}
+        maxDelay={4000}
+      />
       
       {/* Ambient Lighting Effects */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-[120px]" />
@@ -229,6 +267,32 @@ export const LiveCommandCenter = () => {
       {/* Decorative Elements */}
       <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
       <div className="absolute top-1/2 right-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl" />
+
+      {/* CSS for static stars background */}
+      <style>{`
+        .stars-bg {
+          background-image: 
+            radial-gradient(2px 2px at 20px 30px, #a3e635, rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 40px 70px, #3b82f6, rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 50px 160px, #a855f7, rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 90px 40px, #ec4899, rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 130px 80px, #60a5fa, rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 160px 120px, #84cc16, rgba(0,0,0,0)),
+            radial-gradient(1px 1px at 200px 50px, #fff, rgba(0,0,0,0)),
+            radial-gradient(1px 1px at 250px 100px, #fff, rgba(0,0,0,0)),
+            radial-gradient(1px 1px at 300px 150px, #fff, rgba(0,0,0,0));
+          background-repeat: repeat;
+          background-size: 350px 250px;
+          animation: twinkle 5s ease-in-out infinite;
+          opacity: 0.6;
+        }
+
+        @keyframes twinkle {
+          0% { opacity: 0.5; }
+          50% { opacity: 0.8; }
+          100% { opacity: 0.5; }
+        }
+      `}</style>
     </div>
   );
 };
