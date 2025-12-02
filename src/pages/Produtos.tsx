@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useShopifyProducts } from "@/hooks/useShopifyData";
+import { PageHeader } from "@/components/PageHeader";
 
 export default function Produtos() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -22,18 +23,13 @@ export default function Produtos() {
     <DashboardWrapper>
       <div className="container mx-auto p-6 md:p-8 lg:p-12 space-y-8">
         {/* Header */}
+        <PageHeader 
+          title="Produtos"
+          subtitle="Gerencie seu catálogo e acompanhe vendas"
+          icon={<ShoppingBag className="h-8 w-8 text-purple-400" />}
+        />
+
         <div className="space-y-6">
-          <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-2 border-purple-500/40 shadow-lg shadow-purple-500/20">
-              <ShoppingBag className="h-8 w-8 text-purple-400" />
-            </div>
-            <div>
-              <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400">
-                Produtos
-              </h1>
-              <p className="text-gray-400 text-sm md:text-base mt-1">Gerencie seu catálogo e acompanhe vendas</p>
-            </div>
-          </div>
 
           {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

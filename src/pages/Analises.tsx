@@ -7,6 +7,7 @@ import { SalesMap } from "@/components/SalesMap";
 import { useDailyComparison, useWeeklyComparison, useMonthlyComparison } from "@/hooks/useComparisonMetrics";
 import { ComparisonBadge } from "@/components/ComparisonBadge";
 import { VariantPerformance } from "@/components/VariantPerformance";
+import { PageHeader } from "@/components/PageHeader";
 
 export default function Analises() {
   const { data: analyticsData, isLoading: analyticsLoading } = useShopifyAnalytics();
@@ -97,19 +98,11 @@ export default function Analises() {
     <DashboardWrapper>
       <div className="container mx-auto p-6 md:p-8 lg:p-12 min-h-screen">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="p-3 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border-2 border-cyan-500/30 shadow-lg shadow-cyan-500/20">
-              <BarChart3 className="h-8 w-8 text-cyan-400" />
-            </div>
-            <div>
-              <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400">
-                Analytics Command
-              </h1>
-              <p className="text-gray-400 text-sm md:text-base mt-1">Real-time performance monitoring & insights</p>
-            </div>
-          </div>
-        </div>
+        <PageHeader 
+          title="Analytics Command"
+          subtitle="Real-time performance monitoring & insights"
+          icon={<BarChart3 className="h-8 w-8 text-cyan-400" />}
+        />
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
