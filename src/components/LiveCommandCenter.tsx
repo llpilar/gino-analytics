@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { LEDDisplay } from "./LEDDisplay";
 import { Globe } from "./ui/globe-feature-section";
 import { ShootingStars } from "./ui/shooting-stars";
+import { NavBar } from "./ui/tubelight-navbar";
 import { useShopifyRevenueToday, useShopifyAnalytics } from "@/hooks/useShopifyData";
 import { format } from "date-fns";
 import { Skeleton } from "./ui/skeleton";
+import { LayoutDashboard, BarChart3, Package, Settings } from "lucide-react";
 
 export const LiveCommandCenter = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -52,6 +54,14 @@ export const LiveCommandCenter = () => {
       maximumFractionDigits: 0
     }).format(value).replace('COP', '$');
   };
+
+  // Navigation items for dashboard
+  const navItems = [
+    { name: 'Dashboard', url: '/', icon: LayoutDashboard },
+    { name: 'Analytics', url: '/analises', icon: BarChart3 },
+    { name: 'Products', url: '/produtos', icon: Package },
+    { name: 'Settings', url: '/configuracoes', icon: Settings }
+  ];
 
   if (revenueLoading) {
     return (
@@ -106,6 +116,9 @@ export const LiveCommandCenter = () => {
 
   return (
     <div className="min-h-screen w-full relative overflow-hidden bg-black">
+      {/* Navigation Bar */}
+      <NavBar items={navItems} />
+      
       {/* Background with shooting stars and static stars */}
       <div className="absolute inset-0 bg-black">
         <div className="stars-bg absolute inset-0" />
@@ -123,33 +136,23 @@ export const LiveCommandCenter = () => {
       <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-green-500/5 rounded-full blur-[180px]" />
       <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-[180px]" />
 
-      {/* Header Bar */}
-      <div className="relative z-20 flex items-center justify-between px-4 md:px-8 py-4 border-b border-cyan-500/30 bg-black/90 backdrop-blur-xl">
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 via-purple-500 to-pink-500 rounded-lg flex items-center justify-center font-black text-black text-xl shadow-lg shadow-cyan-500/50 animate-pulse">
-              SD
-            </div>
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-ping" />
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400">
-              SHOPDASH COMMAND
-            </h1>
+      {/* Clock Widget - Top Right */}
+      <div className="fixed top-4 right-4 z-40">
+        <div className="px-6 py-3 rounded-full bg-black/80 border-2 border-cyan-500/30 backdrop-blur-xl shadow-lg shadow-cyan-500/20">
+          <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50" />
-              <span className="text-red-400 font-bold text-xs uppercase tracking-widest">LIVE MONITORING</span>
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-lg shadow-green-500/50" />
+              <span className="text-green-400 font-bold text-xs uppercase tracking-widest">LIVE</span>
+            </div>
+            <div className="text-sm font-mono font-black text-cyan-300 tracking-wider">
+              {format(currentTime, "HH:mm:ss")}
             </div>
           </div>
-        </div>
-        <div className="text-sm font-mono font-bold text-cyan-300 tracking-wider border border-cyan-500/30 px-4 py-2 rounded-lg bg-cyan-500/5">
-          {format(currentTime, "HH:mm:ss")}
         </div>
       </div>
 
       {/* Main Content - Orbital System */}
-      <div className="relative z-10 h-[calc(100vh-88px)] flex items-center justify-center p-4">
+      <div className="relative z-10 h-screen flex items-center justify-center p-4 pt-20">{/* pt-20 para espaço do navbar */}
         {/* Central Globe */}
         <div className="relative w-[500px] h-[500px] flex items-center justify-center">
           {/* Orbital rings */}
