@@ -1,15 +1,18 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { LiveMetrics } from "@/components/LiveMetrics";
 import { ActiveSessions } from "@/components/ActiveSessions";
+import { PageHeader } from "@/components/PageHeader";
+import { Activity } from "lucide-react";
 
 const LiveView = () => {
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Live View</h1>
-          <p className="text-muted-foreground">Acompanhe sua loja em tempo real</p>
-        </div>
+      <div className="space-y-6 p-6">
+        <PageHeader 
+          title="Live View"
+          subtitle="Acompanhe sua loja em tempo real"
+          icon={<Activity className="h-8 w-8 text-cyan-400" />}
+        />
 
         <LiveMetrics />
 

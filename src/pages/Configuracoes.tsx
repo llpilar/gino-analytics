@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Settings as SettingsIcon, User, Bell, Shield } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { ProfileEditor } from "@/components/ProfileEditor";
+import { PageHeader } from "@/components/PageHeader";
 
 export default function Configuracoes() {
   const { profile, user } = useAuth();
@@ -10,17 +11,11 @@ export default function Configuracoes() {
   return (
     <DashboardWrapper>
       <div className="container mx-auto p-6 md:p-8 lg:p-12">
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-orange-500/20 to-red-500/20 border border-orange-500/30">
-              <SettingsIcon className="h-7 w-7 text-orange-400" />
-            </div>
-            <h1 className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-400">
-              Settings
-            </h1>
-          </div>
-          <p className="text-gray-400 text-sm md:text-base">Gerencie suas preferências e informações da conta</p>
-        </div>
+        <PageHeader 
+          title="Settings"
+          subtitle="Gerencie suas preferências e informações da conta"
+          icon={<SettingsIcon className="h-8 w-8 text-orange-400" />}
+        />
 
         <div className="grid gap-6 max-w-4xl">
           <Card className="bg-black/60 border-2 border-cyan-500/30 backdrop-blur-xl">
