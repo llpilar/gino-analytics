@@ -32,26 +32,27 @@ const GLOBE_CONFIG: COBEOptions = {
   height: 800,
   onRender: () => {},
   devicePixelRatio: 2,
-  phi: 0,
-  theta: 0.3,
-  dark: 0,
-  diffuse: 0.4,
+  phi: 0.2, // Ajustado para focar na Colômbia
+  theta: 0.5, // Ajustado para melhor visualização
+  dark: 1, // Modo escuro para combinar com o dashboard
+  diffuse: 1.2,
   mapSamples: 16000,
-  mapBrightness: 1.2,
-  baseColor: [1, 1, 1],
-  markerColor: [251 / 255, 100 / 255, 21 / 255],
-  glowColor: [1, 1, 1],
+  mapBrightness: 3,
+  baseColor: [0.1, 0.1, 0.1], // Cor base escura
+  markerColor: [0, 0.9, 1], // Ciano brilhante para marcadores
+  glowColor: [0.1, 0.4, 0.6], // Brilho azulado
   markers: [
-    { location: [14.5995, 120.9842], size: 0.03 },
-    { location: [19.076, 72.8777], size: 0.1 },
-    { location: [23.8103, 90.4125], size: 0.05 },
-    { location: [30.0444, 31.2357], size: 0.07 },
-    { location: [39.9042, 116.4074], size: 0.08 },
-    { location: [-23.5505, -46.6333], size: 0.1 },
-    { location: [19.4326, -99.1332], size: 0.1 },
-    { location: [40.7128, -74.006], size: 0.1 },
-    { location: [34.6937, 135.5022], size: 0.05 },
-    { location: [41.0082, 28.9784], size: 0.06 },
+    // Principais cidades da Colômbia onde há clientes
+    { location: [4.7110, -74.0721], size: 0.12 }, // Bogotá (capital, maior)
+    { location: [6.2442, -75.5812], size: 0.10 }, // Medellín
+    { location: [3.4516, -76.5320], size: 0.09 }, // Cali
+    { location: [10.9685, -74.7813], size: 0.08 }, // Barranquilla
+    { location: [10.3910, -75.4794], size: 0.08 }, // Cartagena
+    { location: [7.1301, -73.1222], size: 0.07 }, // Bucaramanga
+    { location: [4.8133, -75.6961], size: 0.06 }, // Pereira
+    { location: [11.2408, -74.2120], size: 0.06 }, // Santa Marta
+    { location: [7.8939, -72.5078], size: 0.05 }, // Cúcuta
+    { location: [5.0689, -75.5174], size: 0.05 }, // Manizales
   ],
 }
 
@@ -86,7 +87,7 @@ export function Globe({
 
   const onRender = useCallback(
     (state: Record<string, any>) => {
-      if (!pointerInteracting.current) phi += 0.005
+      if (!pointerInteracting.current) phi += 0.003 // Rotação mais lenta
       state.phi = phi + r
       state.width = width * 2
       state.height = width * 2
