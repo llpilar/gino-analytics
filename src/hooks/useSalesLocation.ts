@@ -93,7 +93,7 @@ const getCoordinates = (city?: string, country?: string, countryCode?: string): 
 const fetchSalesLocation = async (): Promise<{
   sales: SaleLocation[];
   metrics: LocationMetrics[];
-  citiesData?: any[];
+  topCities?: any[];
 }> => {
       // Buscar dados de vendas para análise
       const { data: salesData, error } = await supabase.functions.invoke('shopify-data', {
@@ -154,7 +154,7 @@ const fetchSalesLocation = async (): Promise<{
   });
 
   // Também criar métricas por cidade para localizações mais detalhadas
-  const salesByCity = sales.filter(s => s.city).reduce((acc, sale) => {
+  const cityMetrics = sales.filter(s => s.city).reduce((acc, sale) => {
     const key = `${sale.city}-${sale.countryCode}`;
     if (!acc[key]) {
       acc[key] = {
@@ -163,23 +163,30 @@ const fetchSalesLocation = async (): Promise<{
         countryCode: sale.countryCode,
         totalRevenue: sale.amount,
         orderCount: 1,
+        avgOrderValue: sale.amount,
         coordinates: sale.coordinates
       };
     } else {
       acc[key].totalRevenue += sale.amount;
       acc[key].orderCount += 1;
+      acc[key].avgOrderValue = acc[key].totalRevenue / acc[key].orderCount;
     }
     return acc;
   }, {} as Record<string, any>);
 
-  console.log('Vendas por cidade:', Object.values(salesByCity).length);
+  const topCities = Object.values(cityMetrics)
+    .sort((a: any, b: any) => b.totalRevenue - a.totalRevenue)
+    .slice(0, 3);
+
+  console.log('Vendas por cidade:', Object.values(cityMetrics).length);
+  console.log('Top 3 cidades:', topCities);
   console.log('Vendas por país:', metricsByCountry.size);
 
   return {
     sales,
     metrics: Array.from(metricsByCountry.values())
       .sort((a, b) => b.totalRevenue - a.totalRevenue),
-    citiesData: Object.values(salesByCity)
+    topCities
   };
 };
 

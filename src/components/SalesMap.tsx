@@ -332,6 +332,72 @@ export const SalesMap = () => {
         </div>
       )}
 
+      {/* Top 3 Cities */}
+      {data?.topCities && data.topCities.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {data.topCities.map((city: any, index: number) => (
+            <Card 
+              key={`${city.city}-${city.countryCode}`}
+              className="bg-black/80 border-2 border-cyan-500/30 backdrop-blur-xl hover:scale-105 transition-transform"
+            >
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30">
+                      <span className="text-lg font-bold text-cyan-400">🏙️</span>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-white">{city.city}</h3>
+                      <p className="text-xs text-gray-400">{city.country}</p>
+                    </div>
+                  </div>
+                  <div className="text-xs font-bold text-cyan-400">TOP {index + 1}</div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-400">Revenue Total</span>
+                    <span className="text-lg font-bold text-cyan-400">
+                      {formatCurrency(city.totalRevenue)}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-400 flex items-center gap-1">
+                      <TrendingUp className="h-3 w-3" />
+                      Pedidos
+                    </span>
+                    <span className="text-sm font-bold text-white">
+                      {city.orderCount}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-400 flex items-center gap-1">
+                      <DollarSign className="h-3 w-3" />
+                      Ticket Médio
+                    </span>
+                    <span className="text-sm font-bold text-purple-400">
+                      {formatCurrency(city.avgOrderValue)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Progress bar */}
+                <div className="mt-4 h-2 bg-gray-800 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-500"
+                    style={{ 
+                      width: `${Math.min((city.totalRevenue / (data.topCities[0]?.totalRevenue || 1)) * 100, 100)}%` 
+                    }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
       {/* Summary Stats */}
       {data && (
         <Card className="bg-black/80 border-2 border-purple-500/30 backdrop-blur-xl">
