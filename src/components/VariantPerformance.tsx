@@ -3,9 +3,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TrendingUp, Package } from "lucide-react";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 export const VariantPerformance = () => {
   const { data: variants, isLoading } = useVariantPerformance();
+  const { formatCurrency } = useCurrency();
 
   if (isLoading) {
     return (
@@ -86,10 +88,7 @@ export const VariantPerformance = () => {
                   </div>
                   {variant.totalRevenue > 0 && (
                     <div className="text-xs font-medium mt-1">
-                      ${variant.totalRevenue.toLocaleString('pt-BR', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                      })}
+                      {formatCurrency(variant.totalRevenue)}
                     </div>
                   )}
                 </div>

@@ -14,6 +14,7 @@ import { useDailyComparison } from "@/hooks/useComparisonMetrics";
 import { useRealtimeOrders } from "@/hooks/useRealtimeOrders";
 import { Toaster } from "./ui/toaster";
 import { DateFilter } from "./DateFilter";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 export const LiveCommandCenter = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -22,6 +23,7 @@ export const LiveCommandCenter = () => {
   const { data: analyticsData } = useShopifyAnalytics();
   const { data: dailyComparison } = useDailyComparison();
   const { orderCount: realtimeOrderCount } = useRealtimeOrders();
+  const { formatCurrency } = useCurrency();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -54,15 +56,6 @@ export const LiveCommandCenter = () => {
   const salesPerMinute = ordersCount > 0 ? (totalRevenue / 60).toFixed(2) : "0.00";
   const ordersPerMinute = ordersCount > 0 ? (ordersCount / 60).toFixed(1) : "0.0";
   const uniqueShoppers = ordersCount > 0 ? Math.floor(ordersCount * 0.85).toString() : "0";
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('es-CO', { 
-      style: 'currency', 
-      currency: 'COP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(value).replace('COP', '$');
-  };
 
   // Navigation items for dashboard
   const navItems = [
