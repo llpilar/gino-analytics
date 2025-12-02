@@ -153,7 +153,7 @@ export const LiveCommandCenter = () => {
       </div>
 
       {/* Main Content - Orbital System */}
-      <div className="relative z-10 h-screen flex items-center justify-center p-4 pt-20">
+      <div className="relative z-10 h-screen flex items-center justify-start pl-20 p-4 pt-20">
         {/* Central Globe with Orbital Satellites */}
         <div className="relative w-[700px] h-[700px] flex items-center justify-center">
           {/* Orbital rings */}
