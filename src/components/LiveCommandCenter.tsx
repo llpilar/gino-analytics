@@ -3,6 +3,7 @@ import { LEDDisplay } from "./LEDDisplay";
 import { Globe } from "./ui/globe-feature-section";
 import { ShootingStars } from "./ui/shooting-stars";
 import { NavBar } from "./ui/tubelight-navbar";
+import { PinContainer } from "./ui/3d-pin";
 import { useShopifyRevenueToday, useShopifyAnalytics } from "@/hooks/useShopifyData";
 import { format } from "date-fns";
 import { Skeleton } from "./ui/skeleton";
@@ -229,46 +230,94 @@ export const LiveCommandCenter = () => {
           })}
         </div>
 
-        {/* Side Panel - Data Stream */}
-        <div className="absolute right-8 top-1/2 -translate-y-1/2 w-80 space-y-4">
-          <div className="p-6 rounded-2xl bg-black/80 border border-cyan-500/30 backdrop-blur-xl">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-3 h-3 bg-cyan-500 rounded-full animate-pulse" />
-              <h3 className="text-sm font-black text-cyan-400 uppercase tracking-wider">Data Stream</h3>
-            </div>
-            
-            <div className="space-y-3">
-              <div className="p-3 rounded-lg bg-gradient-to-r from-cyan-500/10 to-transparent border-l-2 border-cyan-500">
-                <div className="text-xs text-gray-400 mb-1">Orders/Min Rate</div>
-                <div className="text-2xl font-black text-cyan-400">{ordersPerMinute}</div>
-              </div>
-              
-              <div className="p-3 rounded-lg bg-gradient-to-r from-purple-500/10 to-transparent border-l-2 border-purple-500">
-                <div className="text-xs text-gray-400 mb-1">Active Sessions</div>
-                <div className="text-2xl font-black text-purple-400">{uniqueShoppers}</div>
-              </div>
-              
-              <div className="p-3 rounded-lg bg-gradient-to-r from-pink-500/10 to-transparent border-l-2 border-pink-500">
-                <div className="text-xs text-gray-400 mb-1">System Status</div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                  <span className="text-sm font-bold text-green-400">OPERATIONAL</span>
+        {/* Side Panel - Data Stream with 3D Pin Effect */}
+        <div className="absolute right-8 top-1/2 -translate-y-1/2 w-96">
+          <PinContainer
+            title="Live Data Stream"
+            containerClassName="w-full"
+          >
+            <div className="w-80 space-y-4">
+              {/* Main Data Stream Card */}
+              <div className="flex flex-col tracking-tight w-full">
+                {/* Header with Live Indicator */}
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-3 h-3 bg-cyan-500 rounded-full animate-pulse shadow-lg shadow-cyan-500/50" />
+                  <h3 className="text-sm font-black text-cyan-400 uppercase tracking-wider">Live Data Stream</h3>
+                </div>
+                
+                {/* Stats Grid */}
+                <div className="space-y-3">
+                  <div className="p-4 rounded-xl bg-gradient-to-r from-cyan-500/20 to-transparent border-l-4 border-cyan-500 backdrop-blur-sm">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="text-xs text-gray-400 font-bold uppercase tracking-wider">Orders/Min</div>
+                      <div className="text-xs text-cyan-400 font-mono">LIVE</div>
+                    </div>
+                    <div className="text-3xl font-black text-cyan-400">{ordersPerMinute}</div>
+                    <div className="mt-2 h-1 bg-gray-800 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full animate-pulse" style={{ width: '75%' }} />
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 rounded-xl bg-gradient-to-r from-purple-500/20 to-transparent border-l-4 border-purple-500 backdrop-blur-sm">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="text-xs text-gray-400 font-bold uppercase tracking-wider">Active Sessions</div>
+                      <div className="text-xs text-purple-400 font-mono">NOW</div>
+                    </div>
+                    <div className="text-3xl font-black text-purple-400">{uniqueShoppers}</div>
+                    <div className="mt-2 flex gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <div key={i} className="flex-1 h-1 bg-purple-500/30 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-purple-500 rounded-full" 
+                            style={{ 
+                              width: `${Math.random() * 100}%`,
+                              animation: `pulse ${1 + i * 0.2}s ease-in-out infinite`
+                            }} 
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 rounded-xl bg-gradient-to-r from-green-500/20 to-transparent border-l-4 border-green-500 backdrop-blur-sm">
+                    <div className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">System Status</div>
+                    <div className="flex items-center gap-2">
+                      <div className="relative">
+                        <div className="w-3 h-3 bg-green-500 rounded-full animate-ping absolute" />
+                        <div className="w-3 h-3 bg-green-500 rounded-full" />
+                      </div>
+                      <span className="text-lg font-black text-green-400">OPERATIONAL</span>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">All systems nominal</div>
+                  </div>
+                </div>
+
+                {/* Performance Metrics Grid */}
+                <div className="grid grid-cols-2 gap-3 mt-4">
+                  <div className="p-3 rounded-xl bg-black/60 border border-cyan-500/30 backdrop-blur-xl">
+                    <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-1 font-bold">Uptime</div>
+                    <div className="text-xl font-black text-cyan-400">99.9%</div>
+                    <div className="text-[8px] text-gray-600 mt-0.5">Last 30 days</div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-black/60 border border-purple-500/30 backdrop-blur-xl">
+                    <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-1 font-bold">Latency</div>
+                    <div className="text-xl font-black text-purple-400">12ms</div>
+                    <div className="text-[8px] text-gray-600 mt-0.5">Avg response</div>
+                  </div>
+                </div>
+
+                {/* Footer with timestamp */}
+                <div className="flex justify-between items-center mt-4 pt-3 border-t border-gray-800">
+                  <div className="text-[10px] text-gray-500 font-mono">
+                    Last update: {format(new Date(), "HH:mm:ss")}
+                  </div>
+                  <div className="text-cyan-400 text-xs font-bold">
+                    MONITORING →
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Mini stats */}
-          <div className="grid grid-cols-2 gap-2">
-            <div className="p-3 rounded-lg bg-black/80 border border-cyan-500/20 backdrop-blur-xl">
-              <div className="text-[10px] text-gray-500 uppercase mb-1">Uptime</div>
-              <div className="text-sm font-black text-cyan-400">99.9%</div>
-            </div>
-            <div className="p-3 rounded-lg bg-black/80 border border-purple-500/20 backdrop-blur-xl">
-              <div className="text-[10px] text-gray-500 uppercase mb-1">Latency</div>
-              <div className="text-sm font-black text-purple-400">12ms</div>
-            </div>
-          </div>
+          </PinContainer>
         </div>
       </div>
 
