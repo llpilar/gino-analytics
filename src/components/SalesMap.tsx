@@ -341,7 +341,7 @@ export const SalesMap = () => {
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30">
-                      <span className="text-lg font-bold text-cyan-400">🏙️</span>
+                      <span className="text-lg font-bold text-cyan-400">#{index + 1}</span>
                     </div>
                     <div>
                       <h3 className="font-bold text-white">{city.city}</h3>

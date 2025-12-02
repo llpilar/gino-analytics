@@ -183,10 +183,10 @@ const fetchSalesLocation = async (dateRange: { from: Date; to: Date }): Promise<
 
   const topCities = Object.values(cityMetrics)
     .sort((a: any, b: any) => b.totalRevenue - a.totalRevenue)
-    .slice(0, 3);
+    .slice(0, 5);
 
   console.log('Vendas por cidade:', Object.values(cityMetrics).length);
-  console.log('Top 3 cidades:', topCities);
+  console.log('Top 5 cidades:', topCities);
   console.log('Vendas por país:', metricsByCountry.size);
 
   return {
