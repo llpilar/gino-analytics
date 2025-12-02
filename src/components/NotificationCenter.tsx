@@ -23,28 +23,19 @@ export const NotificationCenter = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  useEffect(() => {
-    // Mock notifications - in production this would come from Supabase
-    const mockNotifications: Notification[] = [
-      {
-        id: '1',
-        type: 'sale',
-        title: 'Nova Venda',
-        message: 'Pedido #1234 - $299.00',
-        timestamp: new Date(),
-        read: false
-      },
-      {
-        id: '2',
-        type: 'stock',
-        title: 'Estoque Baixo',
-        message: 'Produto "Tênis Nike" com apenas 3 unidades',
-        timestamp: new Date(Date.now() - 3600000),
-        read: false
-      }
-    ];
-    setNotifications(mockNotifications);
-  }, []);
+  // Notificações virão de fonte real (Supabase Realtime, webhooks, etc)
+  // useEffect(() => {
+  //   const channel = supabase
+  //     .channel('notifications')
+  //     .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, 
+  //       (payload) => {
+  //         // Adicionar nova notificação ao estado
+  //       }
+  //     )
+  //     .subscribe();
+  //   
+  //   return () => { supabase.removeChannel(channel); };
+  // }, []);
 
   const markAsRead = (id: string) => {
     setNotifications(prev => 
