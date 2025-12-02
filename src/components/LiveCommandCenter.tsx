@@ -153,168 +153,120 @@ export const LiveCommandCenter = () => {
       </div>
 
       {/* Main Content - Orbital System */}
-      <div className="relative z-10 h-screen flex items-center justify-center p-4 pt-20">{/* pt-20 para espaço do navbar */}
-        {/* Central Globe */}
-        <div className="relative w-[500px] h-[500px] flex items-center justify-center">
-          {/* Orbital rings */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="absolute w-[560px] h-[560px] border border-cyan-500/20 rounded-full animate-spin" style={{ animationDuration: "60s" }} />
-            <div className="absolute w-[640px] h-[640px] border border-purple-500/20 rounded-full animate-spin" style={{ animationDuration: "80s" }} />
-            <div className="absolute w-[680px] h-[680px] border border-pink-500/10 rounded-full animate-spin" style={{ animationDuration: "100s" }} />
-          </div>
-
-          {/* Globe */}
-          <div className="relative z-10 w-full h-full">
-            <Globe className="w-full h-full" />
-            {/* Efeitos de brilho pulsante ao redor do globo */}
-            <div className="absolute inset-0 bg-gradient-radial from-cyan-500/30 via-cyan-500/10 to-transparent blur-3xl animate-pulse" style={{ animationDuration: "3s" }} />
-            <div className="absolute inset-0 bg-gradient-radial from-blue-500/20 via-transparent to-transparent blur-2xl animate-pulse" style={{ animationDuration: "4s", animationDelay: "0.5s" }} />
-            
-            {/* Anel de energia ao redor */}
-            <div className="absolute inset-0 rounded-full border-2 border-cyan-500/30 animate-ping" style={{ animationDuration: "3s" }} />
-          </div>
-
-          {/* Orbital Satellites */}
-          {satellites.map((satellite, index) => {
-            const pos = getSatellitePosition(satellite.angle, satellite.distance);
-            return (
-              <div
-                key={index}
-                className="absolute w-40 h-40 flex items-center justify-center"
-                style={{
-                  left: `calc(50% + ${pos.x}px)`,
-                  top: `calc(50% + ${pos.y}px)`,
-                  transform: "translate(-50%, -50%)",
-                }}
-              >
-                <div className={`relative group cursor-pointer`}>
-                  {/* Connection line to center */}
-                  <div 
-                    className="absolute w-1 bg-gradient-to-b from-transparent via-cyan-500/30 to-transparent"
-                    style={{
-                      height: `${satellite.distance}px`,
-                      left: "50%",
-                      bottom: "50%",
-                      transformOrigin: "bottom",
-                      transform: `translateX(-50%) rotate(${-satellite.angle - rotationAngle}deg)`,
-                    }}
-                  />
-                  
-                  {/* Satellite card */}
-                  <div className={`relative p-4 rounded-2xl bg-black/80 border-2 border-transparent bg-gradient-to-br ${satellite.color} backdrop-blur-xl
-                    hover:scale-110 transition-all duration-300 shadow-2xl`}
-                    style={{
-                      boxShadow: `0 0 30px rgba(6, 182, 212, 0.3)`,
-                    }}
-                  >
-                    <div className="absolute inset-0 bg-black/90 rounded-2xl" />
-                    <div className="relative z-10">
-                      <div className="text-3xl mb-2 text-center">{satellite.icon}</div>
-                      <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider text-center mb-1">
-                        {satellite.label}
-                      </div>
-                      <div className={`text-xl font-black text-transparent bg-clip-text bg-gradient-to-r ${satellite.color} text-center`}>
-                        {satellite.value}
-                      </div>
-                    </div>
-                    
-                    {/* Glow effect */}
-                    <div className={`absolute inset-0 rounded-2xl blur-xl opacity-50 bg-gradient-to-br ${satellite.color} -z-10`} />
-                  </div>
-
-                  {/* Pulse animation */}
-                  <div className="absolute inset-0 rounded-2xl border-2 border-cyan-500/50 animate-ping" />
-                </div>
+      <div className="relative z-10 h-screen flex items-center justify-center p-4 pt-20">
+        {/* Container central com grid */}
+        <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+          
+          {/* Left Side: 3D Globe */}
+          <div className="flex items-center justify-center">
+            <div className="relative w-full max-w-[600px] aspect-square">
+              {/* Orbital rings */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="absolute w-[560px] h-[560px] border border-cyan-500/20 rounded-full animate-spin" style={{ animationDuration: "60s" }} />
+                <div className="absolute w-[640px] h-[640px] border border-purple-500/20 rounded-full animate-spin" style={{ animationDuration: "80s" }} />
+                <div className="absolute w-[680px] h-[680px] border border-pink-500/10 rounded-full animate-spin" style={{ animationDuration: "100s" }} />
               </div>
-            );
-          })}
-        </div>
 
-        {/* Side Panel - Data Stream with 3D Pin Effect */}
-        <div className="absolute right-4 top-8 w-80">
-          <PinContainer
-            title="Live Data Stream"
-            containerClassName="w-full"
-          >
-            <div className="w-72 space-y-4">
-              {/* Main Data Stream Card */}
-              <div className="flex flex-col tracking-tight w-full">
-                {/* Header with Live Indicator */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-cyan-500 rounded-full animate-pulse shadow-lg shadow-cyan-500/50" />
-                    <h3 className="text-sm font-black text-cyan-400 uppercase tracking-wider">Shopify Live</h3>
-                  </div>
-                  <div className="text-[10px] text-gray-500 font-mono">
-                    {format(new Date(), "HH:mm:ss")}
-                  </div>
-                </div>
+              {/* Globe */}
+              <div className="relative z-10 w-full h-full">
+                <Globe className="w-full h-full" />
+                {/* Efeitos de brilho pulsante ao redor do globo */}
+                <div className="absolute inset-0 bg-gradient-radial from-cyan-500/30 via-cyan-500/10 to-transparent blur-3xl animate-pulse" style={{ animationDuration: "3s" }} />
+                <div className="absolute inset-0 bg-gradient-radial from-blue-500/20 via-transparent to-transparent blur-2xl animate-pulse" style={{ animationDuration: "4s", animationDelay: "0.5s" }} />
                 
-                {/* Key Metrics */}
-                <div className="space-y-3">
-                  {/* Revenue Today */}
-                  <div className="p-4 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/10 border-2 border-cyan-500/40 backdrop-blur-sm">
-                    <div className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Revenue Today</div>
-                    <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
-                      {formatCurrency(totalRevenue)}
-                    </div>
-                    <div className="mt-2 flex items-center gap-2">
-                      <div className="flex-1 h-1.5 bg-gray-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full" style={{ width: '78%' }} />
-                      </div>
-                      <span className="text-xs text-cyan-400 font-bold">+23%</span>
-                    </div>
-                  </div>
-                  
-                  {/* Orders Grid */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/10 border-2 border-purple-500/40 backdrop-blur-sm">
-                      <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Orders</div>
-                      <div className="text-2xl font-black text-purple-400">{ordersCount}</div>
-                      <div className="text-[9px] text-gray-500 mt-0.5">Total today</div>
-                    </div>
-                    
-                    <div className="p-3 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/10 border-2 border-green-500/40 backdrop-blur-sm">
-                      <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Avg Order</div>
-                      <div className="text-2xl font-black text-green-400">
-                        {formatCurrency(ordersCount > 0 ? totalRevenue / ordersCount : 0)}
-                      </div>
-                      <div className="text-[9px] text-gray-500 mt-0.5">Per order</div>
-                    </div>
-                  </div>
-
-                  {/* Active Shoppers */}
-                  <div className="p-4 rounded-xl bg-gradient-to-br from-orange-500/20 to-red-500/10 border-2 border-orange-500/40 backdrop-blur-sm">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="text-xs text-gray-400 font-bold uppercase tracking-wider">Active Shoppers</div>
-                      <div className="flex items-center gap-1">
-                        <div className="relative">
-                          <div className="w-2 h-2 bg-green-500 rounded-full animate-ping absolute" />
-                          <div className="w-2 h-2 bg-green-500 rounded-full" />
-                        </div>
-                        <span className="text-[9px] text-green-400 font-bold">LIVE</span>
-                      </div>
-                    </div>
-                    <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-400">
-                      {uniqueShoppers}
-                    </div>
-                    <div className="text-[10px] text-gray-500 mt-1">Shopping right now</div>
-                  </div>
-                </div>
-
-                {/* System Status Footer */}
-                <div className="mt-4 pt-3 border-t border-gray-800 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                    <span className="text-xs font-bold text-green-400">OPERATIONAL</span>
-                  </div>
-                  <div className="text-[10px] text-gray-600">
-                    Latency: <span className="text-cyan-400 font-bold">12ms</span>
-                  </div>
-                </div>
+                {/* Anel de energia ao redor */}
+                <div className="absolute inset-0 rounded-full border-2 border-cyan-500/30 animate-ping" style={{ animationDuration: "3s" }} />
               </div>
             </div>
-          </PinContainer>
+          </div>
+
+          {/* Right Side: Data Stream Card with 3D Pin Effect */}
+          <div className="flex items-center justify-center lg:justify-start">
+            <PinContainer
+              title="Live Data Stream"
+              containerClassName="w-full max-w-sm"
+            >
+              <div className="w-80 space-y-4">
+                {/* Main Data Stream Card */}
+                <div className="flex flex-col tracking-tight w-full">
+                  {/* Header with Live Indicator */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-cyan-500 rounded-full animate-pulse shadow-lg shadow-cyan-500/50" />
+                      <h3 className="text-sm font-black text-cyan-400 uppercase tracking-wider">Shopify Live</h3>
+                    </div>
+                    <div className="text-[10px] text-gray-500 font-mono">
+                      {format(new Date(), "HH:mm:ss")}
+                    </div>
+                  </div>
+                  
+                  {/* Key Metrics */}
+                  <div className="space-y-3">
+                    {/* Revenue Today */}
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/10 border-2 border-cyan-500/40 backdrop-blur-sm">
+                      <div className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Revenue Today</div>
+                      <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
+                        {formatCurrency(totalRevenue)}
+                      </div>
+                      <div className="mt-2 flex items-center gap-2">
+                        <div className="flex-1 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                          <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full" style={{ width: '78%' }} />
+                        </div>
+                        <span className="text-xs text-cyan-400 font-bold">+23%</span>
+                      </div>
+                    </div>
+                    
+                    {/* Orders Grid */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/10 border-2 border-purple-500/40 backdrop-blur-sm">
+                        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Orders</div>
+                        <div className="text-2xl font-black text-purple-400">{ordersCount}</div>
+                        <div className="text-[9px] text-gray-500 mt-0.5">Total today</div>
+                      </div>
+                      
+                      <div className="p-3 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/10 border-2 border-green-500/40 backdrop-blur-sm">
+                        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Avg Order</div>
+                        <div className="text-2xl font-black text-green-400">
+                          {formatCurrency(ordersCount > 0 ? totalRevenue / ordersCount : 0)}
+                        </div>
+                        <div className="text-[9px] text-gray-500 mt-0.5">Per order</div>
+                      </div>
+                    </div>
+
+                    {/* Active Shoppers */}
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-orange-500/20 to-red-500/10 border-2 border-orange-500/40 backdrop-blur-sm">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="text-xs text-gray-400 font-bold uppercase tracking-wider">Active Shoppers</div>
+                        <div className="flex items-center gap-1">
+                          <div className="relative">
+                            <div className="w-2 h-2 bg-green-500 rounded-full animate-ping absolute" />
+                            <div className="w-2 h-2 bg-green-500 rounded-full" />
+                          </div>
+                          <span className="text-[9px] text-green-400 font-bold">LIVE</span>
+                        </div>
+                      </div>
+                      <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-400">
+                        {uniqueShoppers}
+                      </div>
+                      <div className="text-[10px] text-gray-500 mt-1">Shopping right now</div>
+                    </div>
+                  </div>
+
+                  {/* System Status Footer */}
+                  <div className="mt-4 pt-3 border-t border-gray-800 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                      <span className="text-xs font-bold text-green-400">OPERATIONAL</span>
+                    </div>
+                    <div className="text-[10px] text-gray-600">
+                      Latency: <span className="text-cyan-400 font-bold">12ms</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </PinContainer>
+          </div>
+          
         </div>
       </div>
 
