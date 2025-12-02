@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ProfileEditor } from "./ProfileEditor";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import { NotificationsPanel } from "./NotificationsPanel";
+import { DateFilter } from "./DateFilter";
 
 export const DashboardHeader = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -50,6 +51,8 @@ export const DashboardHeader = () => {
         
         {/* Right Section */}
         <div className="flex items-center gap-2 md:gap-4">
+          <DateFilter />
+          
           <div className="hidden md:flex flex-col items-end">
             <span className="text-xs text-zinc-400">Hora atual (UTC-3)</span>
             <span className="text-xl font-bold text-primary neon-glow">
