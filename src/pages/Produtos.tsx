@@ -1,5 +1,5 @@
 import { DashboardWrapper } from "@/components/DashboardWrapper";
-import { ShoppingBag, Search, Filter, TrendingUp, Package, DollarSign } from "lucide-react";
+import { Search, Filter, TrendingUp, Package, DollarSign } from "lucide-react";
 import { ShopifyProductList } from "@/components/ShopifyProductList";
 import { ProductSalesTable } from "@/components/ProductSalesTable";
 import { Input } from "@/components/ui/input";
@@ -26,7 +26,6 @@ export default function Produtos() {
         <PageHeader 
           title="Produtos"
           subtitle="Gerencie seu catálogo e acompanhe vendas"
-          icon={<ShoppingBag className="h-8 w-8 text-purple-400" />}
         />
 
         <div className="space-y-6">

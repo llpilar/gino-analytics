@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Package, Truck, Store, AlertCircle, RefreshCw, Box, 
   Clock, TrendingUp, MapPin, Hash, User, DollarSign,
-  CheckCircle2, XCircle, Timer, Warehouse, CalendarIcon, Wallet
+  CheckCircle2, XCircle, Timer, CalendarIcon, Wallet
 } from "lucide-react";
 import { useHokoStore, useHokoOrders, useHokoProducts, useHokoProductsWithStock } from "@/hooks/useHokoData";
 import { Button } from "@/components/ui/button";
@@ -159,31 +159,23 @@ const HeroSection = () => {
 
       <div className="relative z-10">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <div className="flex items-center gap-5">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-2xl blur-xl opacity-50" />
-              <div className="relative p-4 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-2xl">
-                <Warehouse className="h-8 w-8 text-white" />
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <HyperText 
+                text="Envios & Fulfillment" 
+                className="text-3xl md:text-4xl font-black text-white tracking-tight"
+              />
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30">
+                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Conectado</span>
               </div>
             </div>
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <HyperText 
-                  text="Envios & Fulfillment" 
-                  className="text-3xl md:text-4xl font-black text-white tracking-tight"
-                />
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30">
-                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Conectado</span>
-                </div>
-              </div>
-              <p className="text-zinc-400 text-sm md:text-base">
-                Gerencie seus envios e produtos com{' '}
-                <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">
-                  Hoko Colombia
-                </span>
-              </p>
-            </div>
+            <p className="text-zinc-400 text-sm md:text-base">
+              Gerencie seus envios e produtos com{' '}
+              <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">
+                Hoko Colombia
+              </span>
+            </p>
           </div>
 
           {/* Store info badge */}

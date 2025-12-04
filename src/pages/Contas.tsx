@@ -210,7 +210,6 @@ export default function Contas() {
           <PageHeader 
             title="Controle de Contas"
             subtitle="Gerencie as despesas entre os sócios"
-            icon={<Wallet className="h-8 w-8 text-cyan-400" />}
           />
           <Dialog open={configDialog} onOpenChange={setConfigDialog}>
             <DialogTrigger asChild>
