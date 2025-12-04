@@ -8,7 +8,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Trash2, Plus, Settings, DollarSign, TrendingUp, TrendingDown, Users, Wallet, ImageIcon, X, Eye } from "lucide-react";
 import { useExpenses, usePartnersConfig, useAddExpense, useDeleteExpense, useUpdatePartnersConfig, uploadReceipt } from "@/hooks/useExpenses";
-import { useCurrency } from "@/contexts/CurrencyContext";
+
+const formatBRL = (value: number): string => {
+  return new Intl.NumberFormat('pt-BR', { 
+    style: 'currency', 
+    currency: 'BRL',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(value);
+};
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -30,7 +38,6 @@ export default function Contas() {
   const addExpense = useAddExpense();
   const deleteExpense = useDeleteExpense();
   const updateConfig = useUpdatePartnersConfig();
-  const { formatCurrency } = useCurrency();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [newExpense, setNewExpense] = useState({
@@ -138,7 +145,7 @@ export default function Contas() {
   const statCards = [
     {
       title: "Total Gasto",
-      value: formatCurrency(totalExpenses),
+      value: formatBRL(totalExpenses),
       icon: DollarSign,
       color: "from-cyan-500 to-blue-500",
       bgColor: "bg-cyan-500/10",
@@ -146,8 +153,8 @@ export default function Contas() {
     },
     {
       title: partner1,
-      value: formatCurrency(partner1Total),
-      subtitle: partner1Balance > 0 ? `Receber ${formatCurrency(partner1Balance)}` : partner1Balance < 0 ? `Deve ${formatCurrency(Math.abs(partner1Balance))}` : 'Equilibrado',
+      value: formatBRL(partner1Total),
+      subtitle: partner1Balance > 0 ? `Receber ${formatBRL(partner1Balance)}` : partner1Balance < 0 ? `Deve ${formatBRL(Math.abs(partner1Balance))}` : 'Equilibrado',
       subtitleColor: partner1Balance > 0 ? 'text-green-400' : partner1Balance < 0 ? 'text-red-400' : 'text-gray-400',
       icon: Users,
       color: "from-purple-500 to-pink-500",
@@ -156,8 +163,8 @@ export default function Contas() {
     },
     {
       title: partner2,
-      value: formatCurrency(partner2Total),
-      subtitle: partner2Balance > 0 ? `Receber ${formatCurrency(partner2Balance)}` : partner2Balance < 0 ? `Deve ${formatCurrency(Math.abs(partner2Balance))}` : 'Equilibrado',
+      value: formatBRL(partner2Total),
+      subtitle: partner2Balance > 0 ? `Receber ${formatBRL(partner2Balance)}` : partner2Balance < 0 ? `Deve ${formatBRL(Math.abs(partner2Balance))}` : 'Equilibrado',
       subtitleColor: partner2Balance > 0 ? 'text-green-400' : partner2Balance < 0 ? 'text-red-400' : 'text-gray-400',
       icon: Users,
       color: "from-orange-500 to-red-500",
@@ -169,7 +176,7 @@ export default function Contas() {
       value: partner1Balance === 0 ? "Tudo certo!" : partner1Balance > 0 
         ? `${partner2} → ${partner1}` 
         : `${partner1} → ${partner2}`,
-      subtitle: partner1Balance !== 0 ? formatCurrency(Math.abs(partner1Balance)) : undefined,
+      subtitle: partner1Balance !== 0 ? formatBRL(Math.abs(partner1Balance)) : undefined,
       subtitleColor: 'text-green-400',
       icon: partner1Balance >= 0 ? TrendingUp : TrendingDown,
       color: "from-green-500 to-emerald-500",
@@ -436,7 +443,7 @@ export default function Contas() {
                         </span>
                       </TableCell>
                       <TableCell className="text-right font-mono text-green-400 font-bold">
-                        {formatCurrency(Number(expense.amount))}
+                        {formatBRL(Number(expense.amount))}
                       </TableCell>
                       <TableCell className="text-center">
                         {expense.receipt_url ? (
