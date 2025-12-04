@@ -374,20 +374,24 @@ const OrdersTable = () => {
             {orders.map((order: any, index: number) => {
               const deliveryState = getDeliveryState(parseInt(order.delivery_state));
               
-              // Calculate quantity from items
-              const items = order.items || order.products || [];
-              const totalQuantity = items.reduce((acc: number, item: any) => {
+              // Get products array
+              const products = order.products || [];
+              
+              // Calculate total quantity from products
+              const totalQuantity = products.reduce((acc: number, item: any) => {
                 return acc + parseInt(item.amount || item.quantity || 1);
               }, 0) || 1;
+              
+              // Calculate total sale from products (price_unity × amount)
+              const orderTotal = products.reduce((acc: number, item: any) => {
+                const price = parseFloat(item.price_unity || item.price || 0);
+                const qty = parseInt(item.amount || item.quantity || 1);
+                return acc + (price * qty);
+              }, 0);
               
               // Get guide info
               const guide = order.guide || order.guides?.[0];
               const shippingCost = parseFloat(guide?.total_freight_store || order.shipping_cost || 0);
-              
-              // Use total from Hoko API - try multiple possible field names
-              // In COD orders, the collection value in the guide is the sale total
-              const guideCollectionValue = parseFloat(guide?.collection_value || guide?.valor_recaudo || guide?.declared_value || 0);
-              const orderTotal = parseFloat(order.total || order.total_sale || order.sale_total || order.subtotal || 0) || guideCollectionValue;
               
               // Get city name
               const cityName = order.customer?.city?.name || order.customer?.city || order.city || 'N/A';
