@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Zap, Lock, Clock, Shield } from "lucide-react";
+import { Lock, Clock, Shield } from "lucide-react";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -71,11 +71,6 @@ export default function Auth() {
         <div className="bg-zinc-900/80 border border-zinc-800 backdrop-blur-2xl rounded-3xl p-10 shadow-2xl shadow-black/50">
           {/* Header */}
           <div className="text-center mb-10">
-            <div className="flex items-center justify-center gap-3 mb-8">
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-orange-500/20 border border-cyan-500/20 shadow-lg shadow-cyan-500/10">
-                <Zap className="w-10 h-10 text-cyan-400" />
-              </div>
-            </div>
             <p className="text-zinc-400 text-lg">
               Painel de controle
             </p>
