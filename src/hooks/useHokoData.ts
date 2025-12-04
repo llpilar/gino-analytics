@@ -60,7 +60,7 @@ interface HokoShipment {
 }
 
 interface HokoResponse<T> {
-  status: string;
+  status?: string;
   data?: T;
   message?: string;
   code?: string;
@@ -69,15 +69,19 @@ interface HokoResponse<T> {
     total_pages: number;
     total_items: number;
   };
+  // Pagination fields from Hoko API directly
+  current_page?: number;
+  last_page?: number;
+  total?: number;
 }
 
-const fetchHokoData = async <T>(endpoint: string, params?: Record<string, any>): Promise<HokoResponse<T>> => {
+const fetchHokoData = async <T>(endpoint: string, params?: Record<string, any>): Promise<any> => {
   const { data, error } = await supabase.functions.invoke('hoko-api', {
     body: { endpoint, params },
   });
 
   if (error) throw error;
-  return data as HokoResponse<T>;
+  return data;
 };
 
 export const useHokoStore = () => {
@@ -92,7 +96,19 @@ export const useHokoStore = () => {
 export const useHokoOrders = (page: number = 1) => {
   return useQuery({
     queryKey: ['hoko-orders', page],
-    queryFn: () => fetchHokoData<HokoOrder[]>('orders', { page }),
+    queryFn: async () => {
+      const response = await fetchHokoData<any>('orders', { page });
+      // Hoko returns paginated data with 'data' array
+      return {
+        status: 'success',
+        data: response.data || response,
+        pagination: {
+          current_page: response.current_page || 1,
+          total_pages: response.last_page || 1,
+          total_items: response.total || 0,
+        }
+      };
+    },
     staleTime: 30 * 1000, // 30 seconds
     retry: 2,
   });
@@ -108,10 +124,19 @@ export const useHokoOrderDetail = (orderId: number | null) => {
   });
 };
 
-export const useHokoProducts = (page: number = 1) => {
+export const useHokoProducts = () => {
   return useQuery({
-    queryKey: ['hoko-products', page],
-    queryFn: () => fetchHokoData<HokoProduct[]>('products', { page }),
+    queryKey: ['hoko-products'],
+    queryFn: () => fetchHokoData<HokoProduct[]>('products'),
+    staleTime: 60 * 1000, // 1 minute
+    retry: 2,
+  });
+};
+
+export const useHokoProductsWithStock = () => {
+  return useQuery({
+    queryKey: ['hoko-products-with-stock'],
+    queryFn: () => fetchHokoData<any>('products-with-stock'),
     staleTime: 60 * 1000, // 1 minute
     retry: 2,
   });
@@ -127,29 +152,30 @@ export const useHokoProductDetail = (productId: number | null) => {
   });
 };
 
-export const useHokoStock = () => {
+export const useHokoGuides = (page: number = 1) => {
   return useQuery({
-    queryKey: ['hoko-stock'],
-    queryFn: () => fetchHokoData<HokoProduct[]>('stock'),
-    staleTime: 60 * 1000, // 1 minute
-    retry: 2,
-  });
-};
-
-export const useHokoShipments = (page: number = 1) => {
-  return useQuery({
-    queryKey: ['hoko-shipments', page],
-    queryFn: () => fetchHokoData<HokoShipment[]>('shipments', { page }),
+    queryKey: ['hoko-guides', page],
+    queryFn: async () => {
+      const response = await fetchHokoData<any>('guides', { page });
+      return {
+        status: 'success',
+        data: response.data || response,
+        pagination: {
+          current_page: response.current_page || 1,
+          total_pages: response.last_page || 1,
+          total_items: response.total || 0,
+        }
+      };
+    },
     staleTime: 30 * 1000, // 30 seconds
     retry: 2,
   });
 };
 
-export const useHokoTracking = (trackingNumber: string | null) => {
+export const useHokoSharedStock = (params?: { search?: string; category?: number; sortBy?: number }) => {
   return useQuery({
-    queryKey: ['hoko-tracking', trackingNumber],
-    queryFn: () => fetchHokoData<any>('tracking', { trackingNumber }),
-    enabled: !!trackingNumber,
+    queryKey: ['hoko-shared-stock', params],
+    queryFn: () => fetchHokoData<any>('shared-stock', params),
     staleTime: 60 * 1000, // 1 minute
     retry: 2,
   });
