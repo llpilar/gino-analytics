@@ -14,7 +14,7 @@ import { useHokoStore, useHokoOrders, useHokoProducts, useHokoProductsWithStock 
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 import { format, isWithinInterval, startOfDay, endOfDay, parseISO } from "date-fns";
-import { es } from "date-fns/locale";
+import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useDateFilter } from "@/contexts/DateFilterContext";
 
@@ -74,15 +74,15 @@ const getStatusConfig = (status: string) => {
   };
 };
 
-// Hoko delivery states: 1=Creada, 2=En proceso, 3=Despachada, 4=Finalizada, 5=Cancelada, 6=En Novedad
+// Hoko delivery states: 1=Criada, 2=Em processo, 3=Despachada, 4=Finalizada, 5=Cancelada, 6=Em Novidade
 const getDeliveryState = (state: number) => {
   const states: Record<number, { label: string; bg: string; text: string; border: string }> = {
-    1: { label: 'Creada', bg: 'bg-zinc-500/10', text: 'text-zinc-400', border: 'border-zinc-500/30' },
-    2: { label: 'En proceso', bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/30' },
+    1: { label: 'Criada', bg: 'bg-zinc-500/10', text: 'text-zinc-400', border: 'border-zinc-500/30' },
+    2: { label: 'Em processo', bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/30' },
     3: { label: 'Despachada', bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/30' },
     4: { label: 'Finalizada', bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/30' },
     5: { label: 'Cancelada', bg: 'bg-rose-500/10', text: 'text-rose-400', border: 'border-rose-500/30' },
-    6: { label: 'En Novedad', bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/30' },
+    6: { label: 'Em Novidade', bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/30' },
   };
   return states[state] || { label: `Estado ${state}`, bg: 'bg-zinc-500/10', text: 'text-zinc-400', border: 'border-zinc-500/30' };
 };
@@ -176,7 +176,7 @@ const HeroSection = () => {
                 </div>
               </div>
               <p className="text-zinc-400 text-sm md:text-base">
-                Gestiona tus envíos y productos con{' '}
+                Gerencie seus envios e produtos com{' '}
                 <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">
                   Hoko Colombia
                 </span>
@@ -192,8 +192,8 @@ const HeroSection = () => {
               <div className="flex items-center gap-3 px-5 py-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
                 <Store className="h-5 w-5 text-violet-400" />
                 <div>
-                  <p className="text-xs text-zinc-500 uppercase tracking-wider">Tienda</p>
-                  <p className="text-sm font-bold text-white">{storeInfo?.name || 'Mi Tienda'}</p>
+                  <p className="text-xs text-zinc-500 uppercase tracking-wider">Loja</p>
+                  <p className="text-sm font-bold text-white">{storeInfo?.name || 'Minha Loja'}</p>
                 </div>
               </div>
             )}
@@ -251,41 +251,41 @@ const StatsGrid = () => {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
       <StatCard 
-        title="En Proceso" 
+        title="Em Processo" 
         value={`${enProceso} (${getPercent(enProceso)}%)`} 
-        subtitle="Pedidos en preparación/tránsito"
+        subtitle="Pedidos em preparação/trânsito"
         icon={Timer} 
         gradient="from-blue-600 to-cyan-600"
         delay={0}
       />
       <StatCard 
-        title="Crédito Entregadas" 
+        title="Crédito Entregues" 
         value={`${creditoEntregadas} (${getPercent(creditoEntregadas)}%)`} 
-        subtitle="Pagos a crédito entregados"
+        subtitle="Pagamentos a crédito entregues"
         icon={CheckCircle2} 
         gradient="from-emerald-600 to-green-600"
         delay={100}
       />
       <StatCard 
-        title="Recaudo Entregadas" 
+        title="Cobrança Entregues" 
         value={`${recaudoEntregadas} (${getPercent(recaudoEntregadas)}%)`} 
-        subtitle="Contraentrega entregados"
+        subtitle="Contra-entrega entregues"
         icon={DollarSign} 
         gradient="from-blue-700 to-indigo-600"
         delay={200}
       />
       <StatCard 
-        title="Recaudo Pagadas" 
+        title="Cobrança Pagas" 
         value={`${recaudoPagadas} (${getPercent(recaudoPagadas)}%)`} 
-        subtitle="Contraentrega pagados"
+        subtitle="Contra-entrega pagas"
         icon={Wallet} 
         gradient="from-zinc-600 to-zinc-700"
         delay={300}
       />
       <StatCard 
-        title="Devoluciones" 
+        title="Devoluções" 
         value={`${devoluciones} (${getPercent(devoluciones)}%)`} 
-        subtitle="Cancelados/Devueltos"
+        subtitle="Cancelados/Devolvidos"
         icon={XCircle} 
         gradient="from-rose-600 to-pink-600"
         delay={400}
@@ -315,11 +315,11 @@ const OrdersTable = () => {
         <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 mb-4">
           <AlertCircle className="h-10 w-10 text-amber-400" />
         </div>
-        <p className="text-lg font-semibold text-white mb-1">No se pudieron cargar los pedidos</p>
-        <p className="text-sm text-zinc-500 mb-6">{(ordersData as any)?.message || 'Intenta de nuevo más tarde'}</p>
+        <p className="text-lg font-semibold text-white mb-1">Não foi possível carregar os pedidos</p>
+        <p className="text-sm text-zinc-500 mb-6">{(ordersData as any)?.message || 'Tente novamente mais tarde'}</p>
         <Button onClick={() => refetch()} variant="outline" className="gap-2 rounded-xl">
           <RefreshCw className="h-4 w-4" />
-          Reintentar
+          Tentar novamente
         </Button>
       </div>
     );
@@ -347,8 +347,8 @@ const OrdersTable = () => {
         <div className="p-4 rounded-2xl bg-zinc-800/50 border border-zinc-700/50 mb-4">
           <Package className="h-10 w-10 text-zinc-500" />
         </div>
-        <p className="text-lg font-semibold text-white mb-1">No hay pedidos en este período</p>
-        <p className="text-sm text-zinc-500">Selecciona otro período en el filtro de fecha</p>
+        <p className="text-lg font-semibold text-white mb-1">Não há pedidos neste período</p>
+        <p className="text-sm text-zinc-500">Selecione outro período no filtro de data</p>
       </div>
     );
   }
@@ -372,7 +372,7 @@ const OrdersTable = () => {
           className="gap-2 rounded-xl border-zinc-700 hover:border-zinc-600"
         >
           <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
-          Actualizar
+          Atualizar
         </Button>
       </div>
       
@@ -395,29 +395,30 @@ const OrdersTable = () => {
               <TableHead className="text-zinc-500 font-semibold">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4" />
-                  Ciudad
+                  Cidade
                 </div>
               </TableHead>
               <TableHead className="text-zinc-500 font-semibold text-center">
                 <div className="flex items-center gap-2 justify-center">
                   <Box className="h-4 w-4" />
-                  Uds. / Custo
+                  Qtd
                 </div>
               </TableHead>
               <TableHead className="text-zinc-500 font-semibold">Estado</TableHead>
               <TableHead className="text-zinc-500 font-semibold">
                 <div className="flex items-center gap-2">
                   <Truck className="h-4 w-4" />
-                  Guía
+                  Guia
                 </div>
               </TableHead>
               <TableHead className="text-zinc-500 font-semibold text-right">
                 <div className="flex items-center gap-2 justify-end">
                   <DollarSign className="h-4 w-4" />
-                  Total Venta
+                  Total Venda
                 </div>
               </TableHead>
-              <TableHead className="text-zinc-500 font-semibold text-right">Costo Envío</TableHead>
+              <TableHead className="text-zinc-500 font-semibold text-right">Custo Produto</TableHead>
+              <TableHead className="text-zinc-500 font-semibold text-right">Custo Envio</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -442,6 +443,9 @@ const OrdersTable = () => {
               // Get guide info
               const guide = order.guide || order.guides?.[0];
               const shippingCost = parseFloat(guide?.total_freight_store || order.shipping_cost || 0);
+              
+              // Calculate product cost (unit cost × quantity)
+              const productCost = totalQuantity * 11000;
               
               // Get city name
               const cityName = order.customer?.city?.name || order.customer?.city || order.city || 'N/A';
@@ -468,14 +472,9 @@ const OrdersTable = () => {
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
-                    <div className="flex flex-col items-center gap-1">
-                      <Badge className="bg-cyan-500/10 text-cyan-400 border-cyan-500/30 border font-mono font-bold">
-                        {totalQuantity} uds
-                      </Badge>
-                      <span className="font-mono text-xs text-zinc-400">
-                        {formatCOP(totalQuantity * 11000)}
-                      </span>
-                    </div>
+                    <Badge className="bg-cyan-500/10 text-cyan-400 border-cyan-500/30 border font-mono font-bold">
+                      {totalQuantity} uds
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     <Badge className={`${deliveryState.bg} ${deliveryState.text} ${deliveryState.border} border`}>
@@ -488,12 +487,17 @@ const OrdersTable = () => {
                         {guide.number}
                       </span>
                     ) : (
-                      <span className="text-zinc-600">Sin guía</span>
+                      <span className="text-zinc-600">Sem guia</span>
                     )}
                   </TableCell>
                   <TableCell className="text-right">
                     <span className="font-mono font-bold text-emerald-400">
                       {formatCOP(orderTotal)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <span className="font-mono text-purple-400">
+                      {formatCOP(productCost)}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
@@ -530,11 +534,11 @@ const ProductsTable = () => {
         <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 mb-4">
           <AlertCircle className="h-10 w-10 text-amber-400" />
         </div>
-        <p className="text-lg font-semibold text-white mb-1">No se pudieron cargar los productos</p>
-        <p className="text-sm text-zinc-500 mb-6">{productsData?.message || 'Intenta de nuevo más tarde'}</p>
+        <p className="text-lg font-semibold text-white mb-1">Não foi possível carregar os produtos</p>
+        <p className="text-sm text-zinc-500 mb-6">{productsData?.message || 'Tente novamente mais tarde'}</p>
         <Button onClick={() => refetch()} variant="outline" className="gap-2 rounded-xl">
           <RefreshCw className="h-4 w-4" />
-          Reintentar
+          Tentar novamente
         </Button>
       </div>
     );
@@ -549,8 +553,8 @@ const ProductsTable = () => {
         <div className="p-4 rounded-2xl bg-zinc-800/50 border border-zinc-700/50 mb-4">
           <Box className="h-10 w-10 text-zinc-500" />
         </div>
-        <p className="text-lg font-semibold text-white mb-1">No hay productos registrados</p>
-        <p className="text-sm text-zinc-500">Los productos aparecerán aquí cuando se sincronicen</p>
+        <p className="text-lg font-semibold text-white mb-1">Não há produtos registrados</p>
+        <p className="text-sm text-zinc-500">Os produtos aparecerão aqui quando forem sincronizados</p>
       </div>
     );
   }
@@ -572,7 +576,7 @@ const ProductsTable = () => {
     }
     return (
       <Badge className="bg-rose-500/10 text-rose-400 border-rose-500/30 border font-mono">
-        Agotado
+        Esgotado
       </Badge>
     );
   };
@@ -588,7 +592,7 @@ const ProductsTable = () => {
           className="gap-2 rounded-xl border-zinc-700 hover:border-zinc-600"
         >
           <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
-          Actualizar
+          Atualizar
         </Button>
       </div>
       
@@ -596,13 +600,13 @@ const ProductsTable = () => {
         <Table>
           <TableHeader>
             <TableRow className="border-zinc-800 hover:bg-transparent bg-zinc-900/50">
-              <TableHead className="text-zinc-500 font-semibold">Producto</TableHead>
-              <TableHead className="text-zinc-500 font-semibold">Referencia</TableHead>
-              <TableHead className="text-zinc-500 font-semibold">Stock</TableHead>
-              <TableHead className="text-zinc-500 font-semibold text-right">Costo</TableHead>
-              <TableHead className="text-zinc-500 font-semibold text-right">Precio Mín.</TableHead>
-              <TableHead className="text-zinc-500 font-semibold text-right">Precio Sugerido</TableHead>
-              <TableHead className="text-zinc-500 font-semibold text-right">Precio Drop.</TableHead>
+              <TableHead className="text-zinc-500 font-semibold">Produto</TableHead>
+              <TableHead className="text-zinc-500 font-semibold">Referência</TableHead>
+              <TableHead className="text-zinc-500 font-semibold">Estoque</TableHead>
+              <TableHead className="text-zinc-500 font-semibold text-right">Custo</TableHead>
+              <TableHead className="text-zinc-500 font-semibold text-right">Preço Mín.</TableHead>
+              <TableHead className="text-zinc-500 font-semibold text-right">Preço Sugerido</TableHead>
+              <TableHead className="text-zinc-500 font-semibold text-right">Preço Drop.</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -689,7 +693,7 @@ const Envios = () => {
                 className="rounded-lg px-6 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all"
               >
                 <Box className="h-4 w-4 mr-2" />
-                Productos
+                Produtos
               </TabsTrigger>
             </TabsList>
 
@@ -711,8 +715,8 @@ const Envios = () => {
                     <Truck className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-white">Pedidos Recientes</h2>
-                    <p className="text-sm text-zinc-500">Gestiona y rastrea tus envíos</p>
+                    <h2 className="text-lg font-bold text-white">Pedidos Recentes</h2>
+                    <p className="text-sm text-zinc-500">Gerencie e rastreie seus envios</p>
                   </div>
                 </div>
                 <OrdersTable />
@@ -728,8 +732,8 @@ const Envios = () => {
                     <Box className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-white">Productos en Fulfillment</h2>
-                    <p className="text-sm text-zinc-500">Inventario sincronizado con Hoko</p>
+                    <h2 className="text-lg font-bold text-white">Produtos em Fulfillment</h2>
+                    <p className="text-sm text-zinc-500">Inventário sincronizado com Hoko</p>
                   </div>
                 </div>
                 <ProductsTable />
