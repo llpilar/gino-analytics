@@ -380,12 +380,14 @@ const OrdersTable = () => {
                 return acc + parseInt(item.amount || item.quantity || 1);
               }, 0) || 1;
               
-              // Use total from Hoko API directly
-              const orderTotal = parseFloat(order.total || order.total_sale || order.sale_total || 0);
-              
               // Get guide info
               const guide = order.guide || order.guides?.[0];
               const shippingCost = parseFloat(guide?.total_freight_store || order.shipping_cost || 0);
+              
+              // Use total from Hoko API - try multiple possible field names
+              // In COD orders, the collection value in the guide is the sale total
+              const guideCollectionValue = parseFloat(guide?.collection_value || guide?.valor_recaudo || guide?.declared_value || 0);
+              const orderTotal = parseFloat(order.total || order.total_sale || order.sale_total || order.subtotal || 0) || guideCollectionValue;
               
               // Get city name
               const cityName = order.customer?.city?.name || order.customer?.city || order.city || 'N/A';

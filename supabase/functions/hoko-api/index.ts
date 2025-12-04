@@ -137,6 +137,10 @@ serve(async (req) => {
           allOrders.map(async (order: any) => {
             try {
               const orderDetail = await hokoRequest(`/member/order/${order.id}`);
+              // Log first order detail to see structure
+              if (allOrders.indexOf(order) === 0) {
+                console.log('Order detail structure:', JSON.stringify(orderDetail, null, 2).substring(0, 2000));
+              }
               return { ...order, ...orderDetail };
             } catch (e) {
               console.error(`Failed to fetch order ${order.id} details:`, e);
