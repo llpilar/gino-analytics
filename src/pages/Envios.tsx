@@ -9,7 +9,7 @@ import {
   Clock, TrendingUp, MapPin, Hash, User, DollarSign,
   CheckCircle2, XCircle, Timer, Warehouse
 } from "lucide-react";
-import { useHokoStore, useHokoOrders, useHokoProducts, useHokoStock } from "@/hooks/useHokoData";
+import { useHokoStore, useHokoOrders, useHokoProducts, useHokoProductsWithStock } from "@/hooks/useHokoData";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -187,7 +187,7 @@ const HeroSection = () => {
 };
 
 const StatsGrid = () => {
-  const { data: stockData, isLoading } = useHokoStock();
+  const { data: stockData, isLoading } = useHokoProductsWithStock();
   const { data: ordersData } = useHokoOrders();
 
   if (isLoading) {
@@ -205,9 +205,15 @@ const StatsGrid = () => {
   const orders: any[] = Array.isArray(ordersData?.data) ? ordersData.data : 
                 Array.isArray(ordersData) ? ordersData : [];
 
-  const totalStock = stockItems.reduce((acc, p) => acc + (p.stock || 0), 0);
-  const lowStockCount = stockItems.filter((p) => (p.stock || 0) <= 10 && (p.stock || 0) > 0).length;
-  const outOfStockCount = stockItems.filter((p) => (p.stock || 0) === 0).length;
+  const totalStock = stockItems.reduce((acc, p) => acc + (p.stock?.[0]?.amount || p.stock || 0), 0);
+  const lowStockCount = stockItems.filter((p) => {
+    const stock = p.stock?.[0]?.amount || p.stock || 0;
+    return stock <= 10 && stock > 0;
+  }).length;
+  const outOfStockCount = stockItems.filter((p) => {
+    const stock = p.stock?.[0]?.amount || p.stock || 0;
+    return stock === 0;
+  }).length;
   const totalOrders = orders.length;
 
   return (
@@ -268,7 +274,7 @@ const OrdersTable = () => {
           <AlertCircle className="h-10 w-10 text-amber-400" />
         </div>
         <p className="text-lg font-semibold text-white mb-1">No se pudieron cargar los pedidos</p>
-        <p className="text-sm text-zinc-500 mb-6">{ordersData?.message || 'Intenta de nuevo más tarde'}</p>
+        <p className="text-sm text-zinc-500 mb-6">{(ordersData as any)?.message || 'Intenta de nuevo más tarde'}</p>
         <Button onClick={() => refetch()} variant="outline" className="gap-2 rounded-xl">
           <RefreshCw className="h-4 w-4" />
           Reintentar

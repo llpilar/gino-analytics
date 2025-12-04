@@ -102,44 +102,50 @@ serve(async (req) => {
         break;
 
       case 'orders':
-        // Try different possible endpoints for orders
+        // Correct endpoint: /member/order (not /member/orders)
         const ordersParams = params?.page ? `?page=${params.page}` : '';
-        result = await hokoRequest(`/member/orders${ordersParams}`);
+        result = await hokoRequest(`/member/order${ordersParams}`);
         break;
 
       case 'order-detail':
         if (!params?.orderId) {
           throw new Error('Order ID is required');
         }
-        result = await hokoRequest(`/member/orders/${params.orderId}`);
+        // Correct endpoint: /member/order/{id}
+        result = await hokoRequest(`/member/order/${params.orderId}`);
         break;
 
       case 'products':
-        const productsParams = params?.page ? `?page=${params.page}` : '';
-        result = await hokoRequest(`/member/products${productsParams}`);
+        // Correct endpoint: /member/product/list
+        result = await hokoRequest('/member/product/list');
+        break;
+
+      case 'products-with-stock':
+        // Correct endpoint: /member/product/list-with-stock
+        result = await hokoRequest('/member/product/list-with-stock');
         break;
 
       case 'product-detail':
         if (!params?.productId) {
           throw new Error('Product ID is required');
         }
-        result = await hokoRequest(`/member/products/${params.productId}`);
+        // Correct endpoint: /member/product/detail?id={id}
+        result = await hokoRequest(`/member/product/detail?id=${params.productId}`);
         break;
 
-      case 'stock':
-        result = await hokoRequest('/member/stock');
+      case 'guides':
+        // Correct endpoint: /member/guide
+        const guidesParams = params?.page ? `?page=${params.page}` : '';
+        result = await hokoRequest(`/member/guide${guidesParams}`, 'POST');
         break;
 
-      case 'shipments':
-        const shipmentsParams = params?.page ? `?page=${params.page}` : '';
-        result = await hokoRequest(`/member/shipments${shipmentsParams}`);
-        break;
-
-      case 'tracking':
-        if (!params?.trackingNumber) {
-          throw new Error('Tracking number is required');
-        }
-        result = await hokoRequest(`/member/tracking/${params.trackingNumber}`);
+      case 'shared-stock':
+        // Correct endpoint: /member/shared_stock
+        let stockParams = '?';
+        if (params?.search) stockParams += `search=${encodeURIComponent(params.search)}&`;
+        if (params?.category) stockParams += `category=${params.category}&`;
+        if (params?.sortBy) stockParams += `sortBy=${params.sortBy}&`;
+        result = await hokoRequest(`/member/shared_stock${stockParams}`);
         break;
 
       default:
