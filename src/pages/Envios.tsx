@@ -225,46 +225,45 @@ const StatsGrid = () => {
                 Array.isArray(ordersData) ? ordersData : [];
 
   const totalStock = stockItems.reduce((acc, p) => acc + (p.stock?.[0]?.amount || p.stock || 0), 0);
-  const lowStockCount = stockItems.filter((p) => {
-    const stock = p.stock?.[0]?.amount || p.stock || 0;
-    return stock <= 10 && stock > 0;
-  }).length;
-  const outOfStockCount = stockItems.filter((p) => {
-    const stock = p.stock?.[0]?.amount || p.stock || 0;
-    return stock === 0;
-  }).length;
   const totalOrders = orders.length;
+  
+  // Count orders by delivery state
+  // 1=Creada, 2=En proceso, 3=Despachada, 4=Finalizada, 5=Cancelada, 6=En Novedad
+  const enProceso = orders.filter((o) => parseInt(o.delivery_state) === 2).length;
+  const despachadas = orders.filter((o) => parseInt(o.delivery_state) === 3).length;
+  const entregadas = orders.filter((o) => parseInt(o.delivery_state) === 4).length;
+  const enNovedad = orders.filter((o) => parseInt(o.delivery_state) === 6).length;
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       <StatCard 
-        title="Pedidos" 
-        value={totalOrders} 
-        subtitle="Total de pedidos"
-        icon={Package} 
-        gradient="from-violet-600 to-purple-600"
+        title="Entregadas" 
+        value={entregadas} 
+        subtitle="Pedidos finalizados"
+        icon={CheckCircle2} 
+        gradient="from-emerald-600 to-green-600"
         delay={0}
       />
       <StatCard 
-        title="Stock Total" 
-        value={totalStock.toLocaleString('es-CO')} 
-        subtitle="Unidades en bodega"
-        icon={Box} 
-        gradient="from-cyan-600 to-blue-600"
+        title="En Camino" 
+        value={despachadas} 
+        subtitle="Pedidos despachados"
+        icon={Truck} 
+        gradient="from-blue-600 to-cyan-600"
         delay={100}
       />
       <StatCard 
-        title="Stock Bajo" 
-        value={lowStockCount} 
-        subtitle="Productos por reabastecer"
-        icon={Clock} 
+        title="En Proceso" 
+        value={enProceso} 
+        subtitle="Preparando envío"
+        icon={Timer} 
         gradient="from-amber-600 to-orange-600"
         delay={200}
       />
       <StatCard 
-        title="Sin Stock" 
-        value={outOfStockCount} 
-        subtitle="Productos agotados"
+        title="En Novedad" 
+        value={enNovedad} 
+        subtitle="Requieren atención"
         icon={AlertCircle} 
         gradient="from-rose-600 to-pink-600"
         delay={300}
@@ -275,8 +274,7 @@ const StatsGrid = () => {
 
 const OrdersTable = () => {
   const { data: ordersData, isLoading, error, refetch, isFetching } = useHokoOrders();
-  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
-  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
+  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
 
   if (isLoading) {
     return (
@@ -309,32 +307,31 @@ const OrdersTable = () => {
 
   // Filter orders by date
   const orders = allOrders.filter((order: any) => {
-    if (!dateFrom && !dateTo) return true;
+    if (!dateRange.from && !dateRange.to) return true;
     
     const orderDate = order.created_at ? parseISO(order.created_at) : null;
     if (!orderDate) return true;
     
-    if (dateFrom && dateTo) {
+    if (dateRange.from && dateRange.to) {
       return isWithinInterval(orderDate, { 
-        start: startOfDay(dateFrom), 
-        end: endOfDay(dateTo) 
+        start: startOfDay(dateRange.from), 
+        end: endOfDay(dateRange.to) 
       });
     }
     
-    if (dateFrom) {
-      return orderDate >= startOfDay(dateFrom);
+    if (dateRange.from) {
+      return orderDate >= startOfDay(dateRange.from);
     }
     
-    if (dateTo) {
-      return orderDate <= endOfDay(dateTo);
+    if (dateRange.to) {
+      return orderDate <= endOfDay(dateRange.to);
     }
     
     return true;
   });
 
   const clearFilters = () => {
-    setDateFrom(undefined);
-    setDateTo(undefined);
+    setDateRange({ from: undefined, to: undefined });
   };
 
   if (allOrders.length === 0) {
@@ -354,52 +351,37 @@ const OrdersTable = () => {
       {/* Filter Controls */}
       <div className="flex flex-wrap gap-3 items-center justify-between">
         <div className="flex flex-wrap gap-3 items-center">
-          {/* Date From */}
+          {/* Date Range Picker */}
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
                 className={cn(
-                  "gap-2 rounded-xl border-zinc-700 hover:border-zinc-600",
-                  dateFrom && "border-cyan-500/50 bg-cyan-500/10"
+                  "gap-2 rounded-xl border-zinc-700 hover:border-zinc-600 min-w-[200px] justify-start",
+                  (dateRange.from || dateRange.to) && "border-cyan-500/50 bg-cyan-500/10"
                 )}
               >
                 <CalendarIcon className="h-4 w-4" />
-                {dateFrom ? format(dateFrom, "dd/MM/yyyy", { locale: es }) : "Desde"}
+                {dateRange.from ? (
+                  dateRange.to ? (
+                    <>
+                      {format(dateRange.from, "dd/MM/yyyy", { locale: es })} - {format(dateRange.to, "dd/MM/yyyy", { locale: es })}
+                    </>
+                  ) : (
+                    format(dateRange.from, "dd/MM/yyyy", { locale: es })
+                  )
+                ) : (
+                  "Seleccionar período"
+                )}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0 bg-zinc-900 border-zinc-700" align="start">
               <Calendar
-                mode="single"
-                selected={dateFrom}
-                onSelect={setDateFrom}
-                initialFocus
-                className="p-3 pointer-events-auto"
-              />
-            </PopoverContent>
-          </Popover>
-
-          {/* Date To */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className={cn(
-                  "gap-2 rounded-xl border-zinc-700 hover:border-zinc-600",
-                  dateTo && "border-cyan-500/50 bg-cyan-500/10"
-                )}
-              >
-                <CalendarIcon className="h-4 w-4" />
-                {dateTo ? format(dateTo, "dd/MM/yyyy", { locale: es }) : "Hasta"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 bg-zinc-900 border-zinc-700" align="start">
-              <Calendar
-                mode="single"
-                selected={dateTo}
-                onSelect={setDateTo}
+                mode="range"
+                selected={dateRange}
+                onSelect={(range) => setDateRange({ from: range?.from, to: range?.to })}
+                numberOfMonths={2}
                 initialFocus
                 className="p-3 pointer-events-auto"
               />
@@ -407,7 +389,7 @@ const OrdersTable = () => {
           </Popover>
 
           {/* Clear Filters */}
-          {(dateFrom || dateTo) && (
+          {(dateRange.from || dateRange.to) && (
             <Button 
               onClick={clearFilters} 
               variant="ghost" 
@@ -420,7 +402,7 @@ const OrdersTable = () => {
           )}
 
           {/* Results count */}
-          {(dateFrom || dateTo) && (
+          {(dateRange.from || dateRange.to) && (
             <Badge variant="outline" className="border-zinc-700 text-zinc-400">
               {orders.length} de {allOrders.length} pedidos
             </Badge>
