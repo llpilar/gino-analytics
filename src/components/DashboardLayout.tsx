@@ -21,7 +21,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             </div>
           </div>
           
-          <div className="pb-28 md:pb-0">
+          <div className="pb-36 md:pb-0">
             {children}
           </div>
 
