@@ -5,7 +5,7 @@ import { NavBar } from "./ui/tubelight-navbar";
 import { useShopifyRevenueToday, useShopifyAnalytics } from "@/hooks/useShopifyData";
 import { format } from "date-fns";
 import { DashboardSkeleton } from "./DashboardSkeleton";
-import { LayoutDashboard, BarChart3, Package, Settings, Wallet, TrendingUp, DollarSign, ShoppingCart, Users, Zap, Monitor, LayoutGrid } from "lucide-react";
+import { LayoutDashboard, BarChart3, Package, Settings, Wallet, TrendingUp, DollarSign, ShoppingCart, Users, Zap, Monitor, LayoutGrid, Eye } from "lucide-react";
 import { NotificationCenter } from "./NotificationCenter";
 import { ComparisonBadge } from "./ComparisonBadge";
 import { useDailyComparison } from "@/hooks/useComparisonMetrics";
@@ -14,6 +14,7 @@ import { Toaster } from "./ui/toaster";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
+import { useVslbioboostVisitors } from "@/hooks/useVslbioboostVisitors";
 
 type LayoutMode = "orbital" | "grid";
 
@@ -27,6 +28,7 @@ export const LiveCommandCenter = () => {
   const { data: dailyComparison } = useDailyComparison();
   const { orderCount: realtimeOrderCount } = useRealtimeOrders();
   const { formatCurrency } = useCurrency();
+  const { visitorCount: vslVisitors } = useVslbioboostVisitors();
 
   // Check for mobile viewport
   useEffect(() => {
@@ -86,7 +88,7 @@ export const LiveCommandCenter = () => {
     { label: "REVENUE", value: formatCurrency(totalRevenue), icon: DollarSign, color: "cyan", angle: 0, distance: 240 },
     { label: "ORDERS", value: ordersCount.toString(), icon: ShoppingCart, color: "green", angle: 90, distance: 260 },
     { label: "$/MIN", value: formatCurrency(parseFloat(salesPerMinute)), icon: Zap, color: "purple", angle: 180, distance: 250 },
-    { label: "SHOPPERS", value: uniqueShoppers, icon: Users, color: "orange", angle: 270, distance: 270 },
+    { label: "VSL ONLINE", value: vslVisitors.toString(), icon: Eye, color: "orange", angle: 270, distance: 270 },
   ];
 
   const getSatellitePosition = (baseAngle: number, distance: number) => {
