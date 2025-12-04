@@ -77,9 +77,9 @@ export const SalesChart = ({ analyticsData, isLoading }: SalesChartProps) => {
             </div>
             <div className="min-w-0">
               <CardTitle className="text-sm sm:text-base font-black tracking-wider uppercase text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
-                Sales Trend - {period === 'daily' ? 'Last 7 Days' : period === 'weekly' ? 'Weekly View' : 'Monthly View'}
+                Tendência de Vendas - {period === 'daily' ? 'Últimos 7 Dias' : period === 'weekly' ? 'Visão Semanal' : 'Visão Mensal'}
               </CardTitle>
-              <p className="text-xs text-gray-400 mt-0.5">Performance tracking & analysis</p>
+              <p className="text-xs text-gray-400 mt-0.5">Acompanhamento e análise de performance</p>
             </div>
           </div>
           
@@ -89,19 +89,19 @@ export const SalesChart = ({ analyticsData, isLoading }: SalesChartProps) => {
                 value="daily" 
                 className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-400 data-[state=active]:border data-[state=active]:border-cyan-500/50 text-xs px-4 font-bold"
               >
-                Daily
+                Diário
               </TabsTrigger>
               <TabsTrigger 
                 value="weekly" 
                 className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-400 data-[state=active]:border data-[state=active]:border-cyan-500/50 text-xs px-4 font-bold"
               >
-                Weekly
+                Semanal
               </TabsTrigger>
               <TabsTrigger 
                 value="monthly" 
                 className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-400 data-[state=active]:border data-[state=active]:border-cyan-500/50 text-xs px-4 font-bold"
               >
-                Monthly
+                Mensal
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -151,7 +151,7 @@ export const SalesChart = ({ analyticsData, isLoading }: SalesChartProps) => {
               }}
               labelStyle={{ color: '#06b6d4', fontWeight: 'bold', marginBottom: '4px' }}
               itemStyle={{ color: '#06b6d4', fontWeight: '700' }}
-              formatter={(value: number) => [new Intl.NumberFormat('pt-BR').format(value), 'Sales']}
+              formatter={(value: number) => [new Intl.NumberFormat('pt-BR').format(value), 'Vendas']}
             />
             <Line 
               type="monotone" 
