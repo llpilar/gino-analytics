@@ -13,11 +13,10 @@ import {
 import { useHokoStore, useHokoOrders, useHokoProducts, useHokoProductsWithStock } from "@/hooks/useHokoData";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, isWithinInterval, startOfDay, endOfDay, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { useDateFilter } from "@/contexts/DateFilterContext";
 
 const formatCOP = (value: number): string => {
   return new Intl.NumberFormat('es-CO', {
@@ -207,7 +206,9 @@ const HeroSection = () => {
 
 const StatsGrid = () => {
   const { data: stockData, isLoading } = useHokoProductsWithStock();
-  const { data: ordersData } = useHokoOrders();
+  const { dateRange } = useDateFilter();
+  const dateFilter = dateRange.from && dateRange.to ? { from: dateRange.from, to: dateRange.to } : undefined;
+  const { data: ordersData } = useHokoOrders(1, dateFilter);
 
   if (isLoading) {
     return (
@@ -281,8 +282,9 @@ const StatsGrid = () => {
 };
 
 const OrdersTable = () => {
-  const { data: ordersData, isLoading, error, refetch, isFetching } = useHokoOrders();
-  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
+  const { dateRange } = useDateFilter();
+  const dateFilter = dateRange.from && dateRange.to ? { from: dateRange.from, to: dateRange.to } : undefined;
+  const { data: ordersData, isLoading, error, refetch, isFetching } = useHokoOrders(1, dateFilter);
 
   if (isLoading) {
     return (
@@ -310,39 +312,10 @@ const OrdersTable = () => {
     );
   }
 
-  const allOrders = Array.isArray(ordersData?.data) ? ordersData.data : 
+  const orders = Array.isArray(ordersData?.data) ? ordersData.data : 
                  Array.isArray(ordersData) ? ordersData : [];
 
-  // Filter orders by date
-  const orders = allOrders.filter((order: any) => {
-    if (!dateRange.from && !dateRange.to) return true;
-    
-    const orderDate = order.created_at ? parseISO(order.created_at) : null;
-    if (!orderDate) return true;
-    
-    if (dateRange.from && dateRange.to) {
-      return isWithinInterval(orderDate, { 
-        start: startOfDay(dateRange.from), 
-        end: endOfDay(dateRange.to) 
-      });
-    }
-    
-    if (dateRange.from) {
-      return orderDate >= startOfDay(dateRange.from);
-    }
-    
-    if (dateRange.to) {
-      return orderDate <= endOfDay(dateRange.to);
-    }
-    
-    return true;
-  });
-
-  const clearFilters = () => {
-    setDateRange({ from: undefined, to: undefined });
-  };
-
-  if (allOrders.length === 0) {
+  if (orders.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
         <div className="p-4 rounded-2xl bg-zinc-800/50 border border-zinc-700/50 mb-4">
@@ -359,62 +332,10 @@ const OrdersTable = () => {
       {/* Filter Controls */}
       <div className="flex flex-wrap gap-3 items-center justify-between">
         <div className="flex flex-wrap gap-3 items-center">
-          {/* Date Range Picker */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className={cn(
-                  "gap-2 rounded-xl border-zinc-700 hover:border-zinc-600 min-w-[200px] justify-start",
-                  (dateRange.from || dateRange.to) && "border-cyan-500/50 bg-cyan-500/10"
-                )}
-              >
-                <CalendarIcon className="h-4 w-4" />
-                {dateRange.from ? (
-                  dateRange.to ? (
-                    <>
-                      {format(dateRange.from, "dd/MM/yyyy", { locale: es })} - {format(dateRange.to, "dd/MM/yyyy", { locale: es })}
-                    </>
-                  ) : (
-                    format(dateRange.from, "dd/MM/yyyy", { locale: es })
-                  )
-                ) : (
-                  "Seleccionar período"
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 bg-zinc-900 border-zinc-700" align="start">
-              <Calendar
-                mode="range"
-                selected={dateRange}
-                onSelect={(range) => setDateRange({ from: range?.from, to: range?.to })}
-                numberOfMonths={2}
-                initialFocus
-                className="p-3 pointer-events-auto"
-              />
-            </PopoverContent>
-          </Popover>
-
-          {/* Clear Filters */}
-          {(dateRange.from || dateRange.to) && (
-            <Button 
-              onClick={clearFilters} 
-              variant="ghost" 
-              size="sm"
-              className="gap-2 text-zinc-400 hover:text-white"
-            >
-              <XCircle className="h-4 w-4" />
-              Limpiar
-            </Button>
-          )}
-
           {/* Results count */}
-          {(dateRange.from || dateRange.to) && (
-            <Badge variant="outline" className="border-zinc-700 text-zinc-400">
-              {orders.length} de {allOrders.length} pedidos
-            </Badge>
-          )}
+          <Badge variant="outline" className="border-zinc-700 text-zinc-400">
+            {orders.length} pedidos
+          </Badge>
         </div>
 
         <Button 

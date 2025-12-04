@@ -93,11 +93,19 @@ export const useHokoStore = () => {
   });
 };
 
-export const useHokoOrders = (page: number = 1) => {
+export const useHokoOrders = (page: number = 1, dateFilter?: { from: Date; to: Date }) => {
   return useQuery({
-    queryKey: ['hoko-orders', page],
+    queryKey: ['hoko-orders', page, dateFilter?.from, dateFilter?.to],
     queryFn: async () => {
-      const response = await fetchHokoData<any>('orders', { page });
+      const params: Record<string, any> = { page };
+      if (dateFilter?.from) {
+        params.start_date = dateFilter.from.toISOString().split('T')[0];
+      }
+      if (dateFilter?.to) {
+        params.end_date = dateFilter.to.toISOString().split('T')[0];
+      }
+      
+      const response = await fetchHokoData<any>('orders', params);
       // Hoko returns paginated data with 'data' array
       return {
         status: 'success',

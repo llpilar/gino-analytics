@@ -5,12 +5,18 @@ import { useFacebookAdAccounts, useFacebookAdInsights } from "@/hooks/useFaceboo
 import { Skeleton } from "./ui/skeleton";
 import { Alert, AlertDescription } from "./ui/alert";
 import { Facebook, TrendingUp, MousePointer, Eye, DollarSign } from "lucide-react";
+import { useDateFilter } from "@/contexts/DateFilterContext";
+import { format } from "date-fns";
 
 export const FacebookAdsMetrics = () => {
   const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
+  const { dateRange } = useDateFilter();
+  
+  const startDate = dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : undefined;
+  const endDate = dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined;
   
   const { data: accounts, isLoading: accountsLoading, error: accountsError } = useFacebookAdAccounts();
-  const { data: insights, isLoading: insightsLoading } = useFacebookAdInsights(selectedAccount);
+  const { data: insights, isLoading: insightsLoading } = useFacebookAdInsights(selectedAccount, startDate, endDate);
 
   if (accountsError) {
     return (
