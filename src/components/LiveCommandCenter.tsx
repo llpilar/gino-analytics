@@ -14,6 +14,7 @@ import { useDailyComparison } from "@/hooks/useComparisonMetrics";
 import { useRealtimeOrders } from "@/hooks/useRealtimeOrders";
 import { Toaster } from "./ui/toaster";
 import { DateFilter } from "./DateFilter";
+import { CurrencyToggle } from "./CurrencyToggle";
 import { useCurrency } from "@/contexts/CurrencyContext";
 
 export const LiveCommandCenter = () => {
@@ -141,6 +142,7 @@ export const LiveCommandCenter = () => {
 
       {/* Clock Widget, Filter & Notification Center - Top Right */}
       <div className="fixed top-4 right-4 z-40 flex items-center gap-3">
+        <CurrencyToggle />
         <DateFilter />
         <NotificationCenter />
         <div className="px-6 py-3 rounded-full bg-black/80 border-2 border-cyan-500/30 backdrop-blur-xl shadow-lg shadow-cyan-500/20">

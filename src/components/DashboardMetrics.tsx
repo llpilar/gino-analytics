@@ -6,16 +6,8 @@ import { useDateFilter } from "@/contexts/DateFilterContext";
 import { format } from "date-fns";
 
 export const DashboardMetrics = () => {
-  const { dateRange, period } = useDateFilter();
+  const { dateRange } = useDateFilter();
   const { data: periodData, isLoading } = useShopifyRevenueToday();
-
-  const periodLabels = {
-    today: 'Hoje',
-    yesterday: 'Ontem',
-    week: 'Esta Semana',
-    month: 'Este Mês',
-    max: 'Máximo (90 dias)'
-  };
 
   const ordersCount = useMemo(() => {
     return periodData?.data?.orders?.edges?.length || 0;
@@ -63,8 +55,9 @@ export const DashboardMetrics = () => {
     );
   }
 
-  const periodLabel = periodLabels[period as keyof typeof periodLabels] || 
-    `${format(dateRange.from, "dd/MM")} - ${format(dateRange.to, "dd/MM")}`;
+  const periodLabel = dateRange.from && dateRange.to
+    ? `${format(dateRange.from, "dd/MM")} - ${format(dateRange.to, "dd/MM")}`
+    : 'Hoje';
 
   return (
     <>
