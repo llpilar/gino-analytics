@@ -26,7 +26,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           <footer className="border-t border-zinc-800 mt-12 py-4">
             <div className="px-4 md:px-6 lg:px-8">
               <p className="text-center text-xs text-zinc-500">
-                Built with <span className="text-primary">Lovable</span> • ShopDash Analytics Dashboard
+                Built with <span className="text-primary">Lovable</span>
               </p>
             </div>
           </footer>

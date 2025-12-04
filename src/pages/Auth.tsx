@@ -76,11 +76,6 @@ export default function Auth() {
                 <Zap className="w-10 h-10 text-cyan-400" />
               </div>
             </div>
-            <h1 className="text-5xl font-black tracking-tight mb-3">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-cyan-300 to-orange-400">
-                ShopDash
-              </span>
-            </h1>
             <p className="text-zinc-400 text-lg">
               Painel de controle
             </p>
@@ -160,10 +155,6 @@ export default function Auth() {
           </div>
         </div>
 
-        {/* Footer */}
-        <p className="text-center text-zinc-600 text-xs mt-6">
-          © 2024 ShopDash. Todos os direitos reservados.
-        </p>
       </div>
     </div>
   );
