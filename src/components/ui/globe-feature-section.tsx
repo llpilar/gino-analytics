@@ -63,36 +63,41 @@ export function Globe({
   className?: string
   config?: COBEOptions
 }) {
-  let phi = 0
+  let phi = 0.2
+  let theta = 0.5
   let width = 0
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const pointerInteracting = useRef(null)
-  const pointerInteractionMovement = useRef(0)
-  const [r, setR] = useState(0)
+  const pointerInteracting = useRef<{ x: number; y: number } | null>(null)
+  const pointerInteractionMovement = useRef({ x: 0, y: 0 })
+  const [rotation, setRotation] = useState({ x: 0, y: 0 })
 
-  const updatePointerInteraction = (value: any) => {
+  const updatePointerInteraction = (value: { x: number; y: number } | null) => {
     pointerInteracting.current = value
     if (canvasRef.current) {
       canvasRef.current.style.cursor = value ? "grabbing" : "grab"
     }
   }
 
-  const updateMovement = (clientX: any) => {
+  const updateMovement = (clientX: number, clientY: number) => {
     if (pointerInteracting.current !== null) {
-      const delta = clientX - pointerInteracting.current
-      pointerInteractionMovement.current = delta
-      setR(delta / 200)
+      const deltaX = clientX - pointerInteracting.current.x
+      const deltaY = clientY - pointerInteracting.current.y
+      pointerInteractionMovement.current = { x: deltaX, y: deltaY }
+      setRotation({ x: deltaX / 100, y: deltaY / 100 })
     }
   }
 
   const onRender = useCallback(
     (state: Record<string, any>) => {
-      if (!pointerInteracting.current) phi += 0.003 // Rotação mais lenta
-      state.phi = phi + r
+      if (!pointerInteracting.current) {
+        phi += 0.003 // Rotação automática mais lenta
+      }
+      state.phi = phi + rotation.x
+      state.theta = theta + rotation.y * 0.5 // Rotação vertical limitada
       state.width = width * 2
       state.height = width * 2
     },
-    [r],
+    [rotation],
   )
 
   const onResize = () => {
@@ -113,8 +118,28 @@ export function Globe({
     })
 
     setTimeout(() => (canvasRef.current!.style.opacity = "1"))
-    return () => globe.destroy()
+    return () => {
+      globe.destroy()
+      window.removeEventListener("resize", onResize)
+    }
   }, [])
+
+  const handlePointerDown = (e: React.PointerEvent | React.TouchEvent) => {
+    const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.PointerEvent).clientX
+    const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.PointerEvent).clientY
+    updatePointerInteraction({
+      x: clientX - pointerInteractionMovement.current.x,
+      y: clientY - pointerInteractionMovement.current.y,
+    })
+  }
+
+  const handlePointerMove = (e: React.PointerEvent | React.TouchEvent) => {
+    const clientX = 'touches' in e ? e.touches[0]?.clientX : (e as React.PointerEvent).clientX
+    const clientY = 'touches' in e ? e.touches[0]?.clientY : (e as React.PointerEvent).clientY
+    if (clientX !== undefined && clientY !== undefined) {
+      updateMovement(clientX, clientY)
+    }
+  }
 
   return (
     <div
@@ -125,21 +150,21 @@ export function Globe({
     >
       <canvas
         className={cn(
-          "size-full opacity-0 transition-opacity duration-500 [contain:layout_paint_size]",
+          "size-full opacity-0 transition-opacity duration-500 [contain:layout_paint_size] cursor-grab touch-none",
         )}
         ref={canvasRef}
-        onPointerDown={(e) =>
-          updatePointerInteraction(
-            e.clientX - pointerInteractionMovement.current,
-          )
-        }
+        onPointerDown={handlePointerDown}
         onPointerUp={() => updatePointerInteraction(null)}
         onPointerOut={() => updatePointerInteraction(null)}
-        onMouseMove={(e) => updateMovement(e.clientX)}
-        onTouchMove={(e) =>
-          e.touches[0] && updateMovement(e.touches[0].clientX)
-        }
+        onPointerMove={handlePointerMove}
+        onTouchStart={handlePointerDown}
+        onTouchMove={handlePointerMove}
+        onTouchEnd={() => updatePointerInteraction(null)}
       />
+      {/* Hint para usuário */}
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px] text-muted-foreground/50 pointer-events-none select-none">
+        Arraste para girar
+      </div>
     </div>
   )
 }
