@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState } from "react"
-import { AnimatePresence, motion, type Transition } from "framer-motion"
+import { motion } from "framer-motion"
 import { Link, useLocation } from "react-router-dom"
 import { LucideIcon, CalendarIcon, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -26,28 +26,6 @@ interface NavBarProps {
   showCurrencyToggle?: boolean
 }
 
-// Animation variants for mobile expandable tabs
-const buttonVariants = {
-  initial: {
-    gap: 0,
-    paddingLeft: ".5rem",
-    paddingRight: ".5rem",
-  },
-  animate: (isSelected: boolean) => ({
-    gap: isSelected ? ".5rem" : 0,
-    paddingLeft: isSelected ? ".75rem" : ".5rem",
-    paddingRight: isSelected ? ".75rem" : ".5rem",
-  }),
-}
-
-const spanVariants = {
-  initial: { width: 0, opacity: 0 },
-  animate: { width: "auto", opacity: 1 },
-  exit: { width: 0, opacity: 0 },
-}
-
-const tabTransition: Transition = { delay: 0.1, type: "spring", bounce: 0, duration: 0.6 }
-
 export function NavBar({ items, className, showCurrencyToggle = true }: NavBarProps) {
   const location = useLocation()
   const [activeTab, setActiveTab] = useState(items[0].name)
@@ -58,6 +36,10 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
   
   // Local state for pending selection
   const [pendingRange, setPendingRange] = useState<DateRange | undefined>(dateRange)
+
+  const handleCurrencyToggle = (checked: boolean) => {
+    setCurrency(checked ? 'BRL' : 'COP')
+  }
 
   const handlePreset = (preset: 'today' | 'week' | 'month' | '90days') => {
     const now = new Date()
@@ -116,66 +98,6 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
-  // Mobile Navigation with Expandable Tabs
-  if (isMobile) {
-    return (
-      <nav
-        className={cn(
-          "fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-fit",
-          className,
-        )}
-        role="navigation"
-        aria-label="Navegação principal"
-      >
-        <div className="flex items-center gap-1 bg-black/80 border border-neon-cyan/30 backdrop-blur-xl py-1 px-1 rounded-full">
-          {items.map((item) => {
-            const Icon = item.icon
-            const isActive = location.pathname === item.url
-
-            return (
-              <motion.div
-                key={item.name}
-                variants={buttonVariants}
-                initial={false}
-                animate="animate"
-                custom={isActive}
-                transition={tabTransition}
-              >
-                <Link
-                  to={item.url}
-                  className={cn(
-                    "relative flex items-center rounded-full px-2.5 py-2 text-xs font-bold transition-colors duration-300",
-                    isActive
-                      ? "bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/50"
-                      : "text-muted-foreground hover:bg-zinc-800 hover:text-foreground"
-                  )}
-                  aria-current={isActive ? "page" : undefined}
-                >
-                  <Icon size={16} strokeWidth={2.5} />
-                  <AnimatePresence initial={false}>
-                    {isActive && (
-                      <motion.span
-                        variants={spanVariants}
-                        initial="initial"
-                        animate="animate"
-                        exit="exit"
-                        transition={tabTransition}
-                        className="overflow-hidden whitespace-nowrap ml-1.5 text-[11px]"
-                      >
-                        {item.name}
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                </Link>
-              </motion.div>
-            )
-          })}
-        </div>
-      </nav>
-    )
-  }
-
-  // Desktop Navigation
   return (
     <nav
       className={cn(
@@ -185,7 +107,7 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
       role="navigation"
       aria-label="Navegação principal"
     >
-      <div className="flex items-center gap-1 bg-black/80 border-2 border-neon-cyan/30 backdrop-blur-xl py-1.5 px-1.5 rounded-full">
+      <div className="flex items-center gap-1 bg-black/80 border-2 border-neon-cyan/30 backdrop-blur-xl py-1.5 px-1.5 rounded-full shadow-lg shadow-neon-cyan/20">
         {items.map((item) => {
           const Icon = item.icon
           const isActive = activeTab === item.name
@@ -219,7 +141,7 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
                   }}
                 >
                   {/* Tubelight glow effect */}
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-neon-cyan rounded-t-full">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-neon-cyan rounded-t-full shadow-lg shadow-neon-cyan/50">
                     <div className="absolute w-16 h-8 bg-neon-cyan/30 rounded-full blur-xl -top-3 -left-2" />
                     <div className="absolute w-12 h-6 bg-neon-cyan/40 rounded-full blur-lg -top-2" />
                     <div className="absolute w-6 h-4 bg-neon-cyan/50 rounded-full blur-md -top-1 left-3" />
