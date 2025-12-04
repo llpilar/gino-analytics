@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useShopifyProducts } from "@/hooks/useShopifyData";
 import { PageHeader } from "@/components/PageHeader";
-import { GlowingEffect } from "@/components/ui/glowing-effect";
+import { GlowingCard } from "@/components/ui/glowing-card";
 
 export default function Produtos() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -33,74 +33,44 @@ export default function Produtos() {
 
           {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="relative rounded-[1.25rem] border-[0.75px] border-border p-2">
-              <GlowingEffect
-                spread={40}
-                glow={true}
-                disabled={false}
-                proximity={64}
-                inactiveZone={0.01}
-                borderWidth={3}
-              />
-              <div className="relative flex flex-col gap-3 rounded-xl border-[0.75px] bg-background p-5 shadow-sm dark:shadow-[0px_0px_27px_0px_rgba(45,45,45,0.3)]">
-                <div className="flex items-center justify-between">
-                  <div className="w-fit rounded-lg border-[0.75px] border-border bg-muted p-2">
-                    <Package className="h-4 w-4 text-cyan-400" />
-                  </div>
-                  <TrendingUp className="h-4 w-4 text-cyan-400" />
+            <GlowingCard>
+              <div className="flex items-center justify-between">
+                <div className="w-fit rounded-lg border-[0.75px] border-border bg-muted p-2">
+                  <Package className="h-4 w-4 text-cyan-400" />
                 </div>
-                <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
-                  {totalProducts}
-                </div>
-                <div className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Total de Produtos</div>
+                <TrendingUp className="h-4 w-4 text-cyan-400" />
               </div>
-            </div>
-
-            <div className="relative rounded-[1.25rem] border-[0.75px] border-border p-2">
-              <GlowingEffect
-                spread={40}
-                glow={true}
-                disabled={false}
-                proximity={64}
-                inactiveZone={0.01}
-                borderWidth={3}
-              />
-              <div className="relative flex flex-col gap-3 rounded-xl border-[0.75px] bg-background p-5 shadow-sm dark:shadow-[0px_0px_27px_0px_rgba(45,45,45,0.3)]">
-                <div className="flex items-center justify-between">
-                  <div className="w-fit rounded-lg border-[0.75px] border-border bg-muted p-2">
-                    <DollarSign className="h-4 w-4 text-purple-400" />
-                  </div>
-                  <TrendingUp className="h-4 w-4 text-purple-400" />
-                </div>
-                <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
-                  ${totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                </div>
-                <div className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Valor do Catálogo</div>
+              <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
+                {totalProducts}
               </div>
-            </div>
+              <div className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Total de Produtos</div>
+            </GlowingCard>
 
-            <div className="relative rounded-[1.25rem] border-[0.75px] border-border p-2">
-              <GlowingEffect
-                spread={40}
-                glow={true}
-                disabled={false}
-                proximity={64}
-                inactiveZone={0.01}
-                borderWidth={3}
-              />
-              <div className="relative flex flex-col gap-3 rounded-xl border-[0.75px] bg-background p-5 shadow-sm dark:shadow-[0px_0px_27px_0px_rgba(45,45,45,0.3)]">
-                <div className="flex items-center justify-between">
-                  <div className="w-fit rounded-lg border-[0.75px] border-border bg-muted p-2">
-                    <TrendingUp className="h-4 w-4 text-green-400" />
-                  </div>
+            <GlowingCard>
+              <div className="flex items-center justify-between">
+                <div className="w-fit rounded-lg border-[0.75px] border-border bg-muted p-2">
+                  <DollarSign className="h-4 w-4 text-purple-400" />
+                </div>
+                <TrendingUp className="h-4 w-4 text-purple-400" />
+              </div>
+              <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+                ${totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+              </div>
+              <div className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Valor do Catálogo</div>
+            </GlowingCard>
+
+            <GlowingCard>
+              <div className="flex items-center justify-between">
+                <div className="w-fit rounded-lg border-[0.75px] border-border bg-muted p-2">
                   <TrendingUp className="h-4 w-4 text-green-400" />
                 </div>
-                <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-400">
-                  {totalProducts > 0 ? (totalValue / totalProducts).toLocaleString('pt-BR', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }) : '$0'}
-                </div>
-                <div className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Preço Médio</div>
+                <TrendingUp className="h-4 w-4 text-green-400" />
               </div>
-            </div>
+              <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-400">
+                {totalProducts > 0 ? (totalValue / totalProducts).toLocaleString('pt-BR', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }) : '$0'}
+              </div>
+              <div className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Preço Médio</div>
+            </GlowingCard>
           </div>
 
           {/* Search and Filters */}

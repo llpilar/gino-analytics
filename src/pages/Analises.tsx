@@ -9,6 +9,7 @@ import { ComparisonBadge } from "@/components/ComparisonBadge";
 import { VariantPerformance } from "@/components/VariantPerformance";
 import { PageHeader } from "@/components/PageHeader";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { GlowingCard } from "@/components/ui/glowing-card";
 
 export default function Analises() {
   const { data: analyticsData, isLoading: analyticsLoading } = useShopifyAnalytics();
@@ -101,40 +102,24 @@ export default function Analises() {
           {statCards.map((stat, index) => {
             const Icon = stat.icon;
             return (
-              <div
-                key={index}
-                className={`group relative p-6 rounded-2xl bg-black/80 border-2 ${stat.borderColor} backdrop-blur-xl 
-                  hover:scale-105 transition-all duration-300 cursor-pointer overflow-hidden`}
-                style={{
-                  animationDelay: `${index * 0.1}s`,
-                }}
-              >
-                {/* Glow effect */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-5 group-hover:opacity-10 transition-opacity`} />
-                
-                {/* Content */}
-                <div className="relative z-10">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className={`p-3 rounded-xl ${stat.bgColor} border ${stat.borderColor}`}>
-                      <Icon className="h-6 w-6 text-cyan-400" />
-                    </div>
-                    <div className={`flex items-center gap-1 text-xs font-bold ${stat.isPositive ? 'text-green-400' : 'text-red-400'}`}>
-                      {stat.isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                      {stat.change}
-                    </div>
+              <GlowingCard key={index}>
+                <div className="flex items-start justify-between">
+                  <div className={`p-3 rounded-xl ${stat.bgColor} border ${stat.borderColor}`}>
+                    <Icon className="h-6 w-6 text-cyan-400" />
                   </div>
-                  
-                  <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                    {stat.title}
-                  </div>
-                  <div className={`text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r ${stat.color}`}>
-                    {stat.value}
+                  <div className={`flex items-center gap-1 text-xs font-bold ${stat.isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                    {stat.isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                    {stat.change}
                   </div>
                 </div>
-
-                {/* Animated border */}
-                <div className="absolute inset-0 rounded-2xl border-2 border-cyan-500/50 opacity-0 group-hover:opacity-100 animate-pulse transition-opacity" />
-              </div>
+                
+                <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                  {stat.title}
+                </div>
+                <div className={`text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r ${stat.color}`}>
+                  {stat.value}
+                </div>
+              </GlowingCard>
             );
           })}
         </div>
