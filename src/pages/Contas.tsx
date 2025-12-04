@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { DashboardWrapper } from "@/components/DashboardWrapper";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,8 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Trash2, Plus, Settings, DollarSign, TrendingUp, TrendingDown, Users, Wallet, ImageIcon, X, Eye } from "lucide-react";
-import { useExpenses, usePartnersConfig, useAddExpense, useDeleteExpense, useUpdatePartnersConfig, uploadReceipt } from "@/hooks/useExpenses";
+import { Trash2, Plus, Settings, DollarSign, TrendingUp, TrendingDown, Users, Wallet, ImageIcon, X, Eye, Loader2 } from "lucide-react";
+import { useExpenses, usePartnersConfig, useAddExpense, useDeleteExpense, useUpdatePartnersConfig, uploadReceipt, getReceiptSignedUrl } from "@/hooks/useExpenses";
 
 const formatBRL = (value: number): string => {
   return new Intl.NumberFormat('pt-BR', { 
@@ -51,7 +51,24 @@ export default function Contas() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [receiptFilePath, setReceiptFilePath] = useState<string | null>(null);
   const [viewReceiptUrl, setViewReceiptUrl] = useState<string | null>(null);
+  const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
+
+  // Load signed URL when receipt file path is set
+  useEffect(() => {
+    const loadSignedUrl = async () => {
+      if (receiptFilePath) {
+        setIsLoadingReceipt(true);
+        const signedUrl = await getReceiptSignedUrl(receiptFilePath);
+        setViewReceiptUrl(signedUrl);
+        setIsLoadingReceipt(false);
+      } else {
+        setViewReceiptUrl(null);
+      }
+    };
+    loadSignedUrl();
+  }, [receiptFilePath]);
 
   const [configDialog, setConfigDialog] = useState(false);
   const [newConfig, setNewConfig] = useState({
@@ -450,7 +467,7 @@ export default function Contas() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => setViewReceiptUrl(expense.receipt_url)}
+                            onClick={() => setReceiptFilePath(expense.receipt_url)}
                             className="hover:bg-cyan-500/20 text-cyan-400"
                           >
                             <Eye className="h-4 w-4 mr-1" />
@@ -480,22 +497,29 @@ export default function Contas() {
         </div>
 
         {/* Receipt View Dialog */}
-        <Dialog open={!!viewReceiptUrl} onOpenChange={() => setViewReceiptUrl(null)}>
+        <Dialog open={!!receiptFilePath} onOpenChange={() => setReceiptFilePath(null)}>
           <DialogContent className="bg-black/95 border-2 border-cyan-500/30 backdrop-blur-xl max-w-2xl">
             <DialogHeader>
               <DialogTitle className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
                 Comprovante
               </DialogTitle>
             </DialogHeader>
-            {viewReceiptUrl && (
-              <div className="flex justify-center">
+            <div className="flex justify-center min-h-[200px] items-center">
+              {isLoadingReceipt ? (
+                <div className="flex flex-col items-center gap-2">
+                  <Loader2 className="h-8 w-8 animate-spin text-cyan-400" />
+                  <span className="text-gray-400 text-sm">Carregando...</span>
+                </div>
+              ) : viewReceiptUrl ? (
                 <img 
                   src={viewReceiptUrl} 
                   alt="Comprovante" 
                   className="max-w-full max-h-[70vh] rounded-lg border border-cyan-500/30"
                 />
-              </div>
-            )}
+              ) : (
+                <span className="text-gray-400">Erro ao carregar comprovante</span>
+              )}
+            </div>
           </DialogContent>
         </Dialog>
       </div>
