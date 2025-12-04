@@ -22,6 +22,7 @@ import { ptBR } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/PageHeader";
 import { toast } from "sonner";
+import { GlowingCard } from "@/components/ui/glowing-card";
 
 const CATEGORIES = [
   "Marketing",
@@ -263,38 +264,25 @@ export default function Contas() {
           {statCards.map((stat, index) => {
             const Icon = stat.icon;
             return (
-              <div
-                key={index}
-                className={`group relative p-6 rounded-2xl bg-black/80 border-2 ${stat.borderColor} backdrop-blur-xl 
-                  hover:scale-105 transition-all duration-300 cursor-pointer overflow-hidden`}
-              >
-                {/* Glow effect */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-5 group-hover:opacity-10 transition-opacity`} />
-                
-                {/* Content */}
-                <div className="relative z-10">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className={`p-3 rounded-xl ${stat.bgColor} border ${stat.borderColor}`}>
-                      <Icon className="h-6 w-6 text-cyan-400" />
-                    </div>
+              <GlowingCard key={index}>
+                <div className="flex items-start justify-between">
+                  <div className={`p-3 rounded-xl ${stat.bgColor} border ${stat.borderColor}`}>
+                    <Icon className="h-6 w-6 text-cyan-400" />
                   </div>
-                  
-                  <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                    {stat.title}
-                  </div>
-                  <div className={`text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r ${stat.color}`}>
-                    {stat.value}
-                  </div>
-                  {stat.subtitle && (
-                    <div className={`text-sm mt-2 font-bold ${stat.subtitleColor}`}>
-                      {stat.subtitle}
-                    </div>
-                  )}
                 </div>
-
-                {/* Animated border */}
-                <div className="absolute inset-0 rounded-2xl border-2 border-cyan-500/50 opacity-0 group-hover:opacity-100 animate-pulse transition-opacity" />
-              </div>
+                
+                <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                  {stat.title}
+                </div>
+                <div className={`text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r ${stat.color}`}>
+                  {stat.value}
+                </div>
+                {stat.subtitle && (
+                  <div className={`text-sm font-bold ${stat.subtitleColor}`}>
+                    {stat.subtitle}
+                  </div>
+                )}
+              </GlowingCard>
             );
           })}
         </div>
