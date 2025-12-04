@@ -1,18 +1,18 @@
 import { useState } from "react";
-import { DashboardLayout } from "@/components/DashboardLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DashboardWrapper } from "@/components/DashboardWrapper";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Trash2, Plus, Settings, DollarSign, TrendingUp, TrendingDown, Users } from "lucide-react";
+import { Trash2, Plus, Settings, DollarSign, TrendingUp, TrendingDown, Users, Wallet } from "lucide-react";
 import { useExpenses, usePartnersConfig, useAddExpense, useDeleteExpense, useUpdatePartnersConfig } from "@/hooks/useExpenses";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageHeader } from "@/components/PageHeader";
 
 const CATEGORIES = [
   "Marketing",
@@ -84,237 +84,289 @@ export default function Contas() {
 
   if (expensesLoading || configLoading) {
     return (
-      <DashboardLayout>
-        <div className="space-y-6 p-6">
-          <Skeleton className="h-10 w-48" />
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <DashboardWrapper>
+        <div className="container mx-auto p-6 md:p-8 lg:p-12 min-h-screen">
+          <Skeleton className="h-10 w-48 bg-gray-800" />
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
             {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-32" />
+              <Skeleton key={i} className="h-32 bg-gray-800" />
             ))}
           </div>
-          <Skeleton className="h-96" />
+          <Skeleton className="h-96 mt-8 bg-gray-800" />
         </div>
-      </DashboardLayout>
+      </DashboardWrapper>
     );
   }
 
+  const statCards = [
+    {
+      title: "Total Gasto",
+      value: formatCurrency(totalExpenses),
+      icon: DollarSign,
+      color: "from-cyan-500 to-blue-500",
+      bgColor: "bg-cyan-500/10",
+      borderColor: "border-cyan-500/30"
+    },
+    {
+      title: partner1,
+      value: formatCurrency(partner1Total),
+      subtitle: partner1Balance > 0 ? `Receber ${formatCurrency(partner1Balance)}` : partner1Balance < 0 ? `Deve ${formatCurrency(Math.abs(partner1Balance))}` : 'Equilibrado',
+      subtitleColor: partner1Balance > 0 ? 'text-green-400' : partner1Balance < 0 ? 'text-red-400' : 'text-gray-400',
+      icon: Users,
+      color: "from-purple-500 to-pink-500",
+      bgColor: "bg-purple-500/10",
+      borderColor: "border-purple-500/30"
+    },
+    {
+      title: partner2,
+      value: formatCurrency(partner2Total),
+      subtitle: partner2Balance > 0 ? `Receber ${formatCurrency(partner2Balance)}` : partner2Balance < 0 ? `Deve ${formatCurrency(Math.abs(partner2Balance))}` : 'Equilibrado',
+      subtitleColor: partner2Balance > 0 ? 'text-green-400' : partner2Balance < 0 ? 'text-red-400' : 'text-gray-400',
+      icon: Users,
+      color: "from-orange-500 to-red-500",
+      bgColor: "bg-orange-500/10",
+      borderColor: "border-orange-500/30"
+    },
+    {
+      title: "Acerto",
+      value: partner1Balance === 0 ? "Tudo certo!" : partner1Balance > 0 
+        ? `${partner2} → ${partner1}` 
+        : `${partner1} → ${partner2}`,
+      subtitle: partner1Balance !== 0 ? formatCurrency(Math.abs(partner1Balance)) : undefined,
+      subtitleColor: 'text-green-400',
+      icon: partner1Balance >= 0 ? TrendingUp : TrendingDown,
+      color: "from-green-500 to-emerald-500",
+      bgColor: "bg-green-500/10",
+      borderColor: "border-green-500/30"
+    }
+  ];
+
   return (
-    <DashboardLayout>
-      <div className="space-y-6 p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Controle de Contas</h1>
-            <p className="text-muted-foreground">Gerencie as despesas entre os sócios</p>
-          </div>
+    <DashboardWrapper>
+      <div className="container mx-auto p-6 md:p-8 lg:p-12 min-h-screen">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <PageHeader 
+            title="Controle de Contas"
+            subtitle="Gerencie as despesas entre os sócios"
+            icon={<Wallet className="h-8 w-8 text-cyan-400" />}
+          />
           <Dialog open={configDialog} onOpenChange={setConfigDialog}>
             <DialogTrigger asChild>
-              <Button variant="outline" onClick={() => setNewConfig({ partner1_name: partner1, partner2_name: partner2 })}>
+              <Button 
+                variant="outline" 
+                onClick={() => setNewConfig({ partner1_name: partner1, partner2_name: partner2 })}
+                className="bg-black/80 border-2 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 hover:border-cyan-500/50"
+              >
                 <Settings className="h-4 w-4 mr-2" />
                 Configurar Nomes
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="bg-black/95 border-2 border-cyan-500/30 backdrop-blur-xl">
               <DialogHeader>
-                <DialogTitle>Configurar Nomes dos Sócios</DialogTitle>
+                <DialogTitle className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
+                  Configurar Nomes dos Sócios
+                </DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-4">
                 <div>
-                  <Label>Nome do Sócio 1</Label>
+                  <Label className="text-gray-400">Nome do Sócio 1</Label>
                   <Input
                     value={newConfig.partner1_name}
                     onChange={(e) => setNewConfig({ ...newConfig, partner1_name: e.target.value })}
                     placeholder="Nome do primeiro sócio"
+                    className="bg-black/60 border-purple-500/30 text-white focus:border-purple-500"
                   />
                 </div>
                 <div>
-                  <Label>Nome do Sócio 2</Label>
+                  <Label className="text-gray-400">Nome do Sócio 2</Label>
                   <Input
                     value={newConfig.partner2_name}
                     onChange={(e) => setNewConfig({ ...newConfig, partner2_name: e.target.value })}
                     placeholder="Nome do segundo sócio"
+                    className="bg-black/60 border-orange-500/30 text-white focus:border-orange-500"
                   />
                 </div>
-                <Button onClick={handleUpdateConfig} className="w-full">Salvar</Button>
+                <Button 
+                  onClick={handleUpdateConfig} 
+                  className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold"
+                >
+                  Salvar
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
         </div>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <DollarSign className="h-4 w-4" />
-                Total Gasto
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{formatCurrency(totalExpenses)}</p>
-            </CardContent>
-          </Card>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {statCards.map((stat, index) => {
+            const Icon = stat.icon;
+            return (
+              <div
+                key={index}
+                className={`group relative p-6 rounded-2xl bg-black/80 border-2 ${stat.borderColor} backdrop-blur-xl 
+                  hover:scale-105 transition-all duration-300 cursor-pointer overflow-hidden`}
+              >
+                {/* Glow effect */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-5 group-hover:opacity-10 transition-opacity`} />
+                
+                {/* Content */}
+                <div className="relative z-10">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className={`p-3 rounded-xl ${stat.bgColor} border ${stat.borderColor}`}>
+                      <Icon className="h-6 w-6 text-cyan-400" />
+                    </div>
+                  </div>
+                  
+                  <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                    {stat.title}
+                  </div>
+                  <div className={`text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r ${stat.color}`}>
+                    {stat.value}
+                  </div>
+                  {stat.subtitle && (
+                    <div className={`text-sm mt-2 font-bold ${stat.subtitleColor}`}>
+                      {stat.subtitle}
+                    </div>
+                  )}
+                </div>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                {partner1}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{formatCurrency(partner1Total)}</p>
-              <p className={`text-sm ${partner1Balance > 0 ? 'text-green-500' : partner1Balance < 0 ? 'text-red-500' : 'text-muted-foreground'}`}>
-                {partner1Balance > 0 ? `Receber ${formatCurrency(partner1Balance)}` : partner1Balance < 0 ? `Deve ${formatCurrency(Math.abs(partner1Balance))}` : 'Equilibrado'}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                {partner2}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{formatCurrency(partner2Total)}</p>
-              <p className={`text-sm ${partner2Balance > 0 ? 'text-green-500' : partner2Balance < 0 ? 'text-red-500' : 'text-muted-foreground'}`}>
-                {partner2Balance > 0 ? `Receber ${formatCurrency(partner2Balance)}` : partner2Balance < 0 ? `Deve ${formatCurrency(Math.abs(partner2Balance))}` : 'Equilibrado'}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className={partner1Balance !== 0 ? 'border-primary' : ''}>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                {partner1Balance > 0 ? <TrendingUp className="h-4 w-4 text-green-500" /> : <TrendingDown className="h-4 w-4 text-red-500" />}
-                Acerto
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {partner1Balance === 0 ? (
-                <p className="text-lg font-medium text-muted-foreground">Tudo certo!</p>
-              ) : partner1Balance > 0 ? (
-                <p className="text-lg font-medium">
-                  <span className="text-red-500">{partner2}</span> deve pagar <span className="text-green-500 font-bold">{formatCurrency(partner1Balance)}</span> para <span className="text-green-500">{partner1}</span>
-                </p>
-              ) : (
-                <p className="text-lg font-medium">
-                  <span className="text-red-500">{partner1}</span> deve pagar <span className="text-green-500 font-bold">{formatCurrency(Math.abs(partner1Balance))}</span> para <span className="text-green-500">{partner2}</span>
-                </p>
-              )}
-            </CardContent>
-          </Card>
+                {/* Animated border */}
+                <div className="absolute inset-0 rounded-2xl border-2 border-cyan-500/50 opacity-0 group-hover:opacity-100 animate-pulse transition-opacity" />
+              </div>
+            );
+          })}
         </div>
 
         {/* Add Expense Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Plus className="h-5 w-5" />
+        <div className="p-6 rounded-2xl bg-black/80 border-2 border-cyan-500/30 backdrop-blur-xl shadow-2xl shadow-cyan-500/10 mb-8">
+          <div className="flex items-center gap-2 mb-6">
+            <Plus className="h-6 w-6 text-cyan-400" />
+            <h2 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
               Nova Despesa
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-              <div className="md:col-span-2">
-                <Label>Descrição</Label>
-                <Input
-                  value={newExpense.description}
-                  onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })}
-                  placeholder="Ex: Facebook Ads"
-                />
-              </div>
-              <div>
-                <Label>Valor</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={newExpense.amount}
-                  onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
-                  placeholder="0,00"
-                />
-              </div>
-              <div>
-                <Label>Pago por</Label>
-                <Select value={newExpense.paid_by} onValueChange={(v) => setNewExpense({ ...newExpense, paid_by: v })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={partner1}>{partner1}</SelectItem>
-                    <SelectItem value={partner2}>{partner2}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Categoria</Label>
-                <Select value={newExpense.category} onValueChange={(v) => setNewExpense({ ...newExpense, category: v })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CATEGORIES.map((cat) => (
-                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-end">
-                <Button onClick={handleAddExpense} className="w-full" disabled={addExpense.isPending}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Adicionar
-                </Button>
-              </div>
+            </h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+            <div className="md:col-span-2">
+              <Label className="text-gray-400 text-xs uppercase tracking-wider">Descrição</Label>
+              <Input
+                value={newExpense.description}
+                onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })}
+                placeholder="Ex: Facebook Ads"
+                className="bg-black/60 border-cyan-500/30 text-white focus:border-cyan-500 mt-1"
+              />
             </div>
-          </CardContent>
-        </Card>
+            <div>
+              <Label className="text-gray-400 text-xs uppercase tracking-wider">Valor</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={newExpense.amount}
+                onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
+                placeholder="0,00"
+                className="bg-black/60 border-cyan-500/30 text-white focus:border-cyan-500 mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-gray-400 text-xs uppercase tracking-wider">Pago por</Label>
+              <Select value={newExpense.paid_by} onValueChange={(v) => setNewExpense({ ...newExpense, paid_by: v })}>
+                <SelectTrigger className="bg-black/60 border-cyan-500/30 text-white focus:border-cyan-500 mt-1">
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent className="bg-black/95 border-cyan-500/30">
+                  <SelectItem value={partner1} className="text-white hover:bg-cyan-500/20">{partner1}</SelectItem>
+                  <SelectItem value={partner2} className="text-white hover:bg-cyan-500/20">{partner2}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-gray-400 text-xs uppercase tracking-wider">Categoria</Label>
+              <Select value={newExpense.category} onValueChange={(v) => setNewExpense({ ...newExpense, category: v })}>
+                <SelectTrigger className="bg-black/60 border-cyan-500/30 text-white focus:border-cyan-500 mt-1">
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent className="bg-black/95 border-cyan-500/30">
+                  {CATEGORIES.map((cat) => (
+                    <SelectItem key={cat} value={cat} className="text-white hover:bg-cyan-500/20">{cat}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-end">
+              <Button 
+                onClick={handleAddExpense} 
+                className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold"
+                disabled={addExpense.isPending}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar
+              </Button>
+            </div>
+          </div>
+        </div>
 
         {/* Expenses Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Histórico de Despesas</CardTitle>
-            <CardDescription>Todas as despesas registradas</CardDescription>
-          </CardHeader>
-          <CardContent>
+        <div className="p-6 rounded-2xl bg-black/80 border-2 border-purple-500/30 backdrop-blur-xl shadow-2xl shadow-purple-500/10">
+          <div className="flex items-center gap-2 mb-6">
+            <DollarSign className="h-6 w-6 text-purple-400" />
+            <h2 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+              Histórico de Despesas
+            </h2>
+          </div>
+          
+          <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Descrição</TableHead>
-                  <TableHead>Categoria</TableHead>
-                  <TableHead>Pago por</TableHead>
-                  <TableHead className="text-right">Valor</TableHead>
+                <TableRow className="border-b border-purple-500/30 hover:bg-transparent">
+                  <TableHead className="text-gray-400 text-xs uppercase tracking-wider">Data</TableHead>
+                  <TableHead className="text-gray-400 text-xs uppercase tracking-wider">Descrição</TableHead>
+                  <TableHead className="text-gray-400 text-xs uppercase tracking-wider">Categoria</TableHead>
+                  <TableHead className="text-gray-400 text-xs uppercase tracking-wider">Pago por</TableHead>
+                  <TableHead className="text-gray-400 text-xs uppercase tracking-wider text-right">Valor</TableHead>
                   <TableHead className="w-12"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {expenses?.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                      Nenhuma despesa registrada ainda
+                  <TableRow className="hover:bg-transparent">
+                    <TableCell colSpan={6} className="text-center text-gray-500 py-12">
+                      <div className="flex flex-col items-center gap-2">
+                        <DollarSign className="h-12 w-12 text-gray-700" />
+                        <span>Nenhuma despesa registrada ainda</span>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : (
                   expenses?.map((expense) => (
-                    <TableRow key={expense.id}>
-                      <TableCell>{format(new Date(expense.expense_date), "dd/MM/yyyy", { locale: ptBR })}</TableCell>
-                      <TableCell className="font-medium">{expense.description}</TableCell>
-                      <TableCell>{expense.category || "-"}</TableCell>
+                    <TableRow key={expense.id} className="border-b border-purple-500/10 hover:bg-purple-500/5">
+                      <TableCell className="text-gray-300">
+                        {format(new Date(expense.expense_date), "dd/MM/yyyy", { locale: ptBR })}
+                      </TableCell>
+                      <TableCell className="font-medium text-white">{expense.description}</TableCell>
                       <TableCell>
-                        <span className={expense.paid_by === partner1 ? 'text-blue-500' : 'text-purple-500'}>
+                        <span className="px-2 py-1 rounded-full text-xs bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+                          {expense.category || "Outros"}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className={`font-bold ${expense.paid_by === partner1 ? 'text-purple-400' : 'text-orange-400'}`}>
                           {expense.paid_by}
                         </span>
                       </TableCell>
-                      <TableCell className="text-right font-mono">{formatCurrency(Number(expense.amount))}</TableCell>
+                      <TableCell className="text-right font-mono text-green-400 font-bold">
+                        {formatCurrency(Number(expense.amount))}
+                      </TableCell>
                       <TableCell>
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => deleteExpense.mutate(expense.id)}
                           disabled={deleteExpense.isPending}
+                          className="hover:bg-red-500/20 hover:text-red-400"
                         >
-                          <Trash2 className="h-4 w-4 text-destructive" />
+                          <Trash2 className="h-4 w-4 text-red-400" />
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -322,9 +374,9 @@ export default function Contas() {
                 )}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
-    </DashboardLayout>
+    </DashboardWrapper>
   );
 }
