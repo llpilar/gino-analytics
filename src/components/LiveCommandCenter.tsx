@@ -2,11 +2,10 @@ import { useEffect, useState } from "react";
 import { Globe } from "./ui/globe-feature-section";
 import { ShootingStars } from "./ui/shooting-stars";
 import { NavBar } from "./ui/tubelight-navbar";
-import { PinContainer } from "./ui/3d-pin";
 import { useShopifyRevenueToday, useShopifyAnalytics } from "@/hooks/useShopifyData";
 import { format } from "date-fns";
 import { DashboardSkeleton } from "./DashboardSkeleton";
-import { LayoutDashboard, BarChart3, Package, Settings, Wallet, TrendingUp, DollarSign, ShoppingCart, Users, Zap, Monitor, Smartphone } from "lucide-react";
+import { LayoutDashboard, BarChart3, Package, Settings, Wallet, TrendingUp, DollarSign, ShoppingCart, Users, Zap, Monitor, LayoutGrid } from "lucide-react";
 import { NotificationCenter } from "./NotificationCenter";
 import { ComparisonBadge } from "./ComparisonBadge";
 import { useDailyComparison } from "@/hooks/useComparisonMetrics";
@@ -21,7 +20,7 @@ type LayoutMode = "orbital" | "grid";
 export const LiveCommandCenter = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [rotationAngle, setRotationAngle] = useState(0);
-  const [layoutMode, setLayoutMode] = useState<LayoutMode>("orbital");
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>("grid");
   const [isMobile, setIsMobile] = useState(false);
   const { data: revenueData, isLoading: revenueLoading } = useShopifyRevenueToday();
   const { data: analyticsData } = useShopifyAnalytics();
@@ -32,7 +31,7 @@ export const LiveCommandCenter = () => {
   // Check for mobile viewport
   useEffect(() => {
     const checkMobile = () => {
-      const mobile = window.innerWidth < 1024;
+      const mobile = window.innerWidth < 1280;
       setIsMobile(mobile);
       if (mobile) setLayoutMode("grid");
     };
@@ -46,11 +45,11 @@ export const LiveCommandCenter = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Orbital rotation animation
+  // Orbital rotation animation - slower for better UX
   useEffect(() => {
     if (layoutMode !== "orbital") return;
     const rotationTimer = setInterval(() => {
-      setRotationAngle((prev) => (prev + 0.5) % 360);
+      setRotationAngle((prev) => (prev + 0.3) % 360);
     }, 50);
     return () => clearInterval(rotationTimer);
   }, [layoutMode]);
@@ -83,12 +82,12 @@ export const LiveCommandCenter = () => {
     return <DashboardSkeleton />;
   }
 
-  // Satellite data for orbital view
+  // Satellite data for orbital view - reduced distance for better fit
   const satellites = [
-    { label: "REVENUE", value: formatCurrency(totalRevenue), icon: DollarSign, color: "cyan", angle: 0, distance: 280 },
-    { label: "ORDERS", value: ordersCount.toString(), icon: ShoppingCart, color: "green", angle: 90, distance: 320 },
-    { label: "$/MIN", value: formatCurrency(parseFloat(salesPerMinute)), icon: Zap, color: "purple", angle: 180, distance: 300 },
-    { label: "SHOPPERS", value: uniqueShoppers, icon: Users, color: "orange", angle: 270, distance: 340 },
+    { label: "REVENUE", value: formatCurrency(totalRevenue), icon: DollarSign, color: "cyan", angle: 0, distance: 220 },
+    { label: "ORDERS", value: ordersCount.toString(), icon: ShoppingCart, color: "green", angle: 90, distance: 240 },
+    { label: "$/MIN", value: formatCurrency(parseFloat(salesPerMinute)), icon: Zap, color: "purple", angle: 180, distance: 230 },
+    { label: "SHOPPERS", value: uniqueShoppers, icon: Users, color: "orange", angle: 270, distance: 250 },
   ];
 
   const getSatellitePosition = (baseAngle: number, distance: number) => {
@@ -183,7 +182,7 @@ export const LiveCommandCenter = () => {
               aria-label="Layout em grade"
               aria-pressed={layoutMode === "grid"}
             >
-              <Smartphone className="h-4 w-4" />
+              <LayoutGrid className="h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -192,22 +191,21 @@ export const LiveCommandCenter = () => {
       {/* Main Content */}
       {layoutMode === "orbital" && !isMobile ? (
         // ORBITAL LAYOUT - Desktop Only
-        <div className="relative z-10 h-screen flex items-center justify-start pl-40 p-4 pt-20">
+        <div className="relative z-10 h-screen flex items-center justify-center gap-8 px-8 pt-16">
           {/* Central Globe with Orbital Satellites */}
-          <section className="relative w-[700px] h-[700px] flex items-center justify-center" aria-label="Visualização orbital de métricas">
+          <section className="relative w-[550px] h-[550px] flex-shrink-0 flex items-center justify-center" aria-label="Visualização orbital de métricas">
             {/* Orbital rings */}
             <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
-              <div className="absolute w-[560px] h-[560px] border border-neon-cyan/20 rounded-full animate-spin" style={{ animationDuration: "60s" }} />
-              <div className="absolute w-[640px] h-[640px] border border-neon-purple/20 rounded-full animate-spin" style={{ animationDuration: "80s" }} />
-              <div className="absolute w-[680px] h-[680px] border border-neon-pink/10 rounded-full animate-spin" style={{ animationDuration: "100s" }} />
+              <div className="absolute w-[440px] h-[440px] border border-neon-cyan/20 rounded-full animate-spin" style={{ animationDuration: "60s" }} />
+              <div className="absolute w-[500px] h-[500px] border border-neon-purple/20 rounded-full animate-spin" style={{ animationDuration: "80s" }} />
+              <div className="absolute w-[540px] h-[540px] border border-neon-pink/10 rounded-full animate-spin" style={{ animationDuration: "100s" }} />
             </div>
 
             {/* Globe */}
-            <div className="relative z-10 w-[500px] h-[500px]" aria-hidden="true">
+            <div className="relative z-10 w-[350px] h-[350px]" aria-hidden="true">
               <Globe className="w-full h-full" />
               <div className="absolute inset-0 bg-gradient-radial from-neon-cyan/30 via-neon-cyan/10 to-transparent blur-3xl animate-pulse-glow" />
               <div className="absolute inset-0 bg-gradient-radial from-neon-blue/20 via-transparent to-transparent blur-2xl animate-pulse-glow" style={{ animationDelay: "0.5s" }} />
-              <div className="absolute inset-0 rounded-full border-2 border-neon-cyan/30 animate-ping" style={{ animationDuration: "3s" }} />
             </div>
 
             {/* Orbital Satellites */}
@@ -218,53 +216,52 @@ export const LiveCommandCenter = () => {
               return (
                 <article
                   key={index}
-                  className="absolute w-40 h-40 flex items-center justify-center animate-fade-in"
+                  className="absolute flex items-center justify-center"
                   style={{
                     left: `calc(50% + ${pos.x}px)`,
                     top: `calc(50% + ${pos.y}px)`,
                     transform: "translate(-50%, -50%)",
-                    animationDelay: `${index * 100}ms`,
                   }}
                   aria-label={`${satellite.label}: ${satellite.value}`}
                 >
                   <div className="relative group cursor-pointer">
                     <div className={cn(
-                      "relative p-4 rounded-2xl bg-black/80 border-2 backdrop-blur-xl",
-                      "hover:scale-110 transition-all duration-300 shadow-2xl",
+                      "relative p-3 rounded-2xl bg-black/90 border-2 backdrop-blur-xl min-w-[120px]",
+                      "hover:scale-105 transition-all duration-300 shadow-2xl",
                       colors.border, colors.glow
                     )}>
                       <div className="relative z-10">
                         <div className={cn("w-8 h-8 mx-auto mb-2 rounded-lg flex items-center justify-center", colors.bg)}>
-                          <Icon className={cn("w-5 h-5", colors.text)} />
+                          <Icon className={cn("w-4 h-4", colors.text)} />
                         </div>
                         <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-center mb-1">
                           {satellite.label}
                         </div>
-                        <div className={cn("text-xl font-black text-center", colors.text)}>
+                        <div className={cn("text-lg font-black text-center whitespace-nowrap", colors.text)}>
                           {satellite.value}
                         </div>
                       </div>
                     </div>
-                    <div className="absolute inset-0 rounded-2xl border-2 border-neon-cyan/50 animate-ping opacity-30" aria-hidden="true" />
                   </div>
                 </article>
               );
             })}
           </section>
 
-          {/* Right Side: Data Stream Card */}
-          <aside className="absolute right-8 top-1/2 -translate-y-1/2" aria-label="Painel de dados em tempo real">
-            <PinContainer title="Live Data Stream" containerClassName="w-full">
-              <DataStreamCard 
-                totalRevenue={totalRevenue}
-                ordersCount={ordersCount}
-                avgOrderValue={avgOrderValue}
-                uniqueShoppers={uniqueShoppers}
-                dailyComparison={dailyComparison}
-                formatCurrency={formatCurrency}
-                colorVariants={colorVariants}
-              />
-            </PinContainer>
+          {/* Right Side: Data Stream Card - Fixed Width */}
+          <aside 
+            className="w-[420px] flex-shrink-0 p-6 rounded-2xl bg-black/80 border-2 border-neon-cyan/30 backdrop-blur-xl shadow-2xl shadow-neon-cyan/10"
+            aria-label="Painel de dados em tempo real"
+          >
+            <DataStreamCard 
+              totalRevenue={totalRevenue}
+              ordersCount={ordersCount}
+              avgOrderValue={avgOrderValue}
+              uniqueShoppers={uniqueShoppers}
+              dailyComparison={dailyComparison}
+              formatCurrency={formatCurrency}
+              colorVariants={colorVariants}
+            />
           </aside>
         </div>
       ) : (
