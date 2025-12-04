@@ -69,6 +69,19 @@ const getStatusConfig = (status: string) => {
   };
 };
 
+// Hoko delivery states: 1=Creada, 2=En proceso, 3=Despachada, 4=Finalizada, 5=Cancelada, 6=En Novedad
+const getDeliveryState = (state: number) => {
+  const states: Record<number, { label: string; bg: string; text: string; border: string }> = {
+    1: { label: 'Creada', bg: 'bg-zinc-500/10', text: 'text-zinc-400', border: 'border-zinc-500/30' },
+    2: { label: 'En proceso', bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/30' },
+    3: { label: 'Despachada', bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/30' },
+    4: { label: 'Finalizada', bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/30' },
+    5: { label: 'Cancelada', bg: 'bg-rose-500/10', text: 'text-rose-400', border: 'border-rose-500/30' },
+    6: { label: 'En Novedad', bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/30' },
+  };
+  return states[state] || { label: `Estado ${state}`, bg: 'bg-zinc-500/10', text: 'text-zinc-400', border: 'border-zinc-500/30' };
+};
+
 const StatusBadge = ({ status }: { status: string }) => {
   const config = getStatusConfig(status);
   const Icon = config.icon;
@@ -336,57 +349,73 @@ const OrdersTable = () => {
                 </div>
               </TableHead>
               <TableHead className="text-zinc-500 font-semibold">Estado</TableHead>
+              <TableHead className="text-zinc-500 font-semibold">Pago</TableHead>
               <TableHead className="text-zinc-500 font-semibold">
                 <div className="flex items-center gap-2">
                   <Truck className="h-4 w-4" />
-                  Tracking
+                  Guía
                 </div>
               </TableHead>
-              <TableHead className="text-zinc-500 font-semibold text-right">
-                <div className="flex items-center gap-2 justify-end">
-                  <DollarSign className="h-4 w-4" />
-                  Total
-                </div>
-              </TableHead>
+              <TableHead className="text-zinc-500 font-semibold text-right">Total Venta</TableHead>
+              <TableHead className="text-zinc-500 font-semibold text-right">Costo Envío</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {orders.map((order: any, index: number) => (
-              <TableRow 
-                key={order.id} 
-                className="border-zinc-800/50 hover:bg-zinc-800/30 transition-colors"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <TableCell>
-                  <span className="font-mono font-bold text-violet-400">
-                    #{order.order_number || order.id}
-                  </span>
-                </TableCell>
-                <TableCell className="text-zinc-300 font-medium">
-                  {order.customer_name || 'N/A'}
-                </TableCell>
-                <TableCell className="text-zinc-400">
-                  {order.city || 'N/A'}
-                </TableCell>
-                <TableCell>
-                  <StatusBadge status={order.status} />
-                </TableCell>
-                <TableCell>
-                  {order.tracking_number ? (
-                    <span className="font-mono text-xs px-2 py-1 rounded-lg bg-zinc-800 text-zinc-300">
-                      {order.tracking_number}
+            {orders.map((order: any, index: number) => {
+              const deliveryState = getDeliveryState(order.delivery_state);
+              const paymentType = order.payment === 0 ? 'Contraentrega' : order.payment === 1 ? 'Crédito' : 'N/A';
+              
+              return (
+                <TableRow 
+                  key={order.id} 
+                  className="border-zinc-800/50 hover:bg-zinc-800/30 transition-colors"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <TableCell>
+                    <span className="font-mono font-bold text-violet-400">
+                      #{order.id}
                     </span>
-                  ) : (
-                    <span className="text-zinc-600">—</span>
-                  )}
-                </TableCell>
-                <TableCell className="text-right">
-                  <span className="font-mono font-bold text-emerald-400">
-                    {formatCOP(order.total || 0)}
-                  </span>
-                </TableCell>
-              </TableRow>
-            ))}
+                  </TableCell>
+                  <TableCell className="text-zinc-300 font-medium">
+                    <div className="max-w-[150px] truncate" title={order.customer?.name || order.customer_name}>
+                      {order.customer?.name || order.customer_name || 'N/A'}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-zinc-400">
+                    {order.customer?.city?.name || order.city || 'N/A'}
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={`${deliveryState.bg} ${deliveryState.text} ${deliveryState.border} border`}>
+                      {deliveryState.label}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="border-zinc-700 text-zinc-400">
+                      {paymentType}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {order.guide?.number ? (
+                      <span className="font-mono text-xs px-2 py-1 rounded-lg bg-zinc-800 text-cyan-400">
+                        {order.guide.number}
+                      </span>
+                    ) : (
+                      <span className="text-zinc-600">Sin guía</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <span className="font-mono font-bold text-emerald-400">
+                      {formatCOP(order.total || order.total_sale || 0)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <span className="font-mono text-amber-400">
+                      {formatCOP(order.guide?.total_freight_store || order.shipping_cost || 0)}
+                    </span>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
@@ -480,10 +509,12 @@ const ProductsTable = () => {
           <TableHeader>
             <TableRow className="border-zinc-800 hover:bg-transparent bg-zinc-900/50">
               <TableHead className="text-zinc-500 font-semibold">Producto</TableHead>
-              <TableHead className="text-zinc-500 font-semibold">SKU</TableHead>
+              <TableHead className="text-zinc-500 font-semibold">Referencia</TableHead>
               <TableHead className="text-zinc-500 font-semibold">Stock</TableHead>
-              <TableHead className="text-zinc-500 font-semibold">Estado</TableHead>
-              <TableHead className="text-zinc-500 font-semibold text-right">Precio</TableHead>
+              <TableHead className="text-zinc-500 font-semibold text-right">Costo</TableHead>
+              <TableHead className="text-zinc-500 font-semibold text-right">Precio Mín.</TableHead>
+              <TableHead className="text-zinc-500 font-semibold text-right">Precio Sugerido</TableHead>
+              <TableHead className="text-zinc-500 font-semibold text-right">Precio Drop.</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -493,27 +524,41 @@ const ProductsTable = () => {
                 className="border-zinc-800/50 hover:bg-zinc-800/30 transition-colors"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
-                <TableCell className="text-white font-medium max-w-[200px] truncate">
-                  {product.name}
+                <TableCell className="text-white font-medium max-w-[200px]">
+                  <div className="truncate" title={product.name}>
+                    {product.name}
+                  </div>
                 </TableCell>
                 <TableCell>
-                  {product.sku ? (
+                  {product.reference || product.sku ? (
                     <span className="font-mono text-xs px-2 py-1 rounded-lg bg-zinc-800 text-zinc-400">
-                      {product.sku}
+                      {product.reference || product.sku}
                     </span>
                   ) : (
                     <span className="text-zinc-600">—</span>
                   )}
                 </TableCell>
                 <TableCell>
-                  {getStockBadge(product.stock || 0)}
+                  {getStockBadge(product.stock?.[0]?.amount || product.stock || 0)}
                 </TableCell>
-                <TableCell>
-                  <StatusBadge status={product.status || 'Activo'} />
+                <TableCell className="text-right">
+                  <span className="font-mono text-rose-400">
+                    {formatCOP(product.cost || 0)}
+                  </span>
+                </TableCell>
+                <TableCell className="text-right">
+                  <span className="font-mono text-amber-400">
+                    {formatCOP(product.minimal_price || 0)}
+                  </span>
                 </TableCell>
                 <TableCell className="text-right">
                   <span className="font-mono font-bold text-emerald-400">
-                    {formatCOP(product.price || 0)}
+                    {formatCOP(product.price_by_unit || product.price || 0)}
+                  </span>
+                </TableCell>
+                <TableCell className="text-right">
+                  <span className="font-mono text-cyan-400">
+                    {formatCOP(product.price_dropshipping || 0)}
                   </span>
                 </TableCell>
               </TableRow>
