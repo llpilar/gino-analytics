@@ -2,7 +2,6 @@ import { ReactNode } from "react";
 import { DashboardSidebar } from "./DashboardSidebar";
 import { DashboardHeader } from "./DashboardHeader";
 import { SidebarProvider, SidebarTrigger } from "./ui/sidebar";
-import { MobileBottomNav } from "./MobileBottomNav";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -34,8 +33,6 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             </div>
           </footer>
         </main>
-        
-        <MobileBottomNav />
       </div>
     </SidebarProvider>
   );
