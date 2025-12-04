@@ -9,6 +9,7 @@ export interface Expense {
   paid_by: string;
   category: string | null;
   expense_date: string;
+  receipt_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -126,4 +127,24 @@ export const useUpdatePartnersConfig = () => {
       toast.error('Erro ao atualizar nomes: ' + error.message);
     },
   });
+};
+
+export const uploadReceipt = async (file: File): Promise<string | null> => {
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+  
+  const { error } = await supabase.storage
+    .from('expense-receipts')
+    .upload(fileName, file);
+  
+  if (error) {
+    toast.error('Erro ao enviar comprovante: ' + error.message);
+    return null;
+  }
+  
+  const { data: { publicUrl } } = supabase.storage
+    .from('expense-receipts')
+    .getPublicUrl(fileName);
+  
+  return publicUrl;
 };
