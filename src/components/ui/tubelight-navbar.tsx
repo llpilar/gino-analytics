@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { Link, useLocation } from "react-router-dom"
-import { LucideIcon, CalendarIcon } from "lucide-react"
+import { LucideIcon, CalendarIcon, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useCurrency } from "@/contexts/CurrencyContext"
 import { useDateFilter } from "@/contexts/DateFilterContext"
@@ -13,6 +13,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { DateRange } from "react-day-picker"
 
 interface NavItem {
   name: string
@@ -30,8 +31,12 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
   const location = useLocation()
   const [activeTab, setActiveTab] = useState(items[0].name)
   const [isMobile, setIsMobile] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
   const { currency, setCurrency } = useCurrency()
   const { dateRange, setCustomRange } = useDateFilter()
+  
+  // Local state for pending selection
+  const [pendingRange, setPendingRange] = useState<DateRange | undefined>(dateRange)
 
   const handleCurrencyToggle = (checked: boolean) => {
     setCurrency(checked ? 'BRL' : 'COP')
@@ -39,20 +44,41 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
 
   const handlePreset = (preset: 'today' | 'week' | 'month' | '90days') => {
     const now = new Date()
+    let from: Date, to: Date
     switch (preset) {
       case 'today':
-        setCustomRange(startOfDay(now), endOfDay(now))
+        from = startOfDay(now)
+        to = endOfDay(now)
         break
       case 'week':
-        setCustomRange(startOfWeek(now, { weekStartsOn: 0 }), endOfWeek(now, { weekStartsOn: 0 }))
+        from = startOfWeek(now, { weekStartsOn: 0 })
+        to = endOfWeek(now, { weekStartsOn: 0 })
         break
       case 'month':
-        setCustomRange(startOfMonth(now), endOfMonth(now))
+        from = startOfMonth(now)
+        to = endOfMonth(now)
         break
       case '90days':
-        setCustomRange(subDays(now, 90), endOfDay(now))
+        from = subDays(now, 90)
+        to = endOfDay(now)
         break
     }
+    setPendingRange({ from, to })
+  }
+
+  const handleApply = () => {
+    if (pendingRange?.from) {
+      setCustomRange(pendingRange.from, pendingRange.to)
+    }
+    setIsOpen(false)
+  }
+
+  // Sync pending range when popover opens
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
+      setPendingRange(dateRange)
+    }
+    setIsOpen(open)
   }
 
   useEffect(() => {
@@ -149,7 +175,7 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
 
             {/* Date Filter */}
             <div className="h-6 w-px bg-cyan-500/30 mx-1" />
-            <Popover>
+            <Popover open={isOpen} onOpenChange={handleOpenChange}>
               <PopoverTrigger asChild>
                 <Button 
                   variant="ghost"
@@ -178,6 +204,7 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
               >
                 {/* Preset Buttons */}
                 <div className="p-3 border-b border-cyan-500/20">
+                  <p className="text-xs text-zinc-400 mb-2 font-medium">Selecione o período</p>
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
@@ -217,12 +244,46 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
                 {/* Calendar */}
                 <Calendar
                   mode="range"
-                  selected={dateRange}
-                  onSelect={(range) => setCustomRange(range?.from, range?.to)}
+                  selected={pendingRange}
+                  onSelect={setPendingRange}
                   numberOfMonths={2}
-                  initialFocus
                   className="p-3"
                 />
+
+                {/* Apply Button */}
+                <div className="p-3 border-t border-cyan-500/20">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="text-xs text-zinc-400">
+                      {pendingRange?.from ? (
+                        pendingRange.to ? (
+                          <span>
+                            <span className="text-cyan-400 font-medium">
+                              {format(pendingRange.from, "dd MMM", { locale: ptBR })}
+                            </span>
+                            {" → "}
+                            <span className="text-cyan-400 font-medium">
+                              {format(pendingRange.to, "dd MMM", { locale: ptBR })}
+                            </span>
+                          </span>
+                        ) : (
+                          <span className="text-cyan-400 font-medium">
+                            {format(pendingRange.from, "dd MMM yyyy", { locale: ptBR })}
+                          </span>
+                        )
+                      ) : (
+                        "Selecione as datas"
+                      )}
+                    </div>
+                    <Button
+                      onClick={handleApply}
+                      disabled={!pendingRange?.from}
+                      className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold h-9 px-4 gap-2"
+                    >
+                      <Check className="h-4 w-4" />
+                      Aplicar
+                    </Button>
+                  </div>
+                </div>
               </PopoverContent>
             </Popover>
           </>
