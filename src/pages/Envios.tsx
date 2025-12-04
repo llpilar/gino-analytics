@@ -220,8 +220,21 @@ const StatsGrid = () => {
     );
   }
 
-  const orders: any[] = Array.isArray(ordersData?.data) ? ordersData.data : 
+  const allOrders: any[] = Array.isArray(ordersData?.data) ? ordersData.data : 
                 Array.isArray(ordersData) ? ordersData : [];
+
+  // Client-side date filtering as backup (Hoko API may not support date filtering)
+  const orders = allOrders.filter((order: any) => {
+    if (!dateRange.from || !dateRange.to) return true;
+    
+    const orderDate = order.created_at ? parseISO(order.created_at) : null;
+    if (!orderDate) return true;
+    
+    return isWithinInterval(orderDate, { 
+      start: startOfDay(dateRange.from), 
+      end: endOfDay(dateRange.to) 
+    });
+  });
 
   const totalOrders = orders.length;
   
@@ -312,8 +325,21 @@ const OrdersTable = () => {
     );
   }
 
-  const orders = Array.isArray(ordersData?.data) ? ordersData.data : 
+  const allOrders = Array.isArray(ordersData?.data) ? ordersData.data : 
                  Array.isArray(ordersData) ? ordersData : [];
+
+  // Client-side date filtering as backup (Hoko API may not support date filtering)
+  const orders = allOrders.filter((order: any) => {
+    if (!dateRange.from || !dateRange.to) return true;
+    
+    const orderDate = order.created_at ? parseISO(order.created_at) : null;
+    if (!orderDate) return true;
+    
+    return isWithinInterval(orderDate, { 
+      start: startOfDay(dateRange.from), 
+      end: endOfDay(dateRange.to) 
+    });
+  });
 
   if (orders.length === 0) {
     return (
@@ -321,8 +347,8 @@ const OrdersTable = () => {
         <div className="p-4 rounded-2xl bg-zinc-800/50 border border-zinc-700/50 mb-4">
           <Package className="h-10 w-10 text-zinc-500" />
         </div>
-        <p className="text-lg font-semibold text-white mb-1">No hay pedidos todavía</p>
-        <p className="text-sm text-zinc-500">Los pedidos aparecerán aquí cuando se registren</p>
+        <p className="text-lg font-semibold text-white mb-1">No hay pedidos en este período</p>
+        <p className="text-sm text-zinc-500">Selecciona otro período en el filtro de fecha</p>
       </div>
     );
   }

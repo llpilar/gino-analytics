@@ -102,7 +102,7 @@ serve(async (req) => {
         break;
 
       case 'orders':
-        // Fetch all pages of orders
+        // Fetch all pages of orders with optional date filters
         const allOrders: any[] = [];
         let currentPage = params?.page || 1;
         let hasMorePages = true;
@@ -110,8 +110,22 @@ serve(async (req) => {
         let pagesLoaded = 0;
         let paginationInfo: any = {};
         
+        // Build query params including date filters
+        const buildOrdersQuery = (page: number) => {
+          let query = `?page=${page}`;
+          if (params?.start_date) {
+            query += `&start_date=${params.start_date}`;
+          }
+          if (params?.end_date) {
+            query += `&end_date=${params.end_date}`;
+          }
+          return query;
+        };
+        
         while (hasMorePages && pagesLoaded < maxPages) {
-          const ordersResponse = await hokoRequest(`/member/order?page=${currentPage}`);
+          const queryString = buildOrdersQuery(currentPage);
+          console.log(`Fetching orders with query: /member/order${queryString}`);
+          const ordersResponse = await hokoRequest(`/member/order${queryString}`);
           paginationInfo = {
             current_page: ordersResponse.current_page,
             last_page: ordersResponse.last_page,
@@ -130,7 +144,7 @@ serve(async (req) => {
           }
         }
         
-        console.log(`Loaded ${allOrders.length} orders from ${pagesLoaded} pages`);
+        console.log(`Loaded ${allOrders.length} orders from ${pagesLoaded} pages (date filter: ${params?.start_date || 'none'} to ${params?.end_date || 'none'})`);
         
         // Fetch full details for each order to get customer, items, total, guide info
         const ordersWithDetails = await Promise.all(
