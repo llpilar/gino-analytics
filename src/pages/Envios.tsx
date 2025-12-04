@@ -348,25 +348,38 @@ const OrdersTable = () => {
                   Ciudad
                 </div>
               </TableHead>
+              <TableHead className="text-zinc-500 font-semibold text-center">
+                <div className="flex items-center gap-2 justify-center">
+                  <Box className="h-4 w-4" />
+                  Uds.
+                </div>
+              </TableHead>
               <TableHead className="text-zinc-500 font-semibold">Estado</TableHead>
-              <TableHead className="text-zinc-500 font-semibold">Pago</TableHead>
               <TableHead className="text-zinc-500 font-semibold">
                 <div className="flex items-center gap-2">
                   <Truck className="h-4 w-4" />
                   Guía
                 </div>
               </TableHead>
-              <TableHead className="text-zinc-500 font-semibold text-right">Total Venta</TableHead>
-              <TableHead className="text-zinc-500 font-semibold text-right">Costo Envío</TableHead>
+              <TableHead className="text-zinc-500 font-semibold text-right">
+                <div className="flex items-center gap-2 justify-end">
+                  <DollarSign className="h-4 w-4" />
+                  Total Venta
+                </div>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {orders.map((order: any, index: number) => {
               const deliveryState = getDeliveryState(parseInt(order.delivery_state));
-              const paymentType = order.payment === '0' || order.payment === 0 ? 'Contraentrega' : order.payment === '1' || order.payment === 1 ? 'Crédito' : 'N/A';
+              
+              // Calculate quantity from items
+              const items = order.items || order.products || [];
+              const totalQuantity = items.reduce((acc: number, item: any) => {
+                return acc + parseInt(item.amount || item.quantity || 1);
+              }, 0) || 1;
               
               // Calculate total from items if available
-              const items = order.items || order.products || [];
               const calculatedTotal = items.reduce((acc: number, item: any) => {
                 const price = parseFloat(item.price || item.sale_price || 0);
                 const qty = parseInt(item.amount || item.quantity || 1);
@@ -376,7 +389,9 @@ const OrdersTable = () => {
               
               // Get guide info
               const guide = order.guide || order.guides?.[0];
-              const shippingCost = parseFloat(guide?.total_freight_store || order.shipping_cost || 0);
+              
+              // Get city name
+              const cityName = order.customer?.city?.name || order.customer?.city || order.city || 'N/A';
               
               return (
                 <TableRow 
@@ -390,21 +405,23 @@ const OrdersTable = () => {
                     </span>
                   </TableCell>
                   <TableCell className="text-zinc-300 font-medium">
-                    <div className="max-w-[150px] truncate" title={order.customer?.name || order.customer_name}>
+                    <div className="max-w-[180px] truncate" title={order.customer?.name || order.customer_name}>
                       {order.customer?.name || order.customer_name || 'N/A'}
                     </div>
                   </TableCell>
                   <TableCell className="text-zinc-400">
-                    {order.customer?.city?.name || order.city || 'N/A'}
+                    <div className="max-w-[120px] truncate" title={cityName}>
+                      {cityName}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Badge className="bg-cyan-500/10 text-cyan-400 border-cyan-500/30 border font-mono font-bold">
+                      {totalQuantity}
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     <Badge className={`${deliveryState.bg} ${deliveryState.text} ${deliveryState.border} border`}>
                       {deliveryState.label}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="border-zinc-700 text-zinc-400">
-                      {paymentType}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -419,11 +436,6 @@ const OrdersTable = () => {
                   <TableCell className="text-right">
                     <span className="font-mono font-bold text-emerald-400">
                       {formatCOP(orderTotal)}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <span className="font-mono text-amber-400">
-                      {formatCOP(shippingCost)}
                     </span>
                   </TableCell>
                 </TableRow>
