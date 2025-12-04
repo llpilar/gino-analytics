@@ -570,17 +570,17 @@ const Envios = () => {
 
         <Tabs defaultValue="orders" className="space-y-6">
           <div className="flex items-center justify-between">
-            <TabsList className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-1 backdrop-blur-sm">
+            <TabsList className="bg-zinc-950 border border-zinc-800 rounded-full p-1">
               <TabsTrigger 
                 value="orders" 
-                className="rounded-lg px-6 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all"
+                className="rounded-full px-5 py-2 data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=inactive]:text-zinc-500 transition-all duration-300"
               >
                 <Truck className="h-4 w-4 mr-2" />
                 Pedidos
               </TabsTrigger>
               <TabsTrigger 
                 value="products" 
-                className="rounded-lg px-6 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all"
+                className="rounded-full px-5 py-2 data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=inactive]:text-zinc-500 transition-all duration-300"
               >
                 <Box className="h-4 w-4 mr-2" />
                 Produtos
