@@ -79,7 +79,7 @@ export const StatsCard = ({
       className={cn(
         "p-4 md:p-6 rounded-2xl bg-surface-elevated border-2 backdrop-blur-xl",
         "transition-all duration-300",
-        colors.border, colors.glow, "shadow-lg",
+        colors.border,
         hoverable && "hover:scale-[1.02] cursor-pointer",
         "animate-fade-in-up",
         className
@@ -142,7 +142,7 @@ export const SectionCard = ({
     <section
       className={cn(
         "p-4 md:p-6 rounded-2xl bg-surface-elevated border-2 backdrop-blur-xl",
-        colors.border, colors.glow, "shadow-lg",
+        colors.border,
         "animate-fade-in",
         className
       )}
