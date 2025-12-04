@@ -351,7 +351,7 @@ const OrdersTable = () => {
               <TableHead className="text-zinc-500 font-semibold text-center">
                 <div className="flex items-center gap-2 justify-center">
                   <Box className="h-4 w-4" />
-                  Uds.
+                  Uds. / Custo
                 </div>
               </TableHead>
               <TableHead className="text-zinc-500 font-semibold">Estado</TableHead>
@@ -417,9 +417,14 @@ const OrdersTable = () => {
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
-                    <Badge className="bg-cyan-500/10 text-cyan-400 border-cyan-500/30 border font-mono font-bold">
-                      {totalQuantity}
-                    </Badge>
+                    <div className="flex flex-col items-center gap-1">
+                      <Badge className="bg-cyan-500/10 text-cyan-400 border-cyan-500/30 border font-mono font-bold">
+                        {totalQuantity} uds
+                      </Badge>
+                      <span className="font-mono text-xs text-zinc-400">
+                        {formatCOP(totalQuantity * 11000)}
+                      </span>
+                    </div>
                   </TableCell>
                   <TableCell>
                     <Badge className={`${deliveryState.bg} ${deliveryState.text} ${deliveryState.border} border`}>
