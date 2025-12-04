@@ -10,10 +10,13 @@ export const LiveGlobe = ({ className }: LiveGlobeProps) => {
   const [arcsData, setArcsData] = useState<any[]>([]);
 
   useEffect(() => {
-    // Auto-rotate
+    // Auto-rotate and disable user interactions
     if (globeEl.current) {
       globeEl.current.controls().autoRotate = true;
       globeEl.current.controls().autoRotateSpeed = 0.5;
+      globeEl.current.controls().enableZoom = false;
+      globeEl.current.controls().enablePan = false;
+      globeEl.current.controls().enableRotate = false;
     }
 
     // Generate random arcs to simulate live activity
