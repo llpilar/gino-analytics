@@ -100,13 +100,15 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
   }, [])
 
   return (
-    <div
+    <nav
       className={cn(
-        "fixed top-4 left-1/2 -translate-x-1/2 z-50",
+        "fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-fit",
         className,
       )}
+      role="navigation"
+      aria-label="Navegação principal"
     >
-      <div className="flex items-center gap-1 bg-black/80 border-2 border-cyan-500/30 backdrop-blur-xl py-1.5 px-1.5 rounded-full shadow-lg shadow-cyan-500/20">
+      <div className="flex items-center gap-1 bg-black/80 border-2 border-neon-cyan/30 backdrop-blur-xl py-1.5 px-1.5 rounded-full shadow-lg shadow-neon-cyan/20">
         {items.map((item) => {
           const Icon = item.icon
           const isActive = activeTab === item.name
@@ -117,19 +119,21 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
               to={item.url}
               onClick={() => setActiveTab(item.name)}
               className={cn(
-                "relative cursor-pointer text-xs md:text-sm font-bold px-4 md:px-6 py-2 rounded-full transition-all duration-300",
-                "text-gray-400 hover:text-cyan-400",
-                isActive && "text-cyan-400",
+                "relative cursor-pointer text-xs md:text-sm font-bold px-3 md:px-6 py-2 rounded-full transition-all duration-300",
+                "text-muted-foreground hover:text-neon-cyan",
+                isActive && "text-neon-cyan",
               )}
+              aria-current={isActive ? "page" : undefined}
             >
               <span className="hidden md:inline">{item.name}</span>
-              <span className="md:hidden flex items-center justify-center">
+              <span className="md:hidden flex items-center justify-center" aria-hidden="true">
                 <Icon size={18} strokeWidth={2.5} />
               </span>
+              <span className="sr-only md:hidden">{item.name}</span>
               {isActive && (
                 <motion.div
                   layoutId="lamp"
-                  className="absolute inset-0 w-full bg-cyan-500/10 rounded-full -z-10 border border-cyan-500/50"
+                  className="absolute inset-0 w-full bg-neon-cyan/10 rounded-full -z-10 border border-neon-cyan/50"
                   initial={false}
                   transition={{
                     type: "spring",
@@ -137,11 +141,11 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
                     damping: 30,
                   }}
                 >
-                  {/* Tubelight glow effect on top */}
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-cyan-500 rounded-t-full shadow-lg shadow-cyan-500/50">
-                    <div className="absolute w-16 h-8 bg-cyan-500/30 rounded-full blur-xl -top-3 -left-2" />
-                    <div className="absolute w-12 h-6 bg-cyan-500/40 rounded-full blur-lg -top-2" />
-                    <div className="absolute w-6 h-4 bg-cyan-500/50 rounded-full blur-md -top-1 left-3" />
+                  {/* Tubelight glow effect */}
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-neon-cyan rounded-t-full shadow-lg shadow-neon-cyan/50">
+                    <div className="absolute w-16 h-8 bg-neon-cyan/30 rounded-full blur-xl -top-3 -left-2" />
+                    <div className="absolute w-12 h-6 bg-neon-cyan/40 rounded-full blur-lg -top-2" />
+                    <div className="absolute w-6 h-4 bg-neon-cyan/50 rounded-full blur-md -top-1 left-3" />
                   </div>
                 </motion.div>
               )}
@@ -149,41 +153,43 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
           )
         })}
 
-        {/* Currency Toggle & Date Filter with Divider */}
+        {/* Currency Toggle & Date Filter */}
         {showCurrencyToggle && (
           <>
-            <div className="h-6 w-px bg-cyan-500/30 mx-1" />
-            <div className="flex items-center gap-2 px-3 py-1.5">
+            <div className="h-6 w-px bg-neon-cyan/30 mx-1 hidden sm:block" aria-hidden="true" />
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5">
               <span className={cn(
                 "text-xs font-bold transition-colors",
-                currency === 'COP' ? 'text-cyan-400' : 'text-gray-500'
+                currency === 'COP' ? 'text-neon-cyan' : 'text-muted-foreground'
               )}>
                 COP
               </span>
               <Switch
                 checked={currency === 'BRL'}
                 onCheckedChange={handleCurrencyToggle}
-                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-cyan-500 h-5 w-9"
+                className="data-[state=checked]:bg-neon-green data-[state=unchecked]:bg-neon-cyan h-5 w-9"
+                aria-label={`Moeda atual: ${currency}. Clique para trocar.`}
               />
               <span className={cn(
                 "text-xs font-bold transition-colors",
-                currency === 'BRL' ? 'text-green-400' : 'text-gray-500'
+                currency === 'BRL' ? 'text-neon-green' : 'text-muted-foreground'
               )}>
                 BRL
               </span>
             </div>
 
             {/* Date Filter */}
-            <div className="h-6 w-px bg-cyan-500/30 mx-1" />
+            <div className="h-6 w-px bg-neon-cyan/30 mx-1 hidden sm:block" aria-hidden="true" />
             <Popover open={isOpen} onOpenChange={handleOpenChange}>
               <PopoverTrigger asChild>
                 <Button 
                   variant="ghost"
                   size="sm"
-                  className="gap-2 rounded-full hover:bg-cyan-500/10 h-8 px-3"
+                  className="gap-2 rounded-full hover:bg-neon-cyan/10 h-8 px-3"
+                  aria-label={`Período selecionado: ${dateRange.from ? format(dateRange.from, "dd/MM", { locale: ptBR }) : 'não definido'}${dateRange.to ? ` até ${format(dateRange.to, "dd/MM", { locale: ptBR })}` : ''}`}
                 >
-                  <CalendarIcon className="h-4 w-4 text-cyan-400" />
-                  <span className="text-xs font-bold text-white hidden md:inline">
+                  <CalendarIcon className="h-4 w-4 text-neon-cyan" />
+                  <span className="text-xs font-bold text-foreground hidden md:inline">
                     {dateRange.from ? (
                       dateRange.to ? (
                         <>
@@ -199,18 +205,18 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
                 </Button>
               </PopoverTrigger>
               <PopoverContent 
-                className="w-auto p-0 bg-zinc-900/95 border-cyan-500/30 backdrop-blur-xl" 
+                className="w-auto p-0 bg-surface-overlay/95 border-neon-cyan/30 backdrop-blur-xl" 
                 align="end"
               >
                 {/* Preset Buttons */}
-                <div className="p-3 border-b border-cyan-500/20">
-                  <p className="text-xs text-zinc-400 mb-2 font-medium">Selecione o período</p>
+                <div className="p-3 border-b border-neon-cyan/20">
+                  <p className="text-xs text-muted-foreground mb-2 font-medium">Selecione o período</p>
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handlePreset('today')}
-                      className="flex-1 h-8 text-xs font-bold border-cyan-500/30 bg-zinc-800/50 hover:bg-cyan-500/20 hover:text-cyan-300 hover:border-cyan-500/50"
+                      className="flex-1 h-8 text-xs font-bold border-neon-cyan/30 bg-surface-elevated hover:bg-neon-cyan/20 hover:text-neon-cyan hover:border-neon-cyan/50"
                     >
                       Hoje
                     </Button>
@@ -218,7 +224,7 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
                       variant="outline"
                       size="sm"
                       onClick={() => handlePreset('week')}
-                      className="flex-1 h-8 text-xs font-bold border-cyan-500/30 bg-zinc-800/50 hover:bg-cyan-500/20 hover:text-cyan-300 hover:border-cyan-500/50"
+                      className="flex-1 h-8 text-xs font-bold border-neon-cyan/30 bg-surface-elevated hover:bg-neon-cyan/20 hover:text-neon-cyan hover:border-neon-cyan/50"
                     >
                       Semana
                     </Button>
@@ -226,7 +232,7 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
                       variant="outline"
                       size="sm"
                       onClick={() => handlePreset('month')}
-                      className="flex-1 h-8 text-xs font-bold border-cyan-500/30 bg-zinc-800/50 hover:bg-cyan-500/20 hover:text-cyan-300 hover:border-cyan-500/50"
+                      className="flex-1 h-8 text-xs font-bold border-neon-cyan/30 bg-surface-elevated hover:bg-neon-cyan/20 hover:text-neon-cyan hover:border-neon-cyan/50"
                     >
                       Mês
                     </Button>
@@ -234,7 +240,7 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
                       variant="outline"
                       size="sm"
                       onClick={() => handlePreset('90days')}
-                      className="flex-1 h-8 text-xs font-bold border-cyan-500/30 bg-zinc-800/50 hover:bg-cyan-500/20 hover:text-cyan-300 hover:border-cyan-500/50"
+                      className="flex-1 h-8 text-xs font-bold border-neon-cyan/30 bg-surface-elevated hover:bg-neon-cyan/20 hover:text-neon-cyan hover:border-neon-cyan/50"
                     >
                       90 Dias
                     </Button>
@@ -246,27 +252,27 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
                   mode="range"
                   selected={pendingRange}
                   onSelect={setPendingRange}
-                  numberOfMonths={2}
+                  numberOfMonths={isMobile ? 1 : 2}
                   className="p-3"
                 />
 
                 {/* Apply Button */}
-                <div className="p-3 border-t border-cyan-500/20">
+                <div className="p-3 border-t border-neon-cyan/20">
                   <div className="flex items-center justify-between gap-3">
-                    <div className="text-xs text-zinc-400">
+                    <div className="text-xs text-muted-foreground">
                       {pendingRange?.from ? (
                         pendingRange.to ? (
                           <span>
-                            <span className="text-cyan-400 font-medium">
+                            <span className="text-neon-cyan font-medium">
                               {format(pendingRange.from, "dd MMM", { locale: ptBR })}
                             </span>
                             {" → "}
-                            <span className="text-cyan-400 font-medium">
+                            <span className="text-neon-cyan font-medium">
                               {format(pendingRange.to, "dd MMM", { locale: ptBR })}
                             </span>
                           </span>
                         ) : (
-                          <span className="text-cyan-400 font-medium">
+                          <span className="text-neon-cyan font-medium">
                             {format(pendingRange.from, "dd MMM yyyy", { locale: ptBR })}
                           </span>
                         )
@@ -277,7 +283,7 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
                     <Button
                       onClick={handleApply}
                       disabled={!pendingRange?.from}
-                      className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold h-9 px-4 gap-2"
+                      className="bg-neon-cyan hover:bg-neon-cyan-light text-black font-bold h-9 px-4 gap-2"
                     >
                       <Check className="h-4 w-4" />
                       Aplicar
@@ -289,6 +295,6 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
           </>
         )}
       </div>
-    </div>
+    </nav>
   )
 }
