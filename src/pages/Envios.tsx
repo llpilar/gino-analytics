@@ -380,13 +380,8 @@ const OrdersTable = () => {
                 return acc + parseInt(item.amount || item.quantity || 1);
               }, 0) || 1;
               
-              // Calculate total from items if available
-              const calculatedTotal = items.reduce((acc: number, item: any) => {
-                const price = parseFloat(item.price || item.sale_price || 0);
-                const qty = parseInt(item.amount || item.quantity || 1);
-                return acc + (price * qty);
-              }, 0);
-              const orderTotal = parseFloat(order.total || order.total_sale || 0) || calculatedTotal;
+              // Use total from Hoko API directly
+              const orderTotal = parseFloat(order.total || order.total_sale || order.sale_total || 0);
               
               // Get guide info
               const guide = order.guide || order.guides?.[0];
