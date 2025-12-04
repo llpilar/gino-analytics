@@ -10,15 +10,23 @@ export interface FacebookTodayMetrics {
   clicks: number;
 }
 
+const defaultMetrics: FacebookTodayMetrics = { 
+  spend: 0, 
+  purchases: 0, 
+  cpa: 0, 
+  impressions: 0, 
+  clicks: 0 
+};
+
 export function useFacebookAdsToday() {
-  const { data: accounts } = useFacebookAdAccounts();
+  const { data: accounts, error: accountsError } = useFacebookAdAccounts();
   const firstAccountId = accounts?.[0]?.id || null;
 
-  return useQuery({
+  const query = useQuery({
     queryKey: ['facebook-ads-today', firstAccountId],
     queryFn: async (): Promise<FacebookTodayMetrics> => {
       if (!firstAccountId) {
-        return { spend: 0, purchases: 0, cpa: 0, impressions: 0, clicks: 0 };
+        return defaultMetrics;
       }
 
       const today = new Date().toISOString().split('T')[0];
@@ -33,42 +41,39 @@ export function useFacebookAdsToday() {
       });
 
       if (error) {
-        console.error('Facebook Ads error:', error);
-        return { spend: 0, purchases: 0, cpa: 0, impressions: 0, clicks: 0 };
+        console.warn('Facebook Ads não configurado ou sem permissões:', error);
+        return defaultMetrics;
       }
 
       const insights = data?.data?.[0];
       
       if (!insights) {
-        return { spend: 0, purchases: 0, cpa: 0, impressions: 0, clicks: 0 };
+        return defaultMetrics;
       }
 
       const spend = parseFloat(insights.spend || '0');
       const impressions = parseInt(insights.impressions || '0');
       const clicks = parseInt(insights.clicks || '0');
       
-      // Find purchases from actions array
       const purchaseAction = insights.actions?.find(
         (action: { action_type: string; value: string }) => 
           action.action_type === 'purchase' || 
           action.action_type === 'omni_purchase'
       );
       const purchases = parseInt(purchaseAction?.value || '0');
-      
-      // Calculate CPA (Cost Per Acquisition)
       const cpa = purchases > 0 ? spend / purchases : 0;
 
-      return {
-        spend,
-        purchases,
-        cpa,
-        impressions,
-        clicks
-      };
+      return { spend, purchases, cpa, impressions, clicks };
     },
-    enabled: !!firstAccountId,
-    refetchInterval: 60000, // Refresh every minute
+    enabled: !!firstAccountId && !accountsError,
+    refetchInterval: 60000,
     retry: false,
     staleTime: 30000,
   });
+
+  // Always return data, even on error
+  return {
+    ...query,
+    data: query.data ?? defaultMetrics
+  };
 }
