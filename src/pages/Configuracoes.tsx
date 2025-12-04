@@ -1,6 +1,6 @@
 import { DashboardWrapper } from "@/components/DashboardWrapper";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Settings as SettingsIcon, User, Bell, Shield } from "lucide-react";
+import { User, Bell, Shield } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { ProfileEditor } from "@/components/ProfileEditor";
 import { PageHeader } from "@/components/PageHeader";
@@ -12,9 +12,8 @@ export default function Configuracoes() {
     <DashboardWrapper>
       <div className="container mx-auto p-6 md:p-8 lg:p-12">
         <PageHeader 
-          title="Settings"
+          title="Configuracoes"
           subtitle="Gerencie suas preferências e informações da conta"
-          icon={<SettingsIcon className="h-8 w-8 text-orange-400" />}
         />
 
         <div className="grid gap-6 max-w-4xl">

@@ -2,7 +2,6 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { LiveMetrics } from "@/components/LiveMetrics";
 import { ActiveSessions } from "@/components/ActiveSessions";
 import { PageHeader } from "@/components/PageHeader";
-import { Activity } from "lucide-react";
 
 const LiveView = () => {
   return (
@@ -11,7 +10,6 @@ const LiveView = () => {
         <PageHeader 
           title="Live View"
           subtitle="Acompanhe sua loja em tempo real"
-          icon={<Activity className="h-8 w-8 text-cyan-400" />}
         />
 
         <LiveMetrics />

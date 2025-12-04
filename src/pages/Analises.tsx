@@ -93,8 +93,7 @@ export default function Analises() {
         {/* Header */}
         <PageHeader 
           title="Analytics Command"
-          subtitle="Real-time performance monitoring & insights"
-          icon={<BarChart3 className="h-8 w-8 text-cyan-400" />}
+          subtitle="Monitoramento de desempenho em tempo real"
         />
 
         {/* Stats Grid */}
