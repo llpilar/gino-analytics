@@ -13,7 +13,6 @@ import { ComparisonBadge } from "./ComparisonBadge";
 import { useDailyComparison } from "@/hooks/useComparisonMetrics";
 import { useRealtimeOrders } from "@/hooks/useRealtimeOrders";
 import { Toaster } from "./ui/toaster";
-import { HeaderControls } from "./HeaderControls";
 import { useCurrency } from "@/contexts/CurrencyContext";
 
 export const LiveCommandCenter = () => {
@@ -139,9 +138,8 @@ export const LiveCommandCenter = () => {
       <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-green-500/5 rounded-full blur-[180px]" />
       <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-[180px]" />
 
-      {/* Clock Widget, Filter & Notification Center - Top Right */}
+      {/* Clock Widget & Notification Center - Top Right */}
       <div className="fixed top-4 right-4 z-40 flex items-center gap-3">
-        <HeaderControls />
         <NotificationCenter />
         <div className="px-4 py-2 rounded-full bg-black/80 border border-cyan-500/30 backdrop-blur-xl shadow-lg shadow-cyan-500/20">
           <div className="flex items-center gap-2">

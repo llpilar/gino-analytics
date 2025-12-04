@@ -3,10 +3,16 @@
 import React, { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { Link, useLocation } from "react-router-dom"
-import { LucideIcon } from "lucide-react"
+import { LucideIcon, CalendarIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useCurrency } from "@/contexts/CurrencyContext"
+import { useDateFilter } from "@/contexts/DateFilterContext"
 import { Switch } from "@/components/ui/switch"
+import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { format } from "date-fns"
+import { es } from "date-fns/locale"
 
 interface NavItem {
   name: string
@@ -25,6 +31,7 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
   const [activeTab, setActiveTab] = useState(items[0].name)
   const [isMobile, setIsMobile] = useState(false)
   const { currency, setCurrency } = useCurrency()
+  const { dateRange, setCustomRange } = useDateFilter()
 
   const handleCurrencyToggle = (checked: boolean) => {
     setCurrency(checked ? 'BRL' : 'COP')
@@ -98,7 +105,7 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
           )
         })}
 
-        {/* Currency Toggle with Divider */}
+        {/* Currency Toggle & Date Filter with Divider */}
         {showCurrencyToggle && (
           <>
             <div className="h-6 w-px bg-cyan-500/30 mx-1" />
@@ -121,6 +128,46 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
                 BRL
               </span>
             </div>
+
+            {/* Date Filter */}
+            <div className="h-6 w-px bg-cyan-500/30 mx-1" />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button 
+                  variant="ghost"
+                  size="sm"
+                  className="gap-2 rounded-full hover:bg-cyan-500/10 h-8 px-3"
+                >
+                  <CalendarIcon className="h-4 w-4 text-cyan-400" />
+                  <span className="text-xs font-bold text-white hidden md:inline">
+                    {dateRange.from ? (
+                      dateRange.to ? (
+                        <>
+                          {format(dateRange.from, "dd/MM", { locale: es })} - {format(dateRange.to, "dd/MM", { locale: es })}
+                        </>
+                      ) : (
+                        format(dateRange.from, "dd/MM", { locale: es })
+                      )
+                    ) : (
+                      "Período"
+                    )}
+                  </span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent 
+                className="w-auto p-0 bg-zinc-900/95 border-zinc-700 backdrop-blur-xl" 
+                align="end"
+              >
+                <Calendar
+                  mode="range"
+                  selected={dateRange}
+                  onSelect={(range) => setCustomRange(range?.from, range?.to)}
+                  numberOfMonths={2}
+                  initialFocus
+                  className="p-3 pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
           </>
         )}
       </div>
