@@ -102,27 +102,54 @@ serve(async (req) => {
         break;
 
       case 'orders':
-        // Correct endpoint: /member/order (not /member/orders)
-        const ordersParams = params?.page ? `?page=${params.page}` : '';
-        const ordersListResponse = await hokoRequest(`/member/order${ordersParams}`);
+        // Fetch all pages of orders
+        const allOrders: any[] = [];
+        let currentPage = params?.page || 1;
+        let hasMorePages = true;
+        const maxPages = 10; // Safety limit
+        let pagesLoaded = 0;
+        let paginationInfo: any = {};
+        
+        while (hasMorePages && pagesLoaded < maxPages) {
+          const ordersResponse = await hokoRequest(`/member/order?page=${currentPage}`);
+          paginationInfo = {
+            current_page: ordersResponse.current_page,
+            last_page: ordersResponse.last_page,
+            total: ordersResponse.total
+          };
+          
+          if (ordersResponse?.data && Array.isArray(ordersResponse.data)) {
+            allOrders.push(...ordersResponse.data);
+          }
+          
+          pagesLoaded++;
+          if (currentPage >= (ordersResponse.last_page || 1)) {
+            hasMorePages = false;
+          } else {
+            currentPage++;
+          }
+        }
+        
+        console.log(`Loaded ${allOrders.length} orders from ${pagesLoaded} pages`);
         
         // Fetch full details for each order to get customer, items, total, guide info
-        if (ordersListResponse?.data && Array.isArray(ordersListResponse.data)) {
-          const ordersWithDetails = await Promise.all(
-            ordersListResponse.data.slice(0, 15).map(async (order: any) => {
-              try {
-                const orderDetail = await hokoRequest(`/member/order/${order.id}`);
-                return { ...order, ...orderDetail };
-              } catch (e) {
-                console.error(`Failed to fetch order ${order.id} details:`, e);
-                return order;
-              }
-            })
-          );
-          result = { ...ordersListResponse, data: ordersWithDetails };
-        } else {
-          result = ordersListResponse;
-        }
+        const ordersWithDetails = await Promise.all(
+          allOrders.map(async (order: any) => {
+            try {
+              const orderDetail = await hokoRequest(`/member/order/${order.id}`);
+              return { ...order, ...orderDetail };
+            } catch (e) {
+              console.error(`Failed to fetch order ${order.id} details:`, e);
+              return order;
+            }
+          })
+        );
+        
+        result = { 
+          ...paginationInfo,
+          data: ordersWithDetails,
+          total_loaded: ordersWithDetails.length
+        };
         break;
 
       case 'order-detail':
