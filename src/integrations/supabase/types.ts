@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      expenses: {
+        Row: {
+          amount: number
+          category: string | null
+          created_at: string
+          description: string
+          expense_date: string
+          id: string
+          paid_by: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          category?: string | null
+          created_at?: string
+          description: string
+          expense_date?: string
+          id?: string
+          paid_by: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category?: string | null
+          created_at?: string
+          description?: string
+          expense_date?: string
+          id?: string
+          paid_by?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      partners_config: {
+        Row: {
+          created_at: string
+          id: string
+          partner1_name: string
+          partner2_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          partner1_name?: string
+          partner2_name?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          partner1_name?: string
+          partner2_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

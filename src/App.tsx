@@ -13,6 +13,7 @@ import Produtos from "./pages/Produtos";
 import Analises from "./pages/Analises";
 import Configuracoes from "./pages/Configuracoes";
 import LiveView from "./pages/LiveView";
+import Contas from "./pages/Contas";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
               <Route path="/produtos" element={<ProtectedRoute><Produtos /></ProtectedRoute>} />
               <Route path="/analises" element={<ProtectedRoute><Analises /></ProtectedRoute>} />
               <Route path="/live-view" element={<ProtectedRoute><LiveView /></ProtectedRoute>} />
+              <Route path="/contas" element={<ProtectedRoute><Contas /></ProtectedRoute>} />
               <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
