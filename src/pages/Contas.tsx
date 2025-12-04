@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { DashboardWrapper } from "@/components/DashboardWrapper";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,13 +6,14 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Trash2, Plus, Settings, DollarSign, TrendingUp, TrendingDown, Users, Wallet } from "lucide-react";
-import { useExpenses, usePartnersConfig, useAddExpense, useDeleteExpense, useUpdatePartnersConfig } from "@/hooks/useExpenses";
+import { Trash2, Plus, Settings, DollarSign, TrendingUp, TrendingDown, Users, Wallet, ImageIcon, X, Eye } from "lucide-react";
+import { useExpenses, usePartnersConfig, useAddExpense, useDeleteExpense, useUpdatePartnersConfig, uploadReceipt } from "@/hooks/useExpenses";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/PageHeader";
+import { toast } from "sonner";
 
 const CATEGORIES = [
   "Marketing",
@@ -30,6 +31,7 @@ export default function Contas() {
   const deleteExpense = useDeleteExpense();
   const updateConfig = useUpdatePartnersConfig();
   const { formatCurrency } = useCurrency();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [newExpense, setNewExpense] = useState({
     description: "",
@@ -38,6 +40,11 @@ export default function Contas() {
     category: "",
     expense_date: format(new Date(), "yyyy-MM-dd"),
   });
+
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [viewReceiptUrl, setViewReceiptUrl] = useState<string | null>(null);
 
   const [configDialog, setConfigDialog] = useState(false);
   const [newConfig, setNewConfig] = useState({
@@ -48,8 +55,35 @@ export default function Contas() {
   const partner1 = partnersConfig?.partner1_name || "Sócio 1";
   const partner2 = partnersConfig?.partner2_name || "Sócio 2";
 
-  const handleAddExpense = () => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Arquivo muito grande. Máximo 5MB.');
+        return;
+      }
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
+  const clearSelectedFile = () => {
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleAddExpense = async () => {
     if (!newExpense.description || !newExpense.amount || !newExpense.paid_by) return;
+    
+    setIsUploading(true);
+    let receiptUrl: string | null = null;
+
+    if (selectedFile) {
+      receiptUrl = await uploadReceipt(selectedFile);
+    }
     
     addExpense.mutate({
       description: newExpense.description,
@@ -57,6 +91,7 @@ export default function Contas() {
       paid_by: newExpense.paid_by,
       category: newExpense.category || null,
       expense_date: newExpense.expense_date,
+      receipt_url: receiptUrl,
     });
     
     setNewExpense({
@@ -66,6 +101,8 @@ export default function Contas() {
       category: "",
       expense_date: format(new Date(), "yyyy-MM-dd"),
     });
+    clearSelectedFile();
+    setIsUploading(false);
   };
 
   const handleUpdateConfig = () => {
@@ -248,7 +285,7 @@ export default function Contas() {
             </h2>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4">
             <div className="md:col-span-2">
               <Label className="text-gray-400 text-xs uppercase tracking-wider">Descrição</Label>
               <Input
@@ -298,11 +335,53 @@ export default function Contas() {
               <Button 
                 onClick={handleAddExpense} 
                 className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold"
-                disabled={addExpense.isPending}
+                disabled={addExpense.isPending || isUploading}
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Adicionar
+                {isUploading ? 'Enviando...' : 'Adicionar'}
               </Button>
+            </div>
+          </div>
+
+          {/* Receipt Upload Section */}
+          <div className="mt-4 p-4 rounded-xl bg-black/40 border border-cyan-500/20">
+            <Label className="text-gray-400 text-xs uppercase tracking-wider mb-2 block">Comprovante (opcional)</Label>
+            <div className="flex items-center gap-4">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+                id="receipt-upload"
+              />
+              <label
+                htmlFor="receipt-upload"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-500/20 border border-purple-500/30 text-purple-400 cursor-pointer hover:bg-purple-500/30 transition-colors"
+              >
+                <ImageIcon className="h-4 w-4" />
+                <span className="text-sm font-medium">Anexar Imagem</span>
+              </label>
+              
+              {previewUrl && (
+                <div className="relative">
+                  <img 
+                    src={previewUrl} 
+                    alt="Preview" 
+                    className="h-16 w-16 object-cover rounded-lg border border-cyan-500/30"
+                  />
+                  <button
+                    onClick={clearSelectedFile}
+                    className="absolute -top-2 -right-2 p-1 bg-red-500 rounded-full hover:bg-red-600 transition-colors"
+                  >
+                    <X className="h-3 w-3 text-white" />
+                  </button>
+                </div>
+              )}
+              
+              {selectedFile && (
+                <span className="text-sm text-gray-400">{selectedFile.name}</span>
+              )}
             </div>
           </div>
         </div>
@@ -325,13 +404,14 @@ export default function Contas() {
                   <TableHead className="text-gray-400 text-xs uppercase tracking-wider">Categoria</TableHead>
                   <TableHead className="text-gray-400 text-xs uppercase tracking-wider">Pago por</TableHead>
                   <TableHead className="text-gray-400 text-xs uppercase tracking-wider text-right">Valor</TableHead>
+                  <TableHead className="text-gray-400 text-xs uppercase tracking-wider text-center">Comprovante</TableHead>
                   <TableHead className="w-12"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {expenses?.length === 0 ? (
                   <TableRow className="hover:bg-transparent">
-                    <TableCell colSpan={6} className="text-center text-gray-500 py-12">
+                    <TableCell colSpan={7} className="text-center text-gray-500 py-12">
                       <div className="flex flex-col items-center gap-2">
                         <DollarSign className="h-12 w-12 text-gray-700" />
                         <span>Nenhuma despesa registrada ainda</span>
@@ -358,6 +438,21 @@ export default function Contas() {
                       <TableCell className="text-right font-mono text-green-400 font-bold">
                         {formatCurrency(Number(expense.amount))}
                       </TableCell>
+                      <TableCell className="text-center">
+                        {expense.receipt_url ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setViewReceiptUrl(expense.receipt_url)}
+                            className="hover:bg-cyan-500/20 text-cyan-400"
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            Ver
+                          </Button>
+                        ) : (
+                          <span className="text-gray-600 text-sm">-</span>
+                        )}
+                      </TableCell>
                       <TableCell>
                         <Button
                           variant="ghost"
@@ -376,6 +471,26 @@ export default function Contas() {
             </Table>
           </div>
         </div>
+
+        {/* Receipt View Dialog */}
+        <Dialog open={!!viewReceiptUrl} onOpenChange={() => setViewReceiptUrl(null)}>
+          <DialogContent className="bg-black/95 border-2 border-cyan-500/30 backdrop-blur-xl max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
+                Comprovante
+              </DialogTitle>
+            </DialogHeader>
+            {viewReceiptUrl && (
+              <div className="flex justify-center">
+                <img 
+                  src={viewReceiptUrl} 
+                  alt="Comprovante" 
+                  className="max-w-full max-h-[70vh] rounded-lg border border-cyan-500/30"
+                />
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardWrapper>
   );
