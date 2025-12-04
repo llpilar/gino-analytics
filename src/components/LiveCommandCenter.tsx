@@ -138,8 +138,8 @@ export const LiveCommandCenter = () => {
       {/* Clock & Notification - Top Right */}
       <header className="fixed top-4 right-4 z-40 flex items-center gap-3">
         <NotificationCenter />
-        <div 
-          className="px-4 py-2 rounded-full bg-black/80 border border-neon-cyan/30 backdrop-blur-xl shadow-lg shadow-neon-cyan/20"
+          <div 
+          className="px-4 py-2 rounded-full bg-black/80 border border-neon-cyan/30 backdrop-blur-xl"
           role="status"
           aria-live="polite"
           aria-label={`Hora atual: ${format(currentTime, "HH:mm:ss")}`}
@@ -231,8 +231,8 @@ export const LiveCommandCenter = () => {
                   <div className="relative group cursor-pointer">
                     <div className={cn(
                       "relative p-3 rounded-2xl bg-black/90 border-2 backdrop-blur-xl min-w-[120px]",
-                      "hover:scale-105 transition-all duration-300 shadow-2xl",
-                      colors.border, colors.glow
+                      "hover:scale-105 transition-all duration-300",
+                      colors.border
                     )}>
                       <div className="relative z-10">
                         <div className={cn("w-8 h-8 mx-auto mb-2 rounded-lg flex items-center justify-center", colors.bg)}>
@@ -254,7 +254,7 @@ export const LiveCommandCenter = () => {
 
           {/* Right Side: Data Stream Card */}
           <aside 
-            className="absolute right-16 top-1/2 -translate-y-[45%] w-[390px] p-5 rounded-2xl bg-black/80 border-2 border-neon-cyan/30 backdrop-blur-xl shadow-2xl shadow-neon-cyan/10"
+            className="absolute right-16 top-1/2 -translate-y-[45%] w-[390px] p-5 rounded-2xl bg-black/80 border-2 border-neon-cyan/30 backdrop-blur-xl"
             aria-label="Painel de dados em tempo real"
           >
             <DataStreamCard 
@@ -304,7 +304,7 @@ export const LiveCommandCenter = () => {
                       "p-4 md:p-6 rounded-2xl bg-surface-elevated border-2 backdrop-blur-xl",
                       "transition-all duration-300 hover:scale-[1.02] cursor-pointer",
                       "animate-fade-in-up",
-                      colors.border, colors.glow, "shadow-lg"
+                      colors.border
                     )}
                     style={{ animationDelay: `${index * 100}ms` }}
                     aria-label={`${stat.label}: ${stat.value}`}
@@ -335,7 +335,7 @@ export const LiveCommandCenter = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Data Stream Panel */}
               <section 
-                className="lg:col-span-2 p-4 md:p-6 rounded-2xl bg-surface-elevated border-2 border-neon-cyan/30 backdrop-blur-xl shadow-lg shadow-neon-cyan/10 animate-fade-in"
+                className="lg:col-span-2 p-4 md:p-6 rounded-2xl bg-surface-elevated border-2 border-neon-cyan/30 backdrop-blur-xl animate-fade-in"
                 style={{ animationDelay: "400ms" }}
                 aria-label="Detalhes de faturamento"
               >
