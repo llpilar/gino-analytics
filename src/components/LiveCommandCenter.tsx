@@ -73,7 +73,6 @@ export const LiveCommandCenter = () => {
   const navItems = [
     { name: 'Dashboard', url: '/', icon: LayoutDashboard },
     { name: 'Analytics', url: '/analises', icon: BarChart3 },
-    { name: 'Products', url: '/produtos', icon: Package },
     { name: 'Contas', url: '/contas', icon: Wallet },
     { name: 'Settings', url: '/configuracoes', icon: Settings }
   ];
