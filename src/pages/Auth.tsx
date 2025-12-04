@@ -56,7 +56,7 @@ export default function Auth() {
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4 relative overflow-hidden">
       {/* Gradient orbs */}
       <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[120px]" />
-      <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-emerald-500/10 rounded-full blur-[100px]" />
+      <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-cyan-400/10 rounded-full blur-[100px]" />
       
       {/* Grid pattern */}
       <div 
@@ -77,7 +77,7 @@ export default function Auth() {
           <div className="relative bg-zinc-900/90 backdrop-blur-xl rounded-2xl p-8 border border-zinc-800/50">
             {/* Header */}
             <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-emerald-500/20 border border-cyan-500/20 mb-4">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-cyan-400/20 border border-cyan-500/20 mb-4">
                 <Lock className="w-5 h-5 text-cyan-400" />
               </div>
               <h1 className="text-xl font-semibold text-white tracking-tight">
@@ -129,7 +129,7 @@ export default function Auth() {
 
               <Button
                 type="submit"
-                className="w-full h-11 bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-white font-medium rounded-xl shadow-lg shadow-cyan-500/20 transition-all hover:shadow-cyan-500/30 hover:scale-[1.02] active:scale-[0.98] group"
+                className="w-full h-11 bg-gradient-to-r from-cyan-500 to-cyan-400 hover:from-cyan-400 hover:to-cyan-300 text-zinc-900 font-semibold rounded-xl shadow-lg shadow-cyan-500/25 transition-all hover:shadow-cyan-500/40 hover:scale-[1.02] active:scale-[0.98] group"
                 disabled={loading}
               >
                 {loading ? (
