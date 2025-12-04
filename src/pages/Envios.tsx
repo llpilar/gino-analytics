@@ -424,7 +424,7 @@ const OrdersTable = () => {
 };
 
 const ProductsTable = () => {
-  const { data: productsData, isLoading, error, refetch, isFetching } = useHokoProducts();
+  const { data: productsData, isLoading, error, refetch, isFetching } = useHokoProductsWithStock();
 
   if (isLoading) {
     return (
