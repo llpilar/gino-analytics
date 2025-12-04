@@ -18,7 +18,6 @@ import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useDateFilter } from "@/contexts/DateFilterContext";
 import { HyperText } from "@/components/ui/hyper-text";
-import { GlowingCard } from "@/components/ui/glowing-card";
 
 const formatCOP = (value: number): string => {
   return new Intl.NumberFormat('es-CO', {
@@ -115,20 +114,31 @@ const StatCard = ({
   gradient: string;
   delay?: number;
 }) => (
-  <GlowingCard>
-    <div className="flex items-start justify-between">
-      <div className={`p-3 rounded-xl bg-gradient-to-br ${gradient} shadow-lg`}>
-        <Icon className="h-5 w-5 text-white" />
-      </div>
-      <TrendingUp className="h-4 w-4 text-emerald-400 opacity-60" />
-    </div>
+  <div 
+    className="group relative overflow-hidden rounded-2xl border border-white/5 bg-black/40 backdrop-blur-xl p-6 transition-all duration-500 hover:border-white/10 hover:bg-black/50"
+    style={{ animationDelay: `${delay}ms` }}
+  >
+    {/* Gradient background effect */}
+    <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br ${gradient}`} />
     
-    <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{title}</p>
-    <p className="text-3xl font-black text-foreground tracking-tight">{value}</p>
-    {subtitle && (
-      <p className="text-xs text-muted-foreground">{subtitle}</p>
-    )}
-  </GlowingCard>
+    {/* Glow effect */}
+    <div className={`absolute -top-20 -right-20 w-40 h-40 rounded-full blur-3xl opacity-20 bg-gradient-to-br ${gradient}`} />
+    
+    <div className="relative z-10">
+      <div className="flex items-start justify-between mb-4">
+        <div className={`p-3 rounded-xl bg-gradient-to-br ${gradient} shadow-lg`}>
+          <Icon className="h-5 w-5 text-white" />
+        </div>
+        <TrendingUp className="h-4 w-4 text-emerald-400 opacity-60" />
+      </div>
+      
+      <p className="text-sm font-medium text-zinc-500 uppercase tracking-wider mb-1">{title}</p>
+      <p className="text-3xl font-black text-white tracking-tight">{value}</p>
+      {subtitle && (
+        <p className="text-xs text-zinc-500 mt-2">{subtitle}</p>
+      )}
+    </div>
+  </div>
 );
 
 const HeroSection = () => {
