@@ -11,8 +11,8 @@ import { Switch } from "@/components/ui/switch"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { format } from "date-fns"
-import { es } from "date-fns/locale"
+import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays } from "date-fns"
+import { ptBR } from "date-fns/locale"
 
 interface NavItem {
   name: string
@@ -35,6 +35,24 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
 
   const handleCurrencyToggle = (checked: boolean) => {
     setCurrency(checked ? 'BRL' : 'COP')
+  }
+
+  const handlePreset = (preset: 'today' | 'week' | 'month' | '90days') => {
+    const now = new Date()
+    switch (preset) {
+      case 'today':
+        setCustomRange(startOfDay(now), endOfDay(now))
+        break
+      case 'week':
+        setCustomRange(startOfWeek(now, { weekStartsOn: 0 }), endOfWeek(now, { weekStartsOn: 0 }))
+        break
+      case 'month':
+        setCustomRange(startOfMonth(now), endOfMonth(now))
+        break
+      case '90days':
+        setCustomRange(subDays(now, 90), endOfDay(now))
+        break
+    }
   }
 
   useEffect(() => {
@@ -143,10 +161,10 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
                     {dateRange.from ? (
                       dateRange.to ? (
                         <>
-                          {format(dateRange.from, "dd/MM", { locale: es })} - {format(dateRange.to, "dd/MM", { locale: es })}
+                          {format(dateRange.from, "dd/MM", { locale: ptBR })} - {format(dateRange.to, "dd/MM", { locale: ptBR })}
                         </>
                       ) : (
-                        format(dateRange.from, "dd/MM", { locale: es })
+                        format(dateRange.from, "dd/MM", { locale: ptBR })
                       )
                     ) : (
                       "Período"
@@ -155,16 +173,55 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
                 </Button>
               </PopoverTrigger>
               <PopoverContent 
-                className="w-auto p-0 bg-zinc-900/95 border-zinc-700 backdrop-blur-xl" 
+                className="w-auto p-0 bg-zinc-900/95 border-cyan-500/30 backdrop-blur-xl" 
                 align="end"
               >
+                {/* Preset Buttons */}
+                <div className="p-3 border-b border-cyan-500/20">
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePreset('today')}
+                      className="flex-1 h-8 text-xs font-bold border-cyan-500/30 bg-zinc-800/50 hover:bg-cyan-500/20 hover:text-cyan-300 hover:border-cyan-500/50"
+                    >
+                      Hoje
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePreset('week')}
+                      className="flex-1 h-8 text-xs font-bold border-cyan-500/30 bg-zinc-800/50 hover:bg-cyan-500/20 hover:text-cyan-300 hover:border-cyan-500/50"
+                    >
+                      Semana
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePreset('month')}
+                      className="flex-1 h-8 text-xs font-bold border-cyan-500/30 bg-zinc-800/50 hover:bg-cyan-500/20 hover:text-cyan-300 hover:border-cyan-500/50"
+                    >
+                      Mês
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePreset('90days')}
+                      className="flex-1 h-8 text-xs font-bold border-cyan-500/30 bg-zinc-800/50 hover:bg-cyan-500/20 hover:text-cyan-300 hover:border-cyan-500/50"
+                    >
+                      90 Dias
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Calendar */}
                 <Calendar
                   mode="range"
                   selected={dateRange}
                   onSelect={(range) => setCustomRange(range?.from, range?.to)}
                   numberOfMonths={2}
                   initialFocus
-                  className="p-3 pointer-events-auto"
+                  className="p-3"
                 />
               </PopoverContent>
             </Popover>
