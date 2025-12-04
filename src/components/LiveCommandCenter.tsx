@@ -250,7 +250,7 @@ export const LiveCommandCenter = () => {
 
           {/* Right Side: Data Stream Card */}
           <aside 
-            className="absolute right-16 top-1/2 -translate-y-1/2 w-[360px] p-5 rounded-2xl bg-black/80 border-2 border-neon-cyan/30 backdrop-blur-xl shadow-2xl shadow-neon-cyan/10"
+            className="absolute right-16 top-1/2 -translate-y-1/2 w-[390px] p-5 rounded-2xl bg-black/80 border-2 border-neon-cyan/30 backdrop-blur-xl shadow-2xl shadow-neon-cyan/10"
             aria-label="Painel de dados em tempo real"
           >
             <DataStreamCard 
