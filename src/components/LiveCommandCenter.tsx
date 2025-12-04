@@ -76,9 +76,9 @@ export const LiveCommandCenter = () => {
   // Navigation items
   const navItems = [
     { name: 'Dashboard', url: '/', icon: LayoutDashboard },
-    { name: 'Analytics', url: '/analises', icon: BarChart3 },
+    { name: 'Análises', url: '/analises', icon: BarChart3 },
     { name: 'Contas', url: '/contas', icon: Wallet },
-    { name: 'Settings', url: '/configuracoes', icon: Settings }
+    { name: 'Configurações', url: '/configuracoes', icon: Settings }
   ];
 
   if (revenueLoading) {
@@ -87,8 +87,8 @@ export const LiveCommandCenter = () => {
 
   // Satellite data for orbital view - reduced distance for better fit
   const satellites = [
-    { label: "REVENUE", value: formatCurrency(totalRevenue), icon: DollarSign, color: "cyan", angle: 0, distance: 240 },
-    { label: "ORDERS", value: ordersCount.toString(), icon: ShoppingCart, color: "green", angle: 90, distance: 260 },
+    { label: "RECEITA", value: formatCurrency(totalRevenue), icon: DollarSign, color: "cyan", angle: 0, distance: 240 },
+    { label: "PEDIDOS", value: ordersCount.toString(), icon: ShoppingCart, color: "green", angle: 90, distance: 260 },
     { label: "$/MIN", value: formatCurrency(parseFloat(salesPerMinute)), icon: Zap, color: "purple", angle: 180, distance: 250 },
     { label: "VSL ONLINE", value: vslVisitors.toString(), icon: Eye, color: "orange", angle: 270, distance: 270 },
   ];
@@ -145,7 +145,7 @@ export const LiveCommandCenter = () => {
         >
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-status-success rounded-full animate-pulse shadow-lg shadow-status-success/50" aria-hidden="true" />
-            <span className="text-status-success font-bold text-xs uppercase tracking-widest">LIVE</span>
+            <span className="text-status-success font-bold text-xs uppercase tracking-widest">AO VIVO</span>
             <time className="text-sm font-mono font-black text-neon-cyan tracking-wider">
               {format(currentTime, "HH:mm:ss")}
             </time>
@@ -286,7 +286,7 @@ export const LiveCommandCenter = () => {
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-status-success rounded-full animate-pulse" aria-hidden="true" />
                 <span className="text-xs font-bold text-status-success uppercase tracking-wider">
-                  Operacional
+                  Online
                 </span>
               </div>
             </header>
@@ -323,7 +323,7 @@ export const LiveCommandCenter = () => {
                     </div>
                     <div className="flex items-center gap-1 mt-2">
                       <TrendingUp className={cn("w-3 h-3", colors.text)} aria-hidden="true" />
-                      <span className={cn("text-xs font-semibold", colors.text)}>Tempo real</span>
+                      <span className={cn("text-xs font-semibold", colors.text)}>Ao vivo</span>
                     </div>
                   </article>
                 );
@@ -358,7 +358,7 @@ export const LiveCommandCenter = () => {
                 aria-label="Visualização do globo"
               >
                 <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">
-                  Atividade Global
+                  Vendas Globais
                 </h3>
                 <div className="relative w-full aspect-square">
                   <Globe className="w-full h-full" />
@@ -434,7 +434,7 @@ const DataStreamCard = ({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-neon-cyan rounded-full animate-pulse shadow-lg shadow-neon-cyan/50" aria-hidden="true" />
-            <h3 className="text-sm font-black text-neon-cyan uppercase tracking-wider">Shopify Live</h3>
+            <h3 className="text-sm font-black text-neon-cyan uppercase tracking-wider">Shopify Ao Vivo</h3>
           </div>
           <time className="text-[10px] text-muted-foreground font-mono">
             {format(new Date(), "HH:mm:ss")}
@@ -448,21 +448,21 @@ const DataStreamCard = ({
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <Megaphone className="w-4 h-4 text-neon-pink" />
-                <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Ad Spend Today</span>
+                <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Gasto em Ads Hoje</span>
               </div>
               <div className="text-[9px] text-muted-foreground bg-black/30 px-2 py-0.5 rounded-full">Facebook Ads</div>
             </div>
             <div className="text-2xl md:text-3xl font-black text-neon-pink">
               {formatCurrency(adSpend)}
             </div>
-            <p className="text-[10px] text-muted-foreground mt-1">Gasto em anúncios</p>
+            <p className="text-[10px] text-muted-foreground mt-1">Total investido</p>
           </div>
           
           {/* Orders Grid */}
           <div className="grid grid-cols-2 gap-3">
             <div className={cn("p-3 rounded-xl border-2 backdrop-blur-sm", colorVariants.purple.bg, colorVariants.purple.border)}>
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Orders</span>
+                <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Pedidos</span>
                 {dailyComparison?.orders && (
                   <ComparisonBadge 
                     changePercent={dailyComparison.orders.changePercent}
@@ -472,15 +472,15 @@ const DataStreamCard = ({
                 )}
               </div>
               <div className="text-xl md:text-2xl font-black text-neon-purple">{ordersCount}</div>
-              <p className="text-[9px] text-muted-foreground mt-0.5">Total today</p>
+              <p className="text-[9px] text-muted-foreground mt-0.5">Total de hoje</p>
             </div>
             
             <div className={cn("p-3 rounded-xl border-2 backdrop-blur-sm", colorVariants.green.bg, colorVariants.green.border)}>
-              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-1 block">Avg Order</span>
+              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-1 block">Ticket Médio</span>
               <div className="text-xl md:text-2xl font-black text-neon-green">
                 {formatCurrency(avgOrderValue)}
               </div>
-              <p className="text-[9px] text-muted-foreground mt-0.5">Per order</p>
+              <p className="text-[9px] text-muted-foreground mt-0.5">Por pedido</p>
             </div>
           </div>
 
@@ -504,10 +504,10 @@ const DataStreamCard = ({
         <footer className="mt-4 pt-3 border-t border-border flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-status-success rounded-full animate-pulse" aria-hidden="true" />
-            <span className="text-xs font-bold text-status-success">OPERATIONAL</span>
+            <span className="text-xs font-bold text-status-success">OPERACIONAL</span>
           </div>
           <div className="text-[10px] text-muted-foreground">
-            Latency: <span className="text-neon-cyan font-bold">12ms</span>
+            Latência: <span className="text-neon-cyan font-bold">12ms</span>
           </div>
         </footer>
       </div>

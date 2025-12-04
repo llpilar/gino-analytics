@@ -12,7 +12,7 @@ export default function Configuracoes() {
     <DashboardWrapper>
       <div className="container mx-auto p-6 md:p-8 lg:p-12">
         <PageHeader 
-          title="Configuracoes"
+          title="Configurações"
           subtitle="Gerencie suas preferências e informações da conta"
         />
 

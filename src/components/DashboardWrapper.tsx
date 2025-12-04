@@ -21,11 +21,11 @@ export const DashboardWrapper = ({ children }: DashboardWrapperProps) => {
 
   const navItems = [
     { name: 'Dashboard', url: '/', icon: LayoutDashboard },
-    { name: 'Analytics', url: '/analises', icon: BarChart3 },
-    { name: 'Products', url: '/produtos', icon: Package },
+    { name: 'Análises', url: '/analises', icon: BarChart3 },
+    { name: 'Produtos', url: '/produtos', icon: Package },
     { name: 'Envios', url: '/envios', icon: Truck },
     { name: 'Contas', url: '/contas', icon: Wallet },
-    { name: 'Settings', url: '/configuracoes', icon: Settings }
+    { name: 'Configurações', url: '/configuracoes', icon: Settings }
   ];
 
   return (
@@ -55,7 +55,7 @@ export const DashboardWrapper = ({ children }: DashboardWrapperProps) => {
         <div className="px-4 py-2 rounded-full bg-black/80 border border-cyan-500/30 backdrop-blur-xl shadow-lg shadow-cyan-500/20">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-lg shadow-green-500/50" />
-            <span className="text-green-400 font-bold text-xs uppercase tracking-widest">LIVE</span>
+            <span className="text-green-400 font-bold text-xs uppercase tracking-widest">AO VIVO</span>
             <div className="text-sm font-mono font-black text-cyan-300 tracking-wider">
               {format(currentTime, "HH:mm:ss")}
             </div>
