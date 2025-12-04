@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useDateFilter } from "@/contexts/DateFilterContext";
+import { format } from "date-fns";
 
 export interface Expense {
   id: string;
@@ -21,13 +23,24 @@ export interface PartnersConfig {
 }
 
 export const useExpenses = () => {
+  const { dateRange } = useDateFilter();
+  
   return useQuery({
-    queryKey: ['expenses'],
+    queryKey: ['expenses', dateRange.from, dateRange.to],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('expenses')
         .select('*')
         .order('expense_date', { ascending: false });
+      
+      if (dateRange.from) {
+        query = query.gte('expense_date', format(dateRange.from, 'yyyy-MM-dd'));
+      }
+      if (dateRange.to) {
+        query = query.lte('expense_date', format(dateRange.to, 'yyyy-MM-dd'));
+      }
+      
+      const { data, error } = await query;
       
       if (error) throw error;
       return data as Expense[];

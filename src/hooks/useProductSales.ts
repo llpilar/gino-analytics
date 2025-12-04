@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useDateFilter } from "@/contexts/DateFilterContext";
 
 interface ProductSale {
   productId: string;
@@ -7,9 +8,15 @@ interface ProductSale {
   totalQuantity: number;
 }
 
-const fetchProductSales = async (): Promise<ProductSale[]> => {
+const fetchProductSales = async (customDates?: { from: Date; to: Date }): Promise<ProductSale[]> => {
   const { data, error } = await supabase.functions.invoke('shopify-data', {
-    body: { endpoint: 'products-sales' },
+    body: { 
+      endpoint: 'products-sales',
+      customDates: customDates ? {
+        from: customDates.from.toISOString(),
+        to: customDates.to.toISOString()
+      } : undefined
+    },
   });
 
   if (error) throw error;
@@ -41,9 +48,11 @@ const fetchProductSales = async (): Promise<ProductSale[]> => {
 };
 
 export const useProductSales = () => {
+  const { dateRange } = useDateFilter();
+  
   return useQuery({
-    queryKey: ['product-sales'],
-    queryFn: fetchProductSales,
+    queryKey: ['product-sales', dateRange.from, dateRange.to],
+    queryFn: () => fetchProductSales(dateRange.from && dateRange.to ? { from: dateRange.from, to: dateRange.to } : undefined),
     refetchInterval: 300000, // 5 minutos
     retry: 3,
     staleTime: 60000,
