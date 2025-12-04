@@ -5,7 +5,7 @@ import { NavBar } from "./ui/tubelight-navbar";
 import { useShopifyRevenueToday, useShopifyAnalytics } from "@/hooks/useShopifyData";
 import { format } from "date-fns";
 import { DashboardSkeleton } from "./DashboardSkeleton";
-import { LayoutDashboard, BarChart3, Package, Settings, Wallet, TrendingUp, DollarSign, ShoppingCart, Users, Zap, Monitor, LayoutGrid, Eye, Megaphone, Target } from "lucide-react";
+import { LayoutDashboard, BarChart3, Settings, Wallet, TrendingUp, DollarSign, ShoppingCart, Users, Zap, Monitor, LayoutGrid, Eye, Megaphone, Target, Truck } from "lucide-react";
 import { NotificationCenter } from "./NotificationCenter";
 import { ComparisonBadge } from "./ComparisonBadge";
 import { useDailyComparison } from "@/hooks/useComparisonMetrics";
@@ -77,6 +77,7 @@ export const LiveCommandCenter = () => {
   const navItems = [
     { name: 'Dashboard', url: '/', icon: LayoutDashboard },
     { name: 'Análises', url: '/analises', icon: BarChart3 },
+    { name: 'Envios', url: '/envios', icon: Truck },
     { name: 'Contas', url: '/contas', icon: Wallet },
     { name: 'Configurações', url: '/configuracoes', icon: Settings }
   ];
