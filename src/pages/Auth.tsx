@@ -5,19 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Zap } from "lucide-react";
+import { Zap, Lock, Clock, Shield } from "lucide-react";
 
 export default function Auth() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
 
   useEffect(() => {
-    // Check if user is already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         navigate("/");
@@ -33,46 +30,25 @@ export default function Auth() {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const handleAuth = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      if (isLogin) {
-        // A sessão já persiste automaticamente no localStorage por 30 dias
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-        if (error) throw error;
+      if (error) throw error;
 
-        toast({
-          title: "Login realizado!",
-          description: "Sessão salva por 30 dias.",
-        });
-      } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-            data: {
-              name: name,
-            },
-          },
-        });
-
-        if (error) throw error;
-
-        toast({
-          title: "Conta criada!",
-          description: "Você já pode fazer login.",
-        });
-      }
+      toast({
+        title: "Login realizado!",
+        description: "Bem-vindo de volta.",
+      });
     } catch (error: any) {
       toast({
-        title: "Erro",
+        title: "Erro ao entrar",
         description: error.message,
         variant: "destructive",
       });
@@ -82,57 +58,38 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-zinc-800 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-black flex items-center justify-center p-4 relative overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-20 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-20 right-20 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-orange-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1.5s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-cyan-500/3 to-orange-500/3 rounded-full blur-3xl" />
       </div>
 
       <div className="relative w-full max-w-md">
         {/* Main card */}
-        <div className="bg-black/60 border-2 border-cyan-500/30 backdrop-blur-xl rounded-2xl p-8 shadow-2xl">
+        <div className="bg-zinc-900/80 border border-zinc-800 backdrop-blur-2xl rounded-3xl p-10 shadow-2xl shadow-black/50">
           {/* Header */}
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <div className="p-3 rounded-xl bg-gradient-to-br from-cyan-500/20 to-orange-500/20 border-2 border-cyan-500/40">
-                <Zap className="w-8 h-8 text-cyan-400" />
+          <div className="text-center mb-10">
+            <div className="flex items-center justify-center gap-3 mb-8">
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-orange-500/20 border border-cyan-500/20 shadow-lg shadow-cyan-500/10">
+                <Zap className="w-10 h-10 text-cyan-400" />
               </div>
-              <h1 className="text-4xl font-black tracking-tight">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-orange-400">
-                  ShopDash
-                </span>
-              </h1>
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">
-              {isLogin ? "Bem-vindo de volta" : "Criar conta"}
-            </h2>
-            <p className="text-gray-400">
-              {isLogin ? "Faça login na sua conta" : "Crie sua conta para começar"}
+            <h1 className="text-5xl font-black tracking-tight mb-3">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-cyan-300 to-orange-400">
+                ShopDash
+              </span>
+            </h1>
+            <p className="text-zinc-400 text-lg">
+              Painel de controle
             </p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleAuth} className="space-y-5">
-            {!isLogin && (
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-white font-medium">
-                  Nome
-                </Label>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="Seu nome"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required={!isLogin}
-                  className="bg-zinc-900/70 border-2 border-zinc-700/50 focus:border-cyan-500/50 text-white placeholder:text-zinc-500 h-11 rounded-lg transition-all"
-                />
-              </div>
-            )}
-
+          <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-white font-medium">
+              <Label htmlFor="email" className="text-zinc-300 font-medium text-sm">
                 Email
               </Label>
               <Input
@@ -142,12 +99,12 @@ export default function Auth() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="bg-zinc-900/70 border-2 border-zinc-700/50 focus:border-cyan-500/50 text-white placeholder:text-zinc-500 h-11 rounded-lg transition-all"
+                className="bg-zinc-800/50 border border-zinc-700 focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 text-white placeholder:text-zinc-500 h-12 rounded-xl transition-all"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-white font-medium">
+              <Label htmlFor="password" className="text-zinc-300 font-medium text-sm">
                 Senha
               </Label>
               <Input
@@ -158,36 +115,55 @@ export default function Auth() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="bg-zinc-900/70 border-2 border-zinc-700/50 focus:border-cyan-500/50 text-white placeholder:text-zinc-500 h-11 rounded-lg transition-all"
+                className="bg-zinc-800/50 border border-zinc-700 focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 text-white placeholder:text-zinc-500 h-12 rounded-xl transition-all"
               />
             </div>
 
             <Button
               type="submit"
-              className="w-full h-11 bg-gradient-to-r from-cyan-500 to-orange-500 hover:from-cyan-600 hover:to-orange-600 text-white font-bold rounded-lg shadow-lg shadow-cyan-500/20 transition-all"
+              className="w-full h-12 bg-gradient-to-r from-cyan-500 to-cyan-400 hover:from-cyan-400 hover:to-cyan-300 text-zinc-900 font-bold rounded-xl shadow-lg shadow-cyan-500/25 transition-all hover:shadow-cyan-500/40 hover:scale-[1.02] active:scale-[0.98]"
               disabled={loading}
             >
-              {loading
-                ? "Carregando..."
-                : isLogin
-                ? "Entrar"
-                : "Criar Conta"}
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-zinc-900/30 border-t-zinc-900 rounded-full animate-spin" />
+                  Entrando...
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Lock className="w-4 h-4" />
+                  Entrar
+                </span>
+              )}
             </Button>
           </form>
 
-          {/* Toggle login/signup */}
-          <div className="mt-6 pt-6 border-t border-zinc-700/50 text-center">
-            <button
-              type="button"
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-sm text-gray-400 hover:text-cyan-400 transition-colors font-medium"
-            >
-              {isLogin
-                ? "Não tem uma conta? Cadastre-se"
-                : "Já tem uma conta? Faça login"}
-            </button>
+          {/* Info cards */}
+          <div className="mt-8 space-y-3">
+            <div className="flex items-center gap-3 p-3 bg-zinc-800/30 rounded-xl border border-zinc-700/50">
+              <div className="p-2 rounded-lg bg-orange-500/10">
+                <Shield className="w-4 h-4 text-orange-400" />
+              </div>
+              <p className="text-zinc-400 text-sm">
+                Cadastro não disponível. Acesso apenas para usuários autorizados.
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-3 p-3 bg-zinc-800/30 rounded-xl border border-zinc-700/50">
+              <div className="p-2 rounded-lg bg-cyan-500/10">
+                <Clock className="w-4 h-4 text-cyan-400" />
+              </div>
+              <p className="text-zinc-400 text-sm">
+                Sessão expira após 24 horas de inatividade.
+              </p>
+            </div>
           </div>
         </div>
+
+        {/* Footer */}
+        <p className="text-center text-zinc-600 text-xs mt-6">
+          © 2024 ShopDash. Todos os direitos reservados.
+        </p>
       </div>
     </div>
   );
