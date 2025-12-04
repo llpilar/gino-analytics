@@ -367,6 +367,7 @@ const OrdersTable = () => {
                   Total Venta
                 </div>
               </TableHead>
+              <TableHead className="text-zinc-500 font-semibold text-right">Costo Envío</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -389,6 +390,7 @@ const OrdersTable = () => {
               
               // Get guide info
               const guide = order.guide || order.guides?.[0];
+              const shippingCost = parseFloat(guide?.total_freight_store || order.shipping_cost || 0);
               
               // Get city name
               const cityName = order.customer?.city?.name || order.customer?.city || order.city || 'N/A';
@@ -436,6 +438,11 @@ const OrdersTable = () => {
                   <TableCell className="text-right">
                     <span className="font-mono font-bold text-emerald-400">
                       {formatCOP(orderTotal)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <span className="font-mono text-amber-400">
+                      {formatCOP(shippingCost)}
                     </span>
                   </TableCell>
                 </TableRow>
