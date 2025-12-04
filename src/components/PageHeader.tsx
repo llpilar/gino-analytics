@@ -1,5 +1,4 @@
 import { ReactNode } from "react";
-import { DateFilter } from "./DateFilter";
 
 interface PageHeaderProps {
   title: string;
@@ -9,7 +8,7 @@ interface PageHeaderProps {
 
 export const PageHeader = ({ title, subtitle, icon }: PageHeaderProps) => {
   return (
-    <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div className="mb-8">
       {/* Title Section */}
       <div className="flex items-center gap-4">
         {icon && (
@@ -25,14 +24,6 @@ export const PageHeader = ({ title, subtitle, icon }: PageHeaderProps) => {
             <p className="text-gray-400 text-sm md:text-base mt-1">{subtitle}</p>
           )}
         </div>
-      </div>
-
-      {/* Filter Section */}
-      <div className="flex items-center gap-3">
-        <span className="text-xs text-gray-400 uppercase tracking-wider font-semibold hidden md:block">
-          Período:
-        </span>
-        <DateFilter />
       </div>
     </div>
   );
