@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { DashboardWrapper } from "@/components/DashboardWrapper";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -7,11 +8,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Package, Truck, Store, AlertCircle, RefreshCw, Box, 
   Clock, TrendingUp, MapPin, Hash, User, DollarSign,
-  CheckCircle2, XCircle, Timer, Warehouse
+  CheckCircle2, XCircle, Timer, Warehouse, CalendarIcon
 } from "lucide-react";
 import { useHokoStore, useHokoOrders, useHokoProducts, useHokoProductsWithStock } from "@/hooks/useHokoData";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format, isWithinInterval, startOfDay, endOfDay, parseISO } from "date-fns";
+import { es } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 const formatCOP = (value: number): string => {
   return new Intl.NumberFormat('es-CO', {
@@ -269,6 +275,8 @@ const StatsGrid = () => {
 
 const OrdersTable = () => {
   const { data: ordersData, isLoading, error, refetch, isFetching } = useHokoOrders();
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
 
   if (isLoading) {
     return (
@@ -296,10 +304,40 @@ const OrdersTable = () => {
     );
   }
 
-  const orders = Array.isArray(ordersData?.data) ? ordersData.data : 
+  const allOrders = Array.isArray(ordersData?.data) ? ordersData.data : 
                  Array.isArray(ordersData) ? ordersData : [];
 
-  if (orders.length === 0) {
+  // Filter orders by date
+  const orders = allOrders.filter((order: any) => {
+    if (!dateFrom && !dateTo) return true;
+    
+    const orderDate = order.created_at ? parseISO(order.created_at) : null;
+    if (!orderDate) return true;
+    
+    if (dateFrom && dateTo) {
+      return isWithinInterval(orderDate, { 
+        start: startOfDay(dateFrom), 
+        end: endOfDay(dateTo) 
+      });
+    }
+    
+    if (dateFrom) {
+      return orderDate >= startOfDay(dateFrom);
+    }
+    
+    if (dateTo) {
+      return orderDate <= endOfDay(dateTo);
+    }
+    
+    return true;
+  });
+
+  const clearFilters = () => {
+    setDateFrom(undefined);
+    setDateTo(undefined);
+  };
+
+  if (allOrders.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
         <div className="p-4 rounded-2xl bg-zinc-800/50 border border-zinc-700/50 mb-4">
@@ -313,7 +351,82 @@ const OrdersTable = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      {/* Filter Controls */}
+      <div className="flex flex-wrap gap-3 items-center justify-between">
+        <div className="flex flex-wrap gap-3 items-center">
+          {/* Date From */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "gap-2 rounded-xl border-zinc-700 hover:border-zinc-600",
+                  dateFrom && "border-cyan-500/50 bg-cyan-500/10"
+                )}
+              >
+                <CalendarIcon className="h-4 w-4" />
+                {dateFrom ? format(dateFrom, "dd/MM/yyyy", { locale: es }) : "Desde"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 bg-zinc-900 border-zinc-700" align="start">
+              <Calendar
+                mode="single"
+                selected={dateFrom}
+                onSelect={setDateFrom}
+                initialFocus
+                className="p-3 pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
+
+          {/* Date To */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "gap-2 rounded-xl border-zinc-700 hover:border-zinc-600",
+                  dateTo && "border-cyan-500/50 bg-cyan-500/10"
+                )}
+              >
+                <CalendarIcon className="h-4 w-4" />
+                {dateTo ? format(dateTo, "dd/MM/yyyy", { locale: es }) : "Hasta"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 bg-zinc-900 border-zinc-700" align="start">
+              <Calendar
+                mode="single"
+                selected={dateTo}
+                onSelect={setDateTo}
+                initialFocus
+                className="p-3 pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
+
+          {/* Clear Filters */}
+          {(dateFrom || dateTo) && (
+            <Button 
+              onClick={clearFilters} 
+              variant="ghost" 
+              size="sm"
+              className="gap-2 text-zinc-400 hover:text-white"
+            >
+              <XCircle className="h-4 w-4" />
+              Limpiar
+            </Button>
+          )}
+
+          {/* Results count */}
+          {(dateFrom || dateTo) && (
+            <Badge variant="outline" className="border-zinc-700 text-zinc-400">
+              {orders.length} de {allOrders.length} pedidos
+            </Badge>
+          )}
+        </div>
+
         <Button 
           onClick={() => refetch()} 
           variant="outline" 
