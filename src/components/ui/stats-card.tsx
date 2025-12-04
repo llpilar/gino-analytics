@@ -1,4 +1,4 @@
-import { LucideIcon } from "lucide-react";
+import { LucideIcon, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type CardColorVariant = "cyan" | "purple" | "green" | "orange" | "pink" | "blue";
@@ -13,63 +13,50 @@ interface StatsCardProps {
   hoverable?: boolean;
   className?: string;
   children?: React.ReactNode;
+  showLiveIndicator?: boolean;
 }
 
 const colorClasses: Record<CardColorVariant, {
   border: string;
-  shadow: string;
-  gradient: string;
-  iconBg: string;
-  iconBorder: string;
-  iconColor: string;
+  glow: string;
+  bg: string;
+  text: string;
 }> = {
   cyan: {
-    border: "border-neon-cyan/30",
-    shadow: "shadow-neon-cyan/10",
-    gradient: "from-neon-cyan to-neon-blue",
-    iconBg: "bg-neon-cyan/10",
-    iconBorder: "border-neon-cyan/20",
-    iconColor: "text-neon-cyan",
+    border: "border-neon-cyan/40",
+    glow: "shadow-neon-cyan/30",
+    bg: "bg-neon-cyan/10",
+    text: "text-neon-cyan",
   },
   purple: {
-    border: "border-neon-purple/30",
-    shadow: "shadow-neon-purple/10",
-    gradient: "from-neon-purple to-neon-pink",
-    iconBg: "bg-neon-purple/10",
-    iconBorder: "border-neon-purple/20",
-    iconColor: "text-neon-purple",
+    border: "border-neon-purple/40",
+    glow: "shadow-neon-purple/30",
+    bg: "bg-neon-purple/10",
+    text: "text-neon-purple",
   },
   green: {
-    border: "border-neon-green/30",
-    shadow: "shadow-neon-green/10",
-    gradient: "from-neon-green to-neon-green-light",
-    iconBg: "bg-neon-green/10",
-    iconBorder: "border-neon-green/20",
-    iconColor: "text-neon-green",
+    border: "border-neon-green/40",
+    glow: "shadow-neon-green/30",
+    bg: "bg-neon-green/10",
+    text: "text-neon-green",
   },
   orange: {
-    border: "border-neon-orange/30",
-    shadow: "shadow-neon-orange/10",
-    gradient: "from-neon-orange to-neon-orange-light",
-    iconBg: "bg-neon-orange/10",
-    iconBorder: "border-neon-orange/20",
-    iconColor: "text-neon-orange",
+    border: "border-neon-orange/40",
+    glow: "shadow-neon-orange/30",
+    bg: "bg-neon-orange/10",
+    text: "text-neon-orange",
   },
   pink: {
-    border: "border-neon-pink/30",
-    shadow: "shadow-neon-pink/10",
-    gradient: "from-neon-pink to-neon-purple",
-    iconBg: "bg-neon-pink/10",
-    iconBorder: "border-neon-pink/20",
-    iconColor: "text-neon-pink",
+    border: "border-neon-pink/40",
+    glow: "shadow-neon-pink/30",
+    bg: "bg-neon-pink/10",
+    text: "text-neon-pink",
   },
   blue: {
-    border: "border-neon-blue/30",
-    shadow: "shadow-neon-blue/10",
-    gradient: "from-neon-blue to-neon-cyan",
-    iconBg: "bg-neon-blue/10",
-    iconBorder: "border-neon-blue/20",
-    iconColor: "text-neon-blue",
+    border: "border-neon-blue/40",
+    glow: "shadow-neon-blue/30",
+    bg: "bg-neon-blue/10",
+    text: "text-neon-blue",
   },
 };
 
@@ -83,72 +70,53 @@ export const StatsCard = ({
   hoverable = true,
   className,
   children,
+  showLiveIndicator = false,
 }: StatsCardProps) => {
   const colors = colorClasses[color];
 
   return (
     <article
       className={cn(
-        "group relative p-4 md:p-6 rounded-2xl bg-surface-elevated border-2 backdrop-blur-xl overflow-hidden transition-all duration-300",
-        colors.border,
-        `shadow-2xl ${colors.shadow}`,
+        "p-4 md:p-6 rounded-2xl bg-surface-elevated border-2 backdrop-blur-xl",
+        "transition-all duration-300",
+        colors.border, colors.glow, "shadow-lg",
         hoverable && "hover:scale-[1.02] cursor-pointer",
-        "animate-fade-in",
+        "animate-fade-in-up",
         className
       )}
       role="region"
       aria-label={`${title}: ${value}`}
     >
-      {/* Glow effect */}
-      <div
-        className={cn(
-          "absolute inset-0 bg-gradient-to-br opacity-5 group-hover:opacity-10 transition-opacity",
-          colors.gradient
-        )}
-        aria-hidden="true"
-      />
-
-      {/* Content */}
-      <div className="relative z-10">
-        <div className="flex items-start justify-between mb-3 md:mb-4">
-          <div
-            className={cn(
-              "p-2.5 md:p-3 rounded-xl border",
-              colors.iconBg,
-              colors.iconBorder
-            )}
-          >
-            <Icon className={cn("h-5 w-5 md:h-6 md:w-6", colors.iconColor)} aria-hidden="true" />
-          </div>
+      {/* Header with icon and title */}
+      <div className="flex items-center gap-3 mb-3">
+        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center border", colors.bg, colors.border)}>
+          <Icon className={cn("w-5 h-5", colors.text)} aria-hidden="true" />
         </div>
-
-        <h3 className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
-          {title}
-        </h3>
-        <div
-          className={cn(
-            "text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r",
-            colors.gradient
-          )}
-        >
-          {value}
+        <div className="flex-1 min-w-0">
+          <h3 className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-wider truncate">
+            {title}
+          </h3>
         </div>
-        {subtitle && (
-          <p className={cn("text-xs md:text-sm mt-2 font-medium", subtitleColor)}>
-            {subtitle}
-          </p>
-        )}
-        {children}
       </div>
-
-      {/* Animated border on hover */}
-      <div
-        className={cn(
-          "absolute inset-0 rounded-2xl border-2 opacity-0 group-hover:opacity-100 animate-pulse-glow transition-opacity",
-          colors.border
-        )}
-        aria-hidden="true"
-      />
+      
+      {/* Value */}
+      <div className={cn("text-2xl md:text-3xl font-black truncate", colors.text)}>
+        {value}
+      </div>
+      
+      {/* Subtitle or Live indicator */}
+      {subtitle ? (
+        <p className={cn("text-xs md:text-sm mt-2 font-medium", subtitleColor)}>
+          {subtitle}
+        </p>
+      ) : showLiveIndicator ? (
+        <div className="flex items-center gap-1 mt-2">
+          <TrendingUp className={cn("w-3 h-3", colors.text)} aria-hidden="true" />
+          <span className={cn("text-xs font-semibold", colors.text)}>Ao vivo</span>
+        </div>
+      ) : null}
+      
+      {children}
     </article>
   );
 };
@@ -173,22 +141,21 @@ export const SectionCard = ({
   return (
     <section
       className={cn(
-        "p-4 md:p-6 rounded-2xl bg-surface-elevated border-2 backdrop-blur-xl animate-fade-in",
-        colors.border,
-        `shadow-2xl ${colors.shadow}`,
+        "p-4 md:p-6 rounded-2xl bg-surface-elevated border-2 backdrop-blur-xl",
+        colors.border, colors.glow, "shadow-lg",
+        "animate-fade-in",
         className
       )}
       aria-label={title}
     >
       {title && (
-        <header className="flex items-center gap-2 mb-4 md:mb-6">
-          {Icon && <Icon className={cn("h-5 w-5 md:h-6 md:w-6", colors.iconColor)} aria-hidden="true" />}
-          <h2
-            className={cn(
-              "text-lg md:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r",
-              colors.gradient
-            )}
-          >
+        <header className="flex items-center gap-3 mb-4 md:mb-6">
+          {Icon && (
+            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center border", colors.bg, colors.border)}>
+              <Icon className={cn("w-5 h-5", colors.text)} aria-hidden="true" />
+            </div>
+          )}
+          <h2 className={cn("text-lg md:text-xl font-black", colors.text)}>
             {title}
           </h2>
         </header>
