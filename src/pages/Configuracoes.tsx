@@ -1,12 +1,26 @@
 import { DashboardWrapper } from "@/components/DashboardWrapper";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Bell, Shield } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { User, Bell, Shield, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { ProfileEditor } from "@/components/ProfileEditor";
 import { PageHeader } from "@/components/PageHeader";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Configuracoes() {
-  const { profile, user } = useAuth();
+  const { profile, user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    await signOut();
+    toast({
+      title: "Logout realizado",
+      description: "Você foi desconectado com sucesso.",
+    });
+    navigate("/auth");
+  };
 
   return (
     <DashboardWrapper>
@@ -59,8 +73,16 @@ export default function Configuracoes() {
               </div>
               <CardDescription className="text-gray-400">Gerencie a segurança da sua conta</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <p className="text-gray-400 text-sm">Em breve: Alteração de senha e autenticação</p>
+              <Button
+                onClick={handleLogout}
+                variant="outline"
+                className="w-full border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sair da conta
+              </Button>
             </CardContent>
           </Card>
         </div>
