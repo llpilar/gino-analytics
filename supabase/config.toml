@@ -1,16 +1,16 @@
 project_id = "eyevvanvdvcxdqyxzwfr"
 
 [functions.facebook-ads]
-verify_jwt = false
+verify_jwt = true
 
 [functions.shopify-data]
-verify_jwt = false
+verify_jwt = true
 
 [functions.sales-analysis]
-verify_jwt = false
+verify_jwt = true
 
 [functions.get-mapbox-token]
 verify_jwt = false
 
 [functions.hoko-api]
-verify_jwt = false
+verify_jwt = true

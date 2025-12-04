@@ -155,9 +155,25 @@ export const uploadReceipt = async (file: File): Promise<string | null> => {
     return null;
   }
   
-  const { data: { publicUrl } } = supabase.storage
-    .from('expense-receipts')
-    .getPublicUrl(fileName);
+  // Return the file path - we'll generate signed URLs when displaying
+  return fileName;
+};
+
+// Generate a signed URL for viewing a receipt (expires in 1 hour)
+export const getReceiptSignedUrl = async (filePath: string): Promise<string | null> => {
+  // If it's already a full URL (legacy public URLs), return as-is
+  if (filePath.startsWith('http')) {
+    return filePath;
+  }
   
-  return publicUrl;
+  const { data, error } = await supabase.storage
+    .from('expense-receipts')
+    .createSignedUrl(filePath, 3600); // 1 hour expiry
+  
+  if (error) {
+    console.error('Error generating signed URL:', error);
+    return null;
+  }
+  
+  return data.signedUrl;
 };
