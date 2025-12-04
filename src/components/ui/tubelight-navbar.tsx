@@ -7,7 +7,6 @@ import { LucideIcon, CalendarIcon, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useCurrency } from "@/contexts/CurrencyContext"
 import { useDateFilter } from "@/contexts/DateFilterContext"
-import { Switch } from "@/components/ui/switch"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -157,25 +156,29 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
         {showCurrencyToggle && (
           <>
             <div className="h-6 w-px bg-neon-cyan/30 mx-1 hidden sm:block" aria-hidden="true" />
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5">
-              <span className={cn(
-                "text-xs font-bold transition-colors",
-                currency === 'COP' ? 'text-neon-cyan' : 'text-muted-foreground'
+            <div 
+              className="hidden sm:flex items-center bg-zinc-950 border border-zinc-800 rounded-full p-1 cursor-pointer"
+              onClick={() => setCurrency(currency === 'COP' ? 'BRL' : 'COP')}
+              role="button"
+              tabIndex={0}
+              aria-label={`Moeda atual: ${currency}. Clique para trocar.`}
+            >
+              <div className={cn(
+                "px-3 py-1 rounded-full text-xs font-bold transition-all duration-300",
+                currency === 'COP' 
+                  ? 'bg-zinc-800 text-white' 
+                  : 'text-zinc-500'
               )}>
                 COP
-              </span>
-              <Switch
-                checked={currency === 'BRL'}
-                onCheckedChange={handleCurrencyToggle}
-                className="data-[state=checked]:bg-neon-green data-[state=unchecked]:bg-neon-cyan h-5 w-9"
-                aria-label={`Moeda atual: ${currency}. Clique para trocar.`}
-              />
-              <span className={cn(
-                "text-xs font-bold transition-colors",
-                currency === 'BRL' ? 'text-neon-green' : 'text-muted-foreground'
+              </div>
+              <div className={cn(
+                "px-3 py-1 rounded-full text-xs font-bold transition-all duration-300",
+                currency === 'BRL' 
+                  ? 'bg-zinc-800 text-white' 
+                  : 'text-zinc-500'
               )}>
                 BRL
-              </span>
+              </div>
             </div>
 
             {/* Date Filter */}
