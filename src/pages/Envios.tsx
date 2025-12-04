@@ -17,6 +17,7 @@ import { format, isWithinInterval, startOfDay, endOfDay, parseISO } from "date-f
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useDateFilter } from "@/contexts/DateFilterContext";
+import { HyperText } from "@/components/ui/hyper-text";
 
 const formatCOP = (value: number): string => {
   return new Intl.NumberFormat('es-CO', {
@@ -167,9 +168,10 @@ const HeroSection = () => {
             </div>
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight">
-                  Envios & Fulfillment
-                </h1>
+                <HyperText 
+                  text="Envios & Fulfillment" 
+                  className="text-3xl md:text-4xl font-black text-white tracking-tight"
+                />
                 <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30">
                   <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                   <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Conectado</span>
