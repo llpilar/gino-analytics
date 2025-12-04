@@ -7,7 +7,7 @@ import { PinContainer } from "./ui/3d-pin";
 import { useShopifyRevenueToday, useShopifyAnalytics } from "@/hooks/useShopifyData";
 import { format } from "date-fns";
 import { Skeleton } from "./ui/skeleton";
-import { LayoutDashboard, BarChart3, Package, Settings } from "lucide-react";
+import { LayoutDashboard, BarChart3, Package, Settings, Wallet } from "lucide-react";
 import { NotificationCenter } from "./NotificationCenter";
 import { ComparisonBadge } from "./ComparisonBadge";
 import { useDailyComparison } from "@/hooks/useComparisonMetrics";
@@ -62,6 +62,7 @@ export const LiveCommandCenter = () => {
     { name: 'Dashboard', url: '/', icon: LayoutDashboard },
     { name: 'Analytics', url: '/analises', icon: BarChart3 },
     { name: 'Products', url: '/produtos', icon: Package },
+    { name: 'Contas', url: '/contas', icon: Wallet },
     { name: 'Settings', url: '/configuracoes', icon: Settings }
   ];
 
