@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Package, Truck, Store, AlertCircle, RefreshCw, Box, 
   Clock, TrendingUp, MapPin, Hash, User, DollarSign,
-  CheckCircle2, XCircle, Timer, Warehouse, CalendarIcon
+  CheckCircle2, XCircle, Timer, Warehouse, CalendarIcon, Wallet
 } from "lucide-react";
 import { useHokoStore, useHokoOrders, useHokoProducts, useHokoProductsWithStock } from "@/hooks/useHokoData";
 import { Button } from "@/components/ui/button";
@@ -211,62 +211,70 @@ const StatsGrid = () => {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {[1, 2, 3, 4].map((i) => (
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        {[1, 2, 3, 4, 5].map((i) => (
           <Skeleton key={i} className="h-36 rounded-2xl" />
         ))}
       </div>
     );
   }
 
-  const stockItems: any[] = Array.isArray(stockData?.data) ? stockData.data : 
-                Array.isArray(stockData) ? stockData : [];
   const orders: any[] = Array.isArray(ordersData?.data) ? ordersData.data : 
                 Array.isArray(ordersData) ? ordersData : [];
 
-  const totalStock = stockItems.reduce((acc, p) => acc + (p.stock?.[0]?.amount || p.stock || 0), 0);
   const totalOrders = orders.length;
   
-  // Count orders by delivery state
-  // 1=Creada, 2=En proceso, 3=Despachada, 4=Finalizada, 5=Cancelada, 6=En Novedad
-  const enProceso = orders.filter((o) => parseInt(o.delivery_state) === 2).length;
-  const despachadas = orders.filter((o) => parseInt(o.delivery_state) === 3).length;
-  const entregadas = orders.filter((o) => parseInt(o.delivery_state) === 4).length;
-  const enNovedad = orders.filter((o) => parseInt(o.delivery_state) === 6).length;
+  // Count orders by different categories based on Hoko statuses
+  // delivery_state: 1=Creada, 2=En proceso, 3=Despachada, 4=Finalizada, 5=Cancelada, 6=En Novedad
+  const enProceso = orders.filter((o) => [1, 2, 3].includes(parseInt(o.delivery_state))).length;
+  const creditoEntregadas = orders.filter((o) => parseInt(o.delivery_state) === 4 && o.payment_type === 'credit').length;
+  const recaudoEntregadas = orders.filter((o) => parseInt(o.delivery_state) === 4 && o.payment_type !== 'credit').length;
+  const recaudoPagadas = orders.filter((o) => parseInt(o.delivery_state) === 4 && o.is_paid === true).length;
+  const devoluciones = orders.filter((o) => [5, 6].includes(parseInt(o.delivery_state))).length;
+
+  const getPercent = (value: number) => totalOrders > 0 ? ((value / totalOrders) * 100).toFixed(2) : '0';
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
       <StatCard 
-        title="Entregadas" 
-        value={entregadas} 
-        subtitle="Pedidos finalizados"
-        icon={CheckCircle2} 
-        gradient="from-emerald-600 to-green-600"
+        title="En Proceso" 
+        value={`${enProceso} (${getPercent(enProceso)}%)`} 
+        subtitle="Pedidos en preparación/tránsito"
+        icon={Timer} 
+        gradient="from-blue-600 to-cyan-600"
         delay={0}
       />
       <StatCard 
-        title="Despachadas" 
-        value={despachadas} 
-        subtitle="En camino al cliente"
-        icon={Truck} 
-        gradient="from-blue-600 to-cyan-600"
+        title="Crédito Entregadas" 
+        value={`${creditoEntregadas} (${getPercent(creditoEntregadas)}%)`} 
+        subtitle="Pagos a crédito entregados"
+        icon={CheckCircle2} 
+        gradient="from-emerald-600 to-green-600"
         delay={100}
       />
       <StatCard 
-        title="En Proceso" 
-        value={enProceso} 
-        subtitle="Preparando envío"
-        icon={Timer} 
-        gradient="from-amber-600 to-orange-600"
+        title="Recaudo Entregadas" 
+        value={`${recaudoEntregadas} (${getPercent(recaudoEntregadas)}%)`} 
+        subtitle="Contraentrega entregados"
+        icon={DollarSign} 
+        gradient="from-blue-700 to-indigo-600"
         delay={200}
       />
       <StatCard 
-        title="En Novedad" 
-        value={enNovedad} 
-        subtitle="Requieren atención"
-        icon={AlertCircle} 
-        gradient="from-rose-600 to-pink-600"
+        title="Recaudo Pagadas" 
+        value={`${recaudoPagadas} (${getPercent(recaudoPagadas)}%)`} 
+        subtitle="Contraentrega pagados"
+        icon={Wallet} 
+        gradient="from-zinc-600 to-zinc-700"
         delay={300}
+      />
+      <StatCard 
+        title="Devoluciones" 
+        value={`${devoluciones} (${getPercent(devoluciones)}%)`} 
+        subtitle="Cancelados/Devueltos"
+        icon={XCircle} 
+        gradient="from-rose-600 to-pink-600"
+        delay={400}
       />
     </div>
   );

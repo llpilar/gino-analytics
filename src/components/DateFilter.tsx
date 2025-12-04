@@ -1,54 +1,55 @@
-import { Calendar } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useDateFilter, DateFilterPeriod } from "@/contexts/DateFilterContext";
-
-const periodLabels: Record<DateFilterPeriod, string> = {
-  today: 'Hoje',
-  yesterday: 'Ontem',
-  week: 'Esta Semana',
-  month: 'Este Mês',
-  max: 'Máximo (90 dias)'
-};
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useDateFilter } from "@/contexts/DateFilterContext";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 export const DateFilter = () => {
-  const { period, setPeriod } = useDateFilter();
+  const { dateRange, setCustomRange } = useDateFilter();
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+    <Popover>
+      <PopoverTrigger asChild>
         <Button 
           variant="ghost"
-          size="icon"
-          className="relative glass-card hover:bg-zinc-800/50"
+          size="sm"
+          className={cn(
+            "gap-2 rounded-full bg-zinc-900/80 border border-zinc-700/50 backdrop-blur-xl hover:bg-zinc-800/50 h-9 px-4",
+            (dateRange.from || dateRange.to) && "border-primary/50"
+          )}
         >
-          <Calendar className="h-5 w-5 text-white" />
+          <CalendarIcon className="h-4 w-4 text-primary" />
+          <span className="text-xs font-medium text-white">
+            {dateRange.from ? (
+              dateRange.to ? (
+                <>
+                  {format(dateRange.from, "dd/MM", { locale: es })} - {format(dateRange.to, "dd/MM", { locale: es })}
+                </>
+              ) : (
+                format(dateRange.from, "dd/MM/yyyy", { locale: es })
+              )
+            ) : (
+              "Período"
+            )}
+          </span>
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent 
-        align="end" 
-        className="bg-zinc-900/95 border-zinc-800 backdrop-blur-xl min-w-[200px]"
+      </PopoverTrigger>
+      <PopoverContent 
+        className="w-auto p-0 bg-zinc-900/95 border-zinc-700 backdrop-blur-xl" 
+        align="end"
       >
-        {(Object.keys(periodLabels) as DateFilterPeriod[]).map((p) => (
-          <DropdownMenuItem
-            key={p}
-            onClick={() => setPeriod(p)}
-            className={`cursor-pointer ${
-              period === p 
-                ? 'bg-primary/20 text-primary font-bold' 
-                : 'text-white hover:bg-zinc-800/50 hover:text-white'
-            }`}
-          >
-            <Calendar className="h-4 w-4 mr-2" />
-            {periodLabels[p]}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+        <Calendar
+          mode="range"
+          selected={dateRange}
+          onSelect={(range) => setCustomRange(range?.from, range?.to)}
+          numberOfMonths={2}
+          initialFocus
+          className="p-3 pointer-events-auto"
+        />
+      </PopoverContent>
+    </Popover>
   );
 };
