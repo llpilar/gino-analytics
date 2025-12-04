@@ -1,6 +1,7 @@
-import { Card } from "@/components/ui/card";
 import { Eye, ShoppingCart, TrendingUp, Package } from "lucide-react";
 import { useLiveShopify } from "@/hooks/useLiveShopify";
+import { StatsCard, CardColorVariant } from "@/components/ui/stats-card";
+import { LucideIcon } from "lucide-react";
 
 const EXCHANGE_RATE = 0.0011; // 1 COP = 0.0011 BRL
 
@@ -24,12 +25,12 @@ const formatBRL = (copValue: number) => {
 export const LiveMetrics = () => {
   const { data, isLoading } = useLiveShopify();
 
-  const metricCards = [
+  const metricCards: { title: string; value: number; icon: LucideIcon; color: CardColorVariant; format: (val: number) => string; conversion?: (val: number) => string; showConversion: boolean }[] = [
     {
       title: "Pedidos Hoje",
       value: data?.orderCount || 0,
       icon: ShoppingCart,
-      color: "text-green-500",
+      color: "green",
       format: (val: number) => val.toString(),
       showConversion: false,
     },
@@ -37,7 +38,7 @@ export const LiveMetrics = () => {
       title: "Faturamento Hoje",
       value: data?.totalRevenue || 0,
       icon: TrendingUp,
-      color: "text-purple-500",
+      color: "purple",
       format: (val: number) => formatCOP(val),
       conversion: (val: number) => formatBRL(val),
       showConversion: true,
@@ -46,7 +47,7 @@ export const LiveMetrics = () => {
       title: "Produtos Ativos",
       value: data?.products?.length || 0,
       icon: Package,
-      color: "text-blue-500",
+      color: "blue",
       format: (val: number) => val.toString(),
       showConversion: false,
     },
@@ -56,7 +57,7 @@ export const LiveMetrics = () => {
         ? (data?.totalRevenue || 0) / data.orderCount 
         : 0,
       icon: Eye,
-      color: "text-orange-500",
+      color: "orange",
       format: (val: number) => formatCOP(val),
       conversion: (val: number) => formatBRL(val),
       showConversion: true,
@@ -66,26 +67,20 @@ export const LiveMetrics = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {metricCards.map((metric) => (
-        <Card key={metric.title} className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <p className="text-sm text-muted-foreground">{metric.title}</p>
-              <p className="text-2xl font-bold mt-2">
-                {isLoading ? "..." : metric.format(metric.value)}
-              </p>
-              {metric.showConversion && !isLoading && metric.conversion && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  ≈ {metric.conversion(metric.value)}
-                </p>
-              )}
-            </div>
-            <metric.icon className={`h-8 w-8 ${metric.color}`} />
-          </div>
+        <StatsCard
+          key={metric.title}
+          title={metric.title}
+          value={isLoading ? "..." : metric.format(metric.value)}
+          subtitle={metric.showConversion && !isLoading && metric.conversion ? `≈ ${metric.conversion(metric.value)}` : undefined}
+          subtitleColor="text-muted-foreground"
+          icon={metric.icon}
+          color={metric.color}
+        >
           <div className="mt-2 flex items-center text-xs text-muted-foreground">
             <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
             Ao vivo
           </div>
-        </Card>
+        </StatsCard>
       ))}
     </div>
   );

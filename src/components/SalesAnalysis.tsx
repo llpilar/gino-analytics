@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { Card } from "./ui/card";
 import { Brain, TrendingUp, AlertCircle, Lightbulb, DollarSign } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "./ui/skeleton";
+import { SectionCard } from "@/components/ui/stats-card";
+import { cn } from "@/lib/utils";
 
 interface AnalysisInsight {
   type: 'success' | 'warning' | 'info';
@@ -70,27 +71,23 @@ export const SalesAnalysis = () => {
   const getTypeStyles = (type: string) => {
     switch (type) {
       case 'success':
-        return 'border-green-500/20 bg-green-500/5';
+        return 'border-green-500/30 bg-green-500/5';
       case 'warning':
-        return 'border-yellow-500/20 bg-yellow-500/5';
+        return 'border-yellow-500/30 bg-yellow-500/5';
       default:
-        return 'border-blue-500/20 bg-blue-500/5';
+        return 'border-blue-500/30 bg-blue-500/5';
     }
   };
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center gap-3 mb-6">
-          <Brain className="w-6 h-6 text-primary" />
-          <h2 className="text-2xl font-bold text-white">Análises e Recomendações</h2>
-        </div>
+      <SectionCard title="Análises e Recomendações" icon={Brain} color="purple">
         <div className="grid gap-4">
-          <Skeleton className="h-32 bg-zinc-800/50" />
-          <Skeleton className="h-32 bg-zinc-800/50" />
-          <Skeleton className="h-32 bg-zinc-800/50" />
+          <Skeleton className="h-32 bg-purple-500/10" />
+          <Skeleton className="h-32 bg-purple-500/10" />
+          <Skeleton className="h-32 bg-purple-500/10" />
         </div>
-      </div>
+      </SectionCard>
     );
   }
 
@@ -101,12 +98,8 @@ export const SalesAnalysis = () => {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-3 mb-6">
-        <Brain className="w-6 h-6 text-primary" />
-        <h2 className="text-2xl font-bold text-white">Análises e Recomendações</h2>
-        <span className="text-xs text-zinc-500 ml-auto">Atualizado há poucos minutos</span>
-      </div>
+    <SectionCard title="Análises e Recomendações" icon={Brain} color="purple">
+      <span className="text-xs text-zinc-500 block mb-4">Atualizado há poucos minutos</span>
 
       <div className="grid gap-4">
         {insights.map((insight, index) => (
@@ -125,8 +118,12 @@ export const SalesAnalysis = () => {
               }}
             >
               {/* Frente do Card */}
-              <Card 
-                className={`p-4 md:p-6 border-2 ${getTypeStyles(insight.type)} ${insight.flipped ? 'invisible' : 'visible'}`}
+              <div 
+                className={cn(
+                  "p-4 md:p-6 rounded-xl border-2 bg-black/40",
+                  getTypeStyles(insight.type),
+                  insight.flipped ? 'invisible' : 'visible'
+                )}
                 style={{ backfaceVisibility: 'hidden' }}
               >
                 <div className="flex items-start gap-3 md:gap-4">
@@ -143,11 +140,15 @@ export const SalesAnalysis = () => {
                     <p className="text-xs text-zinc-500">Clique para ver a recomendação</p>
                   </div>
                 </div>
-              </Card>
+              </div>
 
               {/* Verso do Card */}
-              <Card 
-                className={`absolute top-0 left-0 right-0 bottom-0 p-4 md:p-6 border-2 flex items-center ${getTypeStyles(insight.type)} ${insight.flipped ? 'visible' : 'invisible'}`}
+              <div 
+                className={cn(
+                  "absolute top-0 left-0 right-0 bottom-0 p-4 md:p-6 rounded-xl border-2 flex items-center bg-black/40",
+                  getTypeStyles(insight.type),
+                  insight.flipped ? 'visible' : 'invisible'
+                )}
                 style={{ 
                   backfaceVisibility: 'hidden',
                   transform: 'rotateX(180deg)'
@@ -155,32 +156,28 @@ export const SalesAnalysis = () => {
               >
                 <div className="w-full space-y-3 md:space-y-4">
                   <div className="flex items-start gap-2">
-                    <DollarSign className="w-4 md:w-5 h-4 md:h-5 text-primary mt-0.5 flex-shrink-0" />
+                    <DollarSign className="w-4 md:w-5 h-4 md:h-5 text-purple-400 mt-0.5 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs md:text-sm font-semibold text-primary mb-2">Recomendação:</p>
+                      <p className="text-xs md:text-sm font-semibold text-purple-400 mb-2">Recomendação:</p>
                       <p className="text-sm md:text-base text-zinc-300 break-words">{insight.recommendation}</p>
                     </div>
                   </div>
                   <p className="text-xs text-zinc-500 text-center">Clique para voltar</p>
                 </div>
-              </Card>
+              </div>
             </div>
           </div>
         ))}
 
         {insights.length === 0 && (
-          <Card className="p-8 text-center border-zinc-800 bg-zinc-900/50">
+          <div className="p-8 text-center rounded-xl bg-black/40 border border-purple-500/20">
             <Brain className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
             <p className="text-zinc-400">
               Coletando dados para gerar análises...
             </p>
-          </Card>
+          </div>
         )}
       </div>
-    </div>
+    </SectionCard>
   );
 };
-
-function cn(...classes: any[]) {
-  return classes.filter(Boolean).join(' ');
-}
