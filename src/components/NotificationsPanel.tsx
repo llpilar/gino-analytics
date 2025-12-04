@@ -1,8 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useShopifyOrders } from "@/hooks/useShopifyData";
 import { ShoppingBag, Package, Eye, EyeOff } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { SectionCard } from "@/components/ui/stats-card";
 
 interface OrderItem {
   name: string;
@@ -58,29 +58,27 @@ export const NotificationsPanel = () => {
   };
 
   return (
-    <Card className="glass-card border-zinc-800 flex flex-col h-full max-h-[600px]">
-      <CardHeader className="pb-4 flex-shrink-0">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-lg shadow-primary/50" />
-            <CardTitle className="text-base font-bold tracking-wider uppercase text-white">
-              Novas Vendas
-            </CardTitle>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setBlurProductNames(!blurProductNames)}
-            className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-zinc-800"
-            title={blurProductNames ? "Mostrar nomes dos produtos" : "Ocultar nomes dos produtos"}
-          >
-            {blurProductNames ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-          </Button>
+    <SectionCard color="green" className="flex flex-col h-full max-h-[600px]">
+      <div className="flex items-center justify-between mb-4 flex-shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-lg shadow-green-500/50" />
+          <h3 className="text-base font-bold tracking-wider uppercase text-white">
+            Novas Vendas
+          </h3>
         </div>
-        <p className="text-xs text-zinc-400">Últimos pedidos em tempo real</p>
-      </CardHeader>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setBlurProductNames(!blurProductNames)}
+          className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-zinc-800"
+          title={blurProductNames ? "Mostrar nomes dos produtos" : "Ocultar nomes dos produtos"}
+        >
+          {blurProductNames ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        </Button>
+      </div>
+      <p className="text-xs text-zinc-400 mb-4">Últimos pedidos em tempo real</p>
       
-      <CardContent className="space-y-3 flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
+      <div className="space-y-3 flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
         {isLoading ? (
           <div className="loading-pulse text-center py-8 text-zinc-500">
             <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
@@ -101,20 +99,17 @@ export const NotificationsPanel = () => {
             return (
               <div 
                 key={order.id}
-                className="relative backdrop-blur-xl bg-gradient-to-br from-white/10 to-white/5 rounded-2xl p-4 border border-white/20 shadow-2xl hover:shadow-primary/20 transition-all duration-300 animate-fade-in"
-                style={{
-                  boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 0 20px rgba(255, 255, 255, 0.05)'
-                }}
+                className="relative rounded-xl p-4 bg-black/40 border border-green-500/20 hover:bg-green-500/10 transition-all duration-300 animate-fade-in"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30 shadow-lg flex-shrink-0">
-                    <ShoppingBag className="w-6 h-6 text-primary" />
+                  <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center border border-green-500/30 shadow-lg flex-shrink-0">
+                    <ShoppingBag className="w-6 h-6 text-green-400" />
                   </div>
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <h4 className="font-bold text-white text-base truncate">{order.name}</h4>
-                      <span className="text-base font-bold text-primary shrink-0">
+                      <span className="text-base font-bold text-green-400 shrink-0">
                         {formatCurrency(order.amount, order.currency)}
                       </span>
                     </div>
@@ -130,7 +125,7 @@ export const NotificationsPanel = () => {
                   </div>
                 </div>
                 
-                <div className="mt-3 flex items-center gap-2 text-primary">
+                <div className="mt-3 flex items-center gap-2 text-green-400">
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
                     <polyline points="17 6 23 6 23 12"></polyline>
@@ -141,7 +136,7 @@ export const NotificationsPanel = () => {
             );
           })
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </SectionCard>
   );
 };

@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MapPin, TrendingUp, DollarSign } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSalesLocation } from "@/hooks/useSalesLocation";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { SectionCard, StatsCard } from "@/components/ui/stats-card";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
@@ -185,42 +185,36 @@ export const SalesMap = () => {
 
   if (!isTokenSet) {
     return (
-      <Card className="bg-black/80 border-2 border-cyan-500/30 backdrop-blur-xl">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <MapPin className="h-6 w-6 text-cyan-400" />
-            <h3 className="text-xl font-bold text-cyan-400">Configurar Mapa</h3>
-          </div>
-          <p className="text-gray-400 text-sm mb-4">
-            Para visualizar o mapa de vendas, adicione seu token público do Mapbox.
-            <br />
-            Obtenha em: <a href="https://mapbox.com/" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">mapbox.com</a>
-          </p>
-          <div className="flex gap-2">
-            <Input
-              type="text"
-              placeholder="Cole seu Mapbox Public Token"
-              value={tempToken}
-              onChange={(e) => setTempToken(e.target.value)}
-              className="flex-1 bg-black/50 border-cyan-500/30 text-white"
-            />
-            <Button onClick={handleSetToken} className="bg-cyan-500 hover:bg-cyan-600">
-              Salvar
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <SectionCard title="Configurar Mapa" icon={MapPin} color="cyan">
+        <p className="text-gray-400 text-sm mb-4">
+          Para visualizar o mapa de vendas, adicione seu token público do Mapbox.
+          <br />
+          Obtenha em: <a href="https://mapbox.com/" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">mapbox.com</a>
+        </p>
+        <div className="flex gap-2">
+          <Input
+            type="text"
+            placeholder="Cole seu Mapbox Public Token"
+            value={tempToken}
+            onChange={(e) => setTempToken(e.target.value)}
+            className="flex-1 bg-black/50 border-cyan-500/30 text-white"
+          />
+          <Button onClick={handleSetToken} className="bg-cyan-500 hover:bg-cyan-600">
+            Salvar
+          </Button>
+        </div>
+      </SectionCard>
     );
   }
 
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <Skeleton className="h-[500px] w-full" />
+        <Skeleton className="h-[500px] w-full bg-cyan-500/10" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Skeleton className="h-24" />
-          <Skeleton className="h-24" />
-          <Skeleton className="h-24" />
+          <Skeleton className="h-24 bg-cyan-500/10" />
+          <Skeleton className="h-24 bg-cyan-500/10" />
+          <Skeleton className="h-24 bg-cyan-500/10" />
         </div>
       </div>
     );
@@ -229,38 +223,36 @@ export const SalesMap = () => {
   return (
     <div className="space-y-6">
       {/* Map */}
-      <Card className="bg-black/80 border-2 border-cyan-500/30 backdrop-blur-xl overflow-hidden">
-        <CardContent className="p-0">
-          <div ref={mapContainer} className="w-full h-[500px]" />
-          <style>{`
-            .sale-marker {
-              transition: transform 0.3s ease;
+      <div className="rounded-xl overflow-hidden border-2 border-cyan-500/30">
+        <div ref={mapContainer} className="w-full h-[500px]" />
+        <style>{`
+          .sale-marker {
+            transition: transform 0.3s ease;
+          }
+          .sale-marker:hover {
+            transform: scale(1.2);
+            z-index: 1000;
+          }
+          @keyframes pulse {
+            0%, 100% {
+              opacity: 1;
+              transform: scale(1);
             }
-            .sale-marker:hover {
-              transform: scale(1.2);
-              z-index: 1000;
+            50% {
+              opacity: 0.7;
+              transform: scale(1.15);
             }
-            @keyframes pulse {
-              0%, 100% {
-                opacity: 1;
-                transform: scale(1);
-              }
-              50% {
-                opacity: 0.7;
-                transform: scale(1.15);
-              }
-            }
-            .mapboxgl-popup-content {
-              background: transparent !important;
-              padding: 0 !important;
-              box-shadow: none !important;
-            }
-            .mapboxgl-popup-tip {
-              border-top-color: rgba(0, 0, 0, 0.9) !important;
-            }
-          `}</style>
-        </CardContent>
-      </Card>
+          }
+          .mapboxgl-popup-content {
+            background: transparent !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+          }
+          .mapboxgl-popup-tip {
+            border-top-color: rgba(0, 0, 0, 0.9) !important;
+          }
+        `}</style>
+      </div>
 
       {/* Top Countries */}
       {data?.metrics && data.metrics.length > 0 && (
@@ -268,60 +260,55 @@ export const SalesMap = () => {
           <h3 className="text-lg font-semibold text-white">Top Países</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {data.metrics.slice(0, 3).map((metric, index) => (
-              <Card 
-                key={metric.countryCode}
-                className="bg-black/80 border-2 border-green-500/30 backdrop-blur-xl hover:scale-[1.02] transition-transform"
-              >
-                <CardContent className="p-5">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center border border-green-500/30 shrink-0">
-                        <span className="text-sm font-bold text-green-400">#{index + 1}</span>
-                      </div>
-                      <h3 className="font-bold text-white truncate">{metric.country}</h3>
+              <SectionCard key={metric.countryCode} color="green">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center border border-green-500/30 shrink-0">
+                      <span className="text-sm font-bold text-green-400">#{index + 1}</span>
                     </div>
-                    <MapPin className="h-5 w-5 text-green-400 shrink-0" />
+                    <h3 className="font-bold text-white truncate">{metric.country}</h3>
+                  </div>
+                  <MapPin className="h-5 w-5 text-green-400 shrink-0" />
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs text-gray-400 whitespace-nowrap">Receita Total</span>
+                    <span className="text-base font-bold text-green-400 truncate">
+                      {formatCurrency(metric.totalRevenue)}
+                    </span>
                   </div>
                   
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs text-gray-400 whitespace-nowrap">Receita Total</span>
-                      <span className="text-base font-bold text-green-400 truncate">
-                        {formatCurrency(metric.totalRevenue)}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs text-gray-400 flex items-center gap-1 whitespace-nowrap">
-                        <TrendingUp className="h-3 w-3 shrink-0" />
-                        Pedidos
-                      </span>
-                      <span className="text-sm font-bold text-white">
-                        {metric.orderCount}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs text-gray-400 flex items-center gap-1 whitespace-nowrap">
-                        <DollarSign className="h-3 w-3 shrink-0" />
-                        Ticket Médio
-                      </span>
-                      <span className="text-sm font-bold text-cyan-400 truncate">
-                        {formatCurrency(metric.avgOrderValue)}
-                      </span>
-                    </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs text-gray-400 flex items-center gap-1 whitespace-nowrap">
+                      <TrendingUp className="h-3 w-3 shrink-0" />
+                      Pedidos
+                    </span>
+                    <span className="text-sm font-bold text-white">
+                      {metric.orderCount}
+                    </span>
                   </div>
+                  
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs text-gray-400 flex items-center gap-1 whitespace-nowrap">
+                      <DollarSign className="h-3 w-3 shrink-0" />
+                      Ticket Médio
+                    </span>
+                    <span className="text-sm font-bold text-cyan-400 truncate">
+                      {formatCurrency(metric.avgOrderValue)}
+                    </span>
+                  </div>
+                </div>
 
-                  <div className="mt-4 h-2 bg-gray-800 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full transition-all duration-500"
-                      style={{ 
-                        width: `${Math.min((metric.totalRevenue / (data.metrics[0]?.totalRevenue || 1)) * 100, 100)}%` 
-                      }}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+                <div className="mt-4 h-2 bg-black/40 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full transition-all duration-500"
+                    style={{ 
+                      width: `${Math.min((metric.totalRevenue / (data.metrics[0]?.totalRevenue || 1)) * 100, 100)}%` 
+                    }}
+                  />
+                </div>
+              </SectionCard>
             ))}
           </div>
         </div>
@@ -333,62 +320,57 @@ export const SalesMap = () => {
           <h3 className="text-lg font-semibold text-white">Top 5 Cidades</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
             {data.topCities.map((city: any, index: number) => (
-              <Card 
-                key={`${city.city}-${city.countryCode}`}
-                className="bg-black/80 border-2 border-cyan-500/30 backdrop-blur-xl hover:scale-[1.02] transition-transform"
-              >
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between mb-4 gap-2">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30 shrink-0">
-                        <span className="text-sm font-bold text-cyan-400">#{index + 1}</span>
-                      </div>
-                      <div className="min-w-0">
-                        <h3 className="font-bold text-white truncate">{city.city}</h3>
-                        <p className="text-xs text-gray-400 truncate">{city.country}</p>
-                      </div>
+              <SectionCard key={`${city.city}-${city.countryCode}`} color="cyan">
+                <div className="flex items-start justify-between mb-4 gap-2">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30 shrink-0">
+                      <span className="text-sm font-bold text-cyan-400">#{index + 1}</span>
                     </div>
+                    <div className="min-w-0">
+                      <h3 className="font-bold text-white truncate">{city.city}</h3>
+                      <p className="text-xs text-gray-400 truncate">{city.country}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs text-gray-400 whitespace-nowrap">Receita</span>
+                    <span className="text-base font-bold text-cyan-400 truncate">
+                      {formatCurrency(city.totalRevenue)}
+                    </span>
                   </div>
                   
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs text-gray-400 whitespace-nowrap">Receita</span>
-                      <span className="text-base font-bold text-cyan-400 truncate">
-                        {formatCurrency(city.totalRevenue)}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs text-gray-400 flex items-center gap-1 whitespace-nowrap">
-                        <TrendingUp className="h-3 w-3 shrink-0" />
-                        Pedidos
-                      </span>
-                      <span className="text-sm font-bold text-white">
-                        {city.orderCount}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs text-gray-400 flex items-center gap-1 whitespace-nowrap">
-                        <DollarSign className="h-3 w-3 shrink-0" />
-                        Ticket
-                      </span>
-                      <span className="text-sm font-bold text-purple-400 truncate">
-                        {formatCurrency(city.avgOrderValue)}
-                      </span>
-                    </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs text-gray-400 flex items-center gap-1 whitespace-nowrap">
+                      <TrendingUp className="h-3 w-3 shrink-0" />
+                      Pedidos
+                    </span>
+                    <span className="text-sm font-bold text-white">
+                      {city.orderCount}
+                    </span>
                   </div>
+                  
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs text-gray-400 flex items-center gap-1 whitespace-nowrap">
+                      <DollarSign className="h-3 w-3 shrink-0" />
+                      Ticket
+                    </span>
+                    <span className="text-sm font-bold text-purple-400 truncate">
+                      {formatCurrency(city.avgOrderValue)}
+                    </span>
+                  </div>
+                </div>
 
-                  <div className="mt-4 h-2 bg-gray-800 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-500"
-                      style={{ 
-                        width: `${Math.min((city.totalRevenue / (data.topCities[0]?.totalRevenue || 1)) * 100, 100)}%` 
-                      }}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+                <div className="mt-4 h-2 bg-black/40 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-500"
+                    style={{ 
+                      width: `${Math.min((city.totalRevenue / (data.topCities[0]?.totalRevenue || 1)) * 100, 100)}%` 
+                    }}
+                  />
+                </div>
+              </SectionCard>
             ))}
           </div>
         </div>
@@ -396,35 +378,33 @@ export const SalesMap = () => {
 
       {/* Summary Stats */}
       {data && (
-        <Card className="bg-black/80 border-2 border-purple-500/30 backdrop-blur-xl">
-          <CardContent className="p-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Total de Vendas</p>
-                <p className="text-2xl font-bold text-purple-400">{data.sales.length}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Países Ativos</p>
-                <p className="text-2xl font-bold text-cyan-400">{data.metrics.length}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Receita Total</p>
-                <p className="text-2xl font-bold text-green-400">
-                  {formatCurrency(data.metrics.reduce((sum, m) => sum + m.totalRevenue, 0))}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Ticket Médio Global</p>
-                <p className="text-2xl font-bold text-orange-400">
-                  {formatCurrency(
-                    data.metrics.reduce((sum, m) => sum + m.totalRevenue, 0) / 
-                    data.metrics.reduce((sum, m) => sum + m.orderCount, 1)
-                  )}
-                </p>
-              </div>
+        <SectionCard color="purple">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Total de Vendas</p>
+              <p className="text-2xl font-bold text-purple-400">{data.sales.length}</p>
             </div>
-          </CardContent>
-        </Card>
+            <div>
+              <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Países Ativos</p>
+              <p className="text-2xl font-bold text-cyan-400">{data.metrics.length}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Receita Total</p>
+              <p className="text-2xl font-bold text-green-400">
+                {formatCurrency(data.metrics.reduce((sum, m) => sum + m.totalRevenue, 0))}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Ticket Médio Global</p>
+              <p className="text-2xl font-bold text-orange-400">
+                {formatCurrency(
+                  data.metrics.reduce((sum, m) => sum + m.totalRevenue, 0) / 
+                  data.metrics.reduce((sum, m) => sum + m.orderCount, 1)
+                )}
+              </p>
+            </div>
+          </div>
+        </SectionCard>
       )}
     </div>
   );

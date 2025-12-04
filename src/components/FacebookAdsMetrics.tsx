@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Card } from "./ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { useFacebookAdAccounts, useFacebookAdInsights } from "@/hooks/useFacebookAds";
 import { Skeleton } from "./ui/skeleton";
@@ -7,6 +6,8 @@ import { Alert, AlertDescription } from "./ui/alert";
 import { Facebook, TrendingUp, MousePointer, Eye, DollarSign } from "lucide-react";
 import { useDateFilter } from "@/contexts/DateFilterContext";
 import { format } from "date-fns";
+import { StatsCard, SectionCard, CardColorVariant } from "@/components/ui/stats-card";
+import { LucideIcon } from "lucide-react";
 
 export const FacebookAdsMetrics = () => {
   const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
@@ -40,10 +41,10 @@ export const FacebookAdsMetrics = () => {
 
   if (accountsLoading) {
     return (
-      <Card className="glass-card p-6">
+      <SectionCard title="Facebook Ads" icon={Facebook} color="blue">
         <Skeleton className="h-8 w-48 mb-4" />
         <Skeleton className="h-12 w-full" />
-      </Card>
+      </SectionCard>
     );
   }
 
@@ -58,79 +59,71 @@ export const FacebookAdsMetrics = () => {
     return new Intl.NumberFormat('pt-BR').format(parseFloat(value));
   };
 
+  const metricsCards: { title: string; value: string; icon: LucideIcon; color: CardColorVariant }[] = insights ? [
+    {
+      title: "Gasto Total",
+      value: formatCurrency(insights.spend),
+      icon: DollarSign,
+      color: "orange",
+    },
+    {
+      title: "Impressões",
+      value: formatNumber(insights.impressions),
+      icon: Eye,
+      color: "blue",
+    },
+    {
+      title: "Cliques",
+      value: formatNumber(insights.clicks),
+      icon: MousePointer,
+      color: "green",
+    },
+    {
+      title: "CTR",
+      value: `${parseFloat(insights.ctr).toFixed(2)}%`,
+      icon: TrendingUp,
+      color: "purple",
+    },
+  ] : [];
+
   return (
     <div className="space-y-6">
-      <Card className="glass-card p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <Facebook className="h-6 w-6 text-blue-500" />
-          <h2 className="text-xl font-bold text-white">Facebook Ads</h2>
-        </div>
-        
+      <SectionCard title="Facebook Ads" icon={Facebook} color="blue">
         <Select value={selectedAccount || ""} onValueChange={setSelectedAccount}>
-          <SelectTrigger className="bg-zinc-800/50 border-zinc-700 text-white">
+          <SelectTrigger className="bg-black/60 border-blue-500/30 text-white focus:border-blue-500">
             <SelectValue placeholder="Selecione uma conta de anúncios" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-black/95 border-blue-500/30">
             {accounts?.map((account) => (
-              <SelectItem key={account.id} value={account.id}>
+              <SelectItem key={account.id} value={account.id} className="text-white hover:bg-blue-500/20">
                 {account.name} ({account.currency})
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-      </Card>
+      </SectionCard>
 
       {selectedAccount && (
         <>
           {insightsLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {[1, 2, 3, 4].map((i) => (
-                <Card key={i} className="glass-card p-6">
+                <SectionCard key={i} color="cyan">
                   <Skeleton className="h-12 w-full" />
-                </Card>
+                </SectionCard>
               ))}
             </div>
           ) : insights ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card className="glass-card p-6">
-                <div className="flex items-center gap-3 mb-2">
-                  <DollarSign className="h-5 w-5 text-red-400" />
-                  <p className="text-sm text-zinc-400">Gasto Total</p>
-                </div>
-                <p className="text-2xl font-bold text-white">
-                  {formatCurrency(insights.spend)}
-                </p>
-              </Card>
-
-              <Card className="glass-card p-6">
-                <div className="flex items-center gap-3 mb-2">
-                  <Eye className="h-5 w-5 text-blue-400" />
-                  <p className="text-sm text-zinc-400">Impressões</p>
-                </div>
-                <p className="text-2xl font-bold text-white">
-                  {formatNumber(insights.impressions)}
-                </p>
-              </Card>
-
-              <Card className="glass-card p-6">
-                <div className="flex items-center gap-3 mb-2">
-                  <MousePointer className="h-5 w-5 text-green-400" />
-                  <p className="text-sm text-zinc-400">Cliques</p>
-                </div>
-                <p className="text-2xl font-bold text-white">
-                  {formatNumber(insights.clicks)}
-                </p>
-              </Card>
-
-              <Card className="glass-card p-6">
-                <div className="flex items-center gap-3 mb-2">
-                  <TrendingUp className="h-5 w-5 text-purple-400" />
-                  <p className="text-sm text-zinc-400">CTR</p>
-                </div>
-                <p className="text-2xl font-bold text-white">
-                  {parseFloat(insights.ctr).toFixed(2)}%
-                </p>
-              </Card>
+              {metricsCards.map((metric) => (
+                <StatsCard
+                  key={metric.title}
+                  title={metric.title}
+                  value={metric.value}
+                  icon={metric.icon}
+                  color={metric.color}
+                />
+              ))}
             </div>
           ) : null}
         </>

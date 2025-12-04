@@ -1,10 +1,11 @@
-import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useLiveShopify } from "@/hooks/useLiveShopify";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { SectionCard } from "@/components/ui/stats-card";
+import { ShoppingCart } from "lucide-react";
 
 export const ActiveSessions = () => {
   const { data, isLoading } = useLiveShopify();
@@ -34,9 +35,8 @@ export const ActiveSessions = () => {
   const recentOrders = data?.orders?.slice(0, 10) || [];
 
   return (
-    <Card className="p-6 h-[500px]">
-      <h2 className="text-xl font-bold mb-4">Pedidos Recentes</h2>
-      <ScrollArea className="h-[420px] pr-4">
+    <SectionCard title="Pedidos Recentes" icon={ShoppingCart} color="purple" className="h-[500px]">
+      <ScrollArea className="h-[380px] pr-4">
         {isLoading ? (
           <div className="text-center text-muted-foreground py-8">
             Carregando...
@@ -57,19 +57,19 @@ export const ActiveSessions = () => {
               return (
                 <div
                   key={order.id || index}
-                  className="flex items-start space-x-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                  className="flex items-start space-x-3 p-3 rounded-lg bg-black/40 border border-purple-500/20 hover:bg-purple-500/10 transition-colors"
                 >
                   <Avatar className="h-10 w-10">
-                    <AvatarFallback className="bg-primary/10 text-primary">
+                    <AvatarFallback className="bg-purple-500/20 text-purple-400 border border-purple-500/30">
                       {order.name ? order.name.substring(1, 3) : `#${index + 1}`}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium">
+                      <p className="text-sm font-medium text-white">
                         {order.name || `Pedido #${index + 1}`}
                       </p>
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs border-purple-500/30 text-purple-400">
                         {timeAgo}
                       </Badge>
                     </div>
@@ -96,6 +96,6 @@ export const ActiveSessions = () => {
           </div>
         )}
       </ScrollArea>
-    </Card>
+    </SectionCard>
   );
 };
