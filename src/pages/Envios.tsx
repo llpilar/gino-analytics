@@ -6,11 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  Package, Truck, Store, AlertCircle, RefreshCw, Box, 
+  Package, Truck, AlertCircle, RefreshCw, Box, 
   Clock, TrendingUp, MapPin, Hash, User, DollarSign,
   CheckCircle2, XCircle, Timer, CalendarIcon, Wallet
 } from "lucide-react";
-import { useHokoStore, useHokoOrders, useHokoProducts, useHokoProductsWithStock } from "@/hooks/useHokoData";
+import { useHokoOrders, useHokoProducts, useHokoProductsWithStock } from "@/hooks/useHokoData";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 import { format, isWithinInterval, startOfDay, endOfDay, parseISO } from "date-fns";
@@ -142,45 +142,15 @@ const StatCard = ({
 );
 
 const HeroSection = () => {
-  const { data: storeData, isLoading } = useHokoStore();
-  const storeInfo = storeData?.data || storeData as any;
-
   return (
     <div className="mb-8">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <HyperText 
-              text="Envios & Fulfillment" 
-              className="text-3xl md:text-4xl font-black text-white tracking-tight"
-            />
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30">
-              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Conectado</span>
-            </div>
-          </div>
-          <p className="text-zinc-400 text-sm md:text-base">
-            Gerencie seus envios e produtos com{' '}
-            <span className="font-semibold text-white">
-              Hoko Colombia
-            </span>
-          </p>
-        </div>
-        {/* Store info badge */}
-        <div className="flex items-center gap-4">
-          {isLoading ? (
-            <Skeleton className="h-14 w-48 rounded-xl" />
-          ) : (
-            <div className="flex items-center gap-3 px-5 py-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
-              <Store className="h-5 w-5 text-zinc-400" />
-              <div>
-                <p className="text-xs text-zinc-500 uppercase tracking-wider">Loja</p>
-                <p className="text-sm font-bold text-white">{storeInfo?.name || 'Minha Loja'}</p>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+      <HyperText 
+        text="Envios & Fulfillment" 
+        className="text-3xl md:text-4xl font-black text-white tracking-tight"
+      />
+      <p className="text-zinc-400 text-sm md:text-base mt-1">
+        Gerencie seus envios e produtos com Hoko Colombia
+      </p>
     </div>
   );
 };
