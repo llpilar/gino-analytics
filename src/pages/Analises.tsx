@@ -1,5 +1,5 @@
 import { DashboardWrapper } from "@/components/DashboardWrapper";
-import { BarChart3, TrendingUp, TrendingDown, DollarSign, ShoppingCart, Users, Activity, MapPin } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Users, Activity, MapPin } from "lucide-react";
 import { SalesChart } from "@/components/SalesChart";
 import { useShopifyAnalytics, useShopifyRevenueToday } from "@/hooks/useShopifyData";
 import { useMemo } from "react";
@@ -9,6 +9,8 @@ import { ComparisonBadge } from "@/components/ComparisonBadge";
 import { VariantPerformance } from "@/components/VariantPerformance";
 import { PageHeader } from "@/components/PageHeader";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { StatsCard, SectionCard, CardColorVariant } from "@/components/ui/stats-card";
+import { LucideIcon } from "lucide-react";
 
 export default function Analises() {
   const { data: analyticsData, isLoading: analyticsLoading } = useShopifyAnalytics();
@@ -31,7 +33,7 @@ export default function Analises() {
 
     const ordersCount = revenueData?.data?.orders?.edges?.length || 0;
     const avgOrderValue = ordersCount > 0 ? totalRevenue / ordersCount : 0;
-    const conversionRate = 12.5; // Mock data
+    const conversionRate = 12.5;
     const activeUsers = Math.floor(ordersCount * 0.85);
 
     return {
@@ -40,20 +42,18 @@ export default function Analises() {
       avgOrderValue,
       conversionRate,
       activeUsers,
-      growth: 23.5 // Mock growth percentage
+      growth: 23.5
     };
   }, [revenueData]);
 
-  const statCards = [
+  const statCards: { title: string; value: string; change: string; isPositive: boolean; icon: LucideIcon; color: CardColorVariant }[] = [
     {
       title: "Total Revenue",
       value: formatCurrency(metrics.totalRevenue),
       change: `+${metrics.growth}%`,
       isPositive: true,
       icon: DollarSign,
-      color: "from-cyan-500 to-blue-500",
-      bgColor: "bg-cyan-500/10",
-      borderColor: "border-cyan-500/30"
+      color: "cyan",
     },
     {
       title: "Total Orders",
@@ -61,9 +61,7 @@ export default function Analises() {
       change: "+18.2%",
       isPositive: true,
       icon: ShoppingCart,
-      color: "from-purple-500 to-pink-500",
-      bgColor: "bg-purple-500/10",
-      borderColor: "border-purple-500/30"
+      color: "purple",
     },
     {
       title: "Avg Order Value",
@@ -71,9 +69,7 @@ export default function Analises() {
       change: "+5.4%",
       isPositive: true,
       icon: TrendingUp,
-      color: "from-green-500 to-emerald-500",
-      bgColor: "bg-green-500/10",
-      borderColor: "border-green-500/30"
+      color: "green",
     },
     {
       title: "Conversion Rate",
@@ -81,9 +77,7 @@ export default function Analises() {
       change: "-2.1%",
       isPositive: false,
       icon: Activity,
-      color: "from-orange-500 to-red-500",
-      bgColor: "bg-orange-500/10",
-      borderColor: "border-orange-500/30"
+      color: "orange",
     }
   ];
 
@@ -98,91 +92,51 @@ export default function Analises() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {statCards.map((stat, index) => {
-            const Icon = stat.icon;
-            return (
-              <div
-                key={index}
-                className={`group relative p-6 rounded-2xl bg-black/80 border-2 ${stat.borderColor} backdrop-blur-xl 
-                  hover:scale-105 transition-all duration-300 cursor-pointer overflow-hidden`}
-                style={{
-                  animationDelay: `${index * 0.1}s`,
-                }}
-              >
-                {/* Glow effect */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-5 group-hover:opacity-10 transition-opacity`} />
-                
-                {/* Content */}
-                <div className="relative z-10">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className={`p-3 rounded-xl ${stat.bgColor} border ${stat.borderColor}`}>
-                      <Icon className="h-6 w-6 text-cyan-400" />
-                    </div>
-                    <div className={`flex items-center gap-1 text-xs font-bold ${stat.isPositive ? 'text-green-400' : 'text-red-400'}`}>
-                      {stat.isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                      {stat.change}
-                    </div>
-                  </div>
-                  
-                  <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                    {stat.title}
-                  </div>
-                  <div className={`text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r ${stat.color}`}>
-                    {stat.value}
-                  </div>
-                </div>
-
-                {/* Animated border */}
-                <div className="absolute inset-0 rounded-2xl border-2 border-cyan-500/50 opacity-0 group-hover:opacity-100 animate-pulse transition-opacity" />
-              </div>
-            );
-          })}
+          {statCards.map((stat, index) => (
+            <StatsCard
+              key={index}
+              title={stat.title}
+              value={stat.value}
+              subtitle={stat.change}
+              subtitleColor={stat.isPositive ? 'text-green-400' : 'text-red-400'}
+              icon={stat.icon}
+              color={stat.color}
+            />
+          ))}
         </div>
 
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Main Sales Chart - Takes 2 columns */}
           <div className="lg:col-span-2">
-            <div className="p-6 rounded-2xl bg-black/80 border-2 border-cyan-500/30 backdrop-blur-xl shadow-2xl shadow-cyan-500/10">
+            <SectionCard color="cyan">
               <SalesChart analyticsData={analyticsData} isLoading={analyticsLoading} />
-            </div>
+            </SectionCard>
           </div>
 
           {/* Side Stats */}
           <div className="space-y-6">
             {/* Performance Score */}
-            <div className="p-6 rounded-2xl bg-black/80 border-2 border-purple-500/30 backdrop-blur-xl">
-              <div className="flex items-center gap-2 mb-4">
-                <Activity className="h-5 w-5 text-purple-400" />
-                <h3 className="text-sm font-black text-purple-400 uppercase tracking-wider">Performance Score</h3>
-              </div>
-              
+            <SectionCard title="Performance Score" icon={Activity} color="purple">
               <div className="relative">
-                <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 mb-2">
+                <div className="text-6xl font-black gradient-text-purple mb-2">
                   94
                 </div>
                 <div className="text-xs text-gray-400 uppercase tracking-wider">Excellent</div>
                 
-                {/* Progress Bar */}
                 <div className="mt-4 h-2 bg-gray-800 rounded-full overflow-hidden">
                   <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" style={{ width: '94%' }} />
                 </div>
               </div>
-            </div>
+            </SectionCard>
 
             {/* Active Users */}
-            <div className="p-6 rounded-2xl bg-black/80 border-2 border-green-500/30 backdrop-blur-xl">
-              <div className="flex items-center gap-2 mb-4">
-                <Users className="h-5 w-5 text-green-400" />
-                <h3 className="text-sm font-black text-green-400 uppercase tracking-wider">Active Now</h3>
-              </div>
-              
-              <div className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-400 mb-2">
+            <SectionCard title="Active Now" icon={Users} color="green">
+              <div className="text-5xl font-black gradient-text-green mb-2">
                 {metrics.activeUsers}
               </div>
               <div className="text-xs text-gray-400">Users shopping right now</div>
               
-              {/* Pulse indicator */}
               <div className="flex items-center gap-2 mt-4">
                 <div className="relative">
                   <div className="w-3 h-3 bg-green-500 rounded-full animate-ping absolute" />
@@ -190,7 +144,7 @@ export default function Analises() {
                 </div>
                 <span className="text-xs text-green-400 font-bold">LIVE</span>
               </div>
-            </div>
+            </SectionCard>
           </div>
         </div>
 
@@ -202,7 +156,7 @@ export default function Analises() {
             { label: "Pages/Session", value: "5.2", color: "text-purple-400" },
             { label: "Return Rate", value: "68%", color: "text-green-400" }
           ].map((item, index) => (
-            <div key={index} className="p-4 rounded-xl bg-black/60 border border-cyan-500/20 backdrop-blur-xl">
+            <div key={index} className="p-4 rounded-2xl bg-black/80 border-2 border-cyan-500/30 backdrop-blur-xl">
               <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">{item.label}</div>
               <div className={`text-2xl font-black ${item.color}`}>{item.value}</div>
             </div>
@@ -211,15 +165,9 @@ export default function Analises() {
 
         {/* Sales Map Section */}
         <div className="mb-8">
-          <div className="p-6 rounded-2xl bg-black/80 border-2 border-cyan-500/30 backdrop-blur-xl shadow-2xl shadow-cyan-500/10">
-            <div className="flex items-center gap-2 mb-6">
-              <MapPin className="h-6 w-6 text-cyan-400" />
-              <h2 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
-                Mapa de Vendas
-              </h2>
-            </div>
+          <SectionCard title="Mapa de Vendas" icon={MapPin} color="cyan">
             <SalesMap />
-          </div>
+          </SectionCard>
         </div>
 
         {/* Variant Performance Section */}
@@ -230,7 +178,7 @@ export default function Analises() {
         {/* Temporal Comparisons */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Daily Comparison */}
-          <div className="p-6 rounded-2xl bg-black/80 border-2 border-green-500/30 backdrop-blur-xl">
+          <SectionCard color="green">
             <h3 className="text-sm font-black text-gray-400 uppercase tracking-wider mb-4">Hoje vs Ontem</h3>
             {dailyComparison && (
               <div className="space-y-4">
@@ -243,7 +191,7 @@ export default function Analises() {
                       label=""
                     />
                   </div>
-                  <div className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-400">
+                  <div className="text-2xl font-black gradient-text-green">
                     {formatCurrency(dailyComparison.revenue.current)}
                   </div>
                 </div>
@@ -262,10 +210,10 @@ export default function Analises() {
                 </div>
               </div>
             )}
-          </div>
+          </SectionCard>
 
           {/* Weekly Comparison */}
-          <div className="p-6 rounded-2xl bg-black/80 border-2 border-purple-500/30 backdrop-blur-xl">
+          <SectionCard color="purple">
             <h3 className="text-sm font-black text-gray-400 uppercase tracking-wider mb-4">Semana Atual vs Anterior</h3>
             {weeklyComparison && (
               <div className="space-y-4">
@@ -278,7 +226,7 @@ export default function Analises() {
                       label=""
                     />
                   </div>
-                  <div className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+                  <div className="text-2xl font-black gradient-text-purple">
                     {formatCurrency(weeklyComparison.revenue.current)}
                   </div>
                 </div>
@@ -297,10 +245,10 @@ export default function Analises() {
                 </div>
               </div>
             )}
-          </div>
+          </SectionCard>
 
           {/* Monthly Comparison */}
-          <div className="p-6 rounded-2xl bg-black/80 border-2 border-cyan-500/30 backdrop-blur-xl">
+          <SectionCard color="cyan">
             <h3 className="text-sm font-black text-gray-400 uppercase tracking-wider mb-4">Mês Atual vs Anterior</h3>
             {monthlyComparison && (
               <div className="space-y-4">
@@ -313,7 +261,7 @@ export default function Analises() {
                       label=""
                     />
                   </div>
-                  <div className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
+                  <div className="text-2xl font-black gradient-text-cyan">
                     {formatCurrency(monthlyComparison.revenue.current)}
                   </div>
                 </div>
@@ -332,7 +280,7 @@ export default function Analises() {
                 </div>
               </div>
             )}
-          </div>
+          </SectionCard>
         </div>
       </div>
     </DashboardWrapper>

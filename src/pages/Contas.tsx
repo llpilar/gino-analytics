@@ -6,8 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Trash2, Plus, Settings, DollarSign, TrendingUp, TrendingDown, Users, Wallet, ImageIcon, X, Eye, Loader2 } from "lucide-react";
+import { Trash2, Plus, Settings, DollarSign, TrendingUp, TrendingDown, Users, ImageIcon, X, Eye, Loader2 } from "lucide-react";
 import { useExpenses, usePartnersConfig, useAddExpense, useDeleteExpense, useUpdatePartnersConfig, uploadReceipt, getReceiptSignedUrl } from "@/hooks/useExpenses";
+import { StatsCard, SectionCard, CardColorVariant } from "@/components/ui/stats-card";
+import { LucideIcon } from "lucide-react";
 
 const formatBRL = (value: number): string => {
   return new Intl.NumberFormat('pt-BR', { 
@@ -159,14 +161,12 @@ export default function Contas() {
     );
   }
 
-  const statCards = [
+  const statCards: { title: string; value: string; subtitle?: string; subtitleColor?: string; icon: LucideIcon; color: CardColorVariant }[] = [
     {
       title: "Total Gasto",
       value: formatBRL(totalExpenses),
       icon: DollarSign,
-      color: "from-cyan-500 to-blue-500",
-      bgColor: "bg-cyan-500/10",
-      borderColor: "border-cyan-500/30"
+      color: "cyan",
     },
     {
       title: partner1,
@@ -174,9 +174,7 @@ export default function Contas() {
       subtitle: partner1Balance > 0 ? `Receber ${formatBRL(partner1Balance)}` : partner1Balance < 0 ? `Deve ${formatBRL(Math.abs(partner1Balance))}` : 'Equilibrado',
       subtitleColor: partner1Balance > 0 ? 'text-green-400' : partner1Balance < 0 ? 'text-red-400' : 'text-gray-400',
       icon: Users,
-      color: "from-purple-500 to-pink-500",
-      bgColor: "bg-purple-500/10",
-      borderColor: "border-purple-500/30"
+      color: "purple",
     },
     {
       title: partner2,
@@ -184,9 +182,7 @@ export default function Contas() {
       subtitle: partner2Balance > 0 ? `Receber ${formatBRL(partner2Balance)}` : partner2Balance < 0 ? `Deve ${formatBRL(Math.abs(partner2Balance))}` : 'Equilibrado',
       subtitleColor: partner2Balance > 0 ? 'text-green-400' : partner2Balance < 0 ? 'text-red-400' : 'text-gray-400',
       icon: Users,
-      color: "from-orange-500 to-red-500",
-      bgColor: "bg-orange-500/10",
-      borderColor: "border-orange-500/30"
+      color: "orange",
     },
     {
       title: "Acerto",
@@ -196,9 +192,7 @@ export default function Contas() {
       subtitle: partner1Balance !== 0 ? formatBRL(Math.abs(partner1Balance)) : undefined,
       subtitleColor: 'text-green-400',
       icon: partner1Balance >= 0 ? TrendingUp : TrendingDown,
-      color: "from-green-500 to-emerald-500",
-      bgColor: "bg-green-500/10",
-      borderColor: "border-green-500/30"
+      color: "green",
     }
   ];
 
@@ -260,53 +254,21 @@ export default function Contas() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {statCards.map((stat, index) => {
-            const Icon = stat.icon;
-            return (
-              <div
-                key={index}
-                className={`group relative p-6 rounded-2xl bg-black/80 border-2 ${stat.borderColor} backdrop-blur-xl 
-                  hover:scale-105 transition-all duration-300 cursor-pointer overflow-hidden`}
-              >
-                {/* Glow effect */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-5 group-hover:opacity-10 transition-opacity`} />
-                
-                {/* Content */}
-                <div className="relative z-10">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className={`p-3 rounded-xl ${stat.bgColor} border ${stat.borderColor}`}>
-                      <Icon className="h-6 w-6 text-cyan-400" />
-                    </div>
-                  </div>
-                  
-                  <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                    {stat.title}
-                  </div>
-                  <div className={`text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r ${stat.color}`}>
-                    {stat.value}
-                  </div>
-                  {stat.subtitle && (
-                    <div className={`text-sm mt-2 font-bold ${stat.subtitleColor}`}>
-                      {stat.subtitle}
-                    </div>
-                  )}
-                </div>
-
-                {/* Animated border */}
-                <div className="absolute inset-0 rounded-2xl border-2 border-cyan-500/50 opacity-0 group-hover:opacity-100 animate-pulse transition-opacity" />
-              </div>
-            );
-          })}
+          {statCards.map((stat, index) => (
+            <StatsCard
+              key={index}
+              title={stat.title}
+              value={stat.value}
+              subtitle={stat.subtitle}
+              subtitleColor={stat.subtitleColor}
+              icon={stat.icon}
+              color={stat.color}
+            />
+          ))}
         </div>
 
         {/* Add Expense Form */}
-        <div className="p-6 rounded-2xl bg-black/80 border-2 border-cyan-500/30 backdrop-blur-xl shadow-2xl shadow-cyan-500/10 mb-8">
-          <div className="flex items-center gap-2 mb-6">
-            <Plus className="h-6 w-6 text-cyan-400" />
-            <h2 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
-              Nova Despesa
-            </h2>
-          </div>
+        <SectionCard title="Nova Despesa" icon={Plus} color="cyan" className="mb-8">
           
           <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4">
             <div className="md:col-span-2">
@@ -407,16 +369,10 @@ export default function Contas() {
               )}
             </div>
           </div>
-        </div>
+        </SectionCard>
 
         {/* Expenses Table */}
-        <div className="p-6 rounded-2xl bg-black/80 border-2 border-purple-500/30 backdrop-blur-xl shadow-2xl shadow-purple-500/10">
-          <div className="flex items-center gap-2 mb-6">
-            <DollarSign className="h-6 w-6 text-purple-400" />
-            <h2 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
-              Histórico de Despesas
-            </h2>
-          </div>
+        <SectionCard title="Histórico de Despesas" icon={DollarSign} color="purple">
           
           <div className="overflow-x-auto">
             <Table>
@@ -493,7 +449,7 @@ export default function Contas() {
               </TableBody>
             </Table>
           </div>
-        </div>
+        </SectionCard>
 
         {/* Receipt View Dialog */}
         <Dialog open={!!receiptFilePath} onOpenChange={() => setReceiptFilePath(null)}>

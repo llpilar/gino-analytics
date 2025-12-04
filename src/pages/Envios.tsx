@@ -18,6 +18,8 @@ import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useDateFilter } from "@/contexts/DateFilterContext";
 import { HyperText } from "@/components/ui/hyper-text";
+import { StatsCard, SectionCard, CardColorVariant } from "@/components/ui/stats-card";
+import { LucideIcon } from "lucide-react";
 
 const formatCOP = (value: number): string => {
   return new Intl.NumberFormat('es-CO', {
@@ -99,47 +101,6 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
-const StatCard = ({ 
-  title, 
-  value, 
-  subtitle,
-  icon: Icon, 
-  gradient,
-  delay = 0
-}: { 
-  title: string; 
-  value: string | number; 
-  subtitle?: string;
-  icon: any; 
-  gradient: string;
-  delay?: number;
-}) => (
-  <div 
-    className="group relative overflow-hidden rounded-2xl border border-white/5 bg-black/40 backdrop-blur-xl p-6 transition-all duration-500 hover:border-white/10 hover:bg-black/50"
-    style={{ animationDelay: `${delay}ms` }}
-  >
-    {/* Gradient background effect */}
-    <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br ${gradient}`} />
-    
-    {/* Glow effect */}
-    <div className={`absolute -top-20 -right-20 w-40 h-40 rounded-full blur-3xl opacity-20 bg-gradient-to-br ${gradient}`} />
-    
-    <div className="relative z-10">
-      <div className="flex items-start justify-between mb-4">
-        <div className={`p-3 rounded-xl bg-gradient-to-br ${gradient} shadow-lg`}>
-          <Icon className="h-5 w-5 text-white" />
-        </div>
-        <TrendingUp className="h-4 w-4 text-emerald-400 opacity-60" />
-      </div>
-      
-      <p className="text-sm font-medium text-zinc-500 uppercase tracking-wider mb-1">{title}</p>
-      <p className="text-3xl font-black text-white tracking-tight">{value}</p>
-      {subtitle && (
-        <p className="text-xs text-zinc-500 mt-2">{subtitle}</p>
-      )}
-    </div>
-  </div>
-);
 
 const HeroSection = () => {
   return (
@@ -199,48 +160,26 @@ const StatsGrid = () => {
 
   const getPercent = (value: number) => totalOrders > 0 ? ((value / totalOrders) * 100).toFixed(2) : '0';
 
+  const statsConfig: { title: string; value: string; subtitle: string; icon: LucideIcon; color: CardColorVariant }[] = [
+    { title: "Em Processo", value: `${enProceso} (${getPercent(enProceso)}%)`, subtitle: "Pedidos em preparação/trânsito", icon: Timer, color: "cyan" },
+    { title: "Crédito Entregues", value: `${creditoEntregadas} (${getPercent(creditoEntregadas)}%)`, subtitle: "Pagamentos a crédito entregues", icon: CheckCircle2, color: "green" },
+    { title: "Cobrança Entregues", value: `${recaudoEntregadas} (${getPercent(recaudoEntregadas)}%)`, subtitle: "Contra-entrega entregues", icon: DollarSign, color: "purple" },
+    { title: "Cobrança Pagas", value: `${recaudoPagadas} (${getPercent(recaudoPagadas)}%)`, subtitle: "Contra-entrega pagas", icon: Wallet, color: "cyan" },
+    { title: "Devoluções", value: `${devoluciones} (${getPercent(devoluciones)}%)`, subtitle: "Cancelados/Devolvidos", icon: XCircle, color: "orange" },
+  ];
+
   return (
     <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-      <StatCard 
-        title="Em Processo" 
-        value={`${enProceso} (${getPercent(enProceso)}%)`} 
-        subtitle="Pedidos em preparação/trânsito"
-        icon={Timer} 
-        gradient="from-blue-600 to-cyan-600"
-        delay={0}
-      />
-      <StatCard 
-        title="Crédito Entregues" 
-        value={`${creditoEntregadas} (${getPercent(creditoEntregadas)}%)`} 
-        subtitle="Pagamentos a crédito entregues"
-        icon={CheckCircle2} 
-        gradient="from-emerald-600 to-green-600"
-        delay={100}
-      />
-      <StatCard 
-        title="Cobrança Entregues" 
-        value={`${recaudoEntregadas} (${getPercent(recaudoEntregadas)}%)`} 
-        subtitle="Contra-entrega entregues"
-        icon={DollarSign} 
-        gradient="from-blue-700 to-indigo-600"
-        delay={200}
-      />
-      <StatCard 
-        title="Cobrança Pagas" 
-        value={`${recaudoPagadas} (${getPercent(recaudoPagadas)}%)`} 
-        subtitle="Contra-entrega pagas"
-        icon={Wallet} 
-        gradient="from-zinc-600 to-zinc-700"
-        delay={300}
-      />
-      <StatCard 
-        title="Devoluções" 
-        value={`${devoluciones} (${getPercent(devoluciones)}%)`} 
-        subtitle="Cancelados/Devolvidos"
-        icon={XCircle} 
-        gradient="from-rose-600 to-pink-600"
-        delay={400}
-      />
+      {statsConfig.map((stat, index) => (
+        <StatsCard
+          key={index}
+          title={stat.title}
+          value={stat.value}
+          subtitle={stat.subtitle}
+          icon={stat.icon}
+          color={stat.color}
+        />
+      ))}
     </div>
   );
 };
