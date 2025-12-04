@@ -48,7 +48,7 @@ export default function Analises() {
 
   const statCards: { title: string; value: string; change: string; isPositive: boolean; icon: LucideIcon; color: CardColorVariant }[] = [
     {
-      title: "Total Revenue",
+      title: "Receita Total",
       value: formatCurrency(metrics.totalRevenue),
       change: `+${metrics.growth}%`,
       isPositive: true,
@@ -56,7 +56,7 @@ export default function Analises() {
       color: "cyan",
     },
     {
-      title: "Total Orders",
+      title: "Total de Pedidos",
       value: metrics.ordersCount.toString(),
       change: "+18.2%",
       isPositive: true,
@@ -64,7 +64,7 @@ export default function Analises() {
       color: "purple",
     },
     {
-      title: "Avg Order Value",
+      title: "Ticket Médio",
       value: formatCurrency(metrics.avgOrderValue),
       change: "+5.4%",
       isPositive: true,
@@ -72,7 +72,7 @@ export default function Analises() {
       color: "green",
     },
     {
-      title: "Conversion Rate",
+      title: "Taxa de Conversão",
       value: `${metrics.conversionRate}%`,
       change: "-2.1%",
       isPositive: false,
@@ -86,7 +86,7 @@ export default function Analises() {
       <div className="container mx-auto p-6 md:p-8 lg:p-12 min-h-screen">
         {/* Header */}
         <PageHeader 
-          title="Analytics Command"
+          title="Central de Análises"
           subtitle="Monitoramento de desempenho em tempo real"
         />
 
@@ -117,12 +117,12 @@ export default function Analises() {
           {/* Side Stats */}
           <div className="space-y-6">
             {/* Performance Score */}
-            <SectionCard title="Performance Score" icon={Activity} color="purple">
+            <SectionCard title="Pontuação de Performance" icon={Activity} color="purple">
               <div className="relative">
                 <div className="text-6xl font-black gradient-text-purple mb-2">
                   94
                 </div>
-                <div className="text-xs text-gray-400 uppercase tracking-wider">Excellent</div>
+                <div className="text-xs text-gray-400 uppercase tracking-wider">Excelente</div>
                 
                 <div className="mt-4 h-2 bg-gray-800 rounded-full overflow-hidden">
                   <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" style={{ width: '94%' }} />
@@ -131,18 +131,18 @@ export default function Analises() {
             </SectionCard>
 
             {/* Active Users */}
-            <SectionCard title="Active Now" icon={Users} color="green">
+            <SectionCard title="Ativos Agora" icon={Users} color="green">
               <div className="text-5xl font-black gradient-text-green mb-2">
                 {metrics.activeUsers}
               </div>
-              <div className="text-xs text-gray-400">Users shopping right now</div>
+              <div className="text-xs text-gray-400">Usuários comprando agora</div>
               
               <div className="flex items-center gap-2 mt-4">
                 <div className="relative">
                   <div className="w-3 h-3 bg-green-500 rounded-full animate-ping absolute" />
                   <div className="w-3 h-3 bg-green-500 rounded-full" />
                 </div>
-                <span className="text-xs text-green-400 font-bold">LIVE</span>
+                <span className="text-xs text-green-400 font-bold">AO VIVO</span>
               </div>
             </SectionCard>
           </div>
@@ -151,10 +151,10 @@ export default function Analises() {
         {/* Bottom Stats Bar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
-            { label: "Bounce Rate", value: "32.4%", color: "text-orange-400" },
-            { label: "Session Duration", value: "4:32", color: "text-cyan-400" },
-            { label: "Pages/Session", value: "5.2", color: "text-purple-400" },
-            { label: "Return Rate", value: "68%", color: "text-green-400" }
+            { label: "Taxa de Rejeição", value: "32.4%", color: "text-orange-400" },
+            { label: "Duração da Sessão", value: "4:32", color: "text-cyan-400" },
+            { label: "Páginas/Sessão", value: "5.2", color: "text-purple-400" },
+            { label: "Taxa de Retorno", value: "68%", color: "text-green-400" }
           ].map((item, index) => (
             <div key={index} className="p-4 rounded-2xl bg-black/80 border-2 border-cyan-500/30 backdrop-blur-xl">
               <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">{item.label}</div>
@@ -184,7 +184,7 @@ export default function Analises() {
               <div className="space-y-4">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-gray-500">Revenue</span>
+                    <span className="text-xs text-gray-500">Receita</span>
                     <ComparisonBadge 
                       changePercent={dailyComparison.revenue.changePercent}
                       isPositive={dailyComparison.revenue.isPositive}
@@ -219,7 +219,7 @@ export default function Analises() {
               <div className="space-y-4">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-gray-500">Revenue</span>
+                    <span className="text-xs text-gray-500">Receita</span>
                     <ComparisonBadge 
                       changePercent={weeklyComparison.revenue.changePercent}
                       isPositive={weeklyComparison.revenue.isPositive}
@@ -254,7 +254,7 @@ export default function Analises() {
               <div className="space-y-4">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-gray-500">Revenue</span>
+                    <span className="text-xs text-gray-500">Receita</span>
                     <ComparisonBadge 
                       changePercent={monthlyComparison.revenue.changePercent}
                       isPositive={monthlyComparison.revenue.isPositive}
