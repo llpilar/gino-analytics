@@ -67,12 +67,17 @@ export function Globe({
   let theta = 0.5
   let width = 0
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const pointerInteracting = useRef<{ x: number; y: number } | null>(null)
   const pointerInteractionMovement = useRef({ x: 0, y: 0 })
+  const lastPinchDistance = useRef<number | null>(null)
   const [rotation, setRotation] = useState({ x: 0, y: 0 })
+  const [scale, setScale] = useState(1)
+  const [isInteracting, setIsInteracting] = useState(false)
 
   const updatePointerInteraction = (value: { x: number; y: number } | null) => {
     pointerInteracting.current = value
+    setIsInteracting(!!value)
     if (canvasRef.current) {
       canvasRef.current.style.cursor = value ? "grabbing" : "grab"
     }
@@ -87,13 +92,46 @@ export function Globe({
     }
   }
 
+  // Handle mouse wheel zoom
+  const handleWheel = useCallback((e: WheelEvent) => {
+    e.preventDefault()
+    const delta = e.deltaY * -0.001
+    setScale(prev => Math.min(Math.max(prev + delta, 0.5), 2.5))
+  }, [])
+
+  // Handle pinch zoom
+  const handleTouchMove = useCallback((e: TouchEvent) => {
+    if (e.touches.length === 2) {
+      e.preventDefault()
+      const touch1 = e.touches[0]
+      const touch2 = e.touches[1]
+      const distance = Math.hypot(
+        touch2.clientX - touch1.clientX,
+        touch2.clientY - touch1.clientY
+      )
+      
+      if (lastPinchDistance.current !== null) {
+        const delta = (distance - lastPinchDistance.current) * 0.005
+        setScale(prev => Math.min(Math.max(prev + delta, 0.5), 2.5))
+      }
+      lastPinchDistance.current = distance
+    } else if (e.touches.length === 1 && pointerInteracting.current) {
+      updateMovement(e.touches[0].clientX, e.touches[0].clientY)
+    }
+  }, [])
+
+  const handleTouchEnd = useCallback(() => {
+    lastPinchDistance.current = null
+    updatePointerInteraction(null)
+  }, [])
+
   const onRender = useCallback(
     (state: Record<string, any>) => {
       if (!pointerInteracting.current) {
-        phi += 0.003 // Rotação automática mais lenta
+        phi += 0.003
       }
       state.phi = phi + rotation.x
-      state.theta = theta + rotation.y * 0.5 // Rotação vertical limitada
+      state.theta = theta + rotation.y * 0.5
       state.width = width * 2
       state.height = width * 2
     },
@@ -124,47 +162,101 @@ export function Globe({
     }
   }, [])
 
-  const handlePointerDown = (e: React.PointerEvent | React.TouchEvent) => {
-    const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.PointerEvent).clientX
-    const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.PointerEvent).clientY
+  // Add wheel and touch listeners
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    container.addEventListener("wheel", handleWheel, { passive: false })
+    container.addEventListener("touchmove", handleTouchMove, { passive: false })
+    container.addEventListener("touchend", handleTouchEnd)
+
+    return () => {
+      container.removeEventListener("wheel", handleWheel)
+      container.removeEventListener("touchmove", handleTouchMove)
+      container.removeEventListener("touchend", handleTouchEnd)
+    }
+  }, [handleWheel, handleTouchMove, handleTouchEnd])
+
+  const handlePointerDown = (e: React.PointerEvent) => {
     updatePointerInteraction({
-      x: clientX - pointerInteractionMovement.current.x,
-      y: clientY - pointerInteractionMovement.current.y,
+      x: e.clientX - pointerInteractionMovement.current.x,
+      y: e.clientY - pointerInteractionMovement.current.y,
     })
   }
 
-  const handlePointerMove = (e: React.PointerEvent | React.TouchEvent) => {
-    const clientX = 'touches' in e ? e.touches[0]?.clientX : (e as React.PointerEvent).clientX
-    const clientY = 'touches' in e ? e.touches[0]?.clientY : (e as React.PointerEvent).clientY
-    if (clientX !== undefined && clientY !== undefined) {
-      updateMovement(clientX, clientY)
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      updatePointerInteraction({
+        x: e.touches[0].clientX - pointerInteractionMovement.current.x,
+        y: e.touches[0].clientY - pointerInteractionMovement.current.y,
+      })
     }
   }
 
   return (
     <div
+      ref={containerRef}
       className={cn(
-        "absolute inset-0 mx-auto aspect-[1/1] w-full max-w-[600px]",
+        "absolute inset-0 mx-auto aspect-[1/1] w-full max-w-[600px] transition-transform duration-200",
         className,
       )}
+      style={{ transform: `scale(${scale})` }}
     >
+      {/* Glow effect when interacting */}
+      <div 
+        className={cn(
+          "absolute inset-0 rounded-full transition-all duration-300 pointer-events-none",
+          isInteracting 
+            ? "shadow-[0_0_60px_20px_rgba(6,182,212,0.3)] ring-2 ring-neon-cyan/30" 
+            : "shadow-[0_0_30px_10px_rgba(6,182,212,0.1)]"
+        )}
+      />
+      
       <canvas
         className={cn(
-          "size-full opacity-0 transition-opacity duration-500 [contain:layout_paint_size] cursor-grab touch-none",
+          "size-full opacity-0 transition-opacity duration-500 [contain:layout_paint_size] cursor-grab touch-none rounded-full",
         )}
         ref={canvasRef}
         onPointerDown={handlePointerDown}
         onPointerUp={() => updatePointerInteraction(null)}
         onPointerOut={() => updatePointerInteraction(null)}
-        onPointerMove={handlePointerMove}
-        onTouchStart={handlePointerDown}
-        onTouchMove={handlePointerMove}
-        onTouchEnd={() => updatePointerInteraction(null)}
+        onPointerMove={(e) => {
+          if (pointerInteracting.current) {
+            updateMovement(e.clientX, e.clientY)
+          }
+        }}
+        onTouchStart={handleTouchStart}
       />
-      {/* Hint para usuário */}
-      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px] text-muted-foreground/50 pointer-events-none select-none">
-        Arraste para girar
+      
+      {/* Interactive hints */}
+      <div className={cn(
+        "absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 transition-opacity duration-300 pointer-events-none select-none",
+        isInteracting ? "opacity-0" : "opacity-70"
+      )}>
+        <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11" />
+            </svg>
+            Arraste
+          </span>
+          <span className="w-px h-3 bg-muted-foreground/30" />
+          <span className="flex items-center gap-1">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+            </svg>
+            Scroll/Pinch
+          </span>
+        </div>
       </div>
+
+      {/* Zoom indicator */}
+      {scale !== 1 && (
+        <div className="absolute top-4 right-4 px-2 py-1 rounded-full bg-black/60 border border-neon-cyan/30 text-[10px] text-neon-cyan font-bold">
+          {Math.round(scale * 100)}%
+        </div>
+      )}
     </div>
   )
 }
