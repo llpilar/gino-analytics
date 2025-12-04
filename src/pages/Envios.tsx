@@ -600,14 +600,9 @@ const Envios = () => {
           <TabsContent value="orders" className="mt-6">
             <Card className="bg-black/40 border-zinc-800/50 rounded-2xl backdrop-blur-sm overflow-hidden">
               <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2.5 rounded-xl bg-gradient-to-br from-violet-600 to-purple-600">
-                    <Truck className="h-5 w-5 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-bold text-white">Pedidos Recentes</h2>
-                    <p className="text-sm text-zinc-500">Gerencie e rastreie seus envios</p>
-                  </div>
+                <div className="mb-6">
+                  <h2 className="text-lg font-bold text-white">Pedidos Recentes</h2>
+                  <p className="text-sm text-zinc-500">Gerencie e rastreie seus envios</p>
                 </div>
                 <OrdersTable />
               </CardContent>
@@ -617,14 +612,9 @@ const Envios = () => {
           <TabsContent value="products" className="mt-6">
             <Card className="bg-black/40 border-zinc-800/50 rounded-2xl backdrop-blur-sm overflow-hidden">
               <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2.5 rounded-xl bg-gradient-to-br from-cyan-600 to-blue-600">
-                    <Box className="h-5 w-5 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-bold text-white">Produtos em Fulfillment</h2>
-                    <p className="text-sm text-zinc-500">Inventário sincronizado com Hoko</p>
-                  </div>
+                <div className="mb-6">
+                  <h2 className="text-lg font-bold text-white">Produtos em Fulfillment</h2>
+                  <p className="text-sm text-zinc-500">Inventário sincronizado com Hoko</p>
                 </div>
                 <ProductsTable />
               </CardContent>
