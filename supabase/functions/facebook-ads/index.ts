@@ -23,50 +23,54 @@ serve(async (req) => {
       );
     }
 
-    const { endpoint, startDate, endDate } = await req.json();
+    const body = await req.json();
+    const { endpoint, startDate, endDate, accountId } = body;
 
-    console.log(`Fetching Facebook Ads data: ${endpoint}`);
+    console.log(`Fetching Facebook Ads data: ${endpoint}`, { accountId, startDate, endDate });
 
     let url: string;
     let fields: string;
 
     switch (endpoint) {
       case 'accounts':
-        // Get ad accounts
         url = `https://graph.facebook.com/v18.0/me/adaccounts?fields=id,name,currency,account_status&access_token=${facebookToken}`;
         break;
       
       case 'insights':
-        // Get insights for an account (need to pass account_id in request)
-        const { accountId } = await req.json();
-        const start = startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        if (!accountId) {
+          throw new Error('accountId is required for insights');
+        }
+        const start = startDate || new Date().toISOString().split('T')[0];
         const end = endDate || new Date().toISOString().split('T')[0];
         
         fields = 'spend,impressions,clicks,ctr,cpc,cpm,reach,actions,action_values';
-        url = `https://graph.facebook.com/v18.0/${accountId}/insights?fields=${fields}&time_range={'since':'${start}','until':'${end}'}&access_token=${facebookToken}`;
+        url = `https://graph.facebook.com/v18.0/${accountId}/insights?fields=${fields}&time_range={"since":"${start}","until":"${end}"}&access_token=${facebookToken}`;
         break;
       
       case 'campaigns':
-        // Get campaigns for an account
-        const { accountId: campaignAccountId } = await req.json();
+        if (!accountId) {
+          throw new Error('accountId is required for campaigns');
+        }
         fields = 'id,name,status,objective,daily_budget,lifetime_budget';
-        url = `https://graph.facebook.com/v18.0/${campaignAccountId}/campaigns?fields=${fields}&access_token=${facebookToken}`;
+        url = `https://graph.facebook.com/v18.0/${accountId}/campaigns?fields=${fields}&access_token=${facebookToken}`;
         break;
       
       default:
         throw new Error('Invalid endpoint');
     }
 
+    console.log('Fetching URL:', url.replace(facebookToken, '[REDACTED]'));
+
     const response = await fetch(url);
     
     if (!response.ok) {
       const errorData = await response.text();
       console.error('Facebook API error:', errorData);
-      throw new Error(`Facebook API error: ${response.status}`);
+      throw new Error(`Facebook API error: ${response.status} - ${errorData}`);
     }
 
     const data = await response.json();
-    console.log('Facebook data received:', JSON.stringify(data).substring(0, 200));
+    console.log('Facebook data received:', JSON.stringify(data).substring(0, 500));
 
     return new Response(
       JSON.stringify(data),

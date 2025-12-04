@@ -5,7 +5,7 @@ import { NavBar } from "./ui/tubelight-navbar";
 import { useShopifyRevenueToday, useShopifyAnalytics } from "@/hooks/useShopifyData";
 import { format } from "date-fns";
 import { DashboardSkeleton } from "./DashboardSkeleton";
-import { LayoutDashboard, BarChart3, Package, Settings, Wallet, TrendingUp, DollarSign, ShoppingCart, Users, Zap, Monitor, LayoutGrid, Eye } from "lucide-react";
+import { LayoutDashboard, BarChart3, Package, Settings, Wallet, TrendingUp, DollarSign, ShoppingCart, Users, Zap, Monitor, LayoutGrid, Eye, Megaphone, Target } from "lucide-react";
 import { NotificationCenter } from "./NotificationCenter";
 import { ComparisonBadge } from "./ComparisonBadge";
 import { useDailyComparison } from "@/hooks/useComparisonMetrics";
@@ -15,6 +15,7 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { useVslbioboostVisitors } from "@/hooks/useVslbioboostVisitors";
+import { useFacebookAdsToday } from "@/hooks/useFacebookAdsToday";
 
 type LayoutMode = "orbital" | "grid";
 
@@ -29,6 +30,7 @@ export const LiveCommandCenter = () => {
   const { orderCount: realtimeOrderCount } = useRealtimeOrders();
   const { formatCurrency } = useCurrency();
   const { visitorCount: vslVisitors } = useVslbioboostVisitors();
+  const { data: facebookAdsData } = useFacebookAdsToday();
 
   // Check for mobile viewport
   useEffect(() => {
@@ -262,6 +264,8 @@ export const LiveCommandCenter = () => {
               dailyComparison={dailyComparison}
               formatCurrency={formatCurrency}
               colorVariants={colorVariants}
+              adSpend={facebookAdsData?.spend || 0}
+              cpa={facebookAdsData?.cpa || 0}
             />
           </aside>
         </div>
@@ -342,6 +346,8 @@ export const LiveCommandCenter = () => {
                   dailyComparison={dailyComparison}
                   formatCurrency={formatCurrency}
                   colorVariants={colorVariants}
+                  adSpend={facebookAdsData?.spend || 0}
+                  cpa={facebookAdsData?.cpa || 0}
                 />
               </section>
 
@@ -406,6 +412,8 @@ interface DataStreamCardProps {
   dailyComparison: any;
   formatCurrency: (value: number) => string;
   colorVariants: Record<string, { bg: string; border: string; text: string; glow: string }>;
+  adSpend: number;
+  cpa: number;
 }
 
 const DataStreamCard = ({ 
@@ -415,7 +423,9 @@ const DataStreamCard = ({
   uniqueShoppers, 
   dailyComparison,
   formatCurrency,
-  colorVariants
+  colorVariants,
+  adSpend,
+  cpa
 }: DataStreamCardProps) => {
   return (
     <div className="w-full space-y-4">
@@ -433,33 +443,19 @@ const DataStreamCard = ({
         
         {/* Key Metrics */}
         <div className="space-y-3">
-          {/* Revenue */}
-          <div className={cn("p-4 rounded-xl border-2 backdrop-blur-sm", colorVariants.cyan.bg, colorVariants.cyan.border)}>
+          {/* Ad Spend */}
+          <div className={cn("p-4 rounded-xl border-2 backdrop-blur-sm", colorVariants.pink.bg, colorVariants.pink.border)}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Revenue Today</span>
-              {dailyComparison?.revenue && (
-                <ComparisonBadge 
-                  changePercent={dailyComparison.revenue.changePercent}
-                  isPositive={dailyComparison.revenue.isPositive}
-                />
-              )}
-            </div>
-            <div className="text-2xl md:text-3xl font-black text-neon-cyan">
-              {formatCurrency(totalRevenue)}
-            </div>
-            <div className="mt-2 flex items-center gap-2">
-              <div className="flex-1 h-1.5 bg-black/50 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-neon-cyan to-neon-blue rounded-full transition-all duration-500" 
-                  style={{ width: '78%' }} 
-                  role="progressbar"
-                  aria-valuenow={78}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                />
+              <div className="flex items-center gap-2">
+                <Megaphone className="w-4 h-4 text-neon-pink" />
+                <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Ad Spend Today</span>
               </div>
-              <span className="text-xs text-neon-cyan font-bold">+23%</span>
+              <div className="text-[9px] text-muted-foreground bg-black/30 px-2 py-0.5 rounded-full">Facebook Ads</div>
             </div>
+            <div className="text-2xl md:text-3xl font-black text-neon-pink">
+              {formatCurrency(adSpend)}
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-1">Gasto em anúncios</p>
           </div>
           
           {/* Orders Grid */}
@@ -488,22 +484,19 @@ const DataStreamCard = ({
             </div>
           </div>
 
-          {/* Active Shoppers */}
+          {/* CPA - Cost Per Acquisition */}
           <div className={cn("p-4 rounded-xl border-2 backdrop-blur-sm", colorVariants.orange.bg, colorVariants.orange.border)}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Active Shoppers</span>
-              <div className="flex items-center gap-1">
-                <div className="relative">
-                  <div className="w-2 h-2 bg-status-success rounded-full animate-ping absolute" aria-hidden="true" />
-                  <div className="w-2 h-2 bg-status-success rounded-full" />
-                </div>
-                <span className="text-[9px] text-status-success font-bold">LIVE</span>
+              <div className="flex items-center gap-2">
+                <Target className="w-4 h-4 text-neon-orange" />
+                <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider">CPA</span>
               </div>
+              <div className="text-[9px] text-muted-foreground bg-black/30 px-2 py-0.5 rounded-full">Custo por Compra</div>
             </div>
             <div className="text-2xl md:text-3xl font-black text-neon-orange">
-              {uniqueShoppers}
+              {formatCurrency(cpa)}
             </div>
-            <p className="text-[10px] text-muted-foreground mt-1">Shopping right now</p>
+            <p className="text-[10px] text-muted-foreground mt-1">Facebook Ads</p>
           </div>
         </div>
 
