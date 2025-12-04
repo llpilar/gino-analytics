@@ -84,10 +84,10 @@ export const LiveCommandCenter = () => {
 
   // Satellite data for orbital view - reduced distance for better fit
   const satellites = [
-    { label: "REVENUE", value: formatCurrency(totalRevenue), icon: DollarSign, color: "cyan", angle: 0, distance: 280 },
-    { label: "ORDERS", value: ordersCount.toString(), icon: ShoppingCart, color: "green", angle: 90, distance: 300 },
-    { label: "$/MIN", value: formatCurrency(parseFloat(salesPerMinute)), icon: Zap, color: "purple", angle: 180, distance: 290 },
-    { label: "SHOPPERS", value: uniqueShoppers, icon: Users, color: "orange", angle: 270, distance: 310 },
+    { label: "REVENUE", value: formatCurrency(totalRevenue), icon: DollarSign, color: "cyan", angle: 0, distance: 240 },
+    { label: "ORDERS", value: ordersCount.toString(), icon: ShoppingCart, color: "green", angle: 90, distance: 260 },
+    { label: "$/MIN", value: formatCurrency(parseFloat(salesPerMinute)), icon: Zap, color: "purple", angle: 180, distance: 250 },
+    { label: "SHOPPERS", value: uniqueShoppers, icon: Users, color: "orange", angle: 270, distance: 270 },
   ];
 
   const getSatellitePosition = (baseAngle: number, distance: number) => {
@@ -193,16 +193,16 @@ export const LiveCommandCenter = () => {
         // ORBITAL LAYOUT - Desktop Only
         <div className="relative z-10 h-screen flex items-center justify-center gap-16 px-8 pt-16">
           {/* Central Globe with Orbital Satellites */}
-          <section className="relative w-[700px] h-[700px] flex-shrink-0 flex items-center justify-center mr-auto ml-48" aria-label="Visualização orbital de métricas">
+          <section className="relative w-[600px] h-[600px] flex-shrink-0 flex items-center justify-center mr-auto ml-48" aria-label="Visualização orbital de métricas">
             {/* Orbital rings */}
             <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
-              <div className="absolute w-[520px] h-[520px] border border-neon-cyan/20 rounded-full animate-spin" style={{ animationDuration: "60s" }} />
-              <div className="absolute w-[580px] h-[580px] border border-neon-purple/20 rounded-full animate-spin" style={{ animationDuration: "80s" }} />
-              <div className="absolute w-[640px] h-[640px] border border-neon-pink/10 rounded-full animate-spin" style={{ animationDuration: "100s" }} />
+              <div className="absolute w-[460px] h-[460px] border border-neon-cyan/20 rounded-full animate-spin" style={{ animationDuration: "60s" }} />
+              <div className="absolute w-[520px] h-[520px] border border-neon-purple/20 rounded-full animate-spin" style={{ animationDuration: "80s" }} />
+              <div className="absolute w-[580px] h-[580px] border border-neon-pink/10 rounded-full animate-spin" style={{ animationDuration: "100s" }} />
             </div>
 
             {/* Globe */}
-            <div className="relative z-10 w-[450px] h-[450px]" aria-hidden="true">
+            <div className="relative z-10 w-[380px] h-[380px]" aria-hidden="true">
               <Globe className="w-full h-full" />
               <div className="absolute inset-0 bg-gradient-radial from-neon-cyan/30 via-neon-cyan/10 to-transparent blur-3xl animate-pulse-glow" />
               <div className="absolute inset-0 bg-gradient-radial from-neon-blue/20 via-transparent to-transparent blur-2xl animate-pulse-glow" style={{ animationDelay: "0.5s" }} />
