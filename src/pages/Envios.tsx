@@ -362,8 +362,21 @@ const OrdersTable = () => {
           </TableHeader>
           <TableBody>
             {orders.map((order: any, index: number) => {
-              const deliveryState = getDeliveryState(order.delivery_state);
-              const paymentType = order.payment === 0 ? 'Contraentrega' : order.payment === 1 ? 'Crédito' : 'N/A';
+              const deliveryState = getDeliveryState(parseInt(order.delivery_state));
+              const paymentType = order.payment === '0' || order.payment === 0 ? 'Contraentrega' : order.payment === '1' || order.payment === 1 ? 'Crédito' : 'N/A';
+              
+              // Calculate total from items if available
+              const items = order.items || order.products || [];
+              const calculatedTotal = items.reduce((acc: number, item: any) => {
+                const price = parseFloat(item.price || item.sale_price || 0);
+                const qty = parseInt(item.amount || item.quantity || 1);
+                return acc + (price * qty);
+              }, 0);
+              const orderTotal = parseFloat(order.total || order.total_sale || 0) || calculatedTotal;
+              
+              // Get guide info
+              const guide = order.guide || order.guides?.[0];
+              const shippingCost = parseFloat(guide?.total_freight_store || order.shipping_cost || 0);
               
               return (
                 <TableRow 
@@ -395,9 +408,9 @@ const OrdersTable = () => {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    {order.guide?.number ? (
+                    {guide?.number ? (
                       <span className="font-mono text-xs px-2 py-1 rounded-lg bg-zinc-800 text-cyan-400">
-                        {order.guide.number}
+                        {guide.number}
                       </span>
                     ) : (
                       <span className="text-zinc-600">Sin guía</span>
@@ -405,12 +418,12 @@ const OrdersTable = () => {
                   </TableCell>
                   <TableCell className="text-right">
                     <span className="font-mono font-bold text-emerald-400">
-                      {formatCOP(order.total || order.total_sale || 0)}
+                      {formatCOP(orderTotal)}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
                     <span className="font-mono text-amber-400">
-                      {formatCOP(order.guide?.total_freight_store || order.shipping_cost || 0)}
+                      {formatCOP(shippingCost)}
                     </span>
                   </TableCell>
                 </TableRow>

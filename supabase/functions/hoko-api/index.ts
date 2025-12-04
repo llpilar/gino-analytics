@@ -104,7 +104,25 @@ serve(async (req) => {
       case 'orders':
         // Correct endpoint: /member/order (not /member/orders)
         const ordersParams = params?.page ? `?page=${params.page}` : '';
-        result = await hokoRequest(`/member/order${ordersParams}`);
+        const ordersListResponse = await hokoRequest(`/member/order${ordersParams}`);
+        
+        // Fetch full details for each order to get customer, items, total, guide info
+        if (ordersListResponse?.data && Array.isArray(ordersListResponse.data)) {
+          const ordersWithDetails = await Promise.all(
+            ordersListResponse.data.slice(0, 15).map(async (order: any) => {
+              try {
+                const orderDetail = await hokoRequest(`/member/order/${order.id}`);
+                return { ...order, ...orderDetail };
+              } catch (e) {
+                console.error(`Failed to fetch order ${order.id} details:`, e);
+                return order;
+              }
+            })
+          );
+          result = { ...ordersListResponse, data: ordersWithDetails };
+        } else {
+          result = ordersListResponse;
+        }
         break;
 
       case 'order-detail':
