@@ -4,6 +4,8 @@ import { ShootingStars } from "./ui/shooting-stars";
 import { LayoutDashboard, BarChart3, Package, Settings, Wallet, Truck } from "lucide-react";
 import { format } from "date-fns";
 import { useState, useEffect } from "react";
+import { DateFilter } from "./DateFilter";
+import { CurrencyToggle } from "./CurrencyToggle";
 
 interface DashboardWrapperProps {
   children: ReactNode;
@@ -50,8 +52,10 @@ export const DashboardWrapper = ({ children }: DashboardWrapperProps) => {
       <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-green-500/5 rounded-full blur-[180px]" />
       <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-[180px]" />
 
-      {/* Clock Widget - Top Right */}
-      <div className="fixed top-4 right-4 z-40">
+      {/* Clock Widget, Currency & Date Filter - Top Right */}
+      <div className="fixed top-4 right-4 z-40 flex items-center gap-3">
+        <CurrencyToggle />
+        <DateFilter />
         <div className="px-6 py-3 rounded-full bg-black/80 border-2 border-cyan-500/30 backdrop-blur-xl shadow-lg shadow-cyan-500/20">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
