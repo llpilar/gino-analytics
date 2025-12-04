@@ -4,7 +4,6 @@ import { ShootingStars } from "./ui/shooting-stars";
 import { LayoutDashboard, BarChart3, Package, Settings, Wallet, Truck } from "lucide-react";
 import { format } from "date-fns";
 import { useState, useEffect } from "react";
-import { HeaderControls } from "./HeaderControls";
 
 interface DashboardWrapperProps {
   children: ReactNode;
@@ -51,9 +50,8 @@ export const DashboardWrapper = ({ children }: DashboardWrapperProps) => {
       <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-green-500/5 rounded-full blur-[180px]" />
       <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-[180px]" />
 
-      {/* Header Controls - Top Right */}
-      <div className="fixed top-4 right-4 z-40 flex items-center gap-3">
-        <HeaderControls />
+      {/* Live Indicator - Top Right */}
+      <div className="fixed top-4 right-4 z-40">
         <div className="px-4 py-2 rounded-full bg-black/80 border border-cyan-500/30 backdrop-blur-xl shadow-lg shadow-cyan-500/20">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-lg shadow-green-500/50" />
