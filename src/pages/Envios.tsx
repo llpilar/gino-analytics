@@ -146,52 +146,39 @@ const HeroSection = () => {
   const storeInfo = storeData?.data || storeData as any;
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-white/5 bg-gradient-to-br from-violet-950/50 via-black to-fuchsia-950/30 p-8 mb-8">
-      {/* Animated background elements */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
-        <div className="absolute top-10 left-10 w-72 h-72 bg-violet-500/20 rounded-full blur-[100px] animate-pulse" />
-        <div className="absolute bottom-10 right-10 w-96 h-96 bg-fuchsia-500/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-cyan-500/10 rounded-full blur-[80px]" />
-      </div>
-
-      {/* Grid pattern overlay */}
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0wIDBoNDBMNDB2NDBIMHoiLz48cGF0aCBkPSJNNDAgMEgwdjQwaDQwVjB6TTM5IDFIMXYzOGgzOFYxeiIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIvPjwvZz48L3N2Zz4=')] opacity-50" />
-
-      <div className="relative z-10">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <HyperText 
-                text="Envios & Fulfillment" 
-                className="text-3xl md:text-4xl font-black text-white tracking-tight"
-              />
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30">
-                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Conectado</span>
+    <div className="mb-8">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <HyperText 
+              text="Envios & Fulfillment" 
+              className="text-3xl md:text-4xl font-black text-white tracking-tight"
+            />
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30">
+              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Conectado</span>
+            </div>
+          </div>
+          <p className="text-zinc-400 text-sm md:text-base">
+            Gerencie seus envios e produtos com{' '}
+            <span className="font-semibold text-white">
+              Hoko Colombia
+            </span>
+          </p>
+        </div>
+        {/* Store info badge */}
+        <div className="flex items-center gap-4">
+          {isLoading ? (
+            <Skeleton className="h-14 w-48 rounded-xl" />
+          ) : (
+            <div className="flex items-center gap-3 px-5 py-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
+              <Store className="h-5 w-5 text-zinc-400" />
+              <div>
+                <p className="text-xs text-zinc-500 uppercase tracking-wider">Loja</p>
+                <p className="text-sm font-bold text-white">{storeInfo?.name || 'Minha Loja'}</p>
               </div>
             </div>
-            <p className="text-zinc-400 text-sm md:text-base">
-              Gerencie seus envios e produtos com{' '}
-              <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">
-                Hoko Colombia
-              </span>
-            </p>
-          </div>
-
-          {/* Store info badge */}
-          <div className="flex items-center gap-4">
-            {isLoading ? (
-              <Skeleton className="h-14 w-48 rounded-xl" />
-            ) : (
-              <div className="flex items-center gap-3 px-5 py-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
-                <Store className="h-5 w-5 text-violet-400" />
-                <div>
-                  <p className="text-xs text-zinc-500 uppercase tracking-wider">Loja</p>
-                  <p className="text-sm font-bold text-white">{storeInfo?.name || 'Minha Loja'}</p>
-                </div>
-              </div>
-            )}
-          </div>
+          )}
         </div>
       </div>
     </div>
