@@ -202,7 +202,7 @@ export const LiveCommandCenter = () => {
             </div>
 
             {/* Globe */}
-            <div className="relative z-10 w-[400px] h-[400px]" aria-hidden="true">
+            <div className="relative z-10 w-[450px] h-[450px]" aria-hidden="true">
               <Globe className="w-full h-full" />
               <div className="absolute inset-0 bg-gradient-radial from-neon-cyan/30 via-neon-cyan/10 to-transparent blur-3xl animate-pulse-glow" />
               <div className="absolute inset-0 bg-gradient-radial from-neon-blue/20 via-transparent to-transparent blur-2xl animate-pulse-glow" style={{ animationDelay: "0.5s" }} />
