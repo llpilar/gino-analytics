@@ -101,13 +101,17 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
   return (
     <nav
       className={cn(
-        "fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-fit",
+        "fixed z-50",
+        // Desktop: top centered
+        "md:top-4 md:left-1/2 md:-translate-x-1/2 md:w-[calc(100%-2rem)] md:max-w-fit",
+        // Mobile: bottom full width
+        "bottom-0 left-0 right-0 md:bottom-auto md:right-auto",
         className,
       )}
       role="navigation"
       aria-label="Navegação principal"
     >
-      <div className="flex items-center gap-1 bg-black/80 border-2 border-neon-cyan/30 backdrop-blur-xl py-1.5 px-1.5 rounded-full shadow-lg shadow-neon-cyan/20">
+      <div className="flex items-center justify-around md:justify-start gap-1 bg-black/95 md:bg-black/80 border-t-2 md:border-2 border-neon-cyan/30 backdrop-blur-xl py-2 md:py-1.5 px-2 md:px-1.5 md:rounded-full">
         {items.map((item) => {
           const Icon = item.icon
           const isActive = activeTab === item.name
