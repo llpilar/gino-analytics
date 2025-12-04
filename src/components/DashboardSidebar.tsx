@@ -19,7 +19,7 @@ const menuItems = [
   { icon: Home, label: "Dashboard", path: "/" },
   { icon: ShoppingBag, label: "Produtos", path: "/produtos" },
   { icon: BarChart3, label: "Análises", path: "/analises" },
-  { icon: Activity, label: "Live View", path: "/live-view" },
+  { icon: Activity, label: "Ao Vivo", path: "/live-view" },
   { icon: Truck, label: "Envios", path: "/envios" },
   { icon: Wallet, label: "Contas", path: "/contas" },
   { icon: Settings, label: "Configurações", path: "/configuracoes" },
