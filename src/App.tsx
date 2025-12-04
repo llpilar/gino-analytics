@@ -9,7 +9,6 @@ import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import Produtos from "./pages/Produtos";
 import Analises from "./pages/Analises";
 import Configuracoes from "./pages/Configuracoes";
 import LiveView from "./pages/LiveView";
@@ -31,7 +30,6 @@ const App = () => (
               <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-              <Route path="/produtos" element={<ProtectedRoute><Produtos /></ProtectedRoute>} />
               <Route path="/analises" element={<ProtectedRoute><Analises /></ProtectedRoute>} />
               <Route path="/live-view" element={<ProtectedRoute><LiveView /></ProtectedRoute>} />
               <Route path="/contas" element={<ProtectedRoute><Contas /></ProtectedRoute>} />
