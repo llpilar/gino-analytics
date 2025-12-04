@@ -245,9 +245,9 @@ const StatsGrid = () => {
         delay={0}
       />
       <StatCard 
-        title="En Camino" 
+        title="Despachadas" 
         value={despachadas} 
-        subtitle="Pedidos despachados"
+        subtitle="En camino al cliente"
         icon={Truck} 
         gradient="from-blue-600 to-cyan-600"
         delay={100}
