@@ -193,7 +193,7 @@ export const LiveCommandCenter = () => {
         // ORBITAL LAYOUT - Desktop Only
         <div className="relative z-10 h-screen flex items-center justify-center gap-16 px-8 pt-16">
           {/* Central Globe with Orbital Satellites */}
-          <section className="relative w-[550px] h-[550px] flex-shrink-0 flex items-center justify-center" aria-label="Visualização orbital de métricas">
+          <section className="relative w-[550px] h-[550px] flex-shrink-0 flex items-center justify-center mr-auto ml-16" aria-label="Visualização orbital de métricas">
             {/* Orbital rings */}
             <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
               <div className="absolute w-[440px] h-[440px] border border-neon-cyan/20 rounded-full animate-spin" style={{ animationDuration: "60s" }} />
