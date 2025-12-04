@@ -191,9 +191,9 @@ export const LiveCommandCenter = () => {
       {/* Main Content */}
       {layoutMode === "orbital" && !isMobile ? (
         // ORBITAL LAYOUT - Desktop Only
-        <div className="relative z-10 h-screen flex items-center justify-between px-8 pt-16">
+        <div className="relative z-10 h-screen flex items-center justify-center gap-16 px-8 pt-16">
           {/* Central Globe with Orbital Satellites */}
-          <section className="relative w-[550px] h-[550px] flex-shrink-0 flex items-center justify-center ml-32" aria-label="Visualização orbital de métricas">
+          <section className="relative w-[550px] h-[550px] flex-shrink-0 flex items-center justify-center" aria-label="Visualização orbital de métricas">
             {/* Orbital rings */}
             <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
               <div className="absolute w-[440px] h-[440px] border border-neon-cyan/20 rounded-full animate-spin" style={{ animationDuration: "60s" }} />
@@ -248,9 +248,9 @@ export const LiveCommandCenter = () => {
             })}
           </section>
 
-          {/* Right Side: Data Stream Card - Fixed to right edge */}
+          {/* Right Side: Data Stream Card */}
           <aside 
-            className="w-[420px] flex-shrink-0 p-6 rounded-2xl bg-black/80 border-2 border-neon-cyan/30 backdrop-blur-xl shadow-2xl shadow-neon-cyan/10 mr-4"
+            className="w-[420px] flex-shrink-0 p-6 rounded-2xl bg-black/80 border-2 border-neon-cyan/30 backdrop-blur-xl shadow-2xl shadow-neon-cyan/10"
             aria-label="Painel de dados em tempo real"
           >
             <DataStreamCard 
