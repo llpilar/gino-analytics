@@ -125,6 +125,11 @@ serve(async (req) => {
         result = await hokoRequest('/member/product/list-with-stock');
         break;
 
+      case 'products-with-stock':
+        // Correct endpoint: /member/product/list-with-stock
+        result = await hokoRequest('/member/product/list-with-stock');
+        break;
+
       case 'product-detail':
         if (!params?.productId) {
           throw new Error('Product ID is required');
