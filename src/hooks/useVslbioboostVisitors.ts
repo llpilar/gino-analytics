@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-const VISITOR_COUNT_URL = "https://zoegvqshotxxhgcuhpwh.supabase.co/functions/v1/visitor-count";
+const VISITOR_COUNT_URL = "https://eyevvanvdvcxdqyxzwfr.supabase.co/functions/v1/visitor-count";
 
 export const useVslbioboostVisitors = () => {
   const [visitorCount, setVisitorCount] = useState<number>(0);
