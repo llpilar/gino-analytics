@@ -13,9 +13,10 @@ import {
 import { useHokoOrders, useHokoProducts, useHokoProductsWithStock } from "@/hooks/useHokoData";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, isWithinInterval, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { useDateFilter } from "@/contexts/DateFilterContext";
 import { HyperText } from "@/components/ui/hyper-text";
 import { StatsCard, SectionCard, CardColorVariant } from "@/components/ui/stats-card";
 import { LucideIcon } from "lucide-react";
@@ -117,8 +118,9 @@ const HeroSection = () => {
 
 const StatsGrid = () => {
   const { data: stockData, isLoading } = useHokoProductsWithStock();
+  const { dateRange } = useDateFilter();
   
-  // Fetch all orders (Hoko API doesn't respect date filters, so we get all)
+  // Fetch all orders (Hoko API doesn't respect date filters, so we filter client-side)
   const { data: ordersData } = useHokoOrders(1);
 
   if (isLoading) {
@@ -131,9 +133,21 @@ const StatsGrid = () => {
     );
   }
 
-  // Get all orders from API (no date filtering - API doesn't support it)
-  const orders: any[] = Array.isArray(ordersData?.data) ? ordersData.data : 
+  // Get all orders from API
+  const allOrders: any[] = Array.isArray(ordersData?.data) ? ordersData.data : 
                 Array.isArray(ordersData) ? ordersData : [];
+
+  // Client-side filtering by created_at date
+  const orders = allOrders.filter((order: any) => {
+    if (!dateRange.from) return true;
+    const orderDate = order.created_at ? parseISO(order.created_at) : null;
+    if (!orderDate) return false;
+    
+    return isWithinInterval(orderDate, { 
+      start: startOfDay(dateRange.from), 
+      end: endOfDay(dateRange.to || dateRange.from) 
+    });
+  });
 
   // Debug: Log order data distribution
   console.log('Envios Stats Debug:', {
@@ -218,6 +232,7 @@ const StatsGrid = () => {
 };
 
 const OrdersTable = () => {
+  const { dateRange } = useDateFilter();
   // Fetch all orders (Hoko API doesn't respect date filters)
   const { data: ordersData, isLoading, error, refetch, isFetching } = useHokoOrders(1);
 
@@ -247,9 +262,21 @@ const OrdersTable = () => {
     );
   }
 
-  // Get all orders from API (no date filtering - API doesn't support it)
-  const orders = Array.isArray(ordersData?.data) ? ordersData.data : 
+  // Get all orders from API
+  const allOrders = Array.isArray(ordersData?.data) ? ordersData.data : 
                  Array.isArray(ordersData) ? ordersData : [];
+
+  // Client-side filtering by created_at date
+  const orders = allOrders.filter((order: any) => {
+    if (!dateRange.from) return true;
+    const orderDate = order.created_at ? parseISO(order.created_at) : null;
+    if (!orderDate) return false;
+    
+    return isWithinInterval(orderDate, { 
+      start: startOfDay(dateRange.from), 
+      end: endOfDay(dateRange.to || dateRange.from) 
+    });
+  });
 
   if (orders.length === 0) {
     return (
