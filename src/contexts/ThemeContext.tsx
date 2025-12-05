@@ -20,8 +20,8 @@ const themePresets = [
   {
     id: 'liquid-glass' as ThemePreset,
     name: 'Liquid Glass',
-    description: 'Visual elegante com efeito de vidro líquido',
-    colors: ['#7dd3fc', '#a78bfa', '#5eead4', '#f0abfc']
+    description: 'Visual minimalista com tons neutros',
+    colors: ['#e5e5e5', '#a3a3a3', '#737373', '#d4d4d4']
   }
 ];
 

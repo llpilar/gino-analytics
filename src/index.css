@@ -61,65 +61,59 @@
     --surface-overlay: 240 10% 6%;
   }
 
-  /* Theme: Liquid Glass */
+  /* Theme: Liquid Glass - Minimalist */
   [data-theme="liquid-glass"] {
-    --background: 220 20% 12%;
-    --foreground: 0 0% 95%;
-    --card: 220 15% 18%;
-    --card-foreground: 0 0% 95%;
-    --popover: 220 15% 16%;
-    --popover-foreground: 0 0% 95%;
-    --primary: 200 80% 70%;
-    --primary-foreground: 220 20% 10%;
-    --secondary: 260 50% 65%;
-    --secondary-foreground: 0 0% 95%;
-    --muted: 220 15% 25%;
-    --muted-foreground: 220 10% 60%;
-    --accent: 180 60% 65%;
-    --accent-foreground: 220 20% 10%;
-    --destructive: 0 65% 55%;
+    --background: 0 0% 7%;
+    --foreground: 0 0% 92%;
+    --card: 0 0% 11%;
+    --card-foreground: 0 0% 92%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 92%;
+    --primary: 0 0% 85%;
+    --primary-foreground: 0 0% 7%;
+    --secondary: 0 0% 18%;
+    --secondary-foreground: 0 0% 85%;
+    --muted: 0 0% 16%;
+    --muted-foreground: 0 0% 55%;
+    --accent: 0 0% 75%;
+    --accent-foreground: 0 0% 7%;
+    --destructive: 0 50% 50%;
     --destructive-foreground: 0 0% 95%;
-    --border: 220 15% 25%;
-    --input: 220 15% 22%;
-    --ring: 200 80% 70%;
-    --radius: 1.25rem;
+    --border: 0 0% 18%;
+    --input: 0 0% 14%;
+    --ring: 0 0% 70%;
+    --radius: 1rem;
     
-    /* Chart colors - Soft glass palette */
-    --chart-1: 200 80% 70%;
-    --chart-2: 260 50% 65%;
-    --chart-3: 180 60% 65%;
-    --chart-4: 320 50% 65%;
-    --chart-5: 140 50% 60%;
+    /* Chart colors - Monochrome palette */
+    --chart-1: 0 0% 80%;
+    --chart-2: 0 0% 60%;
+    --chart-3: 0 0% 45%;
+    --chart-4: 0 0% 70%;
+    --chart-5: 0 0% 55%;
     
-    /* Neon accent colors - Soft glass palette */
-    --neon-cyan: 180 60% 65%;
-    --neon-cyan-light: 180 60% 75%;
-    --neon-purple: 260 50% 65%;
-    --neon-purple-light: 260 50% 75%;
-    --neon-pink: 320 50% 65%;
-    --neon-pink-light: 320 50% 75%;
-    --neon-green: 140 50% 60%;
-    --neon-green-light: 140 50% 70%;
-    --neon-orange: 30 70% 60%;
-    --neon-orange-light: 30 70% 70%;
-    --neon-blue: 200 80% 70%;
-    --neon-blue-light: 200 80% 80%;
+    /* Accent colors - Subtle grays */
+    --neon-cyan: 0 0% 70%;
+    --neon-cyan-light: 0 0% 80%;
+    --neon-purple: 0 0% 60%;
+    --neon-purple-light: 0 0% 70%;
+    --neon-pink: 0 0% 65%;
+    --neon-pink-light: 0 0% 75%;
+    --neon-green: 0 0% 70%;
+    --neon-green-light: 0 0% 80%;
+    --neon-orange: 0 0% 65%;
+    --neon-orange-light: 0 0% 75%;
+    --neon-blue: 0 0% 75%;
+    --neon-blue-light: 0 0% 85%;
     
-    /* Status colors */
-    --status-success: 140 50% 60%;
-    --status-warning: 40 70% 55%;
-    --status-error: 0 65% 55%;
-    --status-info: 200 80% 70%;
+    /* Status colors - Subtle */
+    --status-success: 150 30% 50%;
+    --status-warning: 40 40% 55%;
+    --status-error: 0 45% 50%;
+    --status-info: 210 30% 60%;
     
     /* Surface colors */
-    --surface-elevated: 220 15% 20%;
-    --surface-overlay: 220 20% 14%;
-    
-    /* Glass-specific variables */
-    --glass-blur: 20px;
-    --glass-opacity: 0.15;
-    --glass-border: 220 15% 35%;
-    --glass-highlight: 0 0% 100%;
+    --surface-elevated: 0 0% 13%;
+    --surface-overlay: 0 0% 9%;
   }
 
   * {
@@ -140,10 +134,7 @@
 
   /* Liquid Glass theme background */
   [data-theme="liquid-glass"] body {
-    background: linear-gradient(135deg, 
-      hsl(220, 25%, 8%) 0%, 
-      hsl(230, 20%, 15%) 50%, 
-      hsl(250, 25%, 12%) 100%);
+    background: hsl(0, 0%, 6%);
   }
 }
 
@@ -239,29 +230,37 @@
     @apply opacity-50 blur-sm animate-pulse;
   }
 
-  /* Liquid Glass theme specific cards */
+  /* Liquid Glass theme specific cards - Minimalist */
   [data-theme="liquid-glass"] .glass-card,
   [data-theme="liquid-glass"] .standard-card {
-    @apply bg-white/[0.08] backdrop-blur-2xl border border-white/20 
-           shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.15),0_8px_32px_rgba(0,0,0,0.3)];
+    @apply bg-white/[0.04] backdrop-blur-xl border border-white/10 
+           shadow-none;
   }
 
   [data-theme="liquid-glass"] .glass-card:hover,
   [data-theme="liquid-glass"] .standard-card:hover {
-    @apply bg-white/[0.12] border-white/30 
-           shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.2),0_12px_40px_rgba(0,0,0,0.4)];
+    @apply bg-white/[0.06] border-white/15;
   }
 
   [data-theme="liquid-glass"] .metric-card {
-    @apply bg-white/[0.06] backdrop-blur-2xl border border-white/15
-           shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.1),0_4px_24px_rgba(0,0,0,0.2)];
+    @apply bg-white/[0.03] backdrop-blur-xl border border-white/[0.08]
+           shadow-none;
   }
 
   [data-theme="liquid-glass"] .standard-card-cyan,
   [data-theme="liquid-glass"] .standard-card-purple,
   [data-theme="liquid-glass"] .standard-card-green,
   [data-theme="liquid-glass"] .standard-card-orange {
-    @apply border-white/20 shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.15),0_8px_32px_rgba(0,0,0,0.3)];
+    @apply border-white/10 shadow-none;
+  }
+
+  /* Liquid Glass scrollbar */
+  [data-theme="liquid-glass"] ::-webkit-scrollbar-track {
+    @apply bg-neutral-900;
+  }
+  
+  [data-theme="liquid-glass"] ::-webkit-scrollbar-thumb {
+    @apply bg-neutral-700 hover:bg-neutral-600;
   }
   
   /* Scrollbar */
