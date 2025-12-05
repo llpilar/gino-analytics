@@ -71,34 +71,195 @@
 }
 
 @layer components {
-  /* Standardized Card System */
-  .standard-card {
+  /* ========================================
+     THEME: NEON (Default)
+     ======================================== */
+  .theme-neon .standard-card,
+  :not(.theme-glass) .standard-card {
     @apply p-6 rounded-2xl bg-black/80 border-2 backdrop-blur-xl 
            transition-all duration-300 overflow-hidden relative;
   }
   
-  .standard-card-hover {
+  .theme-neon .standard-card-hover,
+  :not(.theme-glass) .standard-card-hover {
     @apply hover:scale-[1.02] cursor-pointer;
   }
   
-  .standard-card-cyan {
+  .theme-neon .standard-card-cyan,
+  :not(.theme-glass) .standard-card-cyan {
     @apply border-cyan-500/30 shadow-2xl shadow-cyan-500/10;
   }
   
-  .standard-card-purple {
+  .theme-neon .standard-card-purple,
+  :not(.theme-glass) .standard-card-purple {
     @apply border-purple-500/30 shadow-2xl shadow-purple-500/10;
   }
   
-  .standard-card-green {
+  .theme-neon .standard-card-green,
+  :not(.theme-glass) .standard-card-green {
     @apply border-green-500/30 shadow-2xl shadow-green-500/10;
   }
   
-  .standard-card-orange {
+  .theme-neon .standard-card-orange,
+  :not(.theme-glass) .standard-card-orange {
     @apply border-orange-500/30 shadow-2xl shadow-orange-500/10;
   }
+
+  /* ========================================
+     THEME: LIQUID GLASS
+     ======================================== */
   
-  /* Glass Cards */
-  .glass-card {
+  /* Glass Panel - Main container */
+  .glass-panel {
+    @apply relative p-6 rounded-2xl 
+           bg-white/[0.03] backdrop-blur-2xl
+           border border-white/[0.08]
+           shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.05)]
+           transition-all duration-300 overflow-hidden;
+  }
+  
+  .glass-panel-hover {
+    @apply hover:scale-[1.01] hover:bg-white/[0.05] 
+           hover:border-white/[0.12]
+           hover:shadow-[0_16px_48px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)]
+           cursor-pointer;
+  }
+  
+  /* Glass Card - For metric cards and content */
+  .theme-glass .glass-card {
+    @apply relative p-6 rounded-2xl
+           bg-neutral-900/50 backdrop-blur-2xl
+           border border-white/[0.06]
+           shadow-[0_4px_24px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.03)]
+           transition-all duration-300;
+  }
+  
+  .theme-glass .glass-card:hover {
+    @apply bg-neutral-900/60 border-white/[0.1]
+           shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.05)];
+  }
+
+  /* Glass theme standard cards override */
+  .theme-glass .standard-card {
+    @apply p-6 rounded-2xl bg-white/[0.03] backdrop-blur-2xl
+           border border-white/[0.08]
+           shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.05)]
+           transition-all duration-300 overflow-hidden relative;
+  }
+  
+  .theme-glass .standard-card-hover {
+    @apply hover:scale-[1.01] hover:bg-white/[0.05] cursor-pointer;
+  }
+  
+  .theme-glass .standard-card-cyan {
+    @apply border-cyan-400/20 shadow-[0_8px_32px_rgba(6,182,212,0.1)];
+  }
+  
+  .theme-glass .standard-card-purple {
+    @apply border-purple-400/20 shadow-[0_8px_32px_rgba(168,85,247,0.1)];
+  }
+  
+  .theme-glass .standard-card-green {
+    @apply border-emerald-400/20 shadow-[0_8px_32px_rgba(52,211,153,0.1)];
+  }
+  
+  .theme-glass .standard-card-orange {
+    @apply border-orange-400/20 shadow-[0_8px_32px_rgba(251,146,60,0.1)];
+  }
+  
+  /* Glass Badge */
+  .glass-badge {
+    @apply inline-flex items-center rounded-full 
+           border border-white/[0.15] bg-white/[0.08] 
+           backdrop-blur-xl px-3 py-1 
+           text-xs font-medium text-neutral-100
+           shadow-[0_2px_8px_rgba(0,0,0,0.2)]
+           transition-all duration-200;
+  }
+  
+  .glass-badge:hover {
+    @apply bg-white/[0.12] border-white/[0.2];
+  }
+  
+  /* Glass Input */
+  .theme-glass input,
+  .theme-glass select,
+  .theme-glass textarea {
+    @apply bg-white/[0.03] backdrop-blur-xl 
+           border border-white/[0.1] rounded-xl
+           text-white placeholder:text-neutral-500
+           transition-all duration-200;
+  }
+  
+  .theme-glass input:focus,
+  .theme-glass select:focus,
+  .theme-glass textarea:focus {
+    @apply ring-2 ring-cyan-400/40 border-cyan-400/40
+           shadow-[0_0_20px_rgba(6,182,212,0.2)]
+           outline-none;
+  }
+  
+  /* Glass Table */
+  .theme-glass table {
+    @apply w-full;
+  }
+  
+  .theme-glass thead {
+    @apply bg-white/[0.06];
+  }
+  
+  .theme-glass th {
+    @apply text-neutral-200 font-medium border-b border-white/[0.08];
+  }
+  
+  .theme-glass tbody tr {
+    @apply border-b border-white/[0.04] transition-colors duration-200;
+  }
+  
+  .theme-glass tbody tr:hover {
+    @apply bg-white/[0.03];
+  }
+  
+  /* Glass Navbar */
+  .theme-glass .glass-navbar {
+    @apply bg-white/[0.03] backdrop-blur-2xl 
+           border-b border-white/[0.06]
+           shadow-[0_4px_24px_rgba(0,0,0,0.3)];
+  }
+  
+  /* Glass Sidebar */
+  .theme-glass .glass-sidebar {
+    @apply bg-neutral-900/60 backdrop-blur-2xl 
+           border-r border-white/[0.06];
+  }
+  
+  .theme-glass .glass-sidebar-item {
+    @apply text-neutral-300 transition-all duration-200;
+  }
+  
+  .theme-glass .glass-sidebar-item:hover {
+    @apply bg-white/[0.04] text-white;
+  }
+  
+  .theme-glass .glass-sidebar-item-active {
+    @apply bg-white/[0.08] text-white 
+           border border-white/[0.12]
+           shadow-[0_2px_8px_rgba(0,0,0,0.2)];
+  }
+  
+  /* Glass Dialog */
+  .theme-glass [role="dialog"] {
+    @apply bg-neutral-900/80 backdrop-blur-2xl 
+           border border-white/[0.08] rounded-2xl
+           shadow-[0_24px_80px_rgba(0,0,0,0.6)];
+  }
+  
+  /* ========================================
+     SHARED STYLES (Both Themes)
+     ======================================== */
+  
+  /* Neon theme glass cards (fallback) */
+  :not(.theme-glass) .glass-card {
     @apply bg-zinc-900/50 backdrop-blur-xl border border-zinc-800 
            rounded-xl shadow-xl
            transition-all duration-300 ease-in-out
@@ -173,5 +334,14 @@
   
   ::-webkit-scrollbar-thumb {
     @apply bg-zinc-700 rounded-full hover:bg-zinc-600;
+  }
+  
+  /* Glass theme specific scrollbar */
+  .theme-glass ::-webkit-scrollbar-track {
+    @apply bg-black/50;
+  }
+  
+  .theme-glass ::-webkit-scrollbar-thumb {
+    @apply bg-white/10 rounded-full hover:bg-white/20;
   }
 }

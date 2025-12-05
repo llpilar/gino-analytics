@@ -7,6 +7,7 @@ import { LucideIcon, CalendarIcon, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useCurrency } from "@/contexts/CurrencyContext"
 import { useDateFilter } from "@/contexts/DateFilterContext"
+import { useTheme } from "@/contexts/ThemeContext"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -33,6 +34,7 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
   const [isOpen, setIsOpen] = useState(false)
   const { currency, setCurrency } = useCurrency()
   const { dateRange, setCustomRange } = useDateFilter()
+  const { theme } = useTheme()
   
   // Local state for pending selection
   const [pendingRange, setPendingRange] = useState<DateRange | undefined>(dateRange)
@@ -111,7 +113,12 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
       role="navigation"
       aria-label="Navegação principal"
     >
-      <div className="flex items-center justify-around md:justify-start gap-1 bg-black/95 md:bg-black/80 border-t-2 md:border-2 border-neon-cyan/30 backdrop-blur-xl py-2 md:py-1.5 px-2 md:px-1.5 md:rounded-full">
+      <div className={cn(
+        "flex items-center justify-around md:justify-start gap-1 backdrop-blur-xl py-2 md:py-1.5 px-2 md:px-1.5 md:rounded-full transition-all duration-300",
+        theme === "neon" 
+          ? "bg-black/95 md:bg-black/80 border-t-2 md:border-2 border-neon-cyan/30" 
+          : "bg-white/[0.03] md:bg-white/[0.05] border-t md:border border-white/[0.08] shadow-[0_4px_24px_rgba(0,0,0,0.3)]"
+      )}>
         {items.map((item) => {
           const Icon = item.icon
           const isActive = activeTab === item.name
@@ -123,8 +130,9 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
               onClick={() => setActiveTab(item.name)}
               className={cn(
                 "relative cursor-pointer text-xs md:text-sm font-bold px-3 md:px-6 py-2 rounded-full transition-all duration-300",
-                "text-muted-foreground hover:text-neon-cyan",
-                isActive && "text-neon-cyan",
+                theme === "neon"
+                  ? cn("text-muted-foreground hover:text-neon-cyan", isActive && "text-neon-cyan")
+                  : cn("text-neutral-400 hover:text-white", isActive && "text-white")
               )}
               aria-current={isActive ? "page" : undefined}
             >
@@ -136,7 +144,12 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
               {isActive && (
                 <motion.div
                   layoutId="lamp"
-                  className="absolute inset-0 w-full bg-neon-cyan/10 rounded-full -z-10 border border-neon-cyan/50"
+                  className={cn(
+                    "absolute inset-0 w-full rounded-full -z-10 border",
+                    theme === "neon" 
+                      ? "bg-neon-cyan/10 border-neon-cyan/50" 
+                      : "bg-white/[0.08] border-white/[0.15]"
+                  )}
                   initial={false}
                   transition={{
                     type: "spring",
@@ -144,12 +157,18 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
                     damping: 30,
                   }}
                 >
-                  {/* Tubelight glow effect */}
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-neon-cyan rounded-t-full shadow-lg shadow-neon-cyan/50">
-                    <div className="absolute w-16 h-8 bg-neon-cyan/30 rounded-full blur-xl -top-3 -left-2" />
-                    <div className="absolute w-12 h-6 bg-neon-cyan/40 rounded-full blur-lg -top-2" />
-                    <div className="absolute w-6 h-4 bg-neon-cyan/50 rounded-full blur-md -top-1 left-3" />
-                  </div>
+                  {/* Tubelight glow effect - Neon theme only */}
+                  {theme === "neon" && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-neon-cyan rounded-t-full shadow-lg shadow-neon-cyan/50">
+                      <div className="absolute w-16 h-8 bg-neon-cyan/30 rounded-full blur-xl -top-3 -left-2" />
+                      <div className="absolute w-12 h-6 bg-neon-cyan/40 rounded-full blur-lg -top-2" />
+                      <div className="absolute w-6 h-4 bg-neon-cyan/50 rounded-full blur-md -top-1 left-3" />
+                    </div>
+                  )}
+                  {/* Glass theme subtle glow */}
+                  {theme === "glass" && (
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/[0.05] to-transparent" />
+                  )}
                 </motion.div>
               )}
             </Link>
@@ -159,9 +178,17 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
         {/* Currency Toggle & Date Filter */}
         {showCurrencyToggle && (
           <>
-            <div className="h-6 w-px bg-neon-cyan/30 mx-1 hidden sm:block" aria-hidden="true" />
+            <div className={cn(
+              "h-6 w-px mx-1 hidden sm:block",
+              theme === "neon" ? "bg-neon-cyan/30" : "bg-white/10"
+            )} aria-hidden="true" />
             <div 
-              className="hidden sm:flex items-center bg-zinc-950 border border-zinc-800 rounded-full p-1 cursor-pointer"
+              className={cn(
+                "hidden sm:flex items-center rounded-full p-1 cursor-pointer transition-all duration-300",
+                theme === "neon" 
+                  ? "bg-zinc-950 border border-zinc-800" 
+                  : "bg-white/[0.03] border border-white/[0.08]"
+              )}
               onClick={() => setCurrency(currency === 'COP' ? 'BRL' : 'COP')}
               role="button"
               tabIndex={0}
@@ -170,23 +197,26 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
               <div className={cn(
                 "px-3 py-1 rounded-full text-xs font-bold transition-all duration-300",
                 currency === 'COP' 
-                  ? 'bg-zinc-800 text-white' 
-                  : 'text-zinc-500'
+                  ? theme === "neon" ? 'bg-zinc-800 text-white' : 'bg-white/[0.1] text-white'
+                  : theme === "neon" ? 'text-zinc-500' : 'text-neutral-500'
               )}>
                 COP
               </div>
               <div className={cn(
                 "px-3 py-1 rounded-full text-xs font-bold transition-all duration-300",
                 currency === 'BRL' 
-                  ? 'bg-zinc-800 text-white' 
-                  : 'text-zinc-500'
+                  ? theme === "neon" ? 'bg-zinc-800 text-white' : 'bg-white/[0.1] text-white'
+                  : theme === "neon" ? 'text-zinc-500' : 'text-neutral-500'
               )}>
                 BRL
               </div>
             </div>
 
             {/* Date Filter */}
-            <div className="h-6 w-px bg-neon-cyan/30 mx-1 hidden sm:block" aria-hidden="true" />
+            <div className={cn(
+              "h-6 w-px mx-1 hidden sm:block",
+              theme === "neon" ? "bg-neon-cyan/30" : "bg-white/10"
+            )} aria-hidden="true" />
             <Popover open={isOpen} onOpenChange={handleOpenChange}>
               <PopoverTrigger asChild>
                 <Button 

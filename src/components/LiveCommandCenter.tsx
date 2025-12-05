@@ -13,6 +13,7 @@ import { useRealtimeOrders } from "@/hooks/useRealtimeOrders";
 import { Toaster } from "./ui/toaster";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useDateFilter } from "@/contexts/DateFilterContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { useVslbioboostVisitors } from "@/hooks/useVslbioboostVisitors";
@@ -31,6 +32,7 @@ export const LiveCommandCenter = () => {
   const { orderCount: realtimeOrderCount } = useRealtimeOrders();
   const { formatCurrency } = useCurrency();
   const { dateRange } = useDateFilter();
+  const { theme } = useTheme();
   const { visitorCount } = useVslbioboostVisitors();
   const { data: facebookAdsData } = useFacebookAdsToday();
 
@@ -121,12 +123,42 @@ export const LiveCommandCenter = () => {
   };
 
   const colorVariants = {
-    cyan: { bg: "bg-neon-cyan/10", border: "border-neon-cyan/40", text: "text-neon-cyan", glow: "shadow-neon-cyan/30" },
-    green: { bg: "bg-neon-green/10", border: "border-neon-green/40", text: "text-neon-green", glow: "shadow-neon-green/30" },
-    purple: { bg: "bg-neon-purple/10", border: "border-neon-purple/40", text: "text-neon-purple", glow: "shadow-neon-purple/30" },
-    orange: { bg: "bg-neon-orange/10", border: "border-neon-orange/40", text: "text-neon-orange", glow: "shadow-neon-orange/30" },
-    pink: { bg: "bg-neon-pink/10", border: "border-neon-pink/40", text: "text-neon-pink", glow: "shadow-neon-pink/30" },
-    blue: { bg: "bg-neon-blue/10", border: "border-neon-blue/40", text: "text-neon-blue", glow: "shadow-neon-blue/30" },
+    cyan: { 
+      bg: theme === "glass" ? "bg-cyan-400/[0.08]" : "bg-neon-cyan/10", 
+      border: theme === "glass" ? "border-cyan-400/20" : "border-neon-cyan/40", 
+      text: theme === "glass" ? "text-cyan-300" : "text-neon-cyan", 
+      glow: theme === "glass" ? "shadow-[0_0_30px_rgba(6,182,212,0.15)]" : "shadow-neon-cyan/30" 
+    },
+    green: { 
+      bg: theme === "glass" ? "bg-emerald-400/[0.08]" : "bg-neon-green/10", 
+      border: theme === "glass" ? "border-emerald-400/20" : "border-neon-green/40", 
+      text: theme === "glass" ? "text-emerald-300" : "text-neon-green", 
+      glow: theme === "glass" ? "shadow-[0_0_30px_rgba(52,211,153,0.15)]" : "shadow-neon-green/30" 
+    },
+    purple: { 
+      bg: theme === "glass" ? "bg-purple-400/[0.08]" : "bg-neon-purple/10", 
+      border: theme === "glass" ? "border-purple-400/20" : "border-neon-purple/40", 
+      text: theme === "glass" ? "text-purple-300" : "text-neon-purple", 
+      glow: theme === "glass" ? "shadow-[0_0_30px_rgba(168,85,247,0.15)]" : "shadow-neon-purple/30" 
+    },
+    orange: { 
+      bg: theme === "glass" ? "bg-orange-400/[0.08]" : "bg-neon-orange/10", 
+      border: theme === "glass" ? "border-orange-400/20" : "border-neon-orange/40", 
+      text: theme === "glass" ? "text-orange-300" : "text-neon-orange", 
+      glow: theme === "glass" ? "shadow-[0_0_30px_rgba(251,146,60,0.15)]" : "shadow-neon-orange/30" 
+    },
+    pink: { 
+      bg: theme === "glass" ? "bg-pink-400/[0.08]" : "bg-neon-pink/10", 
+      border: theme === "glass" ? "border-pink-400/20" : "border-neon-pink/40", 
+      text: theme === "glass" ? "text-pink-300" : "text-neon-pink", 
+      glow: theme === "glass" ? "shadow-[0_0_30px_rgba(236,72,153,0.15)]" : "shadow-neon-pink/30" 
+    },
+    blue: { 
+      bg: theme === "glass" ? "bg-blue-400/[0.08]" : "bg-neon-blue/10", 
+      border: theme === "glass" ? "border-blue-400/20" : "border-neon-blue/40", 
+      text: theme === "glass" ? "text-blue-300" : "text-neon-blue", 
+      glow: theme === "glass" ? "shadow-[0_0_30px_rgba(59,130,246,0.15)]" : "shadow-neon-blue/30" 
+    },
   };
 
   return (
@@ -140,35 +172,64 @@ export const LiveCommandCenter = () => {
       
       {/* Background Effects */}
       <div className="absolute inset-0 bg-black" aria-hidden="true">
-        <div className="stars-bg absolute inset-0" />
+        {theme === "neon" && <div className="stars-bg absolute inset-0" />}
+        {theme === "glass" && <div className="glass-bg absolute inset-0" />}
       </div>
 
-      {/* Shooting Stars */}
-      <div aria-hidden="true">
-        <ShootingStars starColor="#06b6d4" trailColor="#0891b2" minSpeed={15} maxSpeed={35} minDelay={800} maxDelay={2500} />
-        <ShootingStars starColor="#8b5cf6" trailColor="#a78bfa" minSpeed={10} maxSpeed={25} minDelay={1500} maxDelay={3500} />
-        <ShootingStars starColor="#ec4899" trailColor="#f472b6" minSpeed={20} maxSpeed={40} minDelay={1000} maxDelay={3000} />
-      </div>
+      {/* Shooting Stars - Neon theme only */}
+      {theme === "neon" && (
+        <div aria-hidden="true">
+          <ShootingStars starColor="#06b6d4" trailColor="#0891b2" minSpeed={15} maxSpeed={35} minDelay={800} maxDelay={2500} />
+          <ShootingStars starColor="#8b5cf6" trailColor="#a78bfa" minSpeed={10} maxSpeed={25} minDelay={1500} maxDelay={3500} />
+          <ShootingStars starColor="#ec4899" trailColor="#f472b6" minSpeed={20} maxSpeed={40} minDelay={1000} maxDelay={3000} />
+        </div>
+      )}
       
       {/* Ambient Lighting */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-neon-purple/10 rounded-full blur-[150px]" aria-hidden="true" />
-      <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-neon-pink/10 rounded-full blur-[150px]" aria-hidden="true" />
-      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-neon-green/5 rounded-full blur-[180px]" aria-hidden="true" />
-      <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-neon-blue/5 rounded-full blur-[180px]" aria-hidden="true" />
+      {theme === "neon" ? (
+        <>
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-neon-purple/10 rounded-full blur-[150px]" aria-hidden="true" />
+          <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-neon-pink/10 rounded-full blur-[150px]" aria-hidden="true" />
+          <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-neon-green/5 rounded-full blur-[180px]" aria-hidden="true" />
+          <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-neon-blue/5 rounded-full blur-[180px]" aria-hidden="true" />
+        </>
+      ) : (
+        <>
+          <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-cyan-500/[0.03] rounded-full blur-[200px]" aria-hidden="true" />
+          <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-purple-500/[0.03] rounded-full blur-[200px]" aria-hidden="true" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-white/[0.01] rounded-full blur-[250px]" aria-hidden="true" />
+        </>
+      )}
 
       {/* Clock & Notification - Top Right */}
       <header className="fixed top-4 right-4 z-40 flex items-center gap-3">
         <NotificationCenter />
           <div 
-          className="px-4 py-2 rounded-full bg-black/80 border border-neon-cyan/30 backdrop-blur-xl"
+          className={cn(
+            "px-4 py-2 rounded-full backdrop-blur-xl transition-all duration-300",
+            theme === "neon" 
+              ? "bg-black/80 border border-neon-cyan/30" 
+              : "bg-white/[0.05] border border-white/[0.1] shadow-[0_4px_24px_rgba(0,0,0,0.3)]"
+          )}
           role="status"
           aria-live="polite"
           aria-label={`Hora atual: ${format(currentTime, "HH:mm:ss")}`}
         >
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-status-success rounded-full animate-pulse shadow-lg shadow-status-success/50" aria-hidden="true" />
-            <span className="text-status-success font-bold text-xs uppercase tracking-widest">AO VIVO</span>
-            <time className="text-sm font-mono font-black text-neon-cyan tracking-wider">
+            <div className={cn(
+              "w-2 h-2 rounded-full animate-pulse",
+              theme === "neon" 
+                ? "bg-status-success shadow-lg shadow-status-success/50" 
+                : "bg-emerald-400 shadow-lg shadow-emerald-400/30"
+            )} aria-hidden="true" />
+            <span className={cn(
+              "font-bold text-xs uppercase tracking-widest",
+              theme === "neon" ? "text-status-success" : "text-emerald-300"
+            )}>AO VIVO</span>
+            <time className={cn(
+              "text-sm font-mono font-black tracking-wider",
+              theme === "neon" ? "text-neon-cyan" : "text-white/80"
+            )}>
               {format(currentTime, "HH:mm:ss")}
             </time>
           </div>
@@ -178,7 +239,12 @@ export const LiveCommandCenter = () => {
       {/* Layout Toggle - Desktop Only */}
       {!isMobile && (
         <div className="fixed top-4 left-4 z-40">
-          <div className="flex items-center gap-1 p-1 rounded-full bg-black/80 border border-neon-cyan/30 backdrop-blur-xl">
+          <div className={cn(
+            "flex items-center gap-1 p-1 rounded-full backdrop-blur-xl transition-all duration-300",
+            theme === "neon" 
+              ? "bg-black/80 border border-neon-cyan/30" 
+              : "bg-white/[0.05] border border-white/[0.1] shadow-[0_4px_24px_rgba(0,0,0,0.3)]"
+          )}>
             <Button
               variant="ghost"
               size="sm"
@@ -186,7 +252,7 @@ export const LiveCommandCenter = () => {
               className={cn(
                 "rounded-full h-8 px-3 transition-all",
                 layoutMode === "orbital" 
-                  ? "bg-neon-cyan/20 text-neon-cyan" 
+                  ? theme === "neon" ? "bg-neon-cyan/20 text-neon-cyan" : "bg-white/[0.1] text-white"
                   : "text-muted-foreground hover:text-foreground"
               )}
               aria-label="Layout orbital com globo"
@@ -201,7 +267,7 @@ export const LiveCommandCenter = () => {
               className={cn(
                 "rounded-full h-8 px-3 transition-all",
                 layoutMode === "grid" 
-                  ? "bg-neon-cyan/20 text-neon-cyan" 
+                  ? theme === "neon" ? "bg-neon-cyan/20 text-neon-cyan" : "bg-white/[0.1] text-white"
                   : "text-muted-foreground hover:text-foreground"
               )}
               aria-label="Layout em grade"
