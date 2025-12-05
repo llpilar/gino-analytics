@@ -1,5 +1,5 @@
 import { DashboardWrapper } from "@/components/DashboardWrapper";
-import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Users, Activity, MapPin } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Activity, MapPin } from "lucide-react";
 import { SalesChart } from "@/components/SalesChart";
 import { useShopifyAnalytics, useShopifyRevenueToday } from "@/hooks/useShopifyData";
 import { useMemo } from "react";
@@ -106,46 +106,10 @@ export default function Analises() {
         </div>
 
         {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Main Sales Chart - Takes 2 columns */}
-          <div className="lg:col-span-2">
-            <SectionCard color="cyan">
-              <SalesChart analyticsData={analyticsData} isLoading={analyticsLoading} />
-            </SectionCard>
-          </div>
-
-          {/* Side Stats */}
-          <div className="space-y-6">
-            {/* Performance Score */}
-            <SectionCard title="Pontuação de Performance" icon={Activity} color="purple">
-              <div className="relative">
-                <div className="text-6xl font-black gradient-text-purple mb-2">
-                  94
-                </div>
-                <div className="text-xs text-gray-400 uppercase tracking-wider">Excelente</div>
-                
-                <div className="mt-4 h-2 bg-gray-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" style={{ width: '94%' }} />
-                </div>
-              </div>
-            </SectionCard>
-
-            {/* Active Users */}
-            <SectionCard title="Ativos Agora" icon={Users} color="green">
-              <div className="text-5xl font-black gradient-text-green mb-2">
-                {metrics.activeUsers}
-              </div>
-              <div className="text-xs text-gray-400">Usuários comprando agora</div>
-              
-              <div className="flex items-center gap-2 mt-4">
-                <div className="relative">
-                  <div className="w-3 h-3 bg-green-500 rounded-full animate-ping absolute" />
-                  <div className="w-3 h-3 bg-green-500 rounded-full" />
-                </div>
-                <span className="text-xs text-green-400 font-bold">AO VIVO</span>
-              </div>
-            </SectionCard>
-          </div>
+        <div className="mb-8">
+          <SectionCard color="cyan">
+            <SalesChart analyticsData={analyticsData} isLoading={analyticsLoading} />
+          </SectionCard>
         </div>
 
         {/* Bottom Stats Bar */}
