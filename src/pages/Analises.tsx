@@ -222,7 +222,7 @@ export default function Analises() {
               {/* Cliques no Botão */}
               <div className="p-4 rounded-lg bg-white/5 border border-white/10">
                 <div className="text-2xl font-bold text-foreground">
-                  {vturbMetrics.totalClicks.toLocaleString('pt-BR')}
+                  {vturbMetrics.uniqueClicks.toLocaleString('pt-BR')}
                 </div>
                 <div className="text-sm text-muted-foreground">
                   Cliques no Botão
