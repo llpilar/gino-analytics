@@ -146,7 +146,7 @@ export default function Analises() {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
               {/* Visualizações */}
-              <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+              <div className="p-4 rounded-lg bg-card/50 border border-border">
                 <div className="text-2xl font-bold text-foreground">
                   {vturbMetrics.totalViews.toLocaleString('pt-BR')}
                 </div>
@@ -156,7 +156,7 @@ export default function Analises() {
               </div>
 
               {/* Visualizações Únicas */}
-              <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+              <div className="p-4 rounded-lg bg-card/50 border border-border">
                 <div className="text-2xl font-bold text-foreground">
                   {vturbMetrics.uniqueViews.toLocaleString('pt-BR')}
                 </div>
@@ -166,7 +166,7 @@ export default function Analises() {
               </div>
 
               {/* Plays */}
-              <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+              <div className="p-4 rounded-lg bg-card/50 border border-border">
                 <div className="text-2xl font-bold text-foreground">
                   {vturbMetrics.totalPlays.toLocaleString('pt-BR')}
                 </div>
@@ -176,7 +176,7 @@ export default function Analises() {
               </div>
 
               {/* Plays Únicos */}
-              <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+              <div className="p-4 rounded-lg bg-card/50 border border-border">
                 <div className="text-2xl font-bold text-foreground">
                   {vturbMetrics.uniquePlays.toLocaleString('pt-BR')}
                 </div>
@@ -186,7 +186,7 @@ export default function Analises() {
               </div>
 
               {/* Play Rate */}
-              <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+              <div className="p-4 rounded-lg bg-card/50 border border-border">
                 <div className="text-2xl font-bold text-foreground">
                   {vturbMetrics.playRate.toFixed(2).replace('.', ',')}%
                 </div>
@@ -196,7 +196,7 @@ export default function Analises() {
               </div>
 
               {/* Retenção ao Pitch */}
-              <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+              <div className="p-4 rounded-lg bg-card/50 border border-border">
                 <div className="text-2xl font-bold text-foreground">
                   {vturbMetrics.overPitchRate.toFixed(2).replace('.', ',')}%
                 </div>
@@ -206,7 +206,7 @@ export default function Analises() {
               </div>
 
               {/* Engajamento */}
-              <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+              <div className="p-4 rounded-lg bg-card/50 border border-border">
                 <div className="text-2xl font-bold text-foreground">
                   {vturbMetrics.engagementRate.toFixed(2).replace('.', ',')}%
                 </div>
@@ -216,7 +216,7 @@ export default function Analises() {
               </div>
 
               {/* Cliques no Botão */}
-              <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+              <div className="p-4 rounded-lg bg-card/50 border border-border">
                 <div className="text-2xl font-bold text-foreground">
                   {vturbMetrics.uniqueClicks.toLocaleString('pt-BR')}
                 </div>
@@ -226,7 +226,7 @@ export default function Analises() {
               </div>
 
               {/* Conversões */}
-              <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+              <div className="p-4 rounded-lg bg-card/50 border border-border">
                 <div className="text-2xl font-bold text-foreground">
                   {metrics.ordersCount}
                 </div>
@@ -236,7 +236,7 @@ export default function Analises() {
               </div>
 
               {/* Taxa de Conversão */}
-              <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+              <div className="p-4 rounded-lg bg-card/50 border border-border">
                 <div className="text-2xl font-bold text-foreground">
                   {vturbMetrics.uniquePlays > 0 
                     ? ((metrics.ordersCount / vturbMetrics.uniquePlays) * 100).toFixed(2).replace('.', ',')
@@ -274,25 +274,25 @@ export default function Analises() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Daily Comparison */}
           <SectionCard color="green">
-            <h3 className="text-sm font-black text-gray-400 uppercase tracking-wider mb-4">Hoje vs Ontem</h3>
+            <h3 className="text-sm font-black text-muted-foreground uppercase tracking-wider mb-4">Hoje vs Ontem</h3>
             {dailyComparison && (
               <div className="space-y-4">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-gray-500">Receita</span>
+                    <span className="text-xs text-muted-foreground">Receita</span>
                     <ComparisonBadge 
                       changePercent={dailyComparison.revenue.changePercent}
                       isPositive={dailyComparison.revenue.isPositive}
                       label=""
                     />
                   </div>
-                  <div className="text-2xl font-black gradient-text-green">
+                  <div className="text-2xl font-black text-green-400">
                     {formatCurrency(dailyComparison.revenue.current)}
                   </div>
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-gray-500">Pedidos</span>
+                    <span className="text-xs text-muted-foreground">Pedidos</span>
                     <ComparisonBadge 
                       changePercent={dailyComparison.orders.changePercent}
                       isPositive={dailyComparison.orders.isPositive}
@@ -309,25 +309,25 @@ export default function Analises() {
 
           {/* Weekly Comparison */}
           <SectionCard color="purple">
-            <h3 className="text-sm font-black text-gray-400 uppercase tracking-wider mb-4">Semana Atual vs Anterior</h3>
+            <h3 className="text-sm font-black text-muted-foreground uppercase tracking-wider mb-4">Semana Atual vs Anterior</h3>
             {weeklyComparison && (
               <div className="space-y-4">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-gray-500">Receita</span>
+                    <span className="text-xs text-muted-foreground">Receita</span>
                     <ComparisonBadge 
                       changePercent={weeklyComparison.revenue.changePercent}
                       isPositive={weeklyComparison.revenue.isPositive}
                       label=""
                     />
                   </div>
-                  <div className="text-2xl font-black gradient-text-purple">
+                  <div className="text-2xl font-black text-purple-400">
                     {formatCurrency(weeklyComparison.revenue.current)}
                   </div>
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-gray-500">Pedidos</span>
+                    <span className="text-xs text-muted-foreground">Pedidos</span>
                     <ComparisonBadge 
                       changePercent={weeklyComparison.orders.changePercent}
                       isPositive={weeklyComparison.orders.isPositive}
@@ -344,32 +344,32 @@ export default function Analises() {
 
           {/* Monthly Comparison */}
           <SectionCard color="cyan">
-            <h3 className="text-sm font-black text-gray-400 uppercase tracking-wider mb-4">Mês Atual vs Anterior</h3>
+            <h3 className="text-sm font-black text-muted-foreground uppercase tracking-wider mb-4">Mês Atual vs Anterior</h3>
             {monthlyComparison && (
               <div className="space-y-4">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-gray-500">Receita</span>
+                    <span className="text-xs text-muted-foreground">Receita</span>
                     <ComparisonBadge 
                       changePercent={monthlyComparison.revenue.changePercent}
                       isPositive={monthlyComparison.revenue.isPositive}
                       label=""
                     />
                   </div>
-                  <div className="text-2xl font-black gradient-text-cyan">
+                  <div className="text-2xl font-black text-primary">
                     {formatCurrency(monthlyComparison.revenue.current)}
                   </div>
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-gray-500">Pedidos</span>
+                    <span className="text-xs text-muted-foreground">Pedidos</span>
                     <ComparisonBadge 
                       changePercent={monthlyComparison.orders.changePercent}
                       isPositive={monthlyComparison.orders.isPositive}
                       label=""
                     />
                   </div>
-                  <div className="text-2xl font-black text-cyan-400">
+                  <div className="text-2xl font-black text-primary">
                     {monthlyComparison.orders.current}
                   </div>
                 </div>

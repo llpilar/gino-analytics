@@ -183,13 +183,13 @@ export default function Contas() {
     return (
       <DashboardWrapper>
         <div className="container mx-auto p-6 md:p-8 lg:p-12 min-h-screen">
-          <Skeleton className="h-10 w-48 bg-gray-800" />
+          <Skeleton className="h-10 w-48 bg-muted" />
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
             {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-32 bg-gray-800" />
+              <Skeleton key={i} className="h-32 bg-muted" />
             ))}
           </div>
-          <Skeleton className="h-96 mt-8 bg-gray-800" />
+          <Skeleton className="h-96 mt-8 bg-muted" />
         </div>
       </DashboardWrapper>
     );
@@ -244,40 +244,40 @@ export default function Contas() {
               <Button 
                 variant="outline" 
                 onClick={() => setNewConfig({ partner1_name: partner1, partner2_name: partner2 })}
-                className="bg-black/80 border-2 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 hover:border-cyan-500/50"
+                className="bg-card/80 border-2 border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50"
               >
                 <Settings className="h-4 w-4 mr-2" />
                 Configurar Nomes
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-black/95 border-2 border-cyan-500/30 backdrop-blur-xl">
+            <DialogContent className="bg-popover/95 border-2 border-primary/30 backdrop-blur-xl">
               <DialogHeader>
-                <DialogTitle className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
+                <DialogTitle className="text-xl font-black text-primary">
                   Configurar Nomes dos Sócios
                 </DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-4">
                 <div>
-                  <Label className="text-gray-400">Nome do Sócio 1</Label>
+                  <Label className="text-muted-foreground">Nome do Sócio 1</Label>
                   <Input
                     value={newConfig.partner1_name}
                     onChange={(e) => setNewConfig({ ...newConfig, partner1_name: e.target.value })}
                     placeholder="Nome do primeiro sócio"
-                    className="bg-black/60 border-purple-500/30 text-white focus:border-purple-500"
+                    className="bg-card/60 border-purple-500/30 text-foreground focus:border-purple-500"
                   />
                 </div>
                 <div>
-                  <Label className="text-gray-400">Nome do Sócio 2</Label>
+                  <Label className="text-muted-foreground">Nome do Sócio 2</Label>
                   <Input
                     value={newConfig.partner2_name}
                     onChange={(e) => setNewConfig({ ...newConfig, partner2_name: e.target.value })}
                     placeholder="Nome do segundo sócio"
-                    className="bg-black/60 border-orange-500/30 text-white focus:border-orange-500"
+                    className="bg-card/60 border-orange-500/30 text-foreground focus:border-orange-500"
                   />
                 </div>
                 <Button 
                   onClick={handleUpdateConfig} 
-                  className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
                 >
                   Salvar
                 </Button>
@@ -306,46 +306,46 @@ export default function Contas() {
           
           <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4">
             <div className="md:col-span-2">
-              <Label className="text-gray-400 text-xs uppercase tracking-wider">Descrição</Label>
+              <Label className="text-muted-foreground text-xs uppercase tracking-wider">Descrição</Label>
               <Input
                 value={newExpense.description}
                 onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })}
                 placeholder="Ex: Facebook Ads"
-                className="bg-black/60 border-cyan-500/30 text-white focus:border-cyan-500 mt-1"
+                className="bg-card/60 border-primary/30 text-foreground focus:border-primary mt-1"
               />
             </div>
             <div>
-              <Label className="text-gray-400 text-xs uppercase tracking-wider">Valor</Label>
+              <Label className="text-muted-foreground text-xs uppercase tracking-wider">Valor</Label>
               <Input
                 type="number"
                 step="0.01"
                 value={newExpense.amount}
                 onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
                 placeholder="0,00"
-                className="bg-black/60 border-cyan-500/30 text-white focus:border-cyan-500 mt-1"
+                className="bg-card/60 border-primary/30 text-foreground focus:border-primary mt-1"
               />
             </div>
             <div>
-              <Label className="text-gray-400 text-xs uppercase tracking-wider">Pago por</Label>
+              <Label className="text-muted-foreground text-xs uppercase tracking-wider">Pago por</Label>
               <Select value={newExpense.paid_by} onValueChange={(v) => setNewExpense({ ...newExpense, paid_by: v })}>
-                <SelectTrigger className="bg-black/60 border-cyan-500/30 text-white focus:border-cyan-500 mt-1">
+                <SelectTrigger className="bg-card/60 border-primary/30 text-foreground focus:border-primary mt-1">
                   <SelectValue placeholder="Selecione" />
                 </SelectTrigger>
-                <SelectContent className="bg-black/95 border-cyan-500/30">
-                  <SelectItem value={partner1} className="text-white hover:bg-cyan-500/20">{partner1}</SelectItem>
-                  <SelectItem value={partner2} className="text-white hover:bg-cyan-500/20">{partner2}</SelectItem>
+                <SelectContent className="bg-popover/95 border-primary/30">
+                  <SelectItem value={partner1} className="text-foreground hover:bg-primary/20">{partner1}</SelectItem>
+                  <SelectItem value={partner2} className="text-foreground hover:bg-primary/20">{partner2}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label className="text-gray-400 text-xs uppercase tracking-wider">Categoria</Label>
+              <Label className="text-muted-foreground text-xs uppercase tracking-wider">Categoria</Label>
               <Select value={newExpense.category} onValueChange={(v) => setNewExpense({ ...newExpense, category: v })}>
-                <SelectTrigger className="bg-black/60 border-cyan-500/30 text-white focus:border-cyan-500 mt-1">
+                <SelectTrigger className="bg-card/60 border-primary/30 text-foreground focus:border-primary mt-1">
                   <SelectValue placeholder="Selecione" />
                 </SelectTrigger>
-                <SelectContent className="bg-black/95 border-cyan-500/30">
+                <SelectContent className="bg-popover/95 border-primary/30">
                   {CATEGORIES.map((cat) => (
-                    <SelectItem key={cat} value={cat} className="text-white hover:bg-cyan-500/20">{cat}</SelectItem>
+                    <SelectItem key={cat} value={cat} className="text-foreground hover:bg-primary/20">{cat}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -353,7 +353,7 @@ export default function Contas() {
             <div className="flex items-end">
               <Button 
                 onClick={handleAddExpense} 
-                className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
                 disabled={addExpense.isPending || isUploading}
               >
                 <Plus className="h-4 w-4 mr-2" />
@@ -363,8 +363,8 @@ export default function Contas() {
           </div>
 
           {/* Receipt Upload Section */}
-          <div className="mt-4 p-4 rounded-xl bg-black/40 border border-cyan-500/20">
-            <Label className="text-gray-400 text-xs uppercase tracking-wider mb-2 block">Comprovante (opcional)</Label>
+          <div className="mt-4 p-4 rounded-xl bg-card/40 border border-primary/20">
+            <Label className="text-muted-foreground text-xs uppercase tracking-wider mb-2 block">Comprovante (opcional)</Label>
             <div className="flex items-center gap-4">
               <input
                 ref={fileInputRef}
@@ -387,7 +387,7 @@ export default function Contas() {
                   <img 
                     src={previewUrl} 
                     alt="Preview" 
-                    className="h-16 w-16 object-cover rounded-lg border border-cyan-500/30"
+                    className="h-16 w-16 object-cover rounded-lg border border-primary/30"
                   />
                   <button
                     onClick={clearSelectedFile}
@@ -399,7 +399,7 @@ export default function Contas() {
               )}
               
               {selectedFile && (
-                <span className="text-sm text-gray-400">{selectedFile.name}</span>
+                <span className="text-sm text-muted-foreground">{selectedFile.name}</span>
               )}
             </div>
           </div>
@@ -407,19 +407,19 @@ export default function Contas() {
 
         {/* Fixed Expenses Section */}
         <SectionCard title="Gastos Fixos" icon={Calendar} color="orange" className="mb-8">
-          <p className="text-gray-400 text-sm mb-4">
+          <p className="text-muted-foreground text-sm mb-4">
             Despesas que se repetem todo mês. Total mensal: <span className="text-orange-400 font-bold">{formatBRL(fixedExpensesTotal)}</span>
           </p>
           
           {/* Add Fixed Expense Form */}
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
             <div className="md:col-span-2">
-              <Label className="text-gray-400 text-xs uppercase tracking-wider">Descrição</Label>
+              <Label className="text-muted-foreground text-xs uppercase tracking-wider">Descrição</Label>
               <Input
                 value={newFixedExpense.description}
                 onChange={(e) => setNewFixedExpense({ ...newFixedExpense, description: e.target.value })}
                 placeholder="Ex: Hospedagem, Ferramentas"
-                className="bg-black/60 border-orange-500/30 text-white focus:border-orange-500 mt-1"
+                className="bg-card/60 border-orange-500/30 text-foreground focus:border-orange-500 mt-1"
               />
             </div>
             <div>

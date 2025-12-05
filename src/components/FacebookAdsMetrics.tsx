@@ -90,12 +90,12 @@ export const FacebookAdsMetrics = () => {
     <div className="space-y-6">
       <SectionCard title="Facebook Ads" icon={Facebook} color="blue">
         <Select value={selectedAccount || ""} onValueChange={setSelectedAccount}>
-          <SelectTrigger className="bg-black/60 border-blue-500/30 text-white focus:border-blue-500">
+          <SelectTrigger className="bg-card/60 border-blue-500/30 text-foreground focus:border-blue-500">
             <SelectValue placeholder="Selecione uma conta de anúncios" />
           </SelectTrigger>
-          <SelectContent className="bg-black/95 border-blue-500/30">
+          <SelectContent className="bg-popover/95 border-blue-500/30">
             {accounts?.map((account) => (
-              <SelectItem key={account.id} value={account.id} className="text-white hover:bg-blue-500/20">
+              <SelectItem key={account.id} value={account.id} className="text-foreground hover:bg-blue-500/20">
                 {account.name} ({account.currency})
               </SelectItem>
             ))}

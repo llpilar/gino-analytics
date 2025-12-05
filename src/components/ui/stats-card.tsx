@@ -23,46 +23,46 @@ const colorClasses: Record<CardColorVariant, {
   text: string;
 }> = {
   cyan: {
-    border: "border-neon-cyan/40",
-    glow: "shadow-neon-cyan/30",
-    bg: "bg-neon-cyan/10",
-    text: "text-neon-cyan",
+    border: "border-primary/40",
+    glow: "shadow-primary/30",
+    bg: "bg-primary/10",
+    text: "text-primary",
   },
   purple: {
-    border: "border-neon-purple/40",
-    glow: "shadow-neon-purple/30",
-    bg: "bg-neon-purple/10",
-    text: "text-neon-purple",
+    border: "border-purple-500/40",
+    glow: "shadow-purple-500/30",
+    bg: "bg-purple-500/10",
+    text: "text-purple-400",
   },
   green: {
-    border: "border-neon-green/40",
-    glow: "shadow-neon-green/30",
-    bg: "bg-neon-green/10",
-    text: "text-neon-green",
+    border: "border-green-500/40",
+    glow: "shadow-green-500/30",
+    bg: "bg-green-500/10",
+    text: "text-green-400",
   },
   orange: {
-    border: "border-neon-orange/40",
-    glow: "shadow-neon-orange/30",
-    bg: "bg-neon-orange/10",
-    text: "text-neon-orange",
+    border: "border-orange-500/40",
+    glow: "shadow-orange-500/30",
+    bg: "bg-orange-500/10",
+    text: "text-orange-400",
   },
   pink: {
-    border: "border-neon-pink/40",
-    glow: "shadow-neon-pink/30",
-    bg: "bg-neon-pink/10",
-    text: "text-neon-pink",
+    border: "border-pink-500/40",
+    glow: "shadow-pink-500/30",
+    bg: "bg-pink-500/10",
+    text: "text-pink-400",
   },
   blue: {
-    border: "border-neon-blue/40",
-    glow: "shadow-neon-blue/30",
-    bg: "bg-neon-blue/10",
-    text: "text-neon-blue",
+    border: "border-blue-500/40",
+    glow: "shadow-blue-500/30",
+    bg: "bg-blue-500/10",
+    text: "text-blue-400",
   },
   red: {
     border: "border-red-500/40",
     glow: "shadow-red-500/30",
     bg: "bg-red-500/10",
-    text: "text-red-500",
+    text: "text-red-400",
   },
 };
 
@@ -83,7 +83,7 @@ export const StatsCard = ({
   return (
     <article
       className={cn(
-        "p-4 md:p-6 rounded-2xl bg-surface-elevated border-2 backdrop-blur-xl",
+        "p-4 md:p-6 rounded-2xl bg-card border-2 backdrop-blur-xl",
         "transition-all duration-300",
         colors.border,
         hoverable && "hover:scale-[1.02] cursor-pointer",
@@ -147,7 +147,7 @@ export const SectionCard = ({
   return (
     <section
       className={cn(
-        "p-4 md:p-6 rounded-2xl bg-surface-elevated border-2 backdrop-blur-xl",
+        "p-4 md:p-6 rounded-2xl bg-card border-2 backdrop-blur-xl",
         colors.border,
         "animate-fade-in",
         className
