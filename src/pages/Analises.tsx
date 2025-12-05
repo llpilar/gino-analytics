@@ -22,26 +22,36 @@ export default function Analises() {
 
   // Calculate metrics
   const metrics = useMemo(() => {
-    const totalRevenue = revenueData?.data?.orders?.edges?.reduce((acc: number, edge: any) => {
+    const orders = revenueData?.data?.orders?.edges || [];
+    
+    const totalRevenue = orders.reduce((acc: number, edge: any) => {
       const amount = parseFloat(
         edge.node.currentTotalPriceSet?.shopMoney?.amount || 
         edge.node.totalPriceSet?.shopMoney?.amount || 
         '0'
       );
       return acc + amount;
-    }, 0) || 0;
+    }, 0);
 
-    const ordersCount = revenueData?.data?.orders?.edges?.length || 0;
+    const ordersCount = orders.length;
     const avgOrderValue = ordersCount > 0 ? totalRevenue / ordersCount : 0;
-    const conversionRate = 12.5;
-    const activeUsers = Math.floor(ordersCount * 0.85);
+    
+    // Count unique customers based on customer ID or email
+    const uniqueCustomers = new Set(
+      orders
+        .map((edge: any) => edge.node.customer?.id || edge.node.customer?.email)
+        .filter(Boolean)
+    ).size;
+
+    // Calculate conversion rate: (orders / unique customers) * 100
+    const conversionRate = uniqueCustomers > 0 ? (ordersCount / uniqueCustomers) * 100 : 0;
 
     return {
       totalRevenue,
       ordersCount,
       avgOrderValue,
       conversionRate,
-      activeUsers,
+      uniqueCustomers,
       growth: 23.5
     };
   }, [revenueData]);
@@ -130,19 +140,17 @@ export default function Analises() {
               </div>
             </SectionCard>
 
-            {/* Active Users */}
-            <SectionCard title="Ativos Agora" icon={Users} color="green">
+            {/* Unique Customers */}
+            <SectionCard title="Clientes Únicos" icon={Users} color="green">
               <div className="text-5xl font-black gradient-text-green mb-2">
-                {metrics.activeUsers}
+                {metrics.uniqueCustomers}
               </div>
-              <div className="text-xs text-gray-400">Usuários comprando agora</div>
+              <div className="text-xs text-gray-400">Clientes que compraram no período</div>
               
               <div className="flex items-center gap-2 mt-4">
-                <div className="relative">
-                  <div className="w-3 h-3 bg-green-500 rounded-full animate-ping absolute" />
-                  <div className="w-3 h-3 bg-green-500 rounded-full" />
+                <div className="text-xs text-gray-500">
+                  Taxa de conversão: <span className="text-green-400 font-bold">{metrics.conversionRate.toFixed(1)}%</span>
                 </div>
-                <span className="text-xs text-green-400 font-bold">AO VIVO</span>
               </div>
             </SectionCard>
           </div>
