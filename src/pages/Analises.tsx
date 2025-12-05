@@ -136,26 +136,6 @@ export default function Analises() {
 
         {/* VTurb Analytics Section */}
         <SectionCard title="Métricas do Vídeo (VTurb)" icon={Video} color="red" className="mb-8">
-          {/* Video Selector */}
-          <div className="mb-6">
-            <Select value={selectedPlayerId || "all"} onValueChange={(value) => setSelectedPlayerId(value === "all" ? undefined : value)}>
-              <SelectTrigger className="w-full md:w-[300px] bg-white/5 border-red-500/30 text-foreground">
-                <SelectValue placeholder="Selecione um vídeo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os vídeos</SelectItem>
-                {vturbPlayers.map((player) => (
-                  <SelectItem key={player.player_id} value={player.player_id}>
-                    {player.player_name || player.player_id}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {vturbPlayersLoading && (
-              <span className="text-xs text-gray-500 ml-2">Carregando vídeos...</span>
-            )}
-          </div>
-
           {vturbLoading ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               {[...Array(10)].map((_, i) => (
