@@ -139,7 +139,7 @@ export default function Analises() {
               <div className="p-4 rounded-xl bg-black/60 border border-purple-500/30">
                 <div className="flex items-center gap-2 mb-2">
                   <Users className="w-4 h-4 text-purple-400" />
-                  <span className="text-xs text-gray-500 uppercase">Usuários Ativos</span>
+                  <span className="text-xs text-gray-500 uppercase">Usuários Ativos (30 min)</span>
                 </div>
                 <div className="text-2xl font-black text-purple-400">
                   {gaRealtime.activeUsers > 0 ? gaRealtime.activeUsers : gaMetrics.totalUsers}
