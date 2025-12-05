@@ -144,14 +144,59 @@ const StatsGrid = () => {
   const orders: any[] = Array.isArray(ordersData?.data) ? ordersData.data : 
                 Array.isArray(ordersData) ? ordersData : [];
 
+  // Debug: Log order data distribution
+  console.log('Envios Stats Debug:', {
+    totalOrders: orders.length,
+    deliveryStates: orders.reduce((acc, o) => {
+      const state = o.delivery_state;
+      acc[state] = (acc[state] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>),
+    paymentTypes: orders.reduce((acc, o) => {
+      const payment = o.payment;
+      acc[payment] = (acc[payment] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>),
+    guideStates: orders.reduce((acc, o) => {
+      const state = o.guide?.state;
+      acc[state] = (acc[state] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>),
+    sampleOrders: orders.slice(0, 3).map(o => ({
+      id: o.id,
+      delivery_state: o.delivery_state,
+      payment: o.payment,
+      guide_state: o.guide?.state
+    }))
+  });
+
   const totalOrders = orders.length;
   
   // Count orders by different categories based on Hoko statuses
-  // delivery_state: 1=Creada, 2=En proceso, 3=Despachada, 4=Finalizada, 5=Cancelada, 6=En Novedad
+  // delivery_state: 1=Criada, 2=Em processo, 3=Despachada, 4=Finalizada, 5=Cancelada, 6=Em Novedad
+  // payment: "0" = recaudo (COD), "1" = crédito
+  // guide.state: 17 = delivered, others = in process or problems
+  
+  // En proceso: orders with delivery_state 1, 2, 3 (created, processing, shipped - not yet finalized)
   const enProceso = orders.filter((o) => [1, 2, 3].includes(parseInt(o.delivery_state))).length;
-  const creditoEntregadas = orders.filter((o) => parseInt(o.delivery_state) === 4 && o.payment_type === 'credit').length;
-  const recaudoEntregadas = orders.filter((o) => parseInt(o.delivery_state) === 4 && o.payment_type !== 'credit').length;
-  const recaudoPagadas = orders.filter((o) => parseInt(o.delivery_state) === 4 && o.is_paid === true).length;
+  
+  // Crédito Entregadas: finalized (delivery_state=4) AND payment="1" (credit)
+  const creditoEntregadas = orders.filter((o) => 
+    parseInt(o.delivery_state) === 4 && o.payment === "1"
+  ).length;
+  
+  // Recaudo Entregadas: finalized (delivery_state=4) AND payment="0" (COD)
+  const recaudoEntregadas = orders.filter((o) => 
+    parseInt(o.delivery_state) === 4 && o.payment === "0"
+  ).length;
+  
+  // Recaudo Pagadas: COD orders that are paid (guide.state indicates paid status)
+  // For Hoko, state 17+ might indicate paid status for COD
+  const recaudoPagadas = orders.filter((o) => 
+    parseInt(o.delivery_state) === 4 && o.payment === "0" && o.guide?.state >= 18
+  ).length;
+  
+  // Devoluciones: cancelled or in novelty (delivery_state 5 or 6)
   const devoluciones = orders.filter((o) => [5, 6].includes(parseInt(o.delivery_state))).length;
 
   const getPercent = (value: number) => totalOrders > 0 ? ((value / totalOrders) * 100).toFixed(2) : '0';
