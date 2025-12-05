@@ -211,8 +211,8 @@ const OrdersTable = () => {
         <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 mb-4">
           <AlertCircle className="h-10 w-10 text-amber-400" />
         </div>
-        <p className="text-lg font-semibold text-white mb-1">Não foi possível carregar os pedidos</p>
-        <p className="text-sm text-zinc-500 mb-6">{(ordersData as any)?.message || 'Tente novamente mais tarde'}</p>
+        <p className="text-lg font-semibold text-foreground mb-1">Não foi possível carregar os pedidos</p>
+        <p className="text-sm text-muted-foreground mb-6">{(ordersData as any)?.message || 'Tente novamente mais tarde'}</p>
         <Button onClick={() => refetch()} variant="outline" className="gap-2 rounded-xl">
           <RefreshCw className="h-4 w-4" />
           Tentar novamente
@@ -359,7 +359,7 @@ const OrdersTable = () => {
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <TableCell>
-                    <span className="font-mono font-bold text-violet-400">
+                    <span className="font-mono font-bold text-chart-5">
                       #{order.id}
                     </span>
                   </TableCell>
@@ -374,7 +374,7 @@ const OrdersTable = () => {
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
-                    <Badge className="bg-cyan-500/10 text-cyan-400 border-cyan-500/30 border font-mono font-bold">
+                    <Badge className="bg-primary/10 text-primary border-primary/30 border font-mono font-bold">
                       {totalQuantity} uds
                     </Badge>
                   </TableCell>
@@ -393,22 +393,22 @@ const OrdersTable = () => {
                     )}
                   </TableCell>
                   <TableCell className="text-right">
-                    <span className="font-mono font-bold text-cyan-400">
+                    <span className="font-mono font-bold text-primary">
                       {formatCOP(orderTotal)}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
-                    <span className="font-mono text-purple-400">
+                    <span className="font-mono text-chart-5">
                       {formatCOP(productCost)}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
-                    <span className="font-mono text-amber-400">
+                    <span className="font-mono text-chart-3">
                       {formatCOP(shippingCost)}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
-                    <span className={`font-mono font-bold ${(orderTotal - productCost - shippingCost) >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    <span className={`font-mono font-bold ${(orderTotal - productCost - shippingCost) >= 0 ? 'text-chart-4' : 'text-destructive'}`}>
                       {formatCOP(orderTotal - productCost - shippingCost)}
                     </span>
                   </TableCell>
@@ -441,8 +441,8 @@ const ProductsTable = () => {
         <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 mb-4">
           <AlertCircle className="h-10 w-10 text-amber-400" />
         </div>
-        <p className="text-lg font-semibold text-white mb-1">Não foi possível carregar os produtos</p>
-        <p className="text-sm text-zinc-500 mb-6">{productsData?.message || 'Tente novamente mais tarde'}</p>
+        <p className="text-lg font-semibold text-foreground mb-1">Não foi possível carregar os produtos</p>
+        <p className="text-sm text-muted-foreground mb-6">{productsData?.message || 'Tente novamente mais tarde'}</p>
         <Button onClick={() => refetch()} variant="outline" className="gap-2 rounded-xl">
           <RefreshCw className="h-4 w-4" />
           Tentar novamente
@@ -587,17 +587,17 @@ const Envios = () => {
 
         <Tabs defaultValue="orders" className="space-y-6">
           <div className="flex items-center justify-between">
-            <TabsList className="bg-zinc-950 border border-zinc-800 rounded-full p-1">
+            <TabsList className="bg-card border border-border rounded-full p-1">
               <TabsTrigger 
                 value="orders" 
-                className="rounded-full px-5 py-2 data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=inactive]:text-zinc-500 transition-all duration-300"
+                className="rounded-full px-5 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:text-muted-foreground transition-all duration-300"
               >
                 <Truck className="h-4 w-4 mr-2" />
                 Pedidos
               </TabsTrigger>
               <TabsTrigger 
                 value="products" 
-                className="rounded-full px-5 py-2 data-[state=active]:bg-zinc-800 data-[state=active]:text-white data-[state=inactive]:text-zinc-500 transition-all duration-300"
+                className="rounded-full px-5 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:text-muted-foreground transition-all duration-300"
               >
                 <Box className="h-4 w-4 mr-2" />
                 Produtos
@@ -607,7 +607,7 @@ const Envios = () => {
             <Button 
               onClick={handleRefreshAll} 
               variant="outline" 
-              className="gap-2 rounded-xl border-zinc-700 hover:border-violet-500/50 hover:bg-violet-500/10 transition-all"
+              className="gap-2 rounded-xl border-border hover:border-primary/50 hover:bg-primary/10 transition-all"
             >
               <RefreshCw className="h-4 w-4" />
               Sincronizar
@@ -615,11 +615,11 @@ const Envios = () => {
           </div>
 
           <TabsContent value="orders" className="mt-6">
-            <Card className="bg-black/40 border-zinc-800/50 rounded-2xl backdrop-blur-sm overflow-hidden">
+            <Card className="bg-card/40 border-border rounded-2xl backdrop-blur-sm overflow-hidden">
               <CardContent className="p-6">
                 <div className="mb-6">
-                  <h2 className="text-lg font-bold text-white">Pedidos Recentes</h2>
-                  <p className="text-sm text-zinc-500">Gerencie e rastreie seus envios</p>
+                  <h2 className="text-lg font-bold text-foreground">Pedidos Recentes</h2>
+                  <p className="text-sm text-muted-foreground">Gerencie e rastreie seus envios</p>
                 </div>
                 <OrdersTable />
               </CardContent>
@@ -627,11 +627,11 @@ const Envios = () => {
           </TabsContent>
 
           <TabsContent value="products" className="mt-6">
-            <Card className="bg-black/40 border-zinc-800/50 rounded-2xl backdrop-blur-sm overflow-hidden">
+            <Card className="bg-card/40 border-border rounded-2xl backdrop-blur-sm overflow-hidden">
               <CardContent className="p-6">
                 <div className="mb-6">
-                  <h2 className="text-lg font-bold text-white">Produtos em Fulfillment</h2>
-                  <p className="text-sm text-zinc-500">Inventário sincronizado com Hoko</p>
+                  <h2 className="text-lg font-bold text-foreground">Produtos em Fulfillment</h2>
+                  <p className="text-sm text-muted-foreground">Inventário sincronizado com Hoko</p>
                 </div>
                 <ProductsTable />
               </CardContent>
