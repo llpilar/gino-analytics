@@ -13,7 +13,7 @@ import {
 import { useHokoOrders, useHokoProducts, useHokoProductsWithStock } from "@/hooks/useHokoData";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, isWithinInterval, startOfDay, endOfDay, isAfter, isBefore } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useDateFilter } from "@/contexts/DateFilterContext";
@@ -140,13 +140,27 @@ const StatsGrid = () => {
     );
   }
 
-  // Orders already filtered by API with min date of November 20, 2025
-  const orders: any[] = Array.isArray(ordersData?.data) ? ordersData.data : 
+  // Get all orders from API (API doesn't filter by date properly)
+  const allOrders: any[] = Array.isArray(ordersData?.data) ? ordersData.data : 
                 Array.isArray(ordersData) ? ordersData : [];
+
+  // Client-side filtering by created_at date (API doesn't respect date filters)
+  const orders = allOrders.filter((order: any) => {
+    const orderDate = order.created_at ? parseISO(order.created_at) : null;
+    if (!orderDate) return false;
+    
+    // Filter by effective date range
+    return isWithinInterval(orderDate, { 
+      start: startOfDay(effectiveFrom), 
+      end: endOfDay(effectiveTo) 
+    });
+  });
 
   // Debug: Log order data distribution
   console.log('Envios Stats Debug:', {
-    totalOrders: orders.length,
+    totalFromAPI: allOrders.length,
+    totalAfterFilter: orders.length,
+    dateRange: { from: effectiveFrom.toISOString(), to: effectiveTo.toISOString() },
     deliveryStates: orders.reduce((acc, o) => {
       const state = o.delivery_state;
       acc[state] = (acc[state] || 0) + 1;
@@ -157,13 +171,9 @@ const StatsGrid = () => {
       acc[payment] = (acc[payment] || 0) + 1;
       return acc;
     }, {} as Record<string, number>),
-    guideStates: orders.reduce((acc, o) => {
-      const state = o.guide?.state;
-      acc[state] = (acc[state] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>),
     sampleOrders: orders.slice(0, 3).map(o => ({
       id: o.id,
+      created_at: o.created_at,
       delivery_state: o.delivery_state,
       payment: o.payment,
       guide_state: o.guide?.state
@@ -261,9 +271,21 @@ const OrdersTable = () => {
     );
   }
 
-  // Orders already filtered by API with min date of November 20, 2025
-  const orders = Array.isArray(ordersData?.data) ? ordersData.data : 
+  // Get all orders from API (API doesn't filter by date properly)
+  const allOrders = Array.isArray(ordersData?.data) ? ordersData.data : 
                  Array.isArray(ordersData) ? ordersData : [];
+
+  // Client-side filtering by created_at date (API doesn't respect date filters)
+  const orders = allOrders.filter((order: any) => {
+    const orderDate = order.created_at ? parseISO(order.created_at) : null;
+    if (!orderDate) return false;
+    
+    // Filter by effective date range
+    return isWithinInterval(orderDate, { 
+      start: startOfDay(effectiveFrom), 
+      end: endOfDay(effectiveTo) 
+    });
+  });
 
   if (orders.length === 0) {
     return (
