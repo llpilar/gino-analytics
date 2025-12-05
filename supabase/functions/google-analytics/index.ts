@@ -6,7 +6,7 @@ const corsHeaders = {
 };
 
 // GA4 Property ID
-const GA4_PROPERTY_ID = '376876285';
+const GA4_PROPERTY_ID = '515410042';
 
 interface ServiceAccountCredentials {
   client_email: string;
