@@ -135,8 +135,8 @@ const StatsGrid = () => {
   const allOrders: any[] = Array.isArray(ordersData?.data) ? ordersData.data : 
                 Array.isArray(ordersData) ? ordersData : [];
 
-  // Client-side date filtering - minimum date: November 20, 2024
-  const minDate = new Date(2024, 10, 20); // November 20, 2024
+  // Client-side date filtering - minimum date: November 20, 2025
+  const minDate = new Date(2025, 10, 20); // November 20, 2025
   
   const orders = allOrders.filter((order: any) => {
     const orderDate = order.created_at ? parseISO(order.created_at) : null;
@@ -226,8 +226,8 @@ const OrdersTable = () => {
   const allOrders = Array.isArray(ordersData?.data) ? ordersData.data : 
                  Array.isArray(ordersData) ? ordersData : [];
 
-  // Client-side date filtering - minimum date: November 20, 2024
-  const minDate = new Date(2024, 10, 20); // November 20, 2024
+  // Client-side date filtering - minimum date: November 20, 2025
+  const minDate = new Date(2025, 10, 20); // November 20, 2025
   
   const orders = allOrders.filter((order: any) => {
     const orderDate = order.created_at ? parseISO(order.created_at) : null;
