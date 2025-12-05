@@ -14,6 +14,7 @@ import { LucideIcon } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { useVturbOverview, useVturbPlayers, parseVturbData, parseVturbPlayers } from "@/hooks/useVturbAnalytics";
+import { useVslbioboostVisitors } from "@/hooks/useVslbioboostVisitors";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Analises() {
@@ -31,6 +32,7 @@ export default function Analises() {
   const { data: vturbPlayersData, isLoading: vturbPlayersLoading } = useVturbPlayers();
   const { data: vturbData, isLoading: vturbLoading, error: vturbError } = useVturbOverview(selectedPlayerId);
   const vturbMetrics = useMemo(() => parseVturbData(vturbData), [vturbData]);
+  const { visitorCount } = useVslbioboostVisitors();
 
   // Parse players list from VTurb response
   const vturbPlayers = useMemo(() => parseVturbPlayers(vturbPlayersData), [vturbPlayersData]);
@@ -88,11 +90,11 @@ export default function Analises() {
       color: "green",
     },
     {
-      title: "Plays Únicos",
-      value: vturbMetrics.uniquePlays.toLocaleString('pt-BR'),
-      change: "no período",
+      title: "VSL Online",
+      value: visitorCount.toLocaleString('pt-BR'),
+      change: "ao vivo",
       isPositive: true,
-      icon: Activity,
+      icon: Eye,
       color: "orange",
     }
   ];
