@@ -1,0 +1,81 @@
+import { useTheme, ThemePreset } from '@/contexts/ThemeContext';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Palette, Check } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+export function ThemeSelector() {
+  const { theme, setTheme, themes } = useTheme();
+
+  return (
+    <Card className="bg-black/60 border-2 border-cyan-500/30 backdrop-blur-xl">
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <Palette className="h-5 w-5 text-cyan-400" />
+          <CardTitle className="text-white">Tema do Dashboard</CardTitle>
+        </div>
+        <CardDescription className="text-gray-400">
+          Escolha o visual do seu dashboard
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {themes.map((preset) => (
+            <button
+              key={preset.id}
+              onClick={() => setTheme(preset.id)}
+              className={cn(
+                "relative p-4 rounded-xl border-2 transition-all duration-300 text-left group",
+                theme === preset.id
+                  ? "border-primary bg-primary/10 shadow-lg shadow-primary/20"
+                  : "border-zinc-700 bg-zinc-900/50 hover:border-zinc-500 hover:bg-zinc-800/50"
+              )}
+            >
+              {/* Check indicator */}
+              {theme === preset.id && (
+                <div className="absolute top-3 right-3 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                  <Check className="w-4 h-4 text-primary-foreground" />
+                </div>
+              )}
+
+              {/* Color preview */}
+              <div className="flex gap-2 mb-3">
+                {preset.colors.map((color, i) => (
+                  <div
+                    key={i}
+                    className="w-6 h-6 rounded-full border border-white/20 shadow-lg"
+                    style={{ 
+                      backgroundColor: color,
+                      boxShadow: `0 0 10px ${color}40`
+                    }}
+                  />
+                ))}
+              </div>
+
+              {/* Theme info */}
+              <h3 className={cn(
+                "font-semibold mb-1 transition-colors",
+                theme === preset.id ? "text-primary" : "text-white group-hover:text-primary"
+              )}>
+                {preset.name}
+              </h3>
+              <p className="text-sm text-zinc-400">
+                {preset.description}
+              </p>
+
+              {/* Preview bar */}
+              <div className="mt-3 h-2 rounded-full overflow-hidden bg-zinc-800">
+                <div 
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{ 
+                    width: theme === preset.id ? '100%' : '0%',
+                    background: `linear-gradient(90deg, ${preset.colors[0]}, ${preset.colors[1]})`
+                  }}
+                />
+              </div>
+            </button>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

@@ -7,6 +7,7 @@ import { ProfileEditor } from "@/components/ProfileEditor";
 import { PageHeader } from "@/components/PageHeader";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { ThemeSelector } from "@/components/ThemeSelector";
 
 export default function Configuracoes() {
   const { profile, user, signOut } = useAuth();
@@ -31,6 +32,9 @@ export default function Configuracoes() {
         />
 
         <div className="grid gap-6 max-w-4xl">
+          {/* Theme Selector */}
+          <ThemeSelector />
+
           <Card className="bg-black/60 border-2 border-cyan-500/30 backdrop-blur-xl">
             <CardHeader>
               <div className="flex items-center gap-2">
