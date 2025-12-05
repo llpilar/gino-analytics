@@ -393,7 +393,7 @@ const OrdersTable = () => {
                     )}
                   </TableCell>
                   <TableCell className="text-right">
-                    <span className="font-mono font-bold text-emerald-400">
+                    <span className="font-mono font-bold text-cyan-400">
                       {formatCOP(orderTotal)}
                     </span>
                   </TableCell>
