@@ -34,60 +34,60 @@ const getStatusConfig = (status: string) => {
   const statusLower = status?.toLowerCase() || '';
   if (statusLower.includes('entregado') || statusLower.includes('delivered') || statusLower.includes('completado')) {
     return { 
-      bg: 'bg-emerald-500/10', 
-      text: 'text-emerald-400', 
-      border: 'border-emerald-500/30',
+      bg: 'bg-chart-2/10', 
+      text: 'text-chart-2', 
+      border: 'border-chart-2/30',
       icon: CheckCircle2,
-      glow: 'shadow-emerald-500/20'
+      glow: 'shadow-chart-2/20'
     };
   }
   if (statusLower.includes('enviado') || statusLower.includes('shipped') || statusLower.includes('transito') || statusLower.includes('transit')) {
     return { 
-      bg: 'bg-blue-500/10', 
-      text: 'text-blue-400', 
-      border: 'border-blue-500/30',
+      bg: 'bg-primary/10', 
+      text: 'text-primary', 
+      border: 'border-primary/30',
       icon: Truck,
-      glow: 'shadow-blue-500/20'
+      glow: 'shadow-primary/20'
     };
   }
   if (statusLower.includes('pendiente') || statusLower.includes('pending') || statusLower.includes('procesando')) {
     return { 
-      bg: 'bg-amber-500/10', 
-      text: 'text-amber-400', 
-      border: 'border-amber-500/30',
+      bg: 'bg-chart-3/10', 
+      text: 'text-chart-3', 
+      border: 'border-chart-3/30',
       icon: Timer,
-      glow: 'shadow-amber-500/20'
+      glow: 'shadow-chart-3/20'
     };
   }
   if (statusLower.includes('cancelado') || statusLower.includes('cancelled') || statusLower.includes('devuelto')) {
     return { 
-      bg: 'bg-rose-500/10', 
-      text: 'text-rose-400', 
-      border: 'border-rose-500/30',
+      bg: 'bg-destructive/10', 
+      text: 'text-destructive', 
+      border: 'border-destructive/30',
       icon: XCircle,
-      glow: 'shadow-rose-500/20'
+      glow: 'shadow-destructive/20'
     };
   }
   return { 
-    bg: 'bg-zinc-500/10', 
-    text: 'text-zinc-400', 
-    border: 'border-zinc-500/30',
+    bg: 'bg-muted', 
+    text: 'text-muted-foreground', 
+    border: 'border-border',
     icon: Package,
-    glow: 'shadow-zinc-500/20'
+    glow: 'shadow-muted/20'
   };
 };
 
 // Hoko delivery states: 1=Criada, 2=Em processo, 3=Despachada, 4=Finalizada, 5=Cancelada, 6=Em Novidade
 const getDeliveryState = (state: number) => {
   const states: Record<number, { label: string; bg: string; text: string; border: string }> = {
-    1: { label: 'Criada', bg: 'bg-zinc-500/10', text: 'text-zinc-400', border: 'border-zinc-500/30' },
-    2: { label: 'Em processo', bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/30' },
-    3: { label: 'Despachada', bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/30' },
-    4: { label: 'Finalizada', bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/30' },
-    5: { label: 'Cancelada', bg: 'bg-rose-500/10', text: 'text-rose-400', border: 'border-rose-500/30' },
-    6: { label: 'Em Novidade', bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/30' },
+    1: { label: 'Criada', bg: 'bg-muted', text: 'text-muted-foreground', border: 'border-border' },
+    2: { label: 'Em processo', bg: 'bg-chart-3/10', text: 'text-chart-3', border: 'border-chart-3/30' },
+    3: { label: 'Despachada', bg: 'bg-primary/10', text: 'text-primary', border: 'border-primary/30' },
+    4: { label: 'Finalizada', bg: 'bg-chart-2/10', text: 'text-chart-2', border: 'border-chart-2/30' },
+    5: { label: 'Cancelada', bg: 'bg-destructive/10', text: 'text-destructive', border: 'border-destructive/30' },
+    6: { label: 'Em Novidade', bg: 'bg-chart-3/10', text: 'text-chart-3', border: 'border-chart-3/30' },
   };
-  return states[state] || { label: `Estado ${state}`, bg: 'bg-zinc-500/10', text: 'text-zinc-400', border: 'border-zinc-500/30' };
+  return states[state] || { label: `Estado ${state}`, bg: 'bg-muted', text: 'text-muted-foreground', border: 'border-border' };
 };
 
 const StatusBadge = ({ status }: { status: string }) => {
@@ -457,11 +457,11 @@ const ProductsTable = () => {
   if (products.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
-        <div className="p-4 rounded-2xl bg-zinc-800/50 border border-zinc-700/50 mb-4">
-          <Box className="h-10 w-10 text-zinc-500" />
+        <div className="p-4 rounded-2xl bg-muted border border-border mb-4">
+          <Box className="h-10 w-10 text-muted-foreground" />
         </div>
-        <p className="text-lg font-semibold text-white mb-1">Não há produtos registrados</p>
-        <p className="text-sm text-zinc-500">Os produtos aparecerão aqui quando forem sincronizados</p>
+        <p className="text-lg font-semibold text-foreground mb-1">Não há produtos registrados</p>
+        <p className="text-sm text-muted-foreground">Os produtos aparecerão aqui quando forem sincronizados</p>
       </div>
     );
   }
@@ -469,20 +469,20 @@ const ProductsTable = () => {
   const getStockBadge = (stock: number) => {
     if (stock > 10) {
       return (
-        <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 border font-mono">
+        <Badge className="bg-chart-2/10 text-chart-2 border-chart-2/30 border font-mono">
           {stock} uds
         </Badge>
       );
     }
     if (stock > 0) {
       return (
-        <Badge className="bg-amber-500/10 text-amber-400 border-amber-500/30 border font-mono">
+        <Badge className="bg-chart-3/10 text-chart-3 border-chart-3/30 border font-mono">
           {stock} uds
         </Badge>
       );
     }
     return (
-      <Badge className="bg-rose-500/10 text-rose-400 border-rose-500/30 border font-mono">
+      <Badge className="bg-destructive/10 text-destructive border-destructive/30 border font-mono">
         Esgotado
       </Badge>
     );
@@ -496,67 +496,67 @@ const ProductsTable = () => {
           variant="outline" 
           size="sm" 
           disabled={isFetching}
-          className="gap-2 rounded-xl border-zinc-700 hover:border-zinc-600"
+          className="gap-2 rounded-xl border-border hover:border-primary/30"
         >
           <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
           Atualizar
         </Button>
       </div>
       
-      <div className="rounded-xl border border-zinc-800/50 overflow-hidden bg-zinc-900/30">
+      <div className="rounded-xl border border-border overflow-hidden bg-card">
         <Table>
           <TableHeader>
-            <TableRow className="border-zinc-800 hover:bg-transparent bg-zinc-900/50">
-              <TableHead className="text-zinc-500 font-semibold">Produto</TableHead>
-              <TableHead className="text-zinc-500 font-semibold">Referência</TableHead>
-              <TableHead className="text-zinc-500 font-semibold">Estoque</TableHead>
-              <TableHead className="text-zinc-500 font-semibold text-right">Custo</TableHead>
-              <TableHead className="text-zinc-500 font-semibold text-right">Preço Mín.</TableHead>
-              <TableHead className="text-zinc-500 font-semibold text-right">Preço Sugerido</TableHead>
-              <TableHead className="text-zinc-500 font-semibold text-right">Preço Drop.</TableHead>
+            <TableRow className="border-border hover:bg-transparent bg-muted/50">
+              <TableHead className="text-muted-foreground font-semibold">Produto</TableHead>
+              <TableHead className="text-muted-foreground font-semibold">Referência</TableHead>
+              <TableHead className="text-muted-foreground font-semibold">Estoque</TableHead>
+              <TableHead className="text-muted-foreground font-semibold text-right">Custo</TableHead>
+              <TableHead className="text-muted-foreground font-semibold text-right">Preço Mín.</TableHead>
+              <TableHead className="text-muted-foreground font-semibold text-right">Preço Sugerido</TableHead>
+              <TableHead className="text-muted-foreground font-semibold text-right">Preço Drop.</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {products.map((product: any, index: number) => (
               <TableRow 
                 key={product.id} 
-                className="border-zinc-800/50 hover:bg-zinc-800/30 transition-colors"
+                className="border-border hover:bg-accent/50 transition-colors"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
-                <TableCell className="text-white font-medium max-w-[200px]">
+                <TableCell className="text-foreground font-medium max-w-[200px]">
                   <div className="truncate" title={product.name}>
                     {product.name}
                   </div>
                 </TableCell>
                 <TableCell>
                   {product.reference || product.sku ? (
-                    <span className="font-mono text-xs px-2 py-1 rounded-lg bg-zinc-800 text-zinc-400">
+                    <span className="font-mono text-xs px-2 py-1 rounded-lg bg-muted text-muted-foreground">
                       {product.reference || product.sku}
                     </span>
                   ) : (
-                    <span className="text-zinc-600">—</span>
+                    <span className="text-muted-foreground">—</span>
                   )}
                 </TableCell>
                 <TableCell>
                   {getStockBadge(product.stock?.[0]?.amount || product.stock || 0)}
                 </TableCell>
                 <TableCell className="text-right">
-                  <span className="font-mono text-rose-400">
+                  <span className="font-mono text-chart-5">
                     {formatCOP(product.cost || 0)}
                   </span>
                 </TableCell>
                 <TableCell className="text-right">
-                  <span className="font-mono text-amber-400">
+                  <span className="font-mono text-chart-3">
                     {formatCOP(product.minimal_price || 0)}
                   </span>
                 </TableCell>
                 <TableCell className="text-right">
-                  <span className="font-mono font-bold text-emerald-400">
+                  <span className="font-mono font-bold text-chart-2">
                     {formatCOP(product.price_by_unit || product.price || 0)}
                   </span>
                 </TableCell>
                 <TableCell className="text-right">
-                  <span className="font-mono text-cyan-400">
+                  <span className="font-mono text-primary">
                     {formatCOP(product.price_dropshipping || 0)}
                   </span>
                 </TableCell>
