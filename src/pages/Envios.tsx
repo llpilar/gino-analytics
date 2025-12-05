@@ -315,6 +315,12 @@ const OrdersTable = () => {
               </TableHead>
               <TableHead className="text-zinc-500 font-semibold text-right">Custo Produto</TableHead>
               <TableHead className="text-zinc-500 font-semibold text-right">Custo Envio</TableHead>
+              <TableHead className="text-zinc-500 font-semibold text-right">
+                <div className="flex items-center gap-2 justify-end">
+                  <TrendingUp className="h-4 w-4" />
+                  Lucro Bruto
+                </div>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -399,6 +405,11 @@ const OrdersTable = () => {
                   <TableCell className="text-right">
                     <span className="font-mono text-amber-400">
                       {formatCOP(shippingCost)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <span className={`font-mono font-bold ${(orderTotal - productCost - shippingCost) >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                      {formatCOP(orderTotal - productCost - shippingCost)}
                     </span>
                   </TableCell>
                 </TableRow>
