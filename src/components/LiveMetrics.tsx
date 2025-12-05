@@ -77,7 +77,7 @@ export const LiveMetrics = () => {
           color={metric.color}
         >
           <div className="mt-2 flex items-center text-xs text-muted-foreground">
-            <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+            <span className="inline-block w-2 h-2 bg-chart-4 rounded-full mr-2 animate-pulse"></span>
             Ao vivo
           </div>
         </StatsCard>

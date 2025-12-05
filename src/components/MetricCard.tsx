@@ -7,7 +7,7 @@ interface MetricCardProps {
   subtitle?: string;
   trend?: "up" | "down";
   trendValue?: string;
-  color?: "green" | "blue" | "orange";
+  color?: "green" | "blue" | "orange" | "primary";
 }
 
 export const MetricCard = ({
@@ -16,32 +16,20 @@ export const MetricCard = ({
   subtitle,
   trend,
   trendValue,
-  color = "green",
+  color = "primary",
 }: MetricCardProps) => {
-  const colorClasses = {
-    green: "neon-border-green",
-    blue: "neon-border-blue",
-    orange: "neon-border-orange",
-  };
-
-  const textColorClasses = {
-    green: "neon-text-green",
-    blue: "neon-text-blue",
-    orange: "neon-text-orange",
-  };
-
   return (
-    <div className={cn("bg-card border rounded-lg p-6", colorClasses[color])}>
+    <div className="bg-card border border-border rounded-xl p-6 transition-all duration-300 hover:border-primary/30">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className={cn("w-2 h-2 rounded-full", textColorClasses[color].replace("neon-text", "bg"))}></div>
+          <div className="w-2 h-2 rounded-full bg-primary"></div>
           <h3 className="text-sm font-bold tracking-wider text-muted-foreground">
             {title}
           </h3>
         </div>
       </div>
 
-      <div className={cn("text-5xl font-bold mb-2", textColorClasses[color])}>
+      <div className="text-5xl font-bold mb-2 text-foreground">
         {value}
       </div>
 
@@ -52,11 +40,11 @@ export const MetricCard = ({
       {trend && trendValue && (
         <div className="flex items-center gap-2">
           {trend === "up" ? (
-            <TrendingUp className="w-5 h-5 text-green-500" />
+            <TrendingUp className="w-5 h-5 text-primary" />
           ) : (
-            <TrendingDown className="w-5 h-5 text-red-500" />
+            <TrendingDown className="w-5 h-5 text-destructive" />
           )}
-          <span className={cn("text-sm font-bold", textColorClasses[color])}>
+          <span className="text-sm font-bold text-primary">
             {trendValue}
           </span>
         </div>

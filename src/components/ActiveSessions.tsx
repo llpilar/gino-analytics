@@ -21,9 +21,9 @@ export const ActiveSessions = () => {
   };
 
   const statusColors = {
-    viewing: "bg-blue-500",
-    checkout: "bg-yellow-500",
-    purchased: "bg-green-500",
+    viewing: "bg-chart-1",
+    checkout: "bg-chart-3",
+    purchased: "bg-chart-4",
   };
 
   const statusLabels = {
@@ -57,19 +57,19 @@ export const ActiveSessions = () => {
               return (
                 <div
                   key={order.id || index}
-                  className="flex items-start space-x-3 p-3 rounded-lg bg-black/40 border border-purple-500/20 hover:bg-purple-500/10 transition-colors"
+                  className="flex items-start space-x-3 p-3 rounded-lg bg-muted/50 border border-primary/20 hover:bg-accent transition-colors"
                 >
                   <Avatar className="h-10 w-10">
-                    <AvatarFallback className="bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                    <AvatarFallback className="bg-primary/20 text-primary border border-primary/30">
                       {order.name ? order.name.substring(1, 3) : `#${index + 1}`}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium text-white">
+                      <p className="text-sm font-medium text-foreground">
                         {order.name || `Pedido #${index + 1}`}
                       </p>
-                      <Badge variant="outline" className="text-xs border-purple-500/30 text-purple-400">
+                      <Badge variant="outline" className="text-xs border-primary/30 text-primary">
                         {timeAgo}
                       </Badge>
                     </div>

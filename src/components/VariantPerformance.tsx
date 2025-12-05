@@ -19,7 +19,7 @@ export const VariantPerformance = () => {
       <SectionCard title="Top Variantes" icon={TrendingUp} color="cyan">
         <div className="space-y-3">
           {[1, 2, 3, 4, 5].map((i) => (
-            <Skeleton key={i} className="h-14 w-full bg-cyan-500/10 rounded-lg" />
+            <Skeleton key={i} className="h-14 w-full bg-primary/10 rounded-lg" />
           ))}
         </div>
       </SectionCard>
@@ -31,10 +31,10 @@ export const VariantPerformance = () => {
 
   return (
     <SectionCard title="Top Variantes" icon={TrendingUp} color="cyan">
-      <p className="text-xs text-gray-500 mb-4">{periodLabel}</p>
+      <p className="text-xs text-muted-foreground mb-4">{periodLabel}</p>
 
       {topVariants.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-muted-foreground">
           <Package className="h-10 w-10 mx-auto mb-2 opacity-30" />
           <p>Nenhuma variante vendida</p>
         </div>
@@ -46,28 +46,28 @@ export const VariantPerformance = () => {
             return (
               <div
                 key={variant.variantId}
-                className="flex items-center gap-3 p-3 rounded-lg bg-black/20 hover:bg-cyan-500/10 transition-colors"
+                className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-accent transition-colors"
               >
-                <span className="w-6 text-center text-sm font-bold text-cyan-400">
+                <span className="w-6 text-center text-sm font-bold text-primary">
                   {index + 1}
                 </span>
                 
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">
+                  <p className="text-sm font-medium text-foreground truncate">
                     {variant.productTitle}
                   </p>
-                  <p className="text-xs text-gray-500 truncate">
+                  <p className="text-xs text-muted-foreground truncate">
                     {variant.variantTitle}
                   </p>
                 </div>
                 
                 <div className="text-right flex items-center gap-4">
                   <div>
-                    <span className="text-sm font-bold text-cyan-400">{variant.totalQuantity}</span>
-                    <span className="text-xs text-gray-500 ml-1">({percentage}%)</span>
+                    <span className="text-sm font-bold text-primary">{variant.totalQuantity}</span>
+                    <span className="text-xs text-muted-foreground ml-1">({percentage}%)</span>
                   </div>
                   {variant.totalRevenue > 0 && (
-                    <span className="text-sm font-medium text-cyan-400 hidden sm:block">
+                    <span className="text-sm font-medium text-primary hidden sm:block">
                       {formatCurrency(variant.totalRevenue)}
                     </span>
                   )}

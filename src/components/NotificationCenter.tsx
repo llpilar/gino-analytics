@@ -7,7 +7,7 @@ import {
 } from "./ui/popover";
 import { Badge } from "./ui/badge";
 import { ScrollArea } from "./ui/scroll-area";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { format } from "date-fns";
 
 interface Notification {
@@ -23,20 +23,6 @@ export const NotificationCenter = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  // Notificações virão de fonte real (Supabase Realtime, webhooks, etc)
-  // useEffect(() => {
-  //   const channel = supabase
-  //     .channel('notifications')
-  //     .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, 
-  //       (payload) => {
-  //         // Adicionar nova notificação ao estado
-  //       }
-  //     )
-  //     .subscribe();
-  //   
-  //   return () => { supabase.removeChannel(channel); };
-  // }, []);
-
   const markAsRead = (id: string) => {
     setNotifications(prev => 
       prev.map(n => n.id === id ? { ...n, read: true } : n)
@@ -49,9 +35,9 @@ export const NotificationCenter = () => {
 
   const getTypeColor = (type: Notification['type']) => {
     switch (type) {
-      case 'sale': return 'from-neon-green/20 to-neon-green/5 border-neon-green/40';
-      case 'stock': return 'from-neon-orange/20 to-neon-orange/5 border-neon-orange/40';
-      default: return 'from-neon-cyan/20 to-neon-cyan/5 border-neon-cyan/40';
+      case 'sale': return 'from-chart-4/20 to-chart-4/5 border-chart-4/40';
+      case 'stock': return 'from-chart-3/20 to-chart-3/5 border-chart-3/40';
+      default: return 'from-primary/20 to-primary/5 border-primary/40';
     }
   };
 
@@ -61,7 +47,7 @@ export const NotificationCenter = () => {
         <Button 
           variant="ghost" 
           size="icon"
-          className="relative glass-card hover:bg-surface-elevated"
+          className="relative bg-card border border-border hover:bg-accent"
           aria-label={`Notificações${unreadCount > 0 ? `, ${unreadCount} não lidas` : ''}`}
         >
           <Bell className="h-5 w-5 text-foreground" aria-hidden="true" />
@@ -74,7 +60,7 @@ export const NotificationCenter = () => {
         </Button>
       </PopoverTrigger>
       <PopoverContent 
-        className="w-80 p-0 bg-surface-overlay/95 border-border backdrop-blur-xl" 
+        className="w-80 p-0 bg-popover/95 border-border backdrop-blur-xl" 
         align="end"
       >
         <div className="flex items-center justify-between p-4 border-b border-border">

@@ -21,7 +21,6 @@ export const SalesAnalysis = () => {
 
   useEffect(() => {
     generateInsights();
-    // Atualizar a cada 5 minutos
     const interval = setInterval(generateInsights, 300000);
     return () => clearInterval(interval);
   }, []);
@@ -30,14 +29,12 @@ export const SalesAnalysis = () => {
     try {
       setIsLoading(true);
       
-      // Buscar dados de vendas para análise
       const { data: salesData, error } = await supabase.functions.invoke('shopify-data', {
         body: { endpoint: 'analytics' }
       });
 
       if (error) throw error;
 
-      // Chamar a função de análise com IA
       const { data: analysisData, error: analysisError } = await supabase.functions.invoke('sales-analysis', {
         body: { salesData: salesData?.data }
       });
@@ -60,22 +57,22 @@ export const SalesAnalysis = () => {
   const getIcon = (type: string) => {
     switch (type) {
       case 'success':
-        return <TrendingUp className="w-5 h-5 text-green-500" />;
+        return <TrendingUp className="w-5 h-5 text-chart-4" />;
       case 'warning':
-        return <AlertCircle className="w-5 h-5 text-yellow-500" />;
+        return <AlertCircle className="w-5 h-5 text-chart-3" />;
       default:
-        return <Lightbulb className="w-5 h-5 text-blue-500" />;
+        return <Lightbulb className="w-5 h-5 text-primary" />;
     }
   };
 
   const getTypeStyles = (type: string) => {
     switch (type) {
       case 'success':
-        return 'border-green-500/30 bg-green-500/5';
+        return 'border-chart-4/30 bg-chart-4/5';
       case 'warning':
-        return 'border-yellow-500/30 bg-yellow-500/5';
+        return 'border-chart-3/30 bg-chart-3/5';
       default:
-        return 'border-blue-500/30 bg-blue-500/5';
+        return 'border-primary/30 bg-primary/5';
     }
   };
 
@@ -83,9 +80,9 @@ export const SalesAnalysis = () => {
     return (
       <SectionCard title="Análises e Recomendações" icon={Brain} color="purple">
         <div className="grid gap-4">
-          <Skeleton className="h-32 bg-purple-500/10" />
-          <Skeleton className="h-32 bg-purple-500/10" />
-          <Skeleton className="h-32 bg-purple-500/10" />
+          <Skeleton className="h-32 bg-primary/10" />
+          <Skeleton className="h-32 bg-primary/10" />
+          <Skeleton className="h-32 bg-primary/10" />
         </div>
       </SectionCard>
     );
@@ -99,7 +96,7 @@ export const SalesAnalysis = () => {
 
   return (
     <SectionCard title="Análises e Recomendações" icon={Brain} color="purple">
-      <span className="text-xs text-zinc-500 block mb-4">Atualizado há poucos minutos</span>
+      <span className="text-xs text-muted-foreground block mb-4">Atualizado há poucos minutos</span>
 
       <div className="grid gap-4">
         {insights.map((insight, index) => (
@@ -120,7 +117,7 @@ export const SalesAnalysis = () => {
               {/* Frente do Card */}
               <div 
                 className={cn(
-                  "p-4 md:p-6 rounded-xl border-2 bg-black/40",
+                  "p-4 md:p-6 rounded-xl border-2 bg-card",
                   getTypeStyles(insight.type),
                   insight.flipped ? 'invisible' : 'visible'
                 )}
@@ -131,13 +128,13 @@ export const SalesAnalysis = () => {
                     {getIcon(insight.type)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-base md:text-lg font-bold text-white mb-2">
+                    <h3 className="text-base md:text-lg font-bold text-foreground mb-2">
                       {insight.title}
                     </h3>
-                    <p className="text-sm md:text-base text-zinc-400 mb-3">
+                    <p className="text-sm md:text-base text-muted-foreground mb-3">
                       {insight.description}
                     </p>
-                    <p className="text-xs text-zinc-500">Clique para ver a recomendação</p>
+                    <p className="text-xs text-muted-foreground">Clique para ver a recomendação</p>
                   </div>
                 </div>
               </div>
@@ -145,7 +142,7 @@ export const SalesAnalysis = () => {
               {/* Verso do Card */}
               <div 
                 className={cn(
-                  "absolute top-0 left-0 right-0 bottom-0 p-4 md:p-6 rounded-xl border-2 flex items-center bg-black/40",
+                  "absolute top-0 left-0 right-0 bottom-0 p-4 md:p-6 rounded-xl border-2 flex items-center bg-card",
                   getTypeStyles(insight.type),
                   insight.flipped ? 'visible' : 'invisible'
                 )}
@@ -156,13 +153,13 @@ export const SalesAnalysis = () => {
               >
                 <div className="w-full space-y-3 md:space-y-4">
                   <div className="flex items-start gap-2">
-                    <DollarSign className="w-4 md:w-5 h-4 md:h-5 text-purple-400 mt-0.5 flex-shrink-0" />
+                    <DollarSign className="w-4 md:w-5 h-4 md:h-5 text-primary mt-0.5 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs md:text-sm font-semibold text-purple-400 mb-2">Recomendação:</p>
-                      <p className="text-sm md:text-base text-zinc-300 break-words">{insight.recommendation}</p>
+                      <p className="text-xs md:text-sm font-semibold text-primary mb-2">Recomendação:</p>
+                      <p className="text-sm md:text-base text-card-foreground break-words">{insight.recommendation}</p>
                     </div>
                   </div>
-                  <p className="text-xs text-zinc-500 text-center">Clique para voltar</p>
+                  <p className="text-xs text-muted-foreground text-center">Clique para voltar</p>
                 </div>
               </div>
             </div>
@@ -170,9 +167,9 @@ export const SalesAnalysis = () => {
         ))}
 
         {insights.length === 0 && (
-          <div className="p-8 text-center rounded-xl bg-black/40 border border-purple-500/20">
-            <Brain className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
-            <p className="text-zinc-400">
+          <div className="p-8 text-center rounded-xl bg-card border border-primary/20">
+            <Brain className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">
               Coletando dados para gerar análises...
             </p>
           </div>
