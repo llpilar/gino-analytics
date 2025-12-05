@@ -64,7 +64,7 @@ export const SalesChart = ({ analyticsData, isLoading }: SalesChartProps) => {
   }, [analyticsData, period]);
 
   if (isLoading) {
-    return <Skeleton className="h-[400px] w-full bg-zinc-800/50" />;
+    return <Skeleton className="h-[400px] w-full bg-muted/50" />;
   }
 
   return (
@@ -72,34 +72,34 @@ export const SalesChart = ({ analyticsData, isLoading }: SalesChartProps) => {
       <CardHeader className="pb-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border-2 border-cyan-500/30 flex items-center justify-center flex-shrink-0">
-              <TrendingUp className="w-6 h-6 text-cyan-400" />
+            <div className="w-12 h-12 rounded-xl bg-primary/20 border-2 border-primary/30 flex items-center justify-center flex-shrink-0">
+              <TrendingUp className="w-6 h-6 text-primary" />
             </div>
             <div className="min-w-0">
-              <CardTitle className="text-sm sm:text-base font-black tracking-wider uppercase text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
+              <CardTitle className="text-sm sm:text-base font-black tracking-wider uppercase text-primary">
                 Tendência de Vendas - {period === 'daily' ? 'Últimos 7 Dias' : period === 'weekly' ? 'Visão Semanal' : 'Visão Mensal'}
               </CardTitle>
-              <p className="text-xs text-gray-400 mt-0.5">Acompanhamento e análise de performance</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Acompanhamento e análise de performance</p>
             </div>
           </div>
           
           <Tabs value={period} onValueChange={(v) => setPeriod(v as PeriodType)} className="flex-shrink-0">
-            <TabsList className="bg-black/60 border-2 border-cyan-500/30">
+            <TabsList className="bg-card/60 border-2 border-primary/30">
               <TabsTrigger 
                 value="daily" 
-                className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-400 data-[state=active]:border data-[state=active]:border-cyan-500/50 text-xs px-4 font-bold"
+                className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/50 text-xs px-4 font-bold"
               >
                 Diário
               </TabsTrigger>
               <TabsTrigger 
                 value="weekly" 
-                className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-400 data-[state=active]:border data-[state=active]:border-cyan-500/50 text-xs px-4 font-bold"
+                className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/50 text-xs px-4 font-bold"
               >
                 Semanal
               </TabsTrigger>
               <TabsTrigger 
                 value="monthly" 
-                className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-400 data-[state=active]:border data-[state=active]:border-cyan-500/50 text-xs px-4 font-bold"
+                className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/50 text-xs px-4 font-bold"
               >
                 Mensal
               </TabsTrigger>
