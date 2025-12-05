@@ -116,6 +116,61 @@
     --surface-overlay: 230 15% 9%;
   }
 
+  /* Theme: Twitter Blue */
+  [data-theme="twitter-blue"] {
+    --background: 0 0% 0%;
+    --foreground: 210 8% 92%;
+    --card: 220 12% 10%;
+    --card-foreground: 0 0% 85%;
+    --popover: 0 0% 0%;
+    --popover-foreground: 210 8% 92%;
+    --primary: 203 89% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 8% 95%;
+    --secondary-foreground: 210 30% 8%;
+    --muted: 0 0% 9%;
+    --muted-foreground: 210 5% 46%;
+    --accent: 210 73% 8%;
+    --accent-foreground: 203 89% 53%;
+    --destructive: 356 91% 54%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 5% 15%;
+    --input: 210 30% 18%;
+    --ring: 203 89% 53%;
+    --radius: 1.3rem;
+    
+    /* Chart colors - Twitter palette */
+    --chart-1: 203 89% 53%;
+    --chart-2: 160 100% 36%;
+    --chart-3: 43 93% 56%;
+    --chart-4: 152 82% 42%;
+    --chart-5: 343 81% 51%;
+    
+    /* Accent colors - Twitter tones */
+    --neon-cyan: 203 89% 53%;
+    --neon-cyan-light: 203 89% 63%;
+    --neon-purple: 270 70% 55%;
+    --neon-purple-light: 270 70% 65%;
+    --neon-pink: 343 81% 51%;
+    --neon-pink-light: 343 81% 61%;
+    --neon-green: 160 100% 36%;
+    --neon-green-light: 160 100% 46%;
+    --neon-orange: 43 93% 56%;
+    --neon-orange-light: 43 93% 66%;
+    --neon-blue: 203 89% 53%;
+    --neon-blue-light: 203 89% 63%;
+    
+    /* Status colors */
+    --status-success: 160 100% 36%;
+    --status-warning: 43 93% 56%;
+    --status-error: 356 91% 54%;
+    --status-info: 203 89% 53%;
+    
+    /* Surface colors */
+    --surface-elevated: 220 12% 12%;
+    --surface-overlay: 0 0% 4%;
+  }
+
   * {
     @apply border-border;
   }
@@ -138,6 +193,11 @@
       hsl(220, 15%, 8%) 0%, 
       hsl(240, 10%, 6%) 50%, 
       hsl(260, 15%, 8%) 100%);
+  }
+
+  /* Twitter Blue theme background */
+  [data-theme="twitter-blue"] body {
+    background: hsl(0, 0%, 0%);
   }
 }
 
@@ -337,6 +397,36 @@
   
   [data-theme="liquid-glass"] ::-webkit-scrollbar-thumb {
     @apply bg-neutral-700 hover:bg-neutral-600;
+  }
+
+  /* Twitter Blue theme specific cards */
+  [data-theme="twitter-blue"] .glass-card,
+  [data-theme="twitter-blue"] .standard-card {
+    @apply rounded-2xl;
+    background: hsl(220, 12%, 10%);
+    border: 1px solid hsl(210, 5%, 15%);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+
+  [data-theme="twitter-blue"] .glass-card:hover,
+  [data-theme="twitter-blue"] .standard-card:hover {
+    background: hsl(220, 12%, 12%);
+    border-color: hsl(203, 89%, 53%, 0.3);
+  }
+
+  [data-theme="twitter-blue"] .metric-card {
+    @apply rounded-xl;
+    background: hsl(220, 12%, 10%);
+    border: 1px solid hsl(210, 5%, 15%);
+  }
+
+  [data-theme="twitter-blue"] .standard-card-cyan,
+  [data-theme="twitter-blue"] .standard-card-purple,
+  [data-theme="twitter-blue"] .standard-card-green,
+  [data-theme="twitter-blue"] .standard-card-orange {
+    background: hsl(220, 12%, 10%);
+    border: 1px solid hsl(203, 89%, 53%, 0.2) !important;
+    box-shadow: 0 0 20px hsl(203, 89%, 53%, 0.1) !important;
   }
   
   /* Scrollbar */
