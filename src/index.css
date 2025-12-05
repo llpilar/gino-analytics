@@ -6,57 +6,55 @@
 
 @layer base {
   :root {
-    --background: 240 10% 5%;
-    --foreground: 0 0% 100%;
-    --card: 240 10% 8%;
-    --card-foreground: 0 0% 100%;
-    --popover: 240 10% 8%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 85 100% 69%;
-    --primary-foreground: 240 10% 5%;
-    --secondary: 263 70% 60%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 240 5% 25%;
-    --muted-foreground: 240 5% 70%;
-    --accent: 85 100% 69%;
-    --accent-foreground: 240 10% 5%;
+    /* Liquid Glass Professional Theme - Neutral & Minimal */
+    --background: 222 47% 3%;
+    --foreground: 210 40% 98%;
+    
+    --card: 222 47% 6%;
+    --card-foreground: 210 40% 98%;
+    
+    --popover: 222 47% 5%;
+    --popover-foreground: 210 40% 98%;
+    
+    /* Primary accent - Sky blue (subtle, professional) */
+    --primary: 199 89% 48%;
+    --primary-foreground: 210 40% 98%;
+    
+    /* Secondary - Dark slate */
+    --secondary: 217 33% 10%;
+    --secondary-foreground: 210 40% 90%;
+    
+    --muted: 217 33% 12%;
+    --muted-foreground: 215 20% 55%;
+    
+    --accent: 199 89% 48%;
+    --accent-foreground: 210 40% 98%;
+    
     --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 240 10% 20%;
-    --input: 240 10% 20%;
-    --ring: 85 100% 69%;
+    --destructive-foreground: 210 40% 98%;
+    
+    --border: 215 28% 20%;
+    --input: 215 28% 15%;
+    --ring: 199 89% 48%;
     --radius: 1rem;
     
-    /* Chart colors */
-    --chart-1: 85 100% 69%;
-    --chart-2: 263 70% 60%;
-    --chart-3: 220 70% 50%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    /* Chart colors - Muted, professional */
+    --chart-1: 199 89% 48%;
+    --chart-2: 215 25% 45%;
+    --chart-3: 217 33% 35%;
+    --chart-4: 210 40% 55%;
+    --chart-5: 220 30% 40%;
     
-    /* Neon accent colors - semantic tokens */
-    --neon-cyan: 188 94% 43%;
-    --neon-cyan-light: 188 94% 53%;
-    --neon-purple: 271 91% 65%;
-    --neon-purple-light: 271 91% 75%;
-    --neon-pink: 330 81% 60%;
-    --neon-pink-light: 330 81% 70%;
-    --neon-green: 142 71% 45%;
-    --neon-green-light: 142 71% 55%;
-    --neon-orange: 25 95% 53%;
-    --neon-orange-light: 25 95% 63%;
-    --neon-blue: 217 91% 60%;
-    --neon-blue-light: 217 91% 70%;
+    /* Status colors - Subtle */
+    --status-success: 160 60% 45%;
+    --status-warning: 38 75% 50%;
+    --status-error: 0 65% 50%;
+    --status-info: 199 89% 48%;
     
-    /* Status colors */
-    --status-success: 142 71% 45%;
-    --status-warning: 38 92% 50%;
-    --status-error: 0 72% 51%;
-    --status-info: 188 94% 43%;
-    
-    /* Surface colors */
-    --surface-elevated: 240 10% 10%;
-    --surface-overlay: 240 10% 6%;
+    /* Glass surface colors */
+    --glass-bg: 222 47% 4%;
+    --glass-border: 215 28% 25%;
+    --glass-highlight: 0 0% 100%;
   }
 
   * {
@@ -64,7 +62,7 @@
   }
   
   body {
-    @apply bg-gradient-to-br from-black via-zinc-900 to-zinc-800 text-foreground;
+    @apply bg-[#020617] text-foreground;
     font-family: 'Inter', sans-serif;
     min-height: 100vh;
   }
@@ -72,276 +70,262 @@
 
 @layer components {
   /* ========================================
-     THEME: NEON (Default)
-     ======================================== */
-  .theme-neon .standard-card,
-  :not(.theme-glass) .standard-card {
-    @apply p-6 rounded-2xl bg-black/80 border-2 backdrop-blur-xl 
-           transition-all duration-300 overflow-hidden relative;
-  }
-  
-  .theme-neon .standard-card-hover,
-  :not(.theme-glass) .standard-card-hover {
-    @apply hover:scale-[1.02] cursor-pointer;
-  }
-  
-  .theme-neon .standard-card-cyan,
-  :not(.theme-glass) .standard-card-cyan {
-    @apply border-cyan-500/30 shadow-2xl shadow-cyan-500/10;
-  }
-  
-  .theme-neon .standard-card-purple,
-  :not(.theme-glass) .standard-card-purple {
-    @apply border-purple-500/30 shadow-2xl shadow-purple-500/10;
-  }
-  
-  .theme-neon .standard-card-green,
-  :not(.theme-glass) .standard-card-green {
-    @apply border-green-500/30 shadow-2xl shadow-green-500/10;
-  }
-  
-  .theme-neon .standard-card-orange,
-  :not(.theme-glass) .standard-card-orange {
-    @apply border-orange-500/30 shadow-2xl shadow-orange-500/10;
-  }
-
-  /* ========================================
-     THEME: LIQUID GLASS
+     LIQUID GLASS PROFESSIONAL THEME
      ======================================== */
   
   /* Glass Panel - Main container */
   .glass-panel {
-    @apply relative p-6 rounded-2xl 
-           bg-white/[0.03] backdrop-blur-2xl
+    @apply relative overflow-hidden rounded-2xl
+           bg-slate-900/60 backdrop-blur-xl
            border border-white/[0.08]
-           shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.05)]
-           transition-all duration-300 overflow-hidden;
+           shadow-[0_0_25px_rgba(0,0,0,0.8)]
+           transition-all duration-200 ease-out;
+  }
+  
+  .glass-panel::before {
+    content: '';
+    @apply absolute inset-x-6 top-0 h-px opacity-50;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
   }
   
   .glass-panel-hover {
-    @apply hover:scale-[1.01] hover:bg-white/[0.05] 
+    @apply hover:bg-slate-900/70 
            hover:border-white/[0.12]
-           hover:shadow-[0_16px_48px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)]
+           hover:shadow-[0_0_35px_rgba(0,0,0,0.95)]
            cursor-pointer;
   }
   
-  /* Glass Card - For metric cards and content */
-  .theme-glass .glass-card {
-    @apply relative p-6 rounded-2xl
-           bg-neutral-900/50 backdrop-blur-2xl
+  /* Glass Card - For metric cards */
+  .glass-card {
+    @apply relative overflow-hidden rounded-2xl p-5
+           bg-slate-900/50 backdrop-blur-xl
            border border-white/[0.06]
-           shadow-[0_4px_24px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.03)]
-           transition-all duration-300;
+           shadow-[0_4px_24px_rgba(0,0,0,0.4)]
+           transition-all duration-200 ease-out;
   }
   
-  .theme-glass .glass-card:hover {
-    @apply bg-neutral-900/60 border-white/[0.1]
-           shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.05)];
-  }
-
-  /* Glass theme standard cards override */
-  .theme-glass .standard-card {
-    @apply p-6 rounded-2xl bg-white/[0.03] backdrop-blur-2xl
-           border border-white/[0.08]
-           shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.05)]
-           transition-all duration-300 overflow-hidden relative;
+  .glass-card::before {
+    content: '';
+    @apply absolute inset-x-4 top-0 h-px opacity-40;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
   }
   
-  .theme-glass .standard-card-hover {
-    @apply hover:scale-[1.01] hover:bg-white/[0.05] cursor-pointer;
+  .glass-card:hover {
+    @apply bg-slate-900/60 border-white/[0.1]
+           shadow-[0_8px_32px_rgba(0,0,0,0.5)];
   }
   
-  .theme-glass .standard-card-cyan {
-    @apply border-cyan-400/20 shadow-[0_8px_32px_rgba(6,182,212,0.1)];
+  /* Glass Card Inner Gradient */
+  .glass-card-gradient {
+    @apply bg-gradient-to-br from-white/[0.03] via-transparent to-slate-900/40;
   }
   
-  .theme-glass .standard-card-purple {
-    @apply border-purple-400/20 shadow-[0_8px_32px_rgba(168,85,247,0.1)];
+  /* Standard Card System - Now Glass based */
+  .standard-card {
+    @apply glass-card p-6;
   }
   
-  .theme-glass .standard-card-green {
-    @apply border-emerald-400/20 shadow-[0_8px_32px_rgba(52,211,153,0.1)];
+  .standard-card-hover {
+    @apply hover:scale-[1.01] cursor-pointer;
   }
   
-  .theme-glass .standard-card-orange {
-    @apply border-orange-400/20 shadow-[0_8px_32px_rgba(251,146,60,0.1)];
+  .standard-card-cyan,
+  .standard-card-purple,
+  .standard-card-green,
+  .standard-card-orange {
+    @apply border-white/[0.08] shadow-[0_4px_24px_rgba(0,0,0,0.4)];
   }
   
   /* Glass Badge */
   .glass-badge {
     @apply inline-flex items-center rounded-full 
-           border border-white/[0.15] bg-white/[0.08] 
+           border border-white/[0.12] bg-white/[0.05] 
            backdrop-blur-xl px-3 py-1 
-           text-xs font-medium text-neutral-100
-           shadow-[0_2px_8px_rgba(0,0,0,0.2)]
+           text-xs font-medium text-slate-200
            transition-all duration-200;
-  }
-  
-  .glass-badge:hover {
-    @apply bg-white/[0.12] border-white/[0.2];
   }
   
   /* Glass Input */
-  .theme-glass input,
-  .theme-glass select,
-  .theme-glass textarea {
+  .glass-input {
     @apply bg-white/[0.03] backdrop-blur-xl 
-           border border-white/[0.1] rounded-xl
-           text-white placeholder:text-neutral-500
+           border border-white/[0.12] rounded-xl
+           px-3 py-2 text-sm text-slate-100
+           placeholder:text-slate-500
            transition-all duration-200;
   }
   
-  .theme-glass input:focus,
-  .theme-glass select:focus,
-  .theme-glass textarea:focus {
-    @apply ring-2 ring-cyan-400/40 border-cyan-400/40
-           shadow-[0_0_20px_rgba(6,182,212,0.2)]
+  .glass-input:focus {
+    @apply ring-2 ring-primary/50 border-primary/50
+           shadow-[0_0_20px_rgba(14,165,233,0.2)]
            outline-none;
   }
   
   /* Glass Table */
-  .theme-glass table {
-    @apply w-full;
+  .glass-table-container {
+    @apply glass-panel p-0 overflow-hidden;
   }
   
-  .theme-glass thead {
-    @apply bg-white/[0.06];
+  .glass-table thead {
+    @apply bg-white/[0.04] backdrop-blur-md;
   }
   
-  .theme-glass th {
-    @apply text-neutral-200 font-medium border-b border-white/[0.08];
+  .glass-table th {
+    @apply text-xs uppercase tracking-wider text-slate-400 font-semibold
+           border-b border-white/[0.08] px-4 py-3;
   }
   
-  .theme-glass tbody tr {
-    @apply border-b border-white/[0.04] transition-colors duration-200;
+  .glass-table tbody tr {
+    @apply border-b border-white/[0.04] transition-colors duration-150;
   }
   
-  .theme-glass tbody tr:hover {
+  .glass-table tbody tr:hover {
     @apply bg-white/[0.03];
   }
   
+  .glass-table td {
+    @apply text-sm text-slate-200 px-4 py-3;
+  }
+  
   /* Glass Navbar */
-  .theme-glass .glass-navbar {
-    @apply bg-white/[0.03] backdrop-blur-2xl 
+  .glass-navbar {
+    @apply bg-slate-950/70 backdrop-blur-xl 
            border-b border-white/[0.06]
-           shadow-[0_4px_24px_rgba(0,0,0,0.3)];
+           shadow-[0_4px_24px_rgba(0,0,0,0.4)];
   }
   
   /* Glass Sidebar */
-  .theme-glass .glass-sidebar {
-    @apply bg-neutral-900/60 backdrop-blur-2xl 
+  .glass-sidebar {
+    @apply bg-slate-950/60 backdrop-blur-xl 
            border-r border-white/[0.06];
   }
   
-  .theme-glass .glass-sidebar-item {
-    @apply text-neutral-300 transition-all duration-200;
+  .glass-sidebar-item {
+    @apply text-slate-400 transition-all duration-200
+           rounded-lg px-3 py-2;
   }
   
-  .theme-glass .glass-sidebar-item:hover {
-    @apply bg-white/[0.04] text-white;
+  .glass-sidebar-item:hover {
+    @apply bg-white/[0.04] text-slate-200;
   }
   
-  .theme-glass .glass-sidebar-item-active {
-    @apply bg-white/[0.08] text-white 
-           border border-white/[0.12]
-           shadow-[0_2px_8px_rgba(0,0,0,0.2)];
+  .glass-sidebar-item-active {
+    @apply bg-white/[0.08] text-slate-50 
+           border border-white/[0.12];
   }
   
-  /* Glass Dialog */
-  .theme-glass [role="dialog"] {
-    @apply bg-neutral-900/80 backdrop-blur-2xl 
-           border border-white/[0.08] rounded-2xl
-           shadow-[0_24px_80px_rgba(0,0,0,0.6)];
+  /* Glass Dialog Overlay */
+  .glass-overlay {
+    @apply bg-black/80 backdrop-blur-sm;
+  }
+  
+  /* Glass Modal */
+  .glass-modal {
+    @apply glass-panel max-w-lg w-full p-6;
   }
   
   /* ========================================
-     SHARED STYLES (Both Themes)
+     TYPOGRAPHY & TEXT UTILITIES
      ======================================== */
   
-  /* Neon theme glass cards (fallback) */
-  :not(.theme-glass) .glass-card {
-    @apply bg-zinc-900/50 backdrop-blur-xl border border-zinc-800 
-           rounded-xl shadow-xl
-           transition-all duration-300 ease-in-out
-           hover:shadow-2xl hover:border-primary/30;
+  .text-gradient-primary {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-cyan-300;
   }
   
-  .glass-card-active {
-    @apply bg-zinc-900/70 backdrop-blur-xl border border-primary/40
-           rounded-xl shadow-xl
-           shadow-primary/20;
+  /* Subtle text colors */
+  .text-label {
+    @apply text-sm text-slate-400;
   }
   
-  .metric-card {
-    @apply glass-card p-6
-           hover:scale-[1.02] hover:bg-zinc-900/60;
+  .text-value {
+    @apply text-2xl font-semibold text-slate-50;
   }
   
-  /* Gradients for text */
-  .gradient-text-cyan {
-    @apply text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400;
+  .text-body {
+    @apply text-sm text-slate-300;
   }
   
-  .gradient-text-purple {
-    @apply text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400;
+  /* ========================================
+     METRIC CARD COLORS (Subtle)
+     ======================================== */
+  
+  .metric-accent-primary {
+    @apply text-sky-400;
   }
   
-  .gradient-text-green {
-    @apply text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-400;
+  .metric-accent-success {
+    @apply text-emerald-400;
   }
   
-  .gradient-text-orange {
-    @apply text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-400;
+  .metric-accent-warning {
+    @apply text-amber-400;
   }
   
-  /* Icon containers */
+  .metric-accent-error {
+    @apply text-red-400;
+  }
+  
+  /* Icon containers - Neutral */
   .icon-container {
-    @apply p-3 rounded-xl border;
+    @apply p-3 rounded-xl border bg-white/[0.04] border-white/[0.08];
   }
   
-  .icon-container-cyan {
-    @apply bg-cyan-500/10 border-cyan-500/20;
+  .icon-container-primary {
+    @apply bg-sky-500/10 border-sky-500/20;
   }
   
-  .icon-container-purple {
-    @apply bg-purple-500/10 border-purple-500/20;
+  /* ========================================
+     GRADIENTS & EFFECTS
+     ======================================== */
+  
+  /* Gradient backgrounds - Subtle */
+  .gradient-text-cyan,
+  .gradient-text-purple,
+  .gradient-text-green,
+  .gradient-text-orange {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-slate-200 to-slate-400;
   }
   
-  .icon-container-green {
-    @apply bg-green-500/10 border-green-500/20;
+  /* Subtle ambient glow */
+  .glow-primary {
+    @apply shadow-[0_0_30px_rgba(14,165,233,0.15)];
   }
   
-  .icon-container-orange {
-    @apply bg-orange-500/10 border-orange-500/20;
-  }
-  
-  .neon-ring {
-    @apply ring-2 ring-primary/50 ring-offset-2 ring-offset-black;
-  }
-  
+  /* Loading state */
   .loading-pulse {
     @apply opacity-50 blur-sm animate-pulse;
   }
   
-  /* Scrollbar */
+  /* ========================================
+     SCROLLBAR - Minimal
+     ======================================== */
+  
   ::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
+    height: 6px;
   }
   
   ::-webkit-scrollbar-track {
-    @apply bg-zinc-900;
+    @apply bg-slate-950;
   }
   
   ::-webkit-scrollbar-thumb {
-    @apply bg-zinc-700 rounded-full hover:bg-zinc-600;
+    @apply bg-slate-700/50 rounded-full hover:bg-slate-600/50;
   }
   
-  /* Glass theme specific scrollbar */
-  .theme-glass ::-webkit-scrollbar-track {
-    @apply bg-black/50;
+  /* ========================================
+     BACKGROUND PATTERN
+     ======================================== */
+  
+  .glass-bg {
+    background-image: radial-gradient(circle at 50% 0%, rgba(148, 163, 184, 0.08), transparent 50%);
   }
   
-  .theme-glass ::-webkit-scrollbar-thumb {
-    @apply bg-white/10 rounded-full hover:bg-white/20;
+  .subtle-dots {
+    background-image: 
+      radial-gradient(1px 1px at 100px 50px, rgba(148,163,184,0.1), transparent),
+      radial-gradient(1px 1px at 200px 150px, rgba(148,163,184,0.08), transparent),
+      radial-gradient(1px 1px at 300px 80px, rgba(148,163,184,0.06), transparent);
+    background-repeat: repeat;
+    background-size: 400px 200px;
   }
 }

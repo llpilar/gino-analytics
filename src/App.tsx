@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { DateFilterProvider } from "@/contexts/DateFilterContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
-import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -21,31 +20,28 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AuthProvider>
-            <DateFilterProvider>
-              <CurrencyProvider>
-                <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-              <Route path="/analises" element={<ProtectedRoute><Analises /></ProtectedRoute>} />
-              <Route path="/live-view" element={<ProtectedRoute><LiveView /></ProtectedRoute>} />
-              <Route path="/contas" element={<ProtectedRoute><Contas /></ProtectedRoute>} />
-              <Route path="/envios" element={<ProtectedRoute><Envios /></ProtectedRoute>} />
-              <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-                </Routes>
-              </CurrencyProvider>
-            </DateFilterProvider>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </ThemeProvider>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <AuthProvider>
+          <DateFilterProvider>
+            <CurrencyProvider>
+              <Routes>
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+                <Route path="/analises" element={<ProtectedRoute><Analises /></ProtectedRoute>} />
+                <Route path="/live-view" element={<ProtectedRoute><LiveView /></ProtectedRoute>} />
+                <Route path="/contas" element={<ProtectedRoute><Contas /></ProtectedRoute>} />
+                <Route path="/envios" element={<ProtectedRoute><Envios /></ProtectedRoute>} />
+                <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </CurrencyProvider>
+          </DateFilterProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </TooltipProvider>
   </QueryClientProvider>
 );
 
