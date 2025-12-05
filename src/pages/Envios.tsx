@@ -151,7 +151,9 @@ const StatsGrid = () => {
 
   // Debug: Log order data distribution
   console.log('Envios Stats Debug:', {
-    totalOrders: orders.length,
+    dateRange: dateRange.from?.toISOString() + ' to ' + dateRange.to?.toISOString(),
+    allOrdersCount: allOrders.length,
+    filteredOrdersCount: orders.length,
     deliveryStates: orders.reduce((acc, o) => {
       const state = o.delivery_state;
       acc[state] = (acc[state] || 0) + 1;
