@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const VTURB_API_BASE = 'https://analytics.vturb.com.br/api/v1';
+const VTURB_API_BASE = 'https://analytics.vturb.net';
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -24,52 +24,62 @@ serve(async (req) => {
       );
     }
 
-    const { endpoint, videoId, startDate, endDate } = await req.json();
+    const { endpoint, playerId, startDate, endDate } = await req.json();
     
-    console.log(`VTurb API request - endpoint: ${endpoint}, videoId: ${videoId || 'all'}, dates: ${startDate} to ${endDate}`);
+    console.log(`VTurb API request - endpoint: ${endpoint}, playerId: ${playerId || 'all'}, dates: ${startDate} to ${endDate}`);
+
+    const vturbHeaders = {
+      'X-Api-Token': vturbApiKey,
+      'X-Api-Version': 'v1',
+      'Content-Type': 'application/json',
+    };
 
     let apiUrl = VTURB_API_BASE;
-    const params = new URLSearchParams();
+    let body: Record<string, unknown> = {
+      timezone: 'America/Sao_Paulo',
+    };
     
-    if (videoId) {
-      params.append('video_id', videoId);
-    }
     if (startDate) {
-      params.append('start_date', startDate);
+      body.start_date = startDate;
     }
     if (endDate) {
-      params.append('end_date', endDate);
+      body.end_date = endDate;
+    }
+    if (playerId) {
+      body.player_id = playerId;
     }
 
     switch (endpoint) {
       case 'overview':
-        // Get general stats
-        apiUrl = `${VTURB_API_BASE}/stats?${params.toString()}`;
+        // Get total events (started, viewed, finished)
+        apiUrl = `${VTURB_API_BASE}/events/total_by_company`;
+        body.events = ['started', 'viewed', 'finished'];
         break;
-      case 'plays':
-        apiUrl = `${VTURB_API_BASE}/plays?${params.toString()}`;
+      case 'players':
+        // Get stats by player
+        apiUrl = `${VTURB_API_BASE}/events/total_by_company_players`;
+        body.events = ['started', 'viewed', 'finished'];
         break;
-      case 'views':
-        apiUrl = `${VTURB_API_BASE}/views?${params.toString()}`;
+      case 'stats_by_day':
+        // Get daily stats
+        apiUrl = `${VTURB_API_BASE}/conversions/stats_by_day`;
         break;
       case 'retention':
-        apiUrl = `${VTURB_API_BASE}/retention?${params.toString()}`;
-        break;
-      case 'videos':
-        apiUrl = `${VTURB_API_BASE}/videos`;
+        // Get video timed retention data
+        apiUrl = `${VTURB_API_BASE}/conversions/video_timed`;
         break;
       default:
-        apiUrl = `${VTURB_API_BASE}/stats?${params.toString()}`;
+        apiUrl = `${VTURB_API_BASE}/events/total_by_company`;
+        body.events = ['started', 'viewed', 'finished'];
     }
 
     console.log(`Fetching VTurb data from: ${apiUrl}`);
+    console.log(`Request body: ${JSON.stringify(body)}`);
 
     const response = await fetch(apiUrl, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${vturbApiKey}`,
-        'Content-Type': 'application/json',
-      },
+      method: 'POST',
+      headers: vturbHeaders,
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {
@@ -85,7 +95,7 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    console.log('VTurb data fetched successfully');
+    console.log('VTurb data fetched successfully:', JSON.stringify(data).slice(0, 200));
 
     return new Response(
       JSON.stringify(data),

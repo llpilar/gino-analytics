@@ -13,7 +13,7 @@ import { StatsCard, SectionCard, CardColorVariant } from "@/components/ui/stats-
 import { LucideIcon } from "lucide-react";
 import { useGoogleAnalyticsOverview, useGoogleAnalyticsRealtime, parseGAOverviewData, parseGARealtimeData } from "@/hooks/useGoogleAnalytics";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useVturbOverview, parseVturbData, formatWatchTime } from "@/hooks/useVturbAnalytics";
+import { useVturbOverview, parseVturbData } from "@/hooks/useVturbAnalytics";
 
 export default function Analises() {
   const { data: analyticsData, isLoading: analyticsLoading } = useShopifyAnalytics();
@@ -230,25 +230,34 @@ export default function Analises() {
                 <div className="text-2xl font-black text-orange-400">
                   {vturbMetrics.totalPlays.toLocaleString()}
                 </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {vturbMetrics.uniquePlays.toLocaleString()} únicos
+                </div>
               </div>
 
               <div className="p-4 rounded-xl bg-black/60 border border-cyan-500/30">
                 <div className="flex items-center gap-2 mb-2">
                   <Eye className="w-4 h-4 text-cyan-400" />
-                  <span className="text-xs text-gray-500 uppercase">Views Únicos</span>
+                  <span className="text-xs text-gray-500 uppercase">Total de Views</span>
                 </div>
                 <div className="text-2xl font-black text-cyan-400">
-                  {vturbMetrics.uniqueViews.toLocaleString()}
+                  {vturbMetrics.totalViews.toLocaleString()}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {vturbMetrics.uniqueViews.toLocaleString()} únicos
                 </div>
               </div>
 
               <div className="p-4 rounded-xl bg-black/60 border border-green-500/30">
                 <div className="flex items-center gap-2 mb-2">
-                  <Clock className="w-4 h-4 text-green-400" />
-                  <span className="text-xs text-gray-500 uppercase">Tempo Médio</span>
+                  <Video className="w-4 h-4 text-green-400" />
+                  <span className="text-xs text-gray-500 uppercase">Finalizados</span>
                 </div>
                 <div className="text-2xl font-black text-green-400">
-                  {formatWatchTime(vturbMetrics.averageWatchTime)}
+                  {vturbMetrics.totalFinished.toLocaleString()}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {vturbMetrics.uniqueFinished.toLocaleString()} únicos
                 </div>
               </div>
 
@@ -260,15 +269,23 @@ export default function Analises() {
                 <div className="text-2xl font-black text-purple-400">
                   {vturbMetrics.retentionRate.toFixed(1)}%
                 </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  finalizaram o vídeo
+                </div>
               </div>
 
               <div className="p-4 rounded-xl bg-black/60 border border-yellow-500/30">
                 <div className="flex items-center gap-2 mb-2">
-                  <Video className="w-4 h-4 text-yellow-400" />
-                  <span className="text-xs text-gray-500 uppercase">Watch Time Total</span>
+                  <TrendingUp className="w-4 h-4 text-yellow-400" />
+                  <span className="text-xs text-gray-500 uppercase">Taxa de Play</span>
                 </div>
                 <div className="text-2xl font-black text-yellow-400">
-                  {formatWatchTime(vturbMetrics.totalWatchTime)}
+                  {vturbMetrics.totalViews > 0 
+                    ? ((vturbMetrics.totalPlays / vturbMetrics.totalViews) * 100).toFixed(1)
+                    : '0.0'}%
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  clicaram em play
                 </div>
               </div>
             </div>
