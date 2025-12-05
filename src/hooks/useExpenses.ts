@@ -143,8 +143,15 @@ export const useUpdatePartnersConfig = () => {
 };
 
 export const uploadReceipt = async (file: File): Promise<string | null> => {
+  // Get current user for folder-based storage policy
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    toast.error('Usuário não autenticado');
+    return null;
+  }
+  
   const fileExt = file.name.split('.').pop();
-  const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+  const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
   
   const { error } = await supabase.storage
     .from('expense-receipts')
