@@ -35,54 +35,54 @@ export default function Configuracoes() {
           {/* Theme Selector */}
           <ThemeSelector />
 
-          <Card className="bg-black/60 border-2 border-cyan-500/30 backdrop-blur-xl">
+          <Card className="bg-card/60 border-2 border-primary/30 backdrop-blur-xl">
             <CardHeader>
               <div className="flex items-center gap-2">
-                <User className="h-5 w-5 text-cyan-400" />
-                <CardTitle className="text-white">Perfil</CardTitle>
+                <User className="h-5 w-5 text-primary" />
+                <CardTitle className="text-foreground">Perfil</CardTitle>
               </div>
-              <CardDescription className="text-gray-400">Suas informações pessoais</CardDescription>
+              <CardDescription className="text-muted-foreground">Suas informações pessoais</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="text-sm text-zinc-400">Nome</label>
-                <p className="text-white font-medium">{profile?.name || 'Não definido'}</p>
+                <label className="text-sm text-muted-foreground">Nome</label>
+                <p className="text-foreground font-medium">{profile?.name || 'Não definido'}</p>
               </div>
               <div>
-                <label className="text-sm text-zinc-400">Email</label>
-                <p className="text-white font-medium">{user?.email || 'Não definido'}</p>
+                <label className="text-sm text-muted-foreground">Email</label>
+                <p className="text-foreground font-medium">{user?.email || 'Não definido'}</p>
               </div>
               <ProfileEditor />
             </CardContent>
           </Card>
 
-          <Card className="bg-black/60 border-2 border-cyan-500/30 backdrop-blur-xl">
+          <Card className="bg-card/60 border-2 border-primary/30 backdrop-blur-xl">
             <CardHeader>
               <div className="flex items-center gap-2">
-                <Bell className="h-5 w-5 text-cyan-400" />
-                <CardTitle className="text-white">Notificações</CardTitle>
+                <Bell className="h-5 w-5 text-primary" />
+                <CardTitle className="text-foreground">Notificações</CardTitle>
               </div>
-              <CardDescription className="text-gray-400">Configure como você recebe notificações</CardDescription>
+              <CardDescription className="text-muted-foreground">Configure como você recebe notificações</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-400 text-sm">Em breve: Configurações de notificações</p>
+              <p className="text-muted-foreground text-sm">Em breve: Configurações de notificações</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-black/60 border-2 border-cyan-500/30 backdrop-blur-xl">
+          <Card className="bg-card/60 border-2 border-primary/30 backdrop-blur-xl">
             <CardHeader>
               <div className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-cyan-400" />
-                <CardTitle className="text-white">Segurança</CardTitle>
+                <Shield className="h-5 w-5 text-primary" />
+                <CardTitle className="text-foreground">Segurança</CardTitle>
               </div>
-              <CardDescription className="text-gray-400">Gerencie a segurança da sua conta</CardDescription>
+              <CardDescription className="text-muted-foreground">Gerencie a segurança da sua conta</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-gray-400 text-sm">Em breve: Alteração de senha e autenticação</p>
+              <p className="text-muted-foreground text-sm">Em breve: Alteração de senha e autenticação</p>
               <Button
                 onClick={handleLogout}
                 variant="outline"
-                className="w-full border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                className="w-full border-destructive/50 text-destructive hover:bg-destructive/10"
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 Sair da conta

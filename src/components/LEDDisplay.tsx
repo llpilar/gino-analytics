@@ -23,44 +23,44 @@ export const LEDDisplay = ({ value, label, size = "lg", color = "amber" }: LEDDi
   };
 
   const colorClasses = {
-    amber: "text-amber-500",
-    green: "text-green-500",
-    red: "text-red-500",
-    blue: "text-blue-500"
+    amber: "text-chart-3",
+    green: "text-chart-4",
+    red: "text-destructive",
+    blue: "text-primary"
   };
 
   const glowClasses = {
-    amber: "drop-shadow-[0_0_15px_rgba(245,158,11,0.8)]",
-    green: "drop-shadow-[0_0_15px_rgba(34,197,94,0.8)]",
-    red: "drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]",
-    blue: "drop-shadow-[0_0_15px_rgba(59,130,246,0.8)]"
+    amber: "drop-shadow-[0_0_15px_hsl(var(--chart-3)/0.8)]",
+    green: "drop-shadow-[0_0_15px_hsl(var(--chart-4)/0.8)]",
+    red: "drop-shadow-[0_0_15px_hsl(var(--destructive)/0.8)]",
+    blue: "drop-shadow-[0_0_15px_hsl(var(--primary)/0.8)]"
   };
 
   const bgGlowClasses = {
-    amber: "bg-amber-500/5",
-    green: "bg-green-500/5",
-    red: "bg-red-500/5",
-    blue: "bg-blue-500/5"
+    amber: "bg-chart-3/5",
+    green: "bg-chart-4/5",
+    red: "bg-destructive/5",
+    blue: "bg-primary/5"
   };
 
   return (
-    <div className={cn("relative p-6 rounded-2xl border-2 border-zinc-800/30 overflow-hidden bg-zinc-950/80 backdrop-blur-sm", bgGlowClasses[color])}>
+    <div className={cn("relative p-6 rounded-2xl border-2 border-border overflow-hidden bg-card backdrop-blur-sm", bgGlowClasses[color])}>
       {/* LED Dot Matrix Background - More Dense */}
       <div 
         className="absolute inset-0 opacity-25"
         style={{
-          backgroundImage: `radial-gradient(circle, ${color === 'amber' ? '#f59e0b' : color === 'green' ? '#22c55e' : color === 'red' ? '#ef4444' : '#3b82f6'} 1.5px, transparent 1.5px)`,
+          backgroundImage: `radial-gradient(circle, hsl(var(--${color === 'amber' ? 'chart-3' : color === 'green' ? 'chart-4' : color === 'red' ? 'destructive' : 'primary'})) 1.5px, transparent 1.5px)`,
           backgroundSize: '10px 10px'
         }}
       />
       
       {/* Inner Glow */}
-      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/40" />
+      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-background/40" />
       
       {/* Display */}
       <div className="relative z-10">
         {label && (
-          <div className="text-xs md:text-sm font-bold text-white/70 uppercase tracking-[0.3em] mb-3 drop-shadow-lg">
+          <div className="text-xs md:text-sm font-bold text-foreground/70 uppercase tracking-[0.3em] mb-3 drop-shadow-lg">
             {label}
           </div>
         )}
@@ -76,16 +76,16 @@ export const LEDDisplay = ({ value, label, size = "lg", color = "amber" }: LEDDi
 
       {/* Scanline Effect - More Visible */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/10 to-transparent animate-pulse" 
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-foreground/10 to-transparent animate-pulse" 
              style={{ animationDuration: '3s' }} />
       </div>
       
       {/* Border Glow */}
       <div className={cn("absolute inset-0 rounded-2xl opacity-50", 
-        color === 'amber' ? 'shadow-[inset_0_0_20px_rgba(245,158,11,0.3)]' :
-        color === 'green' ? 'shadow-[inset_0_0_20px_rgba(34,197,94,0.3)]' :
-        color === 'red' ? 'shadow-[inset_0_0_20px_rgba(239,68,68,0.3)]' :
-        'shadow-[inset_0_0_20px_rgba(59,130,246,0.3)]'
+        color === 'amber' ? 'shadow-[inset_0_0_20px_hsl(var(--chart-3)/0.3)]' :
+        color === 'green' ? 'shadow-[inset_0_0_20px_hsl(var(--chart-4)/0.3)]' :
+        color === 'red' ? 'shadow-[inset_0_0_20px_hsl(var(--destructive)/0.3)]' :
+        'shadow-[inset_0_0_20px_hsl(var(--primary)/0.3)]'
       )} />
     </div>
   );

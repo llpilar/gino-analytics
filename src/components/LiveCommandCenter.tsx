@@ -121,17 +121,17 @@ export const LiveCommandCenter = () => {
   };
 
   const colorVariants = {
-    cyan: { bg: "bg-neon-cyan/10", border: "border-neon-cyan/40", text: "text-neon-cyan", glow: "shadow-neon-cyan/30" },
-    green: { bg: "bg-neon-green/10", border: "border-neon-green/40", text: "text-neon-green", glow: "shadow-neon-green/30" },
-    purple: { bg: "bg-neon-purple/10", border: "border-neon-purple/40", text: "text-neon-purple", glow: "shadow-neon-purple/30" },
-    orange: { bg: "bg-neon-orange/10", border: "border-neon-orange/40", text: "text-neon-orange", glow: "shadow-neon-orange/30" },
-    pink: { bg: "bg-neon-pink/10", border: "border-neon-pink/40", text: "text-neon-pink", glow: "shadow-neon-pink/30" },
-    blue: { bg: "bg-neon-blue/10", border: "border-neon-blue/40", text: "text-neon-blue", glow: "shadow-neon-blue/30" },
+    cyan: { bg: "bg-primary/10", border: "border-primary/40", text: "text-primary", glow: "shadow-primary/30" },
+    green: { bg: "bg-chart-4/10", border: "border-chart-4/40", text: "text-chart-4", glow: "shadow-chart-4/30" },
+    purple: { bg: "bg-chart-5/10", border: "border-chart-5/40", text: "text-chart-5", glow: "shadow-chart-5/30" },
+    orange: { bg: "bg-chart-3/10", border: "border-chart-3/40", text: "text-chart-3", glow: "shadow-chart-3/30" },
+    pink: { bg: "bg-chart-5/10", border: "border-chart-5/40", text: "text-chart-5", glow: "shadow-chart-5/30" },
+    blue: { bg: "bg-chart-1/10", border: "border-chart-1/40", text: "text-chart-1", glow: "shadow-chart-1/30" },
   };
 
   return (
     <main 
-      className="min-h-screen w-full relative overflow-hidden bg-black"
+      className="min-h-screen w-full relative overflow-hidden bg-background"
       role="main"
       aria-label="Dashboard principal de vendas"
     >
@@ -139,36 +139,36 @@ export const LiveCommandCenter = () => {
       <NavBar items={navItems} />
       
       {/* Background Effects */}
-      <div className="absolute inset-0 bg-black" aria-hidden="true">
-        <div className="stars-bg absolute inset-0" />
+      <div className="absolute inset-0 bg-background" aria-hidden="true">
+        <div className="stars-bg absolute inset-0 dark:opacity-100 opacity-0" />
       </div>
 
-      {/* Shooting Stars */}
-      <div aria-hidden="true">
-        <ShootingStars starColor="#06b6d4" trailColor="#0891b2" minSpeed={15} maxSpeed={35} minDelay={800} maxDelay={2500} />
-        <ShootingStars starColor="#8b5cf6" trailColor="#a78bfa" minSpeed={10} maxSpeed={25} minDelay={1500} maxDelay={3500} />
-        <ShootingStars starColor="#ec4899" trailColor="#f472b6" minSpeed={20} maxSpeed={40} minDelay={1000} maxDelay={3000} />
+      {/* Shooting Stars - Only in dark mode */}
+      <div aria-hidden="true" className="dark:block hidden">
+        <ShootingStars starColor="#1da1f2" trailColor="#1e9df1" minSpeed={15} maxSpeed={35} minDelay={800} maxDelay={2500} />
+        <ShootingStars starColor="#1c9cf0" trailColor="#1da1f2" minSpeed={10} maxSpeed={25} minDelay={1500} maxDelay={3500} />
+        <ShootingStars starColor="#1da1f2" trailColor="#1e9df1" minSpeed={20} maxSpeed={40} minDelay={1000} maxDelay={3000} />
       </div>
       
-      {/* Ambient Lighting */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-neon-purple/10 rounded-full blur-[150px]" aria-hidden="true" />
-      <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-neon-pink/10 rounded-full blur-[150px]" aria-hidden="true" />
-      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-neon-green/5 rounded-full blur-[180px]" aria-hidden="true" />
-      <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-neon-blue/5 rounded-full blur-[180px]" aria-hidden="true" />
+      {/* Ambient Lighting - Only in dark mode */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px] dark:opacity-100 opacity-0" aria-hidden="true" />
+      <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px] dark:opacity-100 opacity-0" aria-hidden="true" />
+      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-chart-4/5 rounded-full blur-[180px] dark:opacity-100 opacity-0" aria-hidden="true" />
+      <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-chart-1/5 rounded-full blur-[180px] dark:opacity-100 opacity-0" aria-hidden="true" />
 
       {/* Clock & Notification - Top Right */}
       <header className="fixed top-4 right-4 z-40 flex items-center gap-3">
         <NotificationCenter />
           <div 
-          className="px-4 py-2 rounded-full bg-black/80 border border-neon-cyan/30 backdrop-blur-xl"
+          className="px-4 py-2 rounded-full bg-card border border-primary/30 backdrop-blur-xl"
           role="status"
           aria-live="polite"
           aria-label={`Hora atual: ${format(currentTime, "HH:mm:ss")}`}
         >
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-status-success rounded-full animate-pulse shadow-lg shadow-status-success/50" aria-hidden="true" />
-            <span className="text-status-success font-bold text-xs uppercase tracking-widest">AO VIVO</span>
-            <time className="text-sm font-mono font-black text-neon-cyan tracking-wider">
+            <div className="w-2 h-2 bg-chart-4 rounded-full animate-pulse shadow-lg shadow-chart-4/50" aria-hidden="true" />
+            <span className="text-chart-4 font-bold text-xs uppercase tracking-widest">AO VIVO</span>
+            <time className="text-sm font-mono font-black text-primary tracking-wider">
               {format(currentTime, "HH:mm:ss")}
             </time>
           </div>
@@ -178,7 +178,7 @@ export const LiveCommandCenter = () => {
       {/* Layout Toggle - Desktop Only */}
       {!isMobile && (
         <div className="fixed top-4 left-4 z-40">
-          <div className="flex items-center gap-1 p-1 rounded-full bg-black/80 border border-neon-cyan/30 backdrop-blur-xl">
+          <div className="flex items-center gap-1 p-1 rounded-full bg-card border border-primary/30 backdrop-blur-xl">
             <Button
               variant="ghost"
               size="sm"
@@ -186,7 +186,7 @@ export const LiveCommandCenter = () => {
               className={cn(
                 "rounded-full h-8 px-3 transition-all",
                 layoutMode === "orbital" 
-                  ? "bg-neon-cyan/20 text-neon-cyan" 
+                  ? "bg-primary/20 text-primary" 
                   : "text-muted-foreground hover:text-foreground"
               )}
               aria-label="Layout orbital com globo"
@@ -201,7 +201,7 @@ export const LiveCommandCenter = () => {
               className={cn(
                 "rounded-full h-8 px-3 transition-all",
                 layoutMode === "grid" 
-                  ? "bg-neon-cyan/20 text-neon-cyan" 
+                  ? "bg-primary/20 text-primary" 
                   : "text-muted-foreground hover:text-foreground"
               )}
               aria-label="Layout em grade"
@@ -221,16 +221,16 @@ export const LiveCommandCenter = () => {
           <section className="relative w-[600px] h-[600px] flex-shrink-0 flex items-center justify-center mr-auto ml-48" aria-label="Visualização orbital de métricas">
             {/* Orbital rings */}
             <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
-              <div className="absolute w-[460px] h-[460px] border border-neon-cyan/20 rounded-full animate-spin" style={{ animationDuration: "60s" }} />
-              <div className="absolute w-[520px] h-[520px] border border-neon-purple/20 rounded-full animate-spin" style={{ animationDuration: "80s" }} />
-              <div className="absolute w-[580px] h-[580px] border border-neon-pink/10 rounded-full animate-spin" style={{ animationDuration: "100s" }} />
+              <div className="absolute w-[460px] h-[460px] border border-primary/20 rounded-full animate-spin" style={{ animationDuration: "60s" }} />
+              <div className="absolute w-[520px] h-[520px] border border-chart-5/20 rounded-full animate-spin" style={{ animationDuration: "80s" }} />
+              <div className="absolute w-[580px] h-[580px] border border-chart-5/10 rounded-full animate-spin" style={{ animationDuration: "100s" }} />
             </div>
 
             {/* Globe */}
             <div className="relative z-10 w-[380px] h-[380px]" aria-hidden="true">
               <Globe className="w-full h-full" />
-              <div className="absolute inset-0 bg-gradient-radial from-neon-cyan/30 via-neon-cyan/10 to-transparent blur-3xl animate-pulse-glow" />
-              <div className="absolute inset-0 bg-gradient-radial from-neon-blue/20 via-transparent to-transparent blur-2xl animate-pulse-glow" style={{ animationDelay: "0.5s" }} />
+              <div className="absolute inset-0 bg-gradient-radial from-primary/30 via-primary/10 to-transparent blur-3xl animate-pulse-glow" />
+              <div className="absolute inset-0 bg-gradient-radial from-chart-1/20 via-transparent to-transparent blur-2xl animate-pulse-glow" style={{ animationDelay: "0.5s" }} />
             </div>
 
             {/* Orbital Satellites */}
@@ -250,8 +250,8 @@ export const LiveCommandCenter = () => {
                   aria-label={`${satellite.label}: ${satellite.value}`}
                 >
                   <div className="relative group cursor-pointer">
-                    <div className={cn(
-                      "relative p-3 rounded-2xl bg-black/90 border-2 backdrop-blur-xl min-w-[120px]",
+                  <div className={cn(
+                      "relative p-3 rounded-2xl bg-card border-2 backdrop-blur-xl min-w-[120px]",
                       "hover:scale-105 transition-all duration-300",
                       colors.border
                     )}>
@@ -275,7 +275,7 @@ export const LiveCommandCenter = () => {
 
           {/* Right Side: Data Stream Card */}
           <aside 
-            className="absolute right-16 top-1/2 -translate-y-[45%] w-[390px] p-5 rounded-2xl bg-black/80 border-2 border-neon-cyan/30 backdrop-blur-xl"
+            className="absolute right-16 top-1/2 -translate-y-[45%] w-[390px] p-5 rounded-2xl bg-card border-2 border-primary/30 backdrop-blur-xl"
             aria-label="Painel de dados em tempo real"
           >
             <DataStreamCard 
@@ -322,7 +322,7 @@ export const LiveCommandCenter = () => {
                   <article
                     key={stat.label}
                     className={cn(
-                      "p-4 md:p-6 rounded-2xl bg-surface-elevated border-2 backdrop-blur-xl",
+                      "p-4 md:p-6 rounded-2xl bg-card border-2 backdrop-blur-xl",
                       "transition-all duration-300 hover:scale-[1.02] cursor-pointer",
                       "animate-fade-in-up",
                       colors.border
@@ -356,7 +356,7 @@ export const LiveCommandCenter = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Data Stream Panel */}
               <section 
-                className="lg:col-span-2 p-4 md:p-6 rounded-2xl bg-surface-elevated border-2 border-neon-cyan/30 backdrop-blur-xl animate-fade-in"
+                className="lg:col-span-2 p-4 md:p-6 rounded-2xl bg-card border-2 border-primary/30 backdrop-blur-xl animate-fade-in"
                 style={{ animationDelay: "400ms" }}
                 aria-label="Detalhes de faturamento"
               >
@@ -375,7 +375,7 @@ export const LiveCommandCenter = () => {
 
               {/* Globe Preview - Desktop Grid Only */}
               <aside 
-                className="hidden lg:block p-6 rounded-2xl bg-surface-elevated border-2 border-neon-purple/30 backdrop-blur-xl animate-fade-in overflow-hidden"
+                className="hidden lg:block p-6 rounded-2xl bg-card border-2 border-chart-5/30 backdrop-blur-xl animate-fade-in overflow-hidden"
                 style={{ animationDelay: "500ms" }}
                 aria-label="Visualização do globo"
               >
@@ -384,7 +384,7 @@ export const LiveCommandCenter = () => {
                 </h3>
                 <div className="relative w-full aspect-square">
                   <Globe className="w-full h-full" />
-                  <div className="absolute inset-0 bg-gradient-radial from-neon-purple/20 via-transparent to-transparent blur-2xl" aria-hidden="true" />
+                  <div className="absolute inset-0 bg-gradient-radial from-chart-5/20 via-transparent to-transparent blur-2xl" aria-hidden="true" />
                 </div>
               </aside>
             </div>
@@ -455,8 +455,8 @@ const DataStreamCard = ({
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-neon-cyan rounded-full animate-pulse shadow-lg shadow-neon-cyan/50" aria-hidden="true" />
-            <h3 className="text-sm font-black text-neon-cyan uppercase tracking-wider">Shopify Ao Vivo</h3>
+            <div className="w-3 h-3 bg-primary rounded-full animate-pulse shadow-lg shadow-primary/50" aria-hidden="true" />
+            <h3 className="text-sm font-black text-primary uppercase tracking-wider">Shopify Ao Vivo</h3>
           </div>
           <time className="text-[10px] text-muted-foreground font-mono">
             {format(new Date(), "HH:mm:ss")}
@@ -469,12 +469,12 @@ const DataStreamCard = ({
           <div className={cn("p-4 rounded-xl border-2 backdrop-blur-sm", colorVariants.pink.bg, colorVariants.pink.border)}>
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <Megaphone className="w-4 h-4 text-neon-pink" />
+                <Megaphone className="w-4 h-4 text-chart-5" />
                 <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Gasto em Ads Hoje</span>
               </div>
-              <div className="text-[9px] text-muted-foreground bg-black/30 px-2 py-0.5 rounded-full">Facebook Ads</div>
+              <div className="text-[9px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">Facebook Ads</div>
             </div>
-            <div className="text-2xl md:text-3xl font-black text-neon-pink">
+            <div className="text-2xl md:text-3xl font-black text-chart-5">
               {formatCurrency(adSpend)}
             </div>
             <p className="text-[10px] text-muted-foreground mt-1">Total investido</p>
@@ -493,13 +493,13 @@ const DataStreamCard = ({
                   />
                 )}
               </div>
-              <div className="text-xl md:text-2xl font-black text-neon-purple">{ordersCount}</div>
+              <div className="text-xl md:text-2xl font-black text-chart-5">{ordersCount}</div>
               <p className="text-[9px] text-muted-foreground mt-0.5">Total de hoje</p>
             </div>
             
             <div className={cn("p-3 rounded-xl border-2 backdrop-blur-sm", colorVariants.green.bg, colorVariants.green.border)}>
               <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-1 block">Ticket Médio</span>
-              <div className="text-xl md:text-2xl font-black text-neon-green">
+              <div className="text-xl md:text-2xl font-black text-chart-4">
                 {formatCurrency(avgOrderValue)}
               </div>
               <p className="text-[9px] text-muted-foreground mt-0.5">Por pedido</p>
@@ -510,12 +510,12 @@ const DataStreamCard = ({
           <div className={cn("p-4 rounded-xl border-2 backdrop-blur-sm", colorVariants.orange.bg, colorVariants.orange.border)}>
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <Target className="w-4 h-4 text-neon-orange" />
+                <Target className="w-4 h-4 text-chart-3" />
                 <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider">CPA</span>
               </div>
-              <div className="text-[9px] text-muted-foreground bg-black/30 px-2 py-0.5 rounded-full">Custo por Compra</div>
+              <div className="text-[9px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">Custo por Compra</div>
             </div>
-            <div className="text-2xl md:text-3xl font-black text-neon-orange">
+            <div className="text-2xl md:text-3xl font-black text-chart-3">
               {formatCurrency(cpa)}
             </div>
             <p className="text-[10px] text-muted-foreground mt-1">Facebook Ads</p>
@@ -525,11 +525,11 @@ const DataStreamCard = ({
         {/* System Status Footer */}
         <footer className="mt-4 pt-3 border-t border-border flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-status-success rounded-full animate-pulse" aria-hidden="true" />
-            <span className="text-xs font-bold text-status-success">OPERACIONAL</span>
+            <div className="w-2 h-2 bg-chart-4 rounded-full animate-pulse" aria-hidden="true" />
+            <span className="text-xs font-bold text-chart-4">OPERACIONAL</span>
           </div>
           <div className="text-[10px] text-muted-foreground">
-            Latência: <span className="text-neon-cyan font-bold">12ms</span>
+            Latência: <span className="text-primary font-bold">12ms</span>
           </div>
         </footer>
       </div>

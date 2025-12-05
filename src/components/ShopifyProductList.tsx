@@ -39,13 +39,13 @@ export const ShopifyProductList = ({ searchQuery = "" }: ShopifyProductListProps
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {[...Array(8)].map((_, i) => (
-          <Card key={i} className="overflow-hidden bg-black/60 border-gray-800/50">
-            <Skeleton className="w-full h-64 bg-gray-800/50" />
+          <Card key={i} className="overflow-hidden bg-card border-border">
+            <Skeleton className="w-full h-64 bg-muted" />
             <div className="p-4 space-y-3">
-              <Skeleton className="h-6 w-3/4 bg-gray-800/50" />
-              <Skeleton className="h-4 w-full bg-gray-800/50" />
-              <Skeleton className="h-4 w-2/3 bg-gray-800/50" />
-              <Skeleton className="h-10 w-full bg-gray-800/50" />
+              <Skeleton className="h-6 w-3/4 bg-muted" />
+              <Skeleton className="h-4 w-full bg-muted" />
+              <Skeleton className="h-4 w-2/3 bg-muted" />
+              <Skeleton className="h-10 w-full bg-muted" />
             </div>
           </Card>
         ))}
@@ -55,7 +55,6 @@ export const ShopifyProductList = ({ searchQuery = "" }: ShopifyProductListProps
 
   const allProducts: ProductNode[] = data?.data?.products?.edges?.map((edge: any) => edge.node) || [];
   
-  // Filter products based on search query
   const products = allProducts.filter(product => 
     product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     product.descriptionHtml.toLowerCase().includes(searchQuery.toLowerCase())
@@ -64,13 +63,13 @@ export const ShopifyProductList = ({ searchQuery = "" }: ShopifyProductListProps
   if (products.length === 0) {
     return (
       <div className="text-center py-16">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-800/50 mb-4">
-          <ShoppingCart className="h-8 w-8 text-gray-600" />
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
+          <ShoppingCart className="h-8 w-8 text-muted-foreground" />
         </div>
-        <p className="text-gray-400 text-lg font-medium">
+        <p className="text-muted-foreground text-lg font-medium">
           {searchQuery ? "Nenhum produto encontrado com esse termo" : "Nenhum produto encontrado"}
         </p>
-        <p className="text-gray-600 text-sm mt-2">
+        <p className="text-muted-foreground/60 text-sm mt-2">
           {searchQuery ? "Tente buscar por outro termo" : "Adicione produtos à sua loja"}
         </p>
       </div>
@@ -97,10 +96,10 @@ export const ShopifyProductList = ({ searchQuery = "" }: ShopifyProductListProps
         return (
           <Card 
             key={product.id} 
-            className="group overflow-hidden bg-black/60 border-2 border-gray-800/50 hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20 hover:-translate-y-1"
+            className="group overflow-hidden bg-card border-2 border-border hover:border-primary/50 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-1"
           >
             {/* Product Image */}
-            <div className="relative aspect-square overflow-hidden bg-gray-900/50">
+            <div className="relative aspect-square overflow-hidden bg-muted">
               {imageUrl ? (
                 <img
                   src={imageUrl}
@@ -109,14 +108,14 @@ export const ShopifyProductList = ({ searchQuery = "" }: ShopifyProductListProps
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <ShoppingCart className="h-16 w-16 text-gray-700" />
+                  <ShoppingCart className="h-16 w-16 text-muted-foreground" />
                 </div>
               )}
               
               {/* Badges */}
               <div className="absolute top-3 left-3 flex flex-col gap-2">
                 {hasDiscount && (
-                  <Badge className="bg-gradient-to-r from-pink-500 to-red-500 text-white border-0 shadow-lg">
+                  <Badge className="bg-destructive text-destructive-foreground border-0 shadow-lg">
                     <Sparkles className="h-3 w-3 mr-1" />
                     -{discountPercentage}%
                   </Badge>
@@ -124,10 +123,10 @@ export const ShopifyProductList = ({ searchQuery = "" }: ShopifyProductListProps
               </div>
 
               {/* Hover Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
+              <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
                 <Button 
                   size="sm" 
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 shadow-lg"
+                  className="bg-primary hover:bg-primary/90 border-0 shadow-lg"
                 >
                   <ShoppingCart className="h-4 w-4 mr-2" />
                   Ver Detalhes
@@ -137,30 +136,30 @@ export const ShopifyProductList = ({ searchQuery = "" }: ShopifyProductListProps
             
             {/* Product Info */}
             <div className="p-4 space-y-3">
-              <h3 className="font-bold text-lg text-gray-200 line-clamp-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-400 group-hover:to-pink-400 transition-all min-h-[3.5rem]">
+              <h3 className="font-bold text-lg text-foreground line-clamp-2 group-hover:text-primary transition-all min-h-[3.5rem]">
                 {product.title}
               </h3>
               
               <div 
-                className="text-sm text-gray-400 line-clamp-2 min-h-[2.5rem]"
+                className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem]"
                 dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
               />
               
               {/* Price Section */}
-              <div className="pt-3 border-t border-gray-800/50">
+              <div className="pt-3 border-t border-border">
                 <div className="flex items-center justify-between">
                   <div className="flex flex-col">
                     {hasDiscount && (
-                      <span className="text-xs text-gray-500 line-through">
+                      <span className="text-xs text-muted-foreground line-through">
                         {currencySymbol} {parseFloat(compareAtPrice!).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                       </span>
                     )}
-                    <span className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
+                    <span className="text-2xl font-black text-primary">
                       {currencySymbol} {parseFloat(price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                   {hasDiscount && (
-                    <div className="flex items-center gap-1 text-green-400">
+                    <div className="flex items-center gap-1 text-chart-4">
                       <TrendingUp className="h-4 w-4" />
                       <span className="text-xs font-bold">PROMO</span>
                     </div>
@@ -171,7 +170,7 @@ export const ShopifyProductList = ({ searchQuery = "" }: ShopifyProductListProps
 
             {/* Shine Effect */}
             <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-foreground/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
             </div>
           </Card>
         );
