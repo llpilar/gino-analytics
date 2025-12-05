@@ -135,11 +135,11 @@ export default function Analises() {
         </div>
 
         {/* VTurb Analytics Section */}
-        <SectionCard title="Métricas do Vídeo (VTurb)" icon={Video} color="orange" className="mb-8">
+        <SectionCard title="Métricas do Vídeo (VTurb)" icon={Video} color="red" className="mb-8">
           {/* Video Selector */}
-          <div className="mb-4">
+          <div className="mb-6">
             <Select value={selectedPlayerId || "all"} onValueChange={(value) => setSelectedPlayerId(value === "all" ? undefined : value)}>
-              <SelectTrigger className="w-full md:w-[300px] bg-black/60 border-orange-500/30">
+              <SelectTrigger className="w-full md:w-[300px] bg-white/5 border-red-500/30 text-foreground">
                 <SelectValue placeholder="Selecione um vídeo" />
               </SelectTrigger>
               <SelectContent>
@@ -158,81 +158,114 @@ export default function Analises() {
 
           {vturbLoading ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              {[...Array(5)].map((_, i) => (
-                <Skeleton key={i} className="h-24 rounded-xl" />
+              {[...Array(10)].map((_, i) => (
+                <Skeleton key={i} className="h-20 rounded-lg" />
               ))}
             </div>
           ) : vturbError ? (
-            <div className="text-center py-8 text-yellow-400">
+            <div className="text-center py-8 text-red-400">
               <p>Conectando ao VTurb...</p>
               <p className="text-xs text-gray-500 mt-2">Verifique se a API Key está configurada corretamente</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              <div className="p-4 rounded-xl bg-black/60 border border-orange-500/30">
-                <div className="flex items-center gap-2 mb-2">
-                  <Play className="w-4 h-4 text-orange-400" />
-                  <span className="text-xs text-gray-500 uppercase">Total de Plays</span>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+              {/* Visualizações */}
+              <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                <div className="text-2xl font-bold text-foreground">
+                  {vturbMetrics.totalViews.toLocaleString('pt-BR')}
                 </div>
-                <div className="text-2xl font-black text-orange-400">
-                  {vturbMetrics.totalPlays.toLocaleString()}
-                </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  {vturbMetrics.uniquePlays.toLocaleString()} únicos
+                <div className="text-sm text-muted-foreground">
+                  Visualizações
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-black/60 border border-cyan-500/30">
-                <div className="flex items-center gap-2 mb-2">
-                  <Eye className="w-4 h-4 text-cyan-400" />
-                  <span className="text-xs text-gray-500 uppercase">Total de Views</span>
+              {/* Visualizações Únicas */}
+              <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                <div className="text-2xl font-bold text-foreground">
+                  {vturbMetrics.uniqueViews.toLocaleString('pt-BR')}
                 </div>
-                <div className="text-2xl font-black text-cyan-400">
-                  {vturbMetrics.totalViews.toLocaleString()}
-                </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  {vturbMetrics.uniqueViews.toLocaleString()} únicos
+                <div className="text-sm text-muted-foreground">
+                  Visualizações Únicas
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-black/60 border border-green-500/30">
-                <div className="flex items-center gap-2 mb-2">
-                  <Video className="w-4 h-4 text-green-400" />
-                  <span className="text-xs text-gray-500 uppercase">Finalizados</span>
+              {/* Plays */}
+              <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                <div className="text-2xl font-bold text-foreground">
+                  {vturbMetrics.totalPlays.toLocaleString('pt-BR')}
                 </div>
-                <div className="text-2xl font-black text-green-400">
-                  {vturbMetrics.totalFinished.toLocaleString()}
-                </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  {vturbMetrics.uniqueFinished.toLocaleString()} únicos
+                <div className="text-sm text-muted-foreground">
+                  Plays
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-black/60 border border-purple-500/30">
-                <div className="flex items-center gap-2 mb-2">
-                  <Activity className="w-4 h-4 text-purple-400" />
-                  <span className="text-xs text-gray-500 uppercase">Taxa de Engajamento</span>
+              {/* Plays Únicos */}
+              <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                <div className="text-2xl font-bold text-foreground">
+                  {vturbMetrics.uniquePlays.toLocaleString('pt-BR')}
                 </div>
-                <div className="text-2xl font-black text-purple-400">
-                  {vturbMetrics.engagementRate.toFixed(1)}%
-                </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  engajamento do vídeo
+                <div className="text-sm text-muted-foreground">
+                  Plays Únicos
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-black/60 border border-yellow-500/30">
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className="w-4 h-4 text-yellow-400" />
-                  <span className="text-xs text-gray-500 uppercase">Taxa de Play</span>
+              {/* Play Rate */}
+              <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                <div className="text-2xl font-bold text-foreground">
+                  {vturbMetrics.playRate.toFixed(2).replace('.', ',')}%
                 </div>
-                <div className="text-2xl font-black text-yellow-400">
-                  {vturbMetrics.totalViews > 0 
-                    ? ((vturbMetrics.totalPlays / vturbMetrics.totalViews) * 100).toFixed(1)
-                    : '0.0'}%
+                <div className="text-sm text-muted-foreground">
+                  Play Rate
                 </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  clicaram em play
+              </div>
+
+              {/* Retenção ao Pitch */}
+              <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                <div className="text-2xl font-bold text-foreground">
+                  {vturbMetrics.overPitchRate.toFixed(2).replace('.', ',')}%
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Retenção ao Pitch
+                </div>
+              </div>
+
+              {/* Engajamento */}
+              <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                <div className="text-2xl font-bold text-foreground">
+                  {vturbMetrics.engagementRate.toFixed(2).replace('.', ',')}%
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Engajamento
+                </div>
+              </div>
+
+              {/* Cliques no Botão */}
+              <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                <div className="text-2xl font-bold text-foreground">
+                  {vturbMetrics.totalClicks.toLocaleString('pt-BR')}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Cliques no Botão
+                </div>
+              </div>
+
+              {/* Conversões */}
+              <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                <div className="text-2xl font-bold text-foreground">
+                  0
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Conversões
+                </div>
+              </div>
+
+              {/* Taxa de Conversão */}
+              <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                <div className="text-2xl font-bold text-foreground">
+                  {vturbMetrics.conversionRate.toFixed(2).replace('.', ',')}%
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Taxa de Conversão
                 </div>
               </div>
             </div>
