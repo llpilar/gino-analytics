@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.hoko-api]
 verify_jwt = true
+
+[functions.visitor-count]
+verify_jwt = false
