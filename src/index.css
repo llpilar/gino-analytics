@@ -116,8 +116,46 @@
     --surface-overlay: 230 15% 9%;
   }
 
-  /* Theme: Twitter Blue */
+  /* Theme: Twitter Blue - Light Mode */
   [data-theme="twitter-blue"] {
+    --background: 0 0% 100%;
+    --foreground: 210 25% 8%;
+    --card: 180 7% 97%;
+    --card-foreground: 210 25% 8%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 25% 8%;
+    --primary: 203 89% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 25% 8%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 240 2% 90%;
+    --muted-foreground: 210 25% 8%;
+    --accent: 212 52% 93%;
+    --accent-foreground: 203 89% 53%;
+    --destructive: 356 91% 54%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 200 32% 91%;
+    --input: 195 23% 97%;
+    --ring: 203 89% 53%;
+    --radius: 1.3rem;
+    --chart-1: 203 89% 53%;
+    --chart-2: 160 100% 36%;
+    --chart-3: 43 93% 56%;
+    --chart-4: 152 82% 42%;
+    --chart-5: 343 81% 51%;
+    --sidebar: 180 7% 97%;
+    --sidebar-foreground: 210 25% 8%;
+    --sidebar-primary: 203 89% 53%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 212 52% 93%;
+    --sidebar-accent-foreground: 203 89% 53%;
+    --sidebar-border: 200 27% 91%;
+    --sidebar-ring: 203 89% 53%;
+  }
+
+  /* Theme: Twitter Blue - Dark Mode */
+  .dark [data-theme="twitter-blue"],
+  [data-theme="twitter-blue"].dark {
     --background: 0 0% 0%;
     --foreground: 200 6% 91%;
     --card: 225 11% 10%;
@@ -137,7 +175,6 @@
     --border: 210 4% 15%;
     --input: 207 28% 18%;
     --ring: 203 89% 53%;
-    --radius: 1.3rem;
     --chart-1: 203 89% 53%;
     --chart-2: 160 100% 36%;
     --chart-3: 43 93% 56%;
@@ -179,6 +216,11 @@
 
   /* Twitter Blue theme background */
   [data-theme="twitter-blue"] body {
+    background: hsl(0, 0%, 100%);
+  }
+
+  .dark [data-theme="twitter-blue"] body,
+  [data-theme="twitter-blue"].dark body {
     background: hsl(0, 0%, 0%);
   }
 }
@@ -381,32 +423,69 @@
     @apply bg-neutral-700 hover:bg-neutral-600;
   }
 
-  /* Twitter Blue theme specific cards */
+  /* Twitter Blue theme specific cards - Light Mode */
   [data-theme="twitter-blue"] .glass-card,
   [data-theme="twitter-blue"] .standard-card {
     @apply rounded-2xl;
-    background: hsl(220, 12%, 10%);
-    border: 1px solid hsl(210, 5%, 15%);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    background: hsl(180, 7%, 97%);
+    border: 1px solid hsl(200, 32%, 91%);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   }
 
   [data-theme="twitter-blue"] .glass-card:hover,
   [data-theme="twitter-blue"] .standard-card:hover {
-    background: hsl(220, 12%, 12%);
+    background: hsl(195, 23%, 97%);
     border-color: hsl(203, 89%, 53%, 0.3);
   }
 
   [data-theme="twitter-blue"] .metric-card {
     @apply rounded-xl;
-    background: hsl(220, 12%, 10%);
-    border: 1px solid hsl(210, 5%, 15%);
+    background: hsl(180, 7%, 97%);
+    border: 1px solid hsl(200, 32%, 91%);
   }
 
   [data-theme="twitter-blue"] .standard-card-cyan,
   [data-theme="twitter-blue"] .standard-card-purple,
   [data-theme="twitter-blue"] .standard-card-green,
   [data-theme="twitter-blue"] .standard-card-orange {
-    background: hsl(220, 12%, 10%);
+    background: hsl(180, 7%, 97%);
+    border: 1px solid hsl(203, 89%, 53%, 0.2) !important;
+    box-shadow: 0 0 20px hsl(203, 89%, 53%, 0.1) !important;
+  }
+
+  /* Twitter Blue theme specific cards - Dark Mode */
+  .dark [data-theme="twitter-blue"] .glass-card,
+  .dark [data-theme="twitter-blue"] .standard-card,
+  [data-theme="twitter-blue"].dark .glass-card,
+  [data-theme="twitter-blue"].dark .standard-card {
+    background: hsl(225, 11%, 10%);
+    border: 1px solid hsl(210, 4%, 15%);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+
+  .dark [data-theme="twitter-blue"] .glass-card:hover,
+  .dark [data-theme="twitter-blue"] .standard-card:hover,
+  [data-theme="twitter-blue"].dark .glass-card:hover,
+  [data-theme="twitter-blue"].dark .standard-card:hover {
+    background: hsl(225, 11%, 12%);
+    border-color: hsl(203, 89%, 53%, 0.3);
+  }
+
+  .dark [data-theme="twitter-blue"] .metric-card,
+  [data-theme="twitter-blue"].dark .metric-card {
+    background: hsl(225, 11%, 10%);
+    border: 1px solid hsl(210, 4%, 15%);
+  }
+
+  .dark [data-theme="twitter-blue"] .standard-card-cyan,
+  .dark [data-theme="twitter-blue"] .standard-card-purple,
+  .dark [data-theme="twitter-blue"] .standard-card-green,
+  .dark [data-theme="twitter-blue"] .standard-card-orange,
+  [data-theme="twitter-blue"].dark .standard-card-cyan,
+  [data-theme="twitter-blue"].dark .standard-card-purple,
+  [data-theme="twitter-blue"].dark .standard-card-green,
+  [data-theme="twitter-blue"].dark .standard-card-orange {
+    background: hsl(225, 11%, 10%);
     border: 1px solid hsl(203, 89%, 53%, 0.2) !important;
     box-shadow: 0 0 20px hsl(203, 89%, 53%, 0.1) !important;
   }
