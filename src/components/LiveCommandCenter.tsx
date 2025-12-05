@@ -69,7 +69,13 @@ export const LiveCommandCenter = () => {
   }, 0) || 0;
 
   const ordersCount = revenueData?.data?.orders?.edges?.length || 0;
-  const salesPerMinute = ordersCount > 0 ? (totalRevenue / 60).toFixed(2) : "0.00";
+  
+  // Calculate minutes elapsed since start of day (Colombia timezone -5)
+  const now = new Date();
+  const startOfDay = new Date(now);
+  startOfDay.setHours(0, 0, 0, 0);
+  const minutesElapsed = Math.max(1, Math.floor((now.getTime() - startOfDay.getTime()) / (1000 * 60)));
+  const salesPerMinute = ordersCount > 0 ? (totalRevenue / minutesElapsed).toFixed(2) : "0.00";
   const uniqueShoppers = ordersCount > 0 ? Math.floor(ordersCount * 0.85).toString() : "0";
   const avgOrderValue = ordersCount > 0 ? totalRevenue / ordersCount : 0;
 
