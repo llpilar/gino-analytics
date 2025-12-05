@@ -81,9 +81,9 @@ export default function Analises() {
       color: "green",
     },
     {
-      title: "Taxa de Conversão",
-      value: `${metrics.conversionRate}%`,
-      change: gaMetrics.totalUsers > 0 ? "+2.1%" : "0%",
+      title: "VSL Online",
+      value: gaRealtime.activeUsers.toString(),
+      change: "últimos 30 min",
       isPositive: true,
       icon: Activity,
       color: "orange",
