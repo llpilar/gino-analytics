@@ -153,8 +153,11 @@ const StatsGrid = () => {
   
   // delivery_state: 1=Criada, 2=Em processo, 3=Despachada, 4=Finalizada, 5=Cancelada, 6=Em Novidade
   
-  // Em Processo: orders with delivery_state 1, 2, 3, 6 (not finalized or cancelled)
-  const emProcesso = orders.filter((o) => [1, 2, 3, 6].includes(parseInt(o.delivery_state))).length;
+  // Criada: delivery_state=1
+  const criadas = orders.filter((o) => parseInt(o.delivery_state) === 1).length;
+  
+  // Em Processo: orders with delivery_state 2, 3, 6 (in process, dispatched, with issue)
+  const emProcesso = orders.filter((o) => [2, 3, 6].includes(parseInt(o.delivery_state))).length;
   
   // Finalizadas: delivery_state=4
   const finalizadas = orders.filter((o) => parseInt(o.delivery_state) === 4).length;
@@ -165,13 +168,14 @@ const StatsGrid = () => {
   const getPercent = (value: number) => totalOrders > 0 ? ((value / totalOrders) * 100).toFixed(2) : '0';
 
   const statsConfig: { title: string; value: string; subtitle: string; icon: LucideIcon; color: CardColorVariant }[] = [
+    { title: "Criadas", value: `${criadas} (${getPercent(criadas)}%)`, subtitle: "Pedidos recém criados", icon: Clock, color: "purple" },
     { title: "Em Processo", value: `${emProcesso} (${getPercent(emProcesso)}%)`, subtitle: "Pedidos em preparação/trânsito", icon: Timer, color: "cyan" },
     { title: "Finalizadas", value: `${finalizadas} (${getPercent(finalizadas)}%)`, subtitle: "Pedidos entregues com sucesso", icon: CheckCircle2, color: "green" },
     { title: "Canceladas", value: `${canceladas} (${getPercent(canceladas)}%)`, subtitle: "Pedidos cancelados", icon: XCircle, color: "orange" },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       {statsConfig.map((stat, index) => (
         <StatsCard
           key={index}
