@@ -209,20 +209,6 @@ export default function Analises() {
           </SectionCard>
         </div>
 
-        {/* Bottom Stats Bar - Now with real GA data */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {[
-            { label: "Taxa de Rejeição", value: `${(gaMetrics.bounceRate * 100).toFixed(1)}%`, color: "text-orange-400" },
-            { label: "Duração da Sessão", value: formatDuration(gaMetrics.avgSessionDuration), color: "text-cyan-400" },
-            { label: "Páginas/Sessão", value: gaMetrics.totalSessions > 0 ? (gaMetrics.totalPageViews / gaMetrics.totalSessions).toFixed(1) : "0", color: "text-purple-400" },
-            { label: "Taxa de Retorno", value: gaMetrics.totalUsers > 0 ? `${(((gaMetrics.totalUsers - gaMetrics.newUsers) / gaMetrics.totalUsers) * 100).toFixed(0)}%` : "0%", color: "text-green-400" }
-          ].map((item, index) => (
-            <div key={index} className="p-4 rounded-2xl bg-black/80 border-2 border-cyan-500/30 backdrop-blur-xl">
-              <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">{item.label}</div>
-              <div className={`text-2xl font-black ${item.color}`}>{item.value}</div>
-            </div>
-          ))}
-        </div>
 
         {/* Sales Map Section */}
         <div className="mb-8">
