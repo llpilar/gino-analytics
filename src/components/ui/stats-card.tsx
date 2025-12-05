@@ -16,6 +16,7 @@ interface StatsCardProps {
   showLiveIndicator?: boolean;
 }
 
+// Twitter Blue theme: all variants use the same blue primary color
 const colorClasses: Record<CardColorVariant, {
   border: string;
   glow: string;
@@ -23,46 +24,46 @@ const colorClasses: Record<CardColorVariant, {
   text: string;
 }> = {
   cyan: {
-    border: "border-primary/40",
-    glow: "shadow-primary/30",
+    border: "border-primary/30",
+    glow: "shadow-primary/20",
     bg: "bg-primary/10",
     text: "text-primary",
   },
   purple: {
-    border: "border-purple-500/40",
-    glow: "shadow-purple-500/30",
-    bg: "bg-purple-500/10",
-    text: "text-purple-400",
+    border: "border-primary/30",
+    glow: "shadow-primary/20",
+    bg: "bg-primary/10",
+    text: "text-primary",
   },
   green: {
-    border: "border-green-500/40",
-    glow: "shadow-green-500/30",
-    bg: "bg-green-500/10",
-    text: "text-green-400",
+    border: "border-chart-2/30",
+    glow: "shadow-chart-2/20",
+    bg: "bg-chart-2/10",
+    text: "text-chart-2",
   },
   orange: {
-    border: "border-orange-500/40",
-    glow: "shadow-orange-500/30",
-    bg: "bg-orange-500/10",
-    text: "text-orange-400",
+    border: "border-chart-3/30",
+    glow: "shadow-chart-3/20",
+    bg: "bg-chart-3/10",
+    text: "text-chart-3",
   },
   pink: {
-    border: "border-pink-500/40",
-    glow: "shadow-pink-500/30",
-    bg: "bg-pink-500/10",
-    text: "text-pink-400",
+    border: "border-chart-5/30",
+    glow: "shadow-chart-5/20",
+    bg: "bg-chart-5/10",
+    text: "text-chart-5",
   },
   blue: {
-    border: "border-blue-500/40",
-    glow: "shadow-blue-500/30",
-    bg: "bg-blue-500/10",
-    text: "text-blue-400",
+    border: "border-primary/30",
+    glow: "shadow-primary/20",
+    bg: "bg-primary/10",
+    text: "text-primary",
   },
   red: {
-    border: "border-red-500/40",
-    glow: "shadow-red-500/30",
-    bg: "bg-red-500/10",
-    text: "text-red-400",
+    border: "border-destructive/30",
+    glow: "shadow-destructive/20",
+    bg: "bg-destructive/10",
+    text: "text-destructive",
   },
 };
 
@@ -83,10 +84,10 @@ export const StatsCard = ({
   return (
     <article
       className={cn(
-        "p-4 md:p-6 rounded-2xl bg-card border-2 backdrop-blur-xl",
+        "p-4 md:p-6 rounded-xl bg-card border backdrop-blur-sm",
         "transition-all duration-300",
-        colors.border,
-        hoverable && "hover:scale-[1.02] cursor-pointer",
+        "border-border",
+        hoverable && "hover:border-primary/30 hover:shadow-sm cursor-pointer",
         "animate-fade-in-up",
         className
       )}
@@ -95,7 +96,7 @@ export const StatsCard = ({
     >
       {/* Header with icon and title */}
       <div className="flex items-center gap-3 mb-3">
-        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center border", colors.bg, colors.border)}>
+        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", colors.bg)}>
           <Icon className={cn("w-5 h-5", colors.text)} aria-hidden="true" />
         </div>
         <div className="flex-1 min-w-0">
@@ -106,7 +107,7 @@ export const StatsCard = ({
       </div>
       
       {/* Value */}
-      <div className={cn("text-2xl md:text-3xl font-black truncate", colors.text)}>
+      <div className="text-2xl md:text-3xl font-black truncate text-foreground">
         {value}
       </div>
       
@@ -117,8 +118,8 @@ export const StatsCard = ({
         </p>
       ) : showLiveIndicator ? (
         <div className="flex items-center gap-1 mt-2">
-          <TrendingUp className={cn("w-3 h-3", colors.text)} aria-hidden="true" />
-          <span className={cn("text-xs font-semibold", colors.text)}>Ao vivo</span>
+          <TrendingUp className="w-3 h-3 text-primary" aria-hidden="true" />
+          <span className="text-xs font-semibold text-primary">Ao vivo</span>
         </div>
       ) : null}
       
@@ -147,8 +148,7 @@ export const SectionCard = ({
   return (
     <section
       className={cn(
-        "p-4 md:p-6 rounded-2xl bg-card border-2 backdrop-blur-xl",
-        colors.border,
+        "p-4 md:p-6 rounded-xl bg-card border border-border backdrop-blur-sm",
         "animate-fade-in",
         className
       )}
@@ -157,11 +157,11 @@ export const SectionCard = ({
       {title && (
         <header className="flex items-center gap-3 mb-4 md:mb-6">
           {Icon && (
-            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center border", colors.bg, colors.border)}>
+            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", colors.bg)}>
               <Icon className={cn("w-5 h-5", colors.text)} aria-hidden="true" />
             </div>
           )}
-          <h2 className={cn("text-lg md:text-xl font-black", colors.text)}>
+          <h2 className="text-lg md:text-xl font-black text-foreground">
             {title}
           </h2>
         </header>

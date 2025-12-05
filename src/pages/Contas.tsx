@@ -206,7 +206,7 @@ export default function Contas() {
       title: partner1,
       value: formatBRL(partner1Total),
       subtitle: partner1Balance > 0 ? `Receber ${formatBRL(partner1Balance)}` : partner1Balance < 0 ? `Deve ${formatBRL(Math.abs(partner1Balance))}` : 'Equilibrado',
-      subtitleColor: partner1Balance > 0 ? 'text-green-400' : partner1Balance < 0 ? 'text-red-400' : 'text-gray-400',
+      subtitleColor: partner1Balance > 0 ? 'text-chart-2' : partner1Balance < 0 ? 'text-destructive' : 'text-muted-foreground',
       icon: Users,
       color: "purple",
     },
@@ -214,7 +214,7 @@ export default function Contas() {
       title: partner2,
       value: formatBRL(partner2Total),
       subtitle: partner2Balance > 0 ? `Receber ${formatBRL(partner2Balance)}` : partner2Balance < 0 ? `Deve ${formatBRL(Math.abs(partner2Balance))}` : 'Equilibrado',
-      subtitleColor: partner2Balance > 0 ? 'text-green-400' : partner2Balance < 0 ? 'text-red-400' : 'text-gray-400',
+      subtitleColor: partner2Balance > 0 ? 'text-chart-2' : partner2Balance < 0 ? 'text-destructive' : 'text-muted-foreground',
       icon: Users,
       color: "orange",
     },
@@ -224,7 +224,7 @@ export default function Contas() {
         ? `${partner2} → ${partner1}` 
         : `${partner1} → ${partner2}`,
       subtitle: partner1Balance !== 0 ? formatBRL(Math.abs(partner1Balance)) : undefined,
-      subtitleColor: 'text-green-400',
+      subtitleColor: 'text-chart-2',
       icon: partner1Balance >= 0 ? TrendingUp : TrendingDown,
       color: "green",
     }
@@ -250,7 +250,7 @@ export default function Contas() {
                 Configurar Nomes
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-popover/95 border-2 border-primary/30 backdrop-blur-xl">
+              <DialogContent className="bg-popover/95 border-2 border-border backdrop-blur-xl">
               <DialogHeader>
                 <DialogTitle className="text-xl font-black text-primary">
                   Configurar Nomes dos Sócios
@@ -263,7 +263,7 @@ export default function Contas() {
                     value={newConfig.partner1_name}
                     onChange={(e) => setNewConfig({ ...newConfig, partner1_name: e.target.value })}
                     placeholder="Nome do primeiro sócio"
-                    className="bg-card/60 border-purple-500/30 text-foreground focus:border-purple-500"
+                    className="bg-card/60 border-border text-foreground focus:border-primary"
                   />
                 </div>
                 <div>
@@ -272,7 +272,7 @@ export default function Contas() {
                     value={newConfig.partner2_name}
                     onChange={(e) => setNewConfig({ ...newConfig, partner2_name: e.target.value })}
                     placeholder="Nome do segundo sócio"
-                    className="bg-card/60 border-orange-500/30 text-foreground focus:border-orange-500"
+                    className="bg-card/60 border-border text-foreground focus:border-primary"
                   />
                 </div>
                 <Button 
@@ -363,7 +363,7 @@ export default function Contas() {
           </div>
 
           {/* Receipt Upload Section */}
-          <div className="mt-4 p-4 rounded-xl bg-card/40 border border-primary/20">
+          <div className="mt-4 p-4 rounded-xl bg-card/40 border border-border">
             <Label className="text-muted-foreground text-xs uppercase tracking-wider mb-2 block">Comprovante (opcional)</Label>
             <div className="flex items-center gap-4">
               <input
@@ -376,7 +376,7 @@ export default function Contas() {
               />
               <label
                 htmlFor="receipt-upload"
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-500/20 border border-purple-500/30 text-purple-400 cursor-pointer hover:bg-purple-500/30 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 border border-primary/30 text-primary cursor-pointer hover:bg-primary/20 transition-colors"
               >
                 <ImageIcon className="h-4 w-4" />
                 <span className="text-sm font-medium">Anexar Imagem</span>
@@ -408,7 +408,7 @@ export default function Contas() {
         {/* Fixed Expenses Section */}
         <SectionCard title="Gastos Fixos" icon={Calendar} color="orange" className="mb-8">
           <p className="text-muted-foreground text-sm mb-4">
-            Despesas que se repetem todo mês. Total mensal: <span className="text-orange-400 font-bold">{formatBRL(fixedExpensesTotal)}</span>
+            Despesas que se repetem todo mês. Total mensal: <span className="text-primary font-bold">{formatBRL(fixedExpensesTotal)}</span>
           </p>
           
           {/* Add Fixed Expense Form */}
@@ -419,36 +419,36 @@ export default function Contas() {
                 value={newFixedExpense.description}
                 onChange={(e) => setNewFixedExpense({ ...newFixedExpense, description: e.target.value })}
                 placeholder="Ex: Hospedagem, Ferramentas"
-                className="bg-card/60 border-orange-500/30 text-foreground focus:border-orange-500 mt-1"
+                className="bg-card/60 border-border text-foreground focus:border-primary mt-1"
               />
             </div>
             <div>
-              <Label className="text-gray-400 text-xs uppercase tracking-wider">Valor Mensal</Label>
+              <Label className="text-muted-foreground text-xs uppercase tracking-wider">Valor Mensal</Label>
               <Input
                 type="number"
                 step="0.01"
                 value={newFixedExpense.amount}
                 onChange={(e) => setNewFixedExpense({ ...newFixedExpense, amount: e.target.value })}
                 placeholder="0,00"
-                className="bg-black/60 border-orange-500/30 text-white focus:border-orange-500 mt-1"
+                className="bg-card/60 border-border text-foreground focus:border-primary mt-1"
               />
             </div>
             <div>
-              <Label className="text-gray-400 text-xs uppercase tracking-wider">Pago por</Label>
+              <Label className="text-muted-foreground text-xs uppercase tracking-wider">Pago por</Label>
               <Select value={newFixedExpense.paid_by} onValueChange={(v) => setNewFixedExpense({ ...newFixedExpense, paid_by: v })}>
-                <SelectTrigger className="bg-black/60 border-orange-500/30 text-white focus:border-orange-500 mt-1">
+                <SelectTrigger className="bg-card/60 border-border text-foreground focus:border-primary mt-1">
                   <SelectValue placeholder="Selecione" />
                 </SelectTrigger>
-                <SelectContent className="bg-black/95 border-orange-500/30">
-                  <SelectItem value={partner1} className="text-white hover:bg-orange-500/20">{partner1}</SelectItem>
-                  <SelectItem value={partner2} className="text-white hover:bg-orange-500/20">{partner2}</SelectItem>
+                <SelectContent className="bg-popover/95 border-border">
+                  <SelectItem value={partner1} className="text-foreground hover:bg-primary/20">{partner1}</SelectItem>
+                  <SelectItem value={partner2} className="text-foreground hover:bg-primary/20">{partner2}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="flex items-end">
               <Button 
                 onClick={handleAddFixedExpense} 
-                className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
                 disabled={addFixedExpense.isPending}
               >
                 <Plus className="h-4 w-4 mr-2" />
@@ -460,8 +460,8 @@ export default function Contas() {
           {/* Fixed Expenses List */}
           <div className="space-y-3">
             {fixedExpenses?.length === 0 ? (
-              <div className="text-center text-gray-500 py-8">
-                <Calendar className="h-12 w-12 mx-auto text-gray-700 mb-2" />
+              <div className="text-center text-muted-foreground py-8">
+                <Calendar className="h-12 w-12 mx-auto text-muted-foreground/50 mb-2" />
                 <span>Nenhum gasto fixo cadastrado</span>
               </div>
             ) : (
@@ -470,32 +470,32 @@ export default function Contas() {
                   key={expense.id} 
                   className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
                     expense.is_active 
-                      ? 'bg-orange-500/5 border-orange-500/30' 
-                      : 'bg-gray-900/50 border-gray-700/30 opacity-50'
+                      ? 'bg-primary/5 border-primary/30' 
+                      : 'bg-muted/50 border-border opacity-50'
                   }`}
                 >
                   <div className="flex items-center gap-4">
                     <button
                       onClick={() => toggleFixedExpense.mutate({ id: expense.id, is_active: !expense.is_active })}
-                      className="text-gray-400 hover:text-orange-400 transition-colors"
+                      className="text-muted-foreground hover:text-primary transition-colors"
                     >
                       {expense.is_active ? (
-                        <ToggleRight className="h-6 w-6 text-orange-400" />
+                        <ToggleRight className="h-6 w-6 text-primary" />
                       ) : (
                         <ToggleLeft className="h-6 w-6" />
                       )}
                     </button>
                     <div>
-                      <p className={`font-medium ${expense.is_active ? 'text-white' : 'text-gray-500'}`}>
+                      <p className={`font-medium ${expense.is_active ? 'text-foreground' : 'text-muted-foreground'}`}>
                         {expense.description}
                       </p>
-                      <p className="text-sm text-gray-500">
-                        Pago por: <span className={expense.paid_by === partner1 ? 'text-purple-400' : 'text-orange-400'}>{expense.paid_by}</span>
+                      <p className="text-sm text-muted-foreground">
+                        Pago por: <span className="text-primary">{expense.paid_by}</span>
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className={`font-mono font-bold ${expense.is_active ? 'text-green-400' : 'text-gray-500'}`}>
+                    <span className={`font-mono font-bold ${expense.is_active ? 'text-chart-2' : 'text-muted-foreground'}`}>
                       {formatBRL(Number(expense.amount))}/mês
                     </span>
                     <Button
@@ -503,9 +503,9 @@ export default function Contas() {
                       size="icon"
                       onClick={() => deleteFixedExpense.mutate(expense.id)}
                       disabled={deleteFixedExpense.isPending}
-                      className="hover:bg-red-500/20 hover:text-red-400"
+                      className="hover:bg-destructive/20 hover:text-destructive"
                     >
-                      <Trash2 className="h-4 w-4 text-red-400" />
+                      <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   </div>
                 </div>
@@ -520,44 +520,44 @@ export default function Contas() {
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="border-b border-purple-500/30 hover:bg-transparent">
-                  <TableHead className="text-gray-400 text-xs uppercase tracking-wider">Data</TableHead>
-                  <TableHead className="text-gray-400 text-xs uppercase tracking-wider">Descrição</TableHead>
-                  <TableHead className="text-gray-400 text-xs uppercase tracking-wider">Categoria</TableHead>
-                  <TableHead className="text-gray-400 text-xs uppercase tracking-wider">Pago por</TableHead>
-                  <TableHead className="text-gray-400 text-xs uppercase tracking-wider text-right">Valor</TableHead>
-                  <TableHead className="text-gray-400 text-xs uppercase tracking-wider text-center">Comprovante</TableHead>
+                <TableRow className="border-b border-border hover:bg-transparent">
+                  <TableHead className="text-muted-foreground text-xs uppercase tracking-wider">Data</TableHead>
+                  <TableHead className="text-muted-foreground text-xs uppercase tracking-wider">Descrição</TableHead>
+                  <TableHead className="text-muted-foreground text-xs uppercase tracking-wider">Categoria</TableHead>
+                  <TableHead className="text-muted-foreground text-xs uppercase tracking-wider">Pago por</TableHead>
+                  <TableHead className="text-muted-foreground text-xs uppercase tracking-wider text-right">Valor</TableHead>
+                  <TableHead className="text-muted-foreground text-xs uppercase tracking-wider text-center">Comprovante</TableHead>
                   <TableHead className="w-12"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {expenses?.length === 0 ? (
                   <TableRow className="hover:bg-transparent">
-                    <TableCell colSpan={7} className="text-center text-gray-500 py-12">
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-12">
                       <div className="flex flex-col items-center gap-2">
-                        <DollarSign className="h-12 w-12 text-gray-700" />
+                        <DollarSign className="h-12 w-12 text-muted-foreground/50" />
                         <span>Nenhuma despesa registrada ainda</span>
                       </div>
                     </TableCell>
                   </TableRow>
                 ) : (
                   expenses?.map((expense) => (
-                    <TableRow key={expense.id} className="border-b border-purple-500/10 hover:bg-purple-500/5">
-                      <TableCell className="text-gray-300">
+                    <TableRow key={expense.id} className="border-b border-border hover:bg-accent/50">
+                      <TableCell className="text-muted-foreground">
                         {format(new Date(expense.expense_date), "dd/MM/yyyy", { locale: ptBR })}
                       </TableCell>
-                      <TableCell className="font-medium text-white">{expense.description}</TableCell>
+                      <TableCell className="font-medium text-foreground">{expense.description}</TableCell>
                       <TableCell>
-                        <span className="px-2 py-1 rounded-full text-xs bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+                        <span className="px-2 py-1 rounded-full text-xs bg-primary/10 text-primary border border-primary/30">
                           {expense.category || "Outros"}
                         </span>
                       </TableCell>
                       <TableCell>
-                        <span className={`font-bold ${expense.paid_by === partner1 ? 'text-purple-400' : 'text-orange-400'}`}>
+                        <span className="font-bold text-primary">
                           {expense.paid_by}
                         </span>
                       </TableCell>
-                      <TableCell className="text-right font-mono text-green-400 font-bold">
+                      <TableCell className="text-right font-mono text-chart-2 font-bold">
                         {formatBRL(Number(expense.amount))}
                       </TableCell>
                       <TableCell className="text-center">
@@ -566,13 +566,13 @@ export default function Contas() {
                             variant="ghost"
                             size="sm"
                             onClick={() => setReceiptFilePath(expense.receipt_url)}
-                            className="hover:bg-cyan-500/20 text-cyan-400"
+                            className="hover:bg-primary/20 text-primary"
                           >
                             <Eye className="h-4 w-4 mr-1" />
                             Ver
                           </Button>
                         ) : (
-                          <span className="text-gray-600 text-sm">-</span>
+                          <span className="text-muted-foreground text-sm">-</span>
                         )}
                       </TableCell>
                       <TableCell>
@@ -581,9 +581,9 @@ export default function Contas() {
                           size="icon"
                           onClick={() => deleteExpense.mutate(expense.id)}
                           disabled={deleteExpense.isPending}
-                          className="hover:bg-red-500/20 hover:text-red-400"
+                          className="hover:bg-destructive/20 hover:text-destructive"
                         >
-                          <Trash2 className="h-4 w-4 text-red-400" />
+                          <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -596,26 +596,26 @@ export default function Contas() {
 
         {/* Receipt View Dialog */}
         <Dialog open={!!receiptFilePath} onOpenChange={() => setReceiptFilePath(null)}>
-          <DialogContent className="bg-black/95 border-2 border-cyan-500/30 backdrop-blur-xl max-w-2xl">
+          <DialogContent className="bg-popover/95 border-2 border-primary/30 backdrop-blur-xl max-w-2xl">
             <DialogHeader>
-              <DialogTitle className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
+              <DialogTitle className="text-xl font-black text-primary">
                 Comprovante
               </DialogTitle>
             </DialogHeader>
             <div className="flex justify-center min-h-[200px] items-center">
               {isLoadingReceipt ? (
                 <div className="flex flex-col items-center gap-2">
-                  <Loader2 className="h-8 w-8 animate-spin text-cyan-400" />
-                  <span className="text-gray-400 text-sm">Carregando...</span>
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <span className="text-muted-foreground text-sm">Carregando...</span>
                 </div>
               ) : viewReceiptUrl ? (
                 <img 
                   src={viewReceiptUrl} 
                   alt="Comprovante" 
-                  className="max-w-full max-h-[70vh] rounded-lg border border-cyan-500/30"
+                  className="max-w-full max-h-[70vh] rounded-lg border border-primary/30"
                 />
               ) : (
-                <span className="text-gray-400">Erro ao carregar comprovante</span>
+                <span className="text-muted-foreground">Erro ao carregar comprovante</span>
               )}
             </div>
           </DialogContent>
