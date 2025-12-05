@@ -14,7 +14,7 @@ import { Toaster } from "./ui/toaster";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
-import { useVslbioboostVisitors } from "@/hooks/useVslbioboostVisitors";
+import { useGoogleAnalyticsRealtime, parseGARealtimeData } from "@/hooks/useGoogleAnalytics";
 import { useFacebookAdsToday } from "@/hooks/useFacebookAdsToday";
 
 type LayoutMode = "orbital" | "grid";
@@ -29,7 +29,8 @@ export const LiveCommandCenter = () => {
   const { data: dailyComparison } = useDailyComparison();
   const { orderCount: realtimeOrderCount } = useRealtimeOrders();
   const { formatCurrency } = useCurrency();
-  const { visitorCount: vslVisitors } = useVslbioboostVisitors();
+  const { data: gaRealtimeData } = useGoogleAnalyticsRealtime();
+  const gaRealtime = parseGARealtimeData(gaRealtimeData);
   const { data: facebookAdsData } = useFacebookAdsToday();
 
   // Check for mobile viewport
@@ -97,7 +98,7 @@ export const LiveCommandCenter = () => {
     { label: "RECEITA", value: formatCurrency(totalRevenue), icon: DollarSign, color: "cyan", angle: 0, distance: 240 },
     { label: "PEDIDOS", value: ordersCount.toString(), icon: ShoppingCart, color: "green", angle: 90, distance: 260 },
     { label: "R$/MIN", value: formatCurrency(parseFloat(salesPerMinute)), icon: Zap, color: "purple", angle: 180, distance: 250 },
-    { label: "VSL ONLINE", value: vslVisitors.toString(), icon: Eye, color: "orange", angle: 270, distance: 270 },
+    { label: "VSL ONLINE", value: gaRealtime.activeUsers.toString(), icon: Eye, color: "orange", angle: 270, distance: 270 },
   ];
 
   const getSatellitePosition = (baseAngle: number, distance: number) => {
