@@ -39,6 +39,14 @@ serve(async (req) => {
       timezone: 'America/Sao_Paulo',
     };
     
+    // Format dates with time for endpoints that require it
+    const formatDateWithTime = (date: string, isEndDate: boolean) => {
+      if (isEndDate) {
+        return `${date} 23:59:59`;
+      }
+      return `${date} 00:00:00`;
+    };
+    
     if (startDate) {
       body.start_date = startDate;
     }
@@ -51,9 +59,17 @@ serve(async (req) => {
 
     switch (endpoint) {
       case 'overview':
-        // Get total events (started, viewed, finished)
-        apiUrl = `${VTURB_API_BASE}/events/total_by_company`;
-        body.events = ['started', 'viewed', 'finished'];
+        // Use sessions/stats for complete metrics matching VTurb dashboard
+        if (playerId) {
+          apiUrl = `${VTURB_API_BASE}/sessions/stats`;
+          // sessions/stats requires datetime format
+          if (startDate) body.start_date = formatDateWithTime(startDate, false);
+          if (endDate) body.end_date = formatDateWithTime(endDate, true);
+        } else {
+          // Without player_id, use events/total_by_company
+          apiUrl = `${VTURB_API_BASE}/events/total_by_company`;
+          body.events = ['started', 'viewed', 'finished'];
+        }
         break;
       case 'players':
         // Get stats by player - returns list of players with their IDs and stats
@@ -66,15 +82,18 @@ serve(async (req) => {
         break;
       case 'stats_by_day':
         // Get daily stats
-        apiUrl = `${VTURB_API_BASE}/conversions/stats_by_day`;
+        apiUrl = `${VTURB_API_BASE}/sessions/stats_by_day`;
+        if (startDate) body.start_date = formatDateWithTime(startDate, false);
+        if (endDate) body.end_date = formatDateWithTime(endDate, true);
         break;
       case 'retention':
         // Get video timed retention data
         apiUrl = `${VTURB_API_BASE}/conversions/video_timed`;
         break;
       default:
-        apiUrl = `${VTURB_API_BASE}/events/total_by_company`;
-        body.events = ['started', 'viewed', 'finished'];
+        apiUrl = `${VTURB_API_BASE}/sessions/stats`;
+        if (startDate) body.start_date = formatDateWithTime(startDate, false);
+        if (endDate) body.end_date = formatDateWithTime(endDate, true);
     }
 
     console.log(`Fetching VTurb data from: ${apiUrl}`);
@@ -99,7 +118,7 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    console.log('VTurb data fetched successfully:', JSON.stringify(data).slice(0, 200));
+    console.log('VTurb data fetched successfully:', JSON.stringify(data));
 
     return new Response(
       JSON.stringify(data),

@@ -292,13 +292,13 @@ export default function Analises() {
               <div className="p-4 rounded-xl bg-black/60 border border-purple-500/30">
                 <div className="flex items-center gap-2 mb-2">
                   <Activity className="w-4 h-4 text-purple-400" />
-                  <span className="text-xs text-gray-500 uppercase">Taxa de Retenção</span>
+                  <span className="text-xs text-gray-500 uppercase">Taxa de Engajamento</span>
                 </div>
                 <div className="text-2xl font-black text-purple-400">
-                  {vturbMetrics.retentionRate.toFixed(1)}%
+                  {vturbMetrics.engagementRate.toFixed(1)}%
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
-                  finalizaram o vídeo
+                  engajamento do vídeo
                 </div>
               </div>
 
