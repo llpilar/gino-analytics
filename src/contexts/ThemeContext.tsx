@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-export type ThemePreset = 'neon-green' | 'liquid-glass';
+export type ThemePreset = 'neon-green' | 'liquid-glass' | 'twitter-blue';
 
 interface ThemeContextType {
   theme: ThemePreset;
@@ -22,6 +22,12 @@ const themePresets = [
     name: 'Liquid Glass',
     description: 'Estilo Apple com efeito de vidro líquido',
     colors: ['rgba(255,255,255,0.5)', 'rgba(255,255,255,0.3)', 'rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)']
+  },
+  {
+    id: 'twitter-blue' as ThemePreset,
+    name: 'Twitter Blue',
+    description: 'Visual clean inspirado no X/Twitter',
+    colors: ['#1da1f2', '#00b87a', '#f7b928', '#e0245e']
   }
 ];
 
