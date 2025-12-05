@@ -8,6 +8,15 @@ interface VturbEventData {
   total: number;
   total_uniq_sessions: number;
   total_uniq_device: number;
+  player_id?: string;
+}
+
+interface VturbPlayerEvent {
+  player_id: string;
+  event: string;
+  total: number;
+  total_uniq_sessions: number;
+  total_uniq_device: number;
 }
 
 const fetchVturbData = async (endpoint: string, startDate?: string, endDate?: string, playerId?: string) => {
@@ -46,6 +55,14 @@ export const useVturbPlayers = () => {
     refetchInterval: 60000,
     retry: 2,
     staleTime: 30000,
+  });
+};
+
+export const useVturbListPlayers = () => {
+  return useQuery({
+    queryKey: ['vturb-list-players'],
+    queryFn: () => fetchVturbData('list_players'),
+    staleTime: 300000, // 5 minutes
   });
 };
 
@@ -95,6 +112,21 @@ export const parseVturbData = (data: VturbEventData[] | undefined) => {
     uniqueFinished: finished.total_uniq_device,
     retentionRate,
   };
+};
+
+// Parse VTurb players list to extract unique players
+export const parseVturbPlayers = (data: VturbPlayerEvent[] | undefined): { player_id: string; player_name: string }[] => {
+  if (!data || !Array.isArray(data)) {
+    return [];
+  }
+
+  // Extract unique player IDs
+  const playerIds = [...new Set(data.map(item => item.player_id).filter(Boolean))];
+  
+  return playerIds.map(id => ({
+    player_id: id,
+    player_name: id, // API doesn't return names, so we use the ID
+  }));
 };
 
 // Format watch time in minutes and seconds
