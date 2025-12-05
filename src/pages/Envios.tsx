@@ -125,8 +125,8 @@ const StatsGrid = () => {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        {[1, 2, 3, 4, 5].map((i) => (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        {[1, 2, 3].map((i) => (
           <Skeleton key={i} className="h-36 rounded-2xl" />
         ))}
       </div>
@@ -149,76 +149,29 @@ const StatsGrid = () => {
     });
   });
 
-  // Debug: Log order data distribution
-  console.log('Envios Stats Debug:', {
-    dateRange: dateRange.from?.toISOString() + ' to ' + dateRange.to?.toISOString(),
-    allOrdersCount: allOrders.length,
-    filteredOrdersCount: orders.length,
-    deliveryStates: orders.reduce((acc, o) => {
-      const state = o.delivery_state;
-      acc[state] = (acc[state] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>),
-    paymentTypes: orders.reduce((acc, o) => {
-      const payment = o.payment;
-      acc[payment] = (acc[payment] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>),
-    guideStates: orders.reduce((acc, o) => {
-      const state = o.guide?.state;
-      acc[state] = (acc[state] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>),
-    sampleOrders: orders.slice(0, 5).map(o => ({
-      id: o.id,
-      created_at: o.created_at,
-      delivery_state: o.delivery_state,
-      payment: o.payment,
-      guide_state: o.guide?.state
-    }))
-  });
-
   const totalOrders = orders.length;
   
-  // Count orders by different categories based on Hoko statuses
-  // delivery_state: 1=Criada, 2=Em processo, 3=Despachada, 4=Finalizada, 5=Cancelada, 6=Em Novedad
-  // payment: "0" = recaudo (COD), "1" = crédito
-  // guide.state: 17 = delivered, others = in process or problems
+  // delivery_state: 1=Criada, 2=Em processo, 3=Despachada, 4=Finalizada, 5=Cancelada, 6=Em Novidade
   
-  // En proceso: orders with delivery_state 1, 2, 3 (created, processing, shipped - not yet finalized)
-  const enProceso = orders.filter((o) => [1, 2, 3].includes(parseInt(o.delivery_state))).length;
+  // Em Processo: orders with delivery_state 1, 2, 3, 6 (not finalized or cancelled)
+  const emProcesso = orders.filter((o) => [1, 2, 3, 6].includes(parseInt(o.delivery_state))).length;
   
-  // Crédito Entregadas: finalized (delivery_state=4) AND payment="1" (credit)
-  const creditoEntregadas = orders.filter((o) => 
-    parseInt(o.delivery_state) === 4 && o.payment === "1"
-  ).length;
+  // Finalizadas: delivery_state=4
+  const finalizadas = orders.filter((o) => parseInt(o.delivery_state) === 4).length;
   
-  // Recaudo Entregadas: finalized (delivery_state=4) AND payment="0" (COD)
-  const recaudoEntregadas = orders.filter((o) => 
-    parseInt(o.delivery_state) === 4 && o.payment === "0"
-  ).length;
-  
-  // Recaudo Pagadas: COD orders that are paid (guide.state indicates paid status)
-  // For Hoko, state 17+ might indicate paid status for COD
-  const recaudoPagadas = orders.filter((o) => 
-    parseInt(o.delivery_state) === 4 && o.payment === "0" && o.guide?.state >= 18
-  ).length;
-  
-  // Devoluciones: cancelled or in novelty (delivery_state 5 or 6)
-  const devoluciones = orders.filter((o) => [5, 6].includes(parseInt(o.delivery_state))).length;
+  // Canceladas: delivery_state=5
+  const canceladas = orders.filter((o) => parseInt(o.delivery_state) === 5).length;
 
   const getPercent = (value: number) => totalOrders > 0 ? ((value / totalOrders) * 100).toFixed(2) : '0';
 
   const statsConfig: { title: string; value: string; subtitle: string; icon: LucideIcon; color: CardColorVariant }[] = [
-    { title: "Em Processo", value: `${enProceso} (${getPercent(enProceso)}%)`, subtitle: "Pedidos em preparação/trânsito", icon: Timer, color: "cyan" },
-    { title: "Crédito Entregues", value: `${creditoEntregadas} (${getPercent(creditoEntregadas)}%)`, subtitle: "Pagamentos a crédito entregues", icon: CheckCircle2, color: "green" },
-    { title: "Cobrança Entregues", value: `${recaudoEntregadas} (${getPercent(recaudoEntregadas)}%)`, subtitle: "Contra-entrega entregues", icon: DollarSign, color: "purple" },
-    { title: "Cobrança Pagas", value: `${recaudoPagadas} (${getPercent(recaudoPagadas)}%)`, subtitle: "Contra-entrega pagas", icon: Wallet, color: "cyan" },
-    { title: "Devoluções", value: `${devoluciones} (${getPercent(devoluciones)}%)`, subtitle: "Cancelados/Devolvidos", icon: XCircle, color: "orange" },
+    { title: "Em Processo", value: `${emProcesso} (${getPercent(emProcesso)}%)`, subtitle: "Pedidos em preparação/trânsito", icon: Timer, color: "cyan" },
+    { title: "Finalizadas", value: `${finalizadas} (${getPercent(finalizadas)}%)`, subtitle: "Pedidos entregues com sucesso", icon: CheckCircle2, color: "green" },
+    { title: "Canceladas", value: `${canceladas} (${getPercent(canceladas)}%)`, subtitle: "Pedidos cancelados", icon: XCircle, color: "orange" },
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
       {statsConfig.map((stat, index) => (
         <StatsCard
           key={index}
