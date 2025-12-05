@@ -259,15 +259,16 @@ export const SalesMap = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Top País */}
           {data.metrics && data.metrics.length > 0 && (
-            <SectionCard color="green">
+            <SectionCard color="green" className="h-full">
               <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0">
                   <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center border border-green-500/30 shrink-0">
                     <span className="text-xs font-bold text-green-400">#1</span>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-xs text-gray-400">Top País</p>
                     <h3 className="font-bold text-white truncate">{data.metrics[0].country}</h3>
+                    <p className="text-xs text-gray-400">&nbsp;</p>
                   </div>
                 </div>
                 <MapPin className="h-4 w-4 text-green-400 shrink-0" />
@@ -300,7 +301,7 @@ export const SalesMap = () => {
 
           {/* Top Cidade #1 */}
           {data.topCities && data.topCities.length > 0 && (
-            <SectionCard color="cyan">
+            <SectionCard color="cyan" className="h-full">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30 shrink-0">
@@ -341,13 +342,14 @@ export const SalesMap = () => {
 
           {/* Top Cidade #2 */}
           {data.topCities && data.topCities.length > 1 && (
-            <SectionCard color="cyan">
+            <SectionCard color="cyan" className="h-full">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30 shrink-0">
                     <span className="text-xs font-bold text-cyan-400">#2</span>
                   </div>
                   <div className="min-w-0">
+                    <p className="text-xs text-gray-400">Top Cidade</p>
                     <h3 className="font-bold text-white truncate">{data.topCities[1].city}</h3>
                     <p className="text-xs text-gray-400 truncate">{data.topCities[1].country}</p>
                   </div>
@@ -386,13 +388,14 @@ export const SalesMap = () => {
 
           {/* Top Cidade #3 */}
           {data.topCities && data.topCities.length > 2 && (
-            <SectionCard color="cyan">
+            <SectionCard color="cyan" className="h-full">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30 shrink-0">
                     <span className="text-xs font-bold text-cyan-400">#3</span>
                   </div>
                   <div className="min-w-0">
+                    <p className="text-xs text-gray-400">Top Cidade</p>
                     <h3 className="font-bold text-white truncate">{data.topCities[2].city}</h3>
                     <p className="text-xs text-gray-400 truncate">{data.topCities[2].country}</p>
                   </div>
