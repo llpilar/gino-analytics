@@ -3,102 +3,97 @@ import { supabase } from "@/integrations/supabase/client";
 import { useDateFilter } from "@/contexts/DateFilterContext";
 import { format } from "date-fns";
 
-interface VturbStats {
-  total_plays?: number;
-  unique_views?: number;
-  total_watch_time?: number;
-  average_watch_time?: number;
-  retention_rate?: number;
-  plays?: number;
-  views?: number;
+interface VturbEventData {
+  event: string;
+  total: number;
+  total_uniq_sessions: number;
+  total_uniq_device: number;
 }
 
-interface VturbVideo {
-  id: string;
-  name: string;
-  created_at: string;
-}
-
-const fetchVturbData = async (endpoint: string, startDate?: string, endDate?: string, videoId?: string) => {
+const fetchVturbData = async (endpoint: string, startDate?: string, endDate?: string, playerId?: string) => {
   const { data, error } = await supabase.functions.invoke('vturb-analytics', {
-    body: { endpoint, startDate, endDate, videoId },
+    body: { endpoint, startDate, endDate, playerId },
   });
 
   if (error) throw error;
   return data;
 };
 
-export const useVturbOverview = (videoId?: string) => {
+export const useVturbOverview = (playerId?: string) => {
   const { dateRange } = useDateFilter();
   
   const startDate = format(dateRange.from, 'yyyy-MM-dd');
   const endDate = format(dateRange.to, 'yyyy-MM-dd');
   
   return useQuery({
-    queryKey: ['vturb-overview', startDate, endDate, videoId],
-    queryFn: () => fetchVturbData('overview', startDate, endDate, videoId),
+    queryKey: ['vturb-overview', startDate, endDate, playerId],
+    queryFn: () => fetchVturbData('overview', startDate, endDate, playerId),
     refetchInterval: 60000, // 1 minute
     retry: 2,
     staleTime: 30000,
   });
 };
 
-export const useVturbPlays = (videoId?: string) => {
+export const useVturbPlayers = () => {
   const { dateRange } = useDateFilter();
   
   const startDate = format(dateRange.from, 'yyyy-MM-dd');
   const endDate = format(dateRange.to, 'yyyy-MM-dd');
   
   return useQuery({
-    queryKey: ['vturb-plays', startDate, endDate, videoId],
-    queryFn: () => fetchVturbData('plays', startDate, endDate, videoId),
+    queryKey: ['vturb-players', startDate, endDate],
+    queryFn: () => fetchVturbData('players', startDate, endDate),
     refetchInterval: 60000,
     retry: 2,
     staleTime: 30000,
   });
 };
 
-export const useVturbRetention = (videoId?: string) => {
+export const useVturbRetention = (playerId?: string) => {
   const { dateRange } = useDateFilter();
   
   const startDate = format(dateRange.from, 'yyyy-MM-dd');
   const endDate = format(dateRange.to, 'yyyy-MM-dd');
   
   return useQuery({
-    queryKey: ['vturb-retention', startDate, endDate, videoId],
-    queryFn: () => fetchVturbData('retention', startDate, endDate, videoId),
+    queryKey: ['vturb-retention', startDate, endDate, playerId],
+    queryFn: () => fetchVturbData('retention', startDate, endDate, playerId),
     refetchInterval: 60000,
     retry: 2,
     staleTime: 30000,
-  });
-};
-
-export const useVturbVideos = () => {
-  return useQuery({
-    queryKey: ['vturb-videos'],
-    queryFn: () => fetchVturbData('videos'),
-    staleTime: 300000, // 5 minutes
+    enabled: !!playerId, // Only fetch if playerId is provided
   });
 };
 
 // Parse VTurb response data into usable format
-export const parseVturbData = (data: VturbStats | undefined) => {
-  if (!data) {
+export const parseVturbData = (data: VturbEventData[] | undefined) => {
+  if (!data || !Array.isArray(data)) {
     return {
       totalPlays: 0,
+      uniquePlays: 0,
+      totalViews: 0,
       uniqueViews: 0,
-      totalWatchTime: 0,
-      averageWatchTime: 0,
+      totalFinished: 0,
+      uniqueFinished: 0,
       retentionRate: 0,
     };
   }
 
+  const started = data.find(e => e.event === 'started') || { total: 0, total_uniq_sessions: 0, total_uniq_device: 0 };
+  const viewed = data.find(e => e.event === 'viewed') || { total: 0, total_uniq_sessions: 0, total_uniq_device: 0 };
+  const finished = data.find(e => e.event === 'finished') || { total: 0, total_uniq_sessions: 0, total_uniq_device: 0 };
+
+  // Calculate retention rate (finished / started * 100)
+  const retentionRate = started.total > 0 ? (finished.total / started.total) * 100 : 0;
+
   return {
-    totalPlays: data.total_plays || data.plays || 0,
-    uniqueViews: data.unique_views || data.views || 0,
-    totalWatchTime: data.total_watch_time || 0,
-    averageWatchTime: data.average_watch_time || 0,
-    retentionRate: data.retention_rate || 0,
+    totalPlays: started.total,
+    uniquePlays: started.total_uniq_device,
+    totalViews: viewed.total,
+    uniqueViews: viewed.total_uniq_device,
+    totalFinished: finished.total,
+    uniqueFinished: finished.total_uniq_device,
+    retentionRate,
   };
 };
 
