@@ -13,7 +13,7 @@ import {
 import { useHokoOrders, useHokoProducts, useHokoProductsWithStock } from "@/hooks/useHokoData";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
-import { format, isWithinInterval, startOfDay, endOfDay, parseISO, isAfter, isBefore } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useDateFilter } from "@/contexts/DateFilterContext";
@@ -116,10 +116,18 @@ const HeroSection = () => {
   );
 };
 
+// Minimum date for all Envios data: November 20, 2025
+const ENVIOS_MIN_DATE = new Date(2025, 10, 20); // November 20, 2025
+
 const StatsGrid = () => {
   const { data: stockData, isLoading } = useHokoProductsWithStock();
   const { dateRange } = useDateFilter();
-  const dateFilter = dateRange.from && dateRange.to ? { from: dateRange.from, to: dateRange.to } : undefined;
+  
+  // Ensure minimum date is applied when calling API
+  const effectiveFrom = dateRange.from && dateRange.from > ENVIOS_MIN_DATE ? dateRange.from : ENVIOS_MIN_DATE;
+  const effectiveTo = dateRange.to || new Date();
+  const dateFilter = { from: effectiveFrom, to: effectiveTo };
+  
   const { data: ordersData } = useHokoOrders(1, dateFilter);
 
   if (isLoading) {
@@ -132,29 +140,9 @@ const StatsGrid = () => {
     );
   }
 
-  const allOrders: any[] = Array.isArray(ordersData?.data) ? ordersData.data : 
+  // Orders already filtered by API with min date of November 20, 2025
+  const orders: any[] = Array.isArray(ordersData?.data) ? ordersData.data : 
                 Array.isArray(ordersData) ? ordersData : [];
-
-  // Client-side date filtering - minimum date: November 20, 2025
-  const minDate = new Date(2025, 10, 20); // November 20, 2025
-  
-  const orders = allOrders.filter((order: any) => {
-    const orderDate = order.created_at ? parseISO(order.created_at) : null;
-    if (!orderDate) return false;
-    
-    // Always filter out orders before November 20
-    if (isBefore(orderDate, startOfDay(minDate))) return false;
-    
-    // Apply date range filter if set
-    if (dateRange.from && dateRange.to) {
-      return isWithinInterval(orderDate, { 
-        start: startOfDay(dateRange.from), 
-        end: endOfDay(dateRange.to) 
-      });
-    }
-    
-    return true;
-  });
 
   const totalOrders = orders.length;
   
@@ -194,7 +182,12 @@ const StatsGrid = () => {
 
 const OrdersTable = () => {
   const { dateRange } = useDateFilter();
-  const dateFilter = dateRange.from && dateRange.to ? { from: dateRange.from, to: dateRange.to } : undefined;
+  
+  // Ensure minimum date is applied when calling API
+  const effectiveFrom = dateRange.from && dateRange.from > ENVIOS_MIN_DATE ? dateRange.from : ENVIOS_MIN_DATE;
+  const effectiveTo = dateRange.to || new Date();
+  const dateFilter = { from: effectiveFrom, to: effectiveTo };
+  
   const { data: ordersData, isLoading, error, refetch, isFetching } = useHokoOrders(1, dateFilter);
 
   if (isLoading) {
@@ -223,29 +216,9 @@ const OrdersTable = () => {
     );
   }
 
-  const allOrders = Array.isArray(ordersData?.data) ? ordersData.data : 
+  // Orders already filtered by API with min date of November 20, 2025
+  const orders = Array.isArray(ordersData?.data) ? ordersData.data : 
                  Array.isArray(ordersData) ? ordersData : [];
-
-  // Client-side date filtering - minimum date: November 20, 2025
-  const minDate = new Date(2025, 10, 20); // November 20, 2025
-  
-  const orders = allOrders.filter((order: any) => {
-    const orderDate = order.created_at ? parseISO(order.created_at) : null;
-    if (!orderDate) return false;
-    
-    // Always filter out orders before November 20
-    if (isBefore(orderDate, startOfDay(minDate))) return false;
-    
-    // Apply date range filter if set
-    if (dateRange.from && dateRange.to) {
-      return isWithinInterval(orderDate, { 
-        start: startOfDay(dateRange.from), 
-        end: endOfDay(dateRange.to) 
-      });
-    }
-    
-    return true;
-  });
 
   if (orders.length === 0) {
     return (
