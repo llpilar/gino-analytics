@@ -261,7 +261,7 @@ export const SalesMap = () => {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white">Top Países</h3>
             <div className="space-y-3">
-              {data.metrics.slice(0, 3).map((metric, index) => (
+              {data.metrics.slice(0, 2).map((metric, index) => (
                 <SectionCard key={metric.countryCode} color="green">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
@@ -311,7 +311,7 @@ export const SalesMap = () => {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white">Top Cidades</h3>
             <div className="space-y-3">
-              {data.topCities.slice(0, 3).map((city: any, index: number) => (
+              {data.topCities.slice(0, 2).map((city: any, index: number) => (
                 <SectionCard key={`${city.city}-${city.countryCode}`} color="cyan">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3 min-w-0">
