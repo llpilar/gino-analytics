@@ -16,10 +16,10 @@ export const VariantPerformance = () => {
 
   if (isLoading) {
     return (
-      <SectionCard title="Top Variantes" icon={TrendingUp} color="purple">
+      <SectionCard title="Top Variantes" icon={TrendingUp} color="cyan">
         <div className="space-y-3">
           {[1, 2, 3, 4, 5].map((i) => (
-            <Skeleton key={i} className="h-14 w-full bg-purple-500/10 rounded-lg" />
+            <Skeleton key={i} className="h-14 w-full bg-cyan-500/10 rounded-lg" />
           ))}
         </div>
       </SectionCard>
@@ -30,7 +30,7 @@ export const VariantPerformance = () => {
   const totalQuantity = variants?.reduce((sum, v) => sum + v.totalQuantity, 0) || 1;
 
   return (
-    <SectionCard title="Top Variantes" icon={TrendingUp} color="purple">
+    <SectionCard title="Top Variantes" icon={TrendingUp} color="cyan">
       <p className="text-xs text-gray-500 mb-4">{periodLabel}</p>
 
       {topVariants.length === 0 ? (
@@ -46,9 +46,9 @@ export const VariantPerformance = () => {
             return (
               <div
                 key={variant.variantId}
-                className="flex items-center gap-3 p-3 rounded-lg bg-black/20 hover:bg-purple-500/10 transition-colors"
+                className="flex items-center gap-3 p-3 rounded-lg bg-black/20 hover:bg-cyan-500/10 transition-colors"
               >
-                <span className="w-6 text-center text-sm font-bold text-purple-400">
+                <span className="w-6 text-center text-sm font-bold text-cyan-400">
                   {index + 1}
                 </span>
                 
@@ -63,7 +63,7 @@ export const VariantPerformance = () => {
                 
                 <div className="text-right flex items-center gap-4">
                   <div>
-                    <span className="text-sm font-bold text-purple-400">{variant.totalQuantity}</span>
+                    <span className="text-sm font-bold text-cyan-400">{variant.totalQuantity}</span>
                     <span className="text-xs text-gray-500 ml-1">({percentage}%)</span>
                   </div>
                   {variant.totalRevenue > 0 && (
