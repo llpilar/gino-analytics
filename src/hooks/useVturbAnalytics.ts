@@ -139,12 +139,12 @@ export const parseVturbData = (data: VturbSessionStats | VturbEventData[] | unde
       uniquePlays: sessionData.total_started_device_uniq || 0,
       totalFinished: sessionData.total_finished || 0,
       uniqueFinished: sessionData.total_finished_device_uniq || 0,
-      engagementRate: sessionData.engagement_rate || 0,
-      playRate: sessionData.play_rate || 0,
+      engagementRate: parseFloat(String(sessionData.engagement_rate)) || 0,
+      playRate: parseFloat(String(sessionData.play_rate)) || 0,
       totalClicks: sessionData.total_clicked || 0,
       uniqueClicks: sessionData.total_clicked_device_uniq || 0,
-      overPitchRate: sessionData.over_pitch_rate || 0,
-      conversionRate: sessionData.overall_conversion_rate || 0,
+      overPitchRate: parseFloat(String(sessionData.over_pitch_rate)) || 0,
+      conversionRate: parseFloat(String(sessionData.overall_conversion_rate)) || 0,
     };
   }
 
