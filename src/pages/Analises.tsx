@@ -2,7 +2,7 @@ import { DashboardWrapper } from "@/components/DashboardWrapper";
 import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Activity, MapPin, Users, Eye, Clock, BarChart3, Play, Video } from "lucide-react";
 import { SalesChart } from "@/components/SalesChart";
 import { useShopifyAnalytics, useShopifyRevenueToday } from "@/hooks/useShopifyData";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { SalesMap } from "@/components/SalesMap";
 import { useDailyComparison, useWeeklyComparison, useMonthlyComparison } from "@/hooks/useComparisonMetrics";
 import { ComparisonBadge } from "@/components/ComparisonBadge";
@@ -13,9 +13,13 @@ import { StatsCard, SectionCard, CardColorVariant } from "@/components/ui/stats-
 import { LucideIcon } from "lucide-react";
 import { useGoogleAnalyticsOverview, useGoogleAnalyticsRealtime, parseGAOverviewData, parseGARealtimeData } from "@/hooks/useGoogleAnalytics";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useVturbOverview, parseVturbData } from "@/hooks/useVturbAnalytics";
+import { useVturbOverview, useVturbPlayers, parseVturbData, parseVturbPlayers } from "@/hooks/useVturbAnalytics";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Analises() {
+  // Default to the VSL ESPANHOL Colômbia.mp4 video
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | undefined>("685ac2f3f4d418e9eca55125");
+  
   const { data: analyticsData, isLoading: analyticsLoading } = useShopifyAnalytics();
   const { data: revenueData } = useShopifyRevenueToday();
   const { data: dailyComparison } = useDailyComparison();
@@ -28,8 +32,12 @@ export default function Analises() {
   const { data: gaRealtimeData } = useGoogleAnalyticsRealtime();
 
   // VTurb data
-  const { data: vturbData, isLoading: vturbLoading, error: vturbError } = useVturbOverview();
+  const { data: vturbPlayersData, isLoading: vturbPlayersLoading } = useVturbPlayers();
+  const { data: vturbData, isLoading: vturbLoading, error: vturbError } = useVturbOverview(selectedPlayerId);
   const vturbMetrics = useMemo(() => parseVturbData(vturbData), [vturbData]);
+
+  // Parse players list from VTurb response
+  const vturbPlayers = useMemo(() => parseVturbPlayers(vturbPlayersData), [vturbPlayersData]);
 
   const gaMetrics = useMemo(() => parseGAOverviewData(gaOverviewData), [gaOverviewData]);
   const gaRealtime = useMemo(() => parseGARealtimeData(gaRealtimeData), [gaRealtimeData]);
@@ -209,6 +217,26 @@ export default function Analises() {
 
         {/* VTurb Analytics Section */}
         <SectionCard title="Métricas do Vídeo (VTurb)" icon={Video} color="orange" className="mb-8">
+          {/* Video Selector */}
+          <div className="mb-4">
+            <Select value={selectedPlayerId || "all"} onValueChange={(value) => setSelectedPlayerId(value === "all" ? undefined : value)}>
+              <SelectTrigger className="w-full md:w-[300px] bg-black/60 border-orange-500/30">
+                <SelectValue placeholder="Selecione um vídeo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os vídeos</SelectItem>
+                {vturbPlayers.map((player) => (
+                  <SelectItem key={player.player_id} value={player.player_id}>
+                    {player.player_name || player.player_id}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {vturbPlayersLoading && (
+              <span className="text-xs text-gray-500 ml-2">Carregando vídeos...</span>
+            )}
+          </div>
+
           {vturbLoading ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               {[...Array(5)].map((_, i) => (

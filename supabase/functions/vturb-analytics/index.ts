@@ -56,9 +56,13 @@ serve(async (req) => {
         body.events = ['started', 'viewed', 'finished'];
         break;
       case 'players':
-        // Get stats by player
+        // Get stats by player - returns list of players with their IDs and stats
         apiUrl = `${VTURB_API_BASE}/events/total_by_company_players`;
         body.events = ['started', 'viewed', 'finished'];
+        break;
+      case 'list_players':
+        // Get list of active players
+        apiUrl = `${VTURB_API_BASE}/players/list_company_players`;
         break;
       case 'stats_by_day':
         // Get daily stats
