@@ -1,7 +1,7 @@
 import { LucideIcon, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type CardColorVariant = "cyan" | "purple" | "green" | "orange" | "pink" | "blue";
+export type CardColorVariant = "cyan" | "purple" | "green" | "orange" | "pink" | "blue" | "red";
 
 interface StatsCardProps {
   title: string;
@@ -57,6 +57,12 @@ const colorClasses: Record<CardColorVariant, {
     glow: "shadow-neon-blue/30",
     bg: "bg-neon-blue/10",
     text: "text-neon-blue",
+  },
+  red: {
+    border: "border-red-500/40",
+    glow: "shadow-red-500/30",
+    bg: "bg-red-500/10",
+    text: "text-red-500",
   },
 };
 
