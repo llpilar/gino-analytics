@@ -177,3 +177,97 @@ export const getReceiptSignedUrl = async (filePath: string): Promise<string | nu
   
   return data.signedUrl;
 };
+
+// Fixed Expenses
+export interface FixedExpense {
+  id: string;
+  description: string;
+  amount: number;
+  paid_by: string;
+  category: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export const useFixedExpenses = () => {
+  return useQuery({
+    queryKey: ['fixed-expenses'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('fixed_expenses')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data as FixedExpense[];
+    },
+  });
+};
+
+export const useAddFixedExpense = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (expense: Omit<FixedExpense, 'id' | 'created_at' | 'updated_at'>) => {
+      const { data, error } = await supabase
+        .from('fixed_expenses')
+        .insert(expense)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fixed-expenses'] });
+      toast.success('Gasto fixo adicionado!');
+    },
+    onError: (error) => {
+      toast.error('Erro ao adicionar gasto fixo: ' + error.message);
+    },
+  });
+};
+
+export const useDeleteFixedExpense = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('fixed_expenses')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fixed-expenses'] });
+      toast.success('Gasto fixo removido!');
+    },
+    onError: (error) => {
+      toast.error('Erro ao remover gasto fixo: ' + error.message);
+    },
+  });
+};
+
+export const useToggleFixedExpense = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
+      const { error } = await supabase
+        .from('fixed_expenses')
+        .update({ is_active })
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fixed-expenses'] });
+    },
+    onError: (error) => {
+      toast.error('Erro ao atualizar gasto fixo: ' + error.message);
+    },
+  });
+};

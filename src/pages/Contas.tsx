@@ -6,8 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Trash2, Plus, Settings, DollarSign, TrendingUp, TrendingDown, Users, ImageIcon, X, Eye, Loader2 } from "lucide-react";
-import { useExpenses, usePartnersConfig, useAddExpense, useDeleteExpense, useUpdatePartnersConfig, uploadReceipt, getReceiptSignedUrl } from "@/hooks/useExpenses";
+import { Trash2, Plus, Settings, DollarSign, TrendingUp, TrendingDown, Users, ImageIcon, X, Eye, Loader2, Calendar, ToggleLeft, ToggleRight } from "lucide-react";
+import { useExpenses, usePartnersConfig, useAddExpense, useDeleteExpense, useUpdatePartnersConfig, uploadReceipt, getReceiptSignedUrl, useFixedExpenses, useAddFixedExpense, useDeleteFixedExpense, useToggleFixedExpense } from "@/hooks/useExpenses";
 import { StatsCard, SectionCard, CardColorVariant } from "@/components/ui/stats-card";
 import { LucideIcon } from "lucide-react";
 
@@ -37,9 +37,13 @@ const CATEGORIES = [
 export default function Contas() {
   const { data: expenses, isLoading: expensesLoading } = useExpenses();
   const { data: partnersConfig, isLoading: configLoading } = usePartnersConfig();
+  const { data: fixedExpenses, isLoading: fixedLoading } = useFixedExpenses();
   const addExpense = useAddExpense();
   const deleteExpense = useDeleteExpense();
   const updateConfig = useUpdatePartnersConfig();
+  const addFixedExpense = useAddFixedExpense();
+  const deleteFixedExpense = useDeleteFixedExpense();
+  const toggleFixedExpense = useToggleFixedExpense();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [newExpense, setNewExpense] = useState({
@@ -77,6 +81,32 @@ export default function Contas() {
     partner1_name: "",
     partner2_name: "",
   });
+
+  const [newFixedExpense, setNewFixedExpense] = useState({
+    description: "",
+    amount: "",
+    paid_by: "",
+    category: "",
+  });
+
+  const handleAddFixedExpense = () => {
+    if (!newFixedExpense.description || !newFixedExpense.amount || !newFixedExpense.paid_by) return;
+    
+    addFixedExpense.mutate({
+      description: newFixedExpense.description,
+      amount: parseFloat(newFixedExpense.amount),
+      paid_by: newFixedExpense.paid_by,
+      category: newFixedExpense.category || null,
+      is_active: true,
+    });
+    
+    setNewFixedExpense({
+      description: "",
+      amount: "",
+      paid_by: "",
+      category: "",
+    });
+  };
 
   const partner1 = partnersConfig?.partner1_name || "Sócio 1";
   const partner2 = partnersConfig?.partner2_name || "Sócio 2";
@@ -145,7 +175,11 @@ export default function Contas() {
   const partner1Balance = partner1Total - fairShare;
   const partner2Balance = partner2Total - fairShare;
 
-  if (expensesLoading || configLoading) {
+  // Calculate fixed expenses total (only active ones)
+  const activeFixedExpenses = fixedExpenses?.filter(e => e.is_active) || [];
+  const fixedExpensesTotal = activeFixedExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
+
+  if (expensesLoading || configLoading || fixedLoading) {
     return (
       <DashboardWrapper>
         <div className="container mx-auto p-6 md:p-8 lg:p-12 min-h-screen">
@@ -368,6 +402,115 @@ export default function Contas() {
                 <span className="text-sm text-gray-400">{selectedFile.name}</span>
               )}
             </div>
+          </div>
+        </SectionCard>
+
+        {/* Fixed Expenses Section */}
+        <SectionCard title="Gastos Fixos" icon={Calendar} color="orange" className="mb-8">
+          <p className="text-gray-400 text-sm mb-4">
+            Despesas que se repetem todo mês. Total mensal: <span className="text-orange-400 font-bold">{formatBRL(fixedExpensesTotal)}</span>
+          </p>
+          
+          {/* Add Fixed Expense Form */}
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+            <div className="md:col-span-2">
+              <Label className="text-gray-400 text-xs uppercase tracking-wider">Descrição</Label>
+              <Input
+                value={newFixedExpense.description}
+                onChange={(e) => setNewFixedExpense({ ...newFixedExpense, description: e.target.value })}
+                placeholder="Ex: Hospedagem, Ferramentas"
+                className="bg-black/60 border-orange-500/30 text-white focus:border-orange-500 mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-gray-400 text-xs uppercase tracking-wider">Valor Mensal</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={newFixedExpense.amount}
+                onChange={(e) => setNewFixedExpense({ ...newFixedExpense, amount: e.target.value })}
+                placeholder="0,00"
+                className="bg-black/60 border-orange-500/30 text-white focus:border-orange-500 mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-gray-400 text-xs uppercase tracking-wider">Pago por</Label>
+              <Select value={newFixedExpense.paid_by} onValueChange={(v) => setNewFixedExpense({ ...newFixedExpense, paid_by: v })}>
+                <SelectTrigger className="bg-black/60 border-orange-500/30 text-white focus:border-orange-500 mt-1">
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent className="bg-black/95 border-orange-500/30">
+                  <SelectItem value={partner1} className="text-white hover:bg-orange-500/20">{partner1}</SelectItem>
+                  <SelectItem value={partner2} className="text-white hover:bg-orange-500/20">{partner2}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-end">
+              <Button 
+                onClick={handleAddFixedExpense} 
+                className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold"
+                disabled={addFixedExpense.isPending}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar
+              </Button>
+            </div>
+          </div>
+
+          {/* Fixed Expenses List */}
+          <div className="space-y-3">
+            {fixedExpenses?.length === 0 ? (
+              <div className="text-center text-gray-500 py-8">
+                <Calendar className="h-12 w-12 mx-auto text-gray-700 mb-2" />
+                <span>Nenhum gasto fixo cadastrado</span>
+              </div>
+            ) : (
+              fixedExpenses?.map((expense) => (
+                <div 
+                  key={expense.id} 
+                  className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
+                    expense.is_active 
+                      ? 'bg-orange-500/5 border-orange-500/30' 
+                      : 'bg-gray-900/50 border-gray-700/30 opacity-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={() => toggleFixedExpense.mutate({ id: expense.id, is_active: !expense.is_active })}
+                      className="text-gray-400 hover:text-orange-400 transition-colors"
+                    >
+                      {expense.is_active ? (
+                        <ToggleRight className="h-6 w-6 text-orange-400" />
+                      ) : (
+                        <ToggleLeft className="h-6 w-6" />
+                      )}
+                    </button>
+                    <div>
+                      <p className={`font-medium ${expense.is_active ? 'text-white' : 'text-gray-500'}`}>
+                        {expense.description}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        Pago por: <span className={expense.paid_by === partner1 ? 'text-purple-400' : 'text-orange-400'}>{expense.paid_by}</span>
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className={`font-mono font-bold ${expense.is_active ? 'text-green-400' : 'text-gray-500'}`}>
+                      {formatBRL(Number(expense.amount))}/mês
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => deleteFixedExpense.mutate(expense.id)}
+                      disabled={deleteFixedExpense.isPending}
+                      className="hover:bg-red-500/20 hover:text-red-400"
+                    >
+                      <Trash2 className="h-4 w-4 text-red-400" />
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </SectionCard>
 

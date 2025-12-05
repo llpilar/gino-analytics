@@ -50,6 +50,39 @@ export type Database = {
         }
         Relationships: []
       }
+      fixed_expenses: {
+        Row: {
+          amount: number
+          category: string | null
+          created_at: string
+          description: string
+          id: string
+          is_active: boolean
+          paid_by: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          category?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          is_active?: boolean
+          paid_by: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          paid_by?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       partners_config: {
         Row: {
           created_at: string
