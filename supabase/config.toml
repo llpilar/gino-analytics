@@ -17,3 +17,6 @@ verify_jwt = true
 
 [functions.visitor-count]
 verify_jwt = false
+
+[functions.google-analytics]
+verify_jwt = true
