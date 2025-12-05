@@ -57,21 +57,6 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        // Neon accent colors
-        neon: {
-          cyan: "hsl(var(--neon-cyan))",
-          "cyan-light": "hsl(var(--neon-cyan-light))",
-          purple: "hsl(var(--neon-purple))",
-          "purple-light": "hsl(var(--neon-purple-light))",
-          pink: "hsl(var(--neon-pink))",
-          "pink-light": "hsl(var(--neon-pink-light))",
-          green: "hsl(var(--neon-green))",
-          "green-light": "hsl(var(--neon-green-light))",
-          orange: "hsl(var(--neon-orange))",
-          "orange-light": "hsl(var(--neon-orange-light))",
-          blue: "hsl(var(--neon-blue))",
-          "blue-light": "hsl(var(--neon-blue-light))",
-        },
         // Status colors
         status: {
           success: "hsl(var(--status-success))",
@@ -79,10 +64,10 @@ export default {
           error: "hsl(var(--status-error))",
           info: "hsl(var(--status-info))",
         },
-        // Surface colors
-        surface: {
-          elevated: "hsl(var(--surface-elevated))",
-          overlay: "hsl(var(--surface-overlay))",
+        // Glass colors
+        glass: {
+          bg: "hsl(var(--glass-bg))",
+          border: "hsl(var(--glass-border))",
         },
       },
       borderRadius: {
@@ -116,8 +101,8 @@ export default {
           to: { opacity: "1", transform: "translateX(0)" },
         },
         "pulse-glow": {
-          "0%, 100%": { opacity: "0.5" },
-          "50%": { opacity: "1" },
+          "0%, 100%": { opacity: "0.4" },
+          "50%": { opacity: "0.6" },
         },
         "float": {
           "0%, 100%": { transform: "translateY(0px)" },
@@ -131,7 +116,7 @@ export default {
         "fade-in-up": "fade-in-up 0.5s ease-out forwards",
         "scale-in": "scale-in 0.2s ease-out forwards",
         "slide-in-right": "slide-in-right 0.3s ease-out forwards",
-        "pulse-glow": "pulse-glow 2s ease-in-out infinite",
+        "pulse-glow": "pulse-glow 3s ease-in-out infinite",
         "float": "float 3s ease-in-out infinite",
       },
     },
