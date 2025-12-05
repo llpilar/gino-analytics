@@ -46,9 +46,9 @@ export const ProfileDialog = () => {
           </Avatar>
         </Button>
       </DialogTrigger>
-      <DialogContent className="glass-card border-zinc-800">
+      <DialogContent className="glass-card border-border">
         <DialogHeader>
-          <DialogTitle className="text-white">Editar Perfil</DialogTitle>
+          <DialogTitle className="text-foreground">Editar Perfil</DialogTitle>
         </DialogHeader>
         <div className="space-y-6 py-4">
           <div className="flex flex-col items-center gap-4">
@@ -59,7 +59,7 @@ export const ProfileDialog = () => {
               </AvatarFallback>
             </Avatar>
             <div className="w-full space-y-2">
-              <Label htmlFor="avatar" className="text-zinc-200 flex items-center gap-2">
+              <Label htmlFor="avatar" className="text-card-foreground flex items-center gap-2">
                 <Upload className="h-4 w-4" />
                 URL da Foto
               </Label>
@@ -69,13 +69,13 @@ export const ProfileDialog = () => {
                 placeholder="https://exemplo.com/foto.jpg"
                 value={avatarUrl}
                 onChange={(e) => setAvatarUrl(e.target.value)}
-                className="bg-zinc-900/50 border-zinc-700 text-white"
+                className="bg-input border-border text-foreground"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-zinc-200">
+            <Label htmlFor="name" className="text-card-foreground">
               Nome
             </Label>
             <Input
@@ -84,7 +84,7 @@ export const ProfileDialog = () => {
               placeholder="Seu nome"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="bg-zinc-900/50 border-zinc-700 text-white"
+              className="bg-input border-border text-foreground"
             />
           </div>
 

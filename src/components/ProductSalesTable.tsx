@@ -21,7 +21,7 @@ export const ProductSalesTable = () => {
     return (
       <SectionCard color="purple" className="text-center">
         <Package className="h-12 w-12 mx-auto mb-4 text-purple-400 opacity-50" />
-        <p className="text-zinc-400">Nenhuma venda encontrada nos últimos 30 dias</p>
+        <p className="text-muted-foreground">Nenhuma venda encontrada nos últimos 30 dias</p>
       </SectionCard>
     );
   }
@@ -34,9 +34,9 @@ export const ProductSalesTable = () => {
         <Table>
           <TableHeader>
             <TableRow className="border-purple-500/20 hover:bg-transparent">
-              <TableHead className="text-zinc-400">Posição</TableHead>
-              <TableHead className="text-zinc-400">Produto</TableHead>
-              <TableHead className="text-zinc-400 text-right">Quantidade Vendida</TableHead>
+              <TableHead className="text-muted-foreground">Posição</TableHead>
+              <TableHead className="text-muted-foreground">Produto</TableHead>
+              <TableHead className="text-muted-foreground text-right">Quantidade Vendida</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -45,10 +45,10 @@ export const ProductSalesTable = () => {
                 key={product.productId}
                 className="border-purple-500/10 hover:bg-purple-500/5 transition-colors"
               >
-                <TableCell className="font-medium text-zinc-400">
+                <TableCell className="font-medium text-muted-foreground">
                   #{index + 1}
                 </TableCell>
-                <TableCell className="text-white font-medium">
+                <TableCell className="text-foreground font-medium">
                   {product.productTitle}
                 </TableCell>
                 <TableCell className="text-right">

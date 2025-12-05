@@ -10,10 +10,10 @@ export const PageHeader = ({ title, subtitle }: PageHeaderProps) => {
     <div className="mb-8">
       <HyperText 
         text={title} 
-        className="text-3xl md:text-4xl font-black text-white tracking-tight"
+        className="text-3xl md:text-4xl font-black text-foreground tracking-tight"
       />
       {subtitle && (
-        <p className="text-zinc-400 text-sm md:text-base mt-1">{subtitle}</p>
+        <p className="text-muted-foreground text-sm md:text-base mt-1">{subtitle}</p>
       )}
     </div>
   );

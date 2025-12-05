@@ -41,7 +41,7 @@ export function ProfileEditor() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <button className="flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 transition-colors">
+        <button className="flex items-center gap-2 p-2 rounded-lg hover:bg-accent transition-colors">
           <Avatar className="w-8 h-8 md:w-10 md:h-10">
             <AvatarImage src={profile?.avatar_url || ""} />
             <AvatarFallback className="bg-primary/20 text-primary">
@@ -49,14 +49,14 @@ export function ProfileEditor() {
             </AvatarFallback>
           </Avatar>
           <div className="hidden md:block text-left">
-            <p className="text-sm font-medium text-white">
+            <p className="text-sm font-medium text-foreground">
               {profile?.name || "Usuário"}
             </p>
-            <p className="text-xs text-zinc-400">Editar perfil</p>
+            <p className="text-xs text-muted-foreground">Editar perfil</p>
           </div>
         </button>
       </DialogTrigger>
-      <DialogContent className="bg-zinc-900 border-zinc-800 text-white">
+      <DialogContent className="bg-card border-border text-foreground">
         <DialogHeader>
           <DialogTitle>Editar Perfil</DialogTitle>
         </DialogHeader>
@@ -68,7 +68,7 @@ export function ProfileEditor() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Seu nome"
-              className="bg-zinc-800 border-zinc-700"
+              className="bg-input border-border"
               required
             />
           </div>
@@ -79,7 +79,7 @@ export function ProfileEditor() {
               value={avatarUrl}
               onChange={(e) => setAvatarUrl(e.target.value)}
               placeholder="https://exemplo.com/foto.jpg"
-              className="bg-zinc-800 border-zinc-700"
+              className="bg-input border-border"
             />
           </div>
           <div className="flex gap-2">

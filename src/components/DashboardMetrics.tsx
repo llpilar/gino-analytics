@@ -50,8 +50,8 @@ export const DashboardMetrics = () => {
   if (isLoading) {
     return (
       <>
-        <Skeleton className="h-full bg-zinc-800/50" />
-        <Skeleton className="h-full bg-zinc-800/50" />
+        <Skeleton className="h-full bg-muted/50" />
+        <Skeleton className="h-full bg-muted/50" />
       </>
     );
   }
@@ -70,35 +70,35 @@ export const DashboardMetrics = () => {
               <DollarSign className="w-5 h-5 text-green-500" />
             </div>
             <div>
-              <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Faturamento - {periodLabel}
               </h3>
-              <p className="text-xs text-zinc-500 mt-0.5">Total em vendas</p>
+              <p className="text-xs text-muted-foreground/70 mt-0.5">Total em vendas</p>
             </div>
           </div>
         </div>
 
         {/* COP Value */}
         <div className="mb-4">
-          <div className="text-4xl md:text-5xl font-black mb-1 text-white">
+          <div className="text-4xl md:text-5xl font-black mb-1 text-foreground">
             {formatCurrencyCOP(totalRevenueCOP)}
           </div>
-          <p className="text-xs text-zinc-500 uppercase tracking-wider">
+          <p className="text-xs text-muted-foreground/70 uppercase tracking-wider">
             Peso Colombiano (COP)
           </p>
         </div>
 
         {/* BRL Conversion Box */}
-        <div className="p-4 rounded-xl bg-black/40 border border-green-500/20">
+        <div className="p-4 rounded-xl bg-card/40 border border-green-500/20">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-zinc-400 mb-1 font-semibold">Conversão BRL</p>
+              <p className="text-xs text-muted-foreground mb-1 font-semibold">Conversão BRL</p>
               <div className="text-xl md:text-2xl font-bold text-green-400">
                 {formatCurrencyBRL(totalRevenueBRL)}
               </div>
             </div>
             <div className="text-right">
-              <div className="text-xs text-zinc-500">Taxa: 0.0014</div>
+              <div className="text-xs text-muted-foreground/70">Taxa: 0.0014</div>
               <div className="flex items-center gap-1 text-green-500 mt-1">
                 <TrendingUp className="w-3 h-3" />
                 <span className="text-xs font-semibold">Live</span>
@@ -116,16 +116,16 @@ export const DashboardMetrics = () => {
               <ShoppingCart className="w-5 h-5 text-cyan-500" />
             </div>
             <div>
-              <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Pedidos - {periodLabel}
               </h3>
-              <p className="text-xs text-zinc-500 mt-0.5">Total de pedidos</p>
+              <p className="text-xs text-muted-foreground/70 mt-0.5">Total de pedidos</p>
             </div>
           </div>
           <div className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse shadow-lg shadow-cyan-500/50" />
         </div>
 
-        <div className="text-5xl md:text-6xl font-black mb-3 text-white">
+        <div className="text-5xl md:text-6xl font-black mb-3 text-foreground">
           {ordersCount}
         </div>
 

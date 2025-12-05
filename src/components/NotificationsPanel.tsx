@@ -62,7 +62,7 @@ export const NotificationsPanel = () => {
       <div className="flex items-center justify-between mb-4 flex-shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-lg shadow-green-500/50" />
-          <h3 className="text-base font-bold tracking-wider uppercase text-white">
+          <h3 className="text-base font-bold tracking-wider uppercase text-foreground">
             Novas Vendas
           </h3>
         </div>
@@ -70,22 +70,22 @@ export const NotificationsPanel = () => {
           variant="ghost"
           size="icon"
           onClick={() => setBlurProductNames(!blurProductNames)}
-          className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-zinc-800"
+          className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent"
           title={blurProductNames ? "Mostrar nomes dos produtos" : "Ocultar nomes dos produtos"}
         >
           {blurProductNames ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </Button>
       </div>
-      <p className="text-xs text-zinc-400 mb-4">Últimos pedidos em tempo real</p>
+      <p className="text-xs text-muted-foreground mb-4">Últimos pedidos em tempo real</p>
       
-      <div className="space-y-3 flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
+      <div className="space-y-3 flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
         {isLoading ? (
-          <div className="loading-pulse text-center py-8 text-zinc-500">
+          <div className="loading-pulse text-center py-8 text-muted-foreground">
             <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
             <p className="text-sm">Carregando pedidos...</p>
           </div>
         ) : recentOrders.length === 0 ? (
-          <div className="text-center py-8 text-zinc-500">
+          <div className="text-center py-8 text-muted-foreground">
             <ShoppingBag className="w-12 h-12 mx-auto mb-3 opacity-50" />
             <p className="text-sm">Aguardando novos pedidos...</p>
           </div>
@@ -99,7 +99,7 @@ export const NotificationsPanel = () => {
             return (
               <div 
                 key={order.id}
-                className="relative rounded-xl p-4 bg-black/40 border border-green-500/20 hover:bg-green-500/10 transition-all duration-300 animate-fade-in"
+                className="relative rounded-xl p-4 bg-card/40 border border-green-500/20 hover:bg-green-500/10 transition-all duration-300 animate-fade-in"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center border border-green-500/30 shadow-lg flex-shrink-0">
@@ -108,17 +108,17 @@ export const NotificationsPanel = () => {
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-1">
-                      <h4 className="font-bold text-white text-base truncate">{order.name}</h4>
+                      <h4 className="font-bold text-foreground text-base truncate">{order.name}</h4>
                       <span className="text-base font-bold text-green-400 shrink-0">
                         {formatCurrency(order.amount, order.currency)}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-sm mb-1 gap-2">
-                      <span className={`text-zinc-300 truncate flex-1 min-w-0 transition-all duration-300 ${blurProductNames ? 'blur-sm select-none' : ''}`}>
+                      <span className={`text-card-foreground truncate flex-1 min-w-0 transition-all duration-300 ${blurProductNames ? 'blur-sm select-none' : ''}`}>
                         {itemText}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between text-sm text-zinc-400 gap-2">
+                    <div className="flex items-center justify-between text-sm text-muted-foreground gap-2">
                       <span className={`truncate flex-1 min-w-0 transition-all duration-300 ${blurProductNames ? 'blur-sm select-none' : ''}`}>{order.customer}</span>
                       <span className="whitespace-nowrap">{order.time}</span>
                     </div>
