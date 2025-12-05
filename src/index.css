@@ -118,7 +118,6 @@
 
   /* Theme: Twitter Blue */
   [data-theme="twitter-blue"] {
-    /* Core colors - exact from preset */
     --background: 0 0% 0%;
     --foreground: 200 6% 91%;
     --card: 225 11% 10%;
@@ -139,15 +138,11 @@
     --input: 207 28% 18%;
     --ring: 203 89% 53%;
     --radius: 1.3rem;
-    
-    /* Chart colors - exact from preset */
     --chart-1: 203 89% 53%;
     --chart-2: 160 100% 36%;
     --chart-3: 43 93% 56%;
     --chart-4: 152 82% 42%;
     --chart-5: 343 81% 51%;
-    
-    /* Sidebar - exact from preset */
     --sidebar: 225 11% 10%;
     --sidebar-foreground: 0 0% 85%;
     --sidebar-primary: 203 89% 53%;
@@ -156,30 +151,6 @@
     --sidebar-accent-foreground: 204 87% 53%;
     --sidebar-border: 207 15% 26%;
     --sidebar-ring: 203 89% 53%;
-    
-    /* Accent colors - Twitter tones */
-    --neon-cyan: 203 89% 53%;
-    --neon-cyan-light: 203 89% 63%;
-    --neon-purple: 270 70% 55%;
-    --neon-purple-light: 270 70% 65%;
-    --neon-pink: 343 81% 51%;
-    --neon-pink-light: 343 81% 61%;
-    --neon-green: 160 100% 36%;
-    --neon-green-light: 160 100% 46%;
-    --neon-orange: 43 93% 56%;
-    --neon-orange-light: 43 93% 66%;
-    --neon-blue: 203 89% 53%;
-    --neon-blue-light: 203 89% 63%;
-    
-    /* Status colors */
-    --status-success: 160 100% 36%;
-    --status-warning: 43 93% 56%;
-    --status-error: 356 91% 54%;
-    --status-info: 203 89% 53%;
-    
-    /* Surface colors */
-    --surface-elevated: 225 11% 12%;
-    --surface-overlay: 0 0% 4%;
   }
 
   * {
