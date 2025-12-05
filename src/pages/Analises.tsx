@@ -1,5 +1,5 @@
 import { DashboardWrapper } from "@/components/DashboardWrapper";
-import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Activity, MapPin, Users, Eye, Clock, BarChart3 } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Activity, MapPin, Users, Eye, Clock, BarChart3, Play, Video } from "lucide-react";
 import { SalesChart } from "@/components/SalesChart";
 import { useShopifyAnalytics, useShopifyRevenueToday } from "@/hooks/useShopifyData";
 import { useMemo } from "react";
@@ -13,6 +13,7 @@ import { StatsCard, SectionCard, CardColorVariant } from "@/components/ui/stats-
 import { LucideIcon } from "lucide-react";
 import { useGoogleAnalyticsOverview, useGoogleAnalyticsRealtime, parseGAOverviewData, parseGARealtimeData } from "@/hooks/useGoogleAnalytics";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useVturbOverview, parseVturbData, formatWatchTime } from "@/hooks/useVturbAnalytics";
 
 export default function Analises() {
   const { data: analyticsData, isLoading: analyticsLoading } = useShopifyAnalytics();
@@ -25,6 +26,10 @@ export default function Analises() {
   // Google Analytics data
   const { data: gaOverviewData, isLoading: gaLoading, error: gaError } = useGoogleAnalyticsOverview();
   const { data: gaRealtimeData } = useGoogleAnalyticsRealtime();
+
+  // VTurb data
+  const { data: vturbData, isLoading: vturbLoading, error: vturbError } = useVturbOverview();
+  const vturbMetrics = useMemo(() => parseVturbData(vturbData), [vturbData]);
 
   const gaMetrics = useMemo(() => parseGAOverviewData(gaOverviewData), [gaOverviewData]);
   const gaRealtime = useMemo(() => parseGARealtimeData(gaRealtimeData), [gaRealtimeData]);
@@ -196,6 +201,74 @@ export default function Analises() {
                 </div>
                 <div className="text-2xl font-black text-yellow-400">
                   {gaMetrics.newUsers.toLocaleString()}
+                </div>
+              </div>
+            </div>
+          )}
+        </SectionCard>
+
+        {/* VTurb Analytics Section */}
+        <SectionCard title="Métricas do Vídeo (VTurb)" icon={Video} color="orange" className="mb-8">
+          {vturbLoading ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              {[...Array(5)].map((_, i) => (
+                <Skeleton key={i} className="h-24 rounded-xl" />
+              ))}
+            </div>
+          ) : vturbError ? (
+            <div className="text-center py-8 text-yellow-400">
+              <p>Conectando ao VTurb...</p>
+              <p className="text-xs text-gray-500 mt-2">Verifique se a API Key está configurada corretamente</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              <div className="p-4 rounded-xl bg-black/60 border border-orange-500/30">
+                <div className="flex items-center gap-2 mb-2">
+                  <Play className="w-4 h-4 text-orange-400" />
+                  <span className="text-xs text-gray-500 uppercase">Total de Plays</span>
+                </div>
+                <div className="text-2xl font-black text-orange-400">
+                  {vturbMetrics.totalPlays.toLocaleString()}
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl bg-black/60 border border-cyan-500/30">
+                <div className="flex items-center gap-2 mb-2">
+                  <Eye className="w-4 h-4 text-cyan-400" />
+                  <span className="text-xs text-gray-500 uppercase">Views Únicos</span>
+                </div>
+                <div className="text-2xl font-black text-cyan-400">
+                  {vturbMetrics.uniqueViews.toLocaleString()}
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl bg-black/60 border border-green-500/30">
+                <div className="flex items-center gap-2 mb-2">
+                  <Clock className="w-4 h-4 text-green-400" />
+                  <span className="text-xs text-gray-500 uppercase">Tempo Médio</span>
+                </div>
+                <div className="text-2xl font-black text-green-400">
+                  {formatWatchTime(vturbMetrics.averageWatchTime)}
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl bg-black/60 border border-purple-500/30">
+                <div className="flex items-center gap-2 mb-2">
+                  <Activity className="w-4 h-4 text-purple-400" />
+                  <span className="text-xs text-gray-500 uppercase">Taxa de Retenção</span>
+                </div>
+                <div className="text-2xl font-black text-purple-400">
+                  {vturbMetrics.retentionRate.toFixed(1)}%
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl bg-black/60 border border-yellow-500/30">
+                <div className="flex items-center gap-2 mb-2">
+                  <Video className="w-4 h-4 text-yellow-400" />
+                  <span className="text-xs text-gray-500 uppercase">Watch Time Total</span>
+                </div>
+                <div className="text-2xl font-black text-yellow-400">
+                  {formatWatchTime(vturbMetrics.totalWatchTime)}
                 </div>
               </div>
             </div>

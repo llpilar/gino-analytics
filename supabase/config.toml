@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.google-analytics]
 verify_jwt = true
+
+[functions.vturb-analytics]
+verify_jwt = true
