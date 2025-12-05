@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-export type ThemePreset = 'neon-green' | 'cyberpunk-blue';
+export type ThemePreset = 'neon-green' | 'liquid-glass';
 
 interface ThemeContextType {
   theme: ThemePreset;
@@ -14,14 +14,14 @@ const themePresets = [
   {
     id: 'neon-green' as ThemePreset,
     name: 'Neon Green',
-    description: 'Tema atual com verde neon vibrante',
+    description: 'Tema escuro com verde neon vibrante',
     colors: ['#a3e635', '#22d3ee', '#a855f7', '#f97316']
   },
   {
-    id: 'cyberpunk-blue' as ThemePreset,
-    name: 'Cyberpunk Blue',
-    description: 'Visual futurista com azul neon intenso',
-    colors: ['#3b82f6', '#06b6d4', '#8b5cf6', '#ec4899']
+    id: 'liquid-glass' as ThemePreset,
+    name: 'Liquid Glass',
+    description: 'Visual elegante com efeito de vidro líquido',
+    colors: ['#7dd3fc', '#a78bfa', '#5eead4', '#f0abfc']
   }
 ];
 
