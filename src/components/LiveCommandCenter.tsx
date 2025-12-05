@@ -3,7 +3,7 @@ import { Globe } from "./ui/globe-feature-section";
 import { ShootingStars } from "./ui/shooting-stars";
 import { NavBar } from "./ui/tubelight-navbar";
 import { useShopifyRevenueToday, useShopifyAnalytics } from "@/hooks/useShopifyData";
-import { format } from "date-fns";
+import { format, differenceInMinutes, isToday, isSameDay } from "date-fns";
 import { DashboardSkeleton } from "./DashboardSkeleton";
 import { LayoutDashboard, BarChart3, Settings, Wallet, TrendingUp, DollarSign, ShoppingCart, Users, Zap, Monitor, LayoutGrid, Eye, Megaphone, Target, Truck } from "lucide-react";
 import { NotificationCenter } from "./NotificationCenter";
@@ -12,6 +12,7 @@ import { useDailyComparison } from "@/hooks/useComparisonMetrics";
 import { useRealtimeOrders } from "@/hooks/useRealtimeOrders";
 import { Toaster } from "./ui/toaster";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { useDateFilter } from "@/contexts/DateFilterContext";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { useGoogleAnalyticsRealtime, parseGARealtimeData } from "@/hooks/useGoogleAnalytics";
@@ -29,6 +30,7 @@ export const LiveCommandCenter = () => {
   const { data: dailyComparison } = useDailyComparison();
   const { orderCount: realtimeOrderCount } = useRealtimeOrders();
   const { formatCurrency } = useCurrency();
+  const { dateRange } = useDateFilter();
   const { data: gaRealtimeData } = useGoogleAnalyticsRealtime();
   const gaRealtime = parseGARealtimeData(gaRealtimeData);
   const { data: facebookAdsData } = useFacebookAdsToday();
@@ -71,12 +73,25 @@ export const LiveCommandCenter = () => {
 
   const ordersCount = revenueData?.data?.orders?.edges?.length || 0;
   
-  // Calculate minutes elapsed since start of day (Colombia timezone -5)
+  // Calculate minutes elapsed based on date range
   const now = new Date();
-  const startOfDay = new Date(now);
-  startOfDay.setHours(0, 0, 0, 0);
-  const minutesElapsed = Math.max(1, Math.floor((now.getTime() - startOfDay.getTime()) / (1000 * 60)));
-  const salesPerMinute = ordersCount > 0 ? (totalRevenue / minutesElapsed).toFixed(2) : "0.00";
+  const calculateMinutesElapsed = () => {
+    if (!dateRange.from || !dateRange.to) return 1;
+    
+    const rangeStart = dateRange.from;
+    const rangeEnd = dateRange.to;
+    
+    // If range ends today, use current time as end
+    if (isToday(rangeEnd)) {
+      return Math.max(1, differenceInMinutes(now, rangeStart));
+    }
+    
+    // If range is in the past, calculate full range
+    return Math.max(1, differenceInMinutes(rangeEnd, rangeStart));
+  };
+  
+  const minutesElapsed = calculateMinutesElapsed();
+  const salesPerMinute = totalRevenue > 0 ? (totalRevenue / minutesElapsed).toFixed(2) : "0.00";
   const uniqueShoppers = ordersCount > 0 ? Math.floor(ordersCount * 0.85).toString() : "0";
   const avgOrderValue = ordersCount > 0 ? totalRevenue / ordersCount : 0;
 
