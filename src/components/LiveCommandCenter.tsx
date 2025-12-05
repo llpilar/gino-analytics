@@ -90,7 +90,7 @@ export const LiveCommandCenter = () => {
   const satellites = [
     { label: "RECEITA", value: formatCurrency(totalRevenue), icon: DollarSign, color: "cyan", angle: 0, distance: 240 },
     { label: "PEDIDOS", value: ordersCount.toString(), icon: ShoppingCart, color: "green", angle: 90, distance: 260 },
-    { label: "$/MIN", value: formatCurrency(parseFloat(salesPerMinute)), icon: Zap, color: "purple", angle: 180, distance: 250 },
+    { label: "R$/MIN", value: formatCurrency(parseFloat(salesPerMinute)), icon: Zap, color: "purple", angle: 180, distance: 250 },
     { label: "VSL ONLINE", value: vslVisitors.toString(), icon: Eye, color: "orange", angle: 270, distance: 270 },
   ];
 
