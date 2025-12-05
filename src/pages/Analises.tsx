@@ -11,7 +11,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { StatsCard, SectionCard, CardColorVariant } from "@/components/ui/stats-card";
 import { LucideIcon } from "lucide-react";
-import { useGoogleAnalyticsOverview, useGoogleAnalyticsRealtime, parseGAOverviewData, parseGARealtimeData } from "@/hooks/useGoogleAnalytics";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import { useVturbOverview, useVturbPlayers, parseVturbData, parseVturbPlayers } from "@/hooks/useVturbAnalytics";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -27,10 +27,6 @@ export default function Analises() {
   const { data: monthlyComparison } = useMonthlyComparison();
   const { formatCurrency } = useCurrency();
 
-  // Google Analytics data
-  const { data: gaOverviewData, isLoading: gaLoading, error: gaError } = useGoogleAnalyticsOverview();
-  const { data: gaRealtimeData } = useGoogleAnalyticsRealtime();
-
   // VTurb data
   const { data: vturbPlayersData, isLoading: vturbPlayersLoading } = useVturbPlayers();
   const { data: vturbData, isLoading: vturbLoading, error: vturbError } = useVturbOverview(selectedPlayerId);
@@ -39,8 +35,6 @@ export default function Analises() {
   // Parse players list from VTurb response
   const vturbPlayers = useMemo(() => parseVturbPlayers(vturbPlayersData), [vturbPlayersData]);
 
-  const gaMetrics = useMemo(() => parseGAOverviewData(gaOverviewData), [gaOverviewData]);
-  const gaRealtime = useMemo(() => parseGARealtimeData(gaRealtimeData), [gaRealtimeData]);
 
   // Calculate metrics
   const metrics = useMemo(() => {
@@ -55,8 +49,8 @@ export default function Analises() {
 
     const ordersCount = revenueData?.data?.orders?.edges?.length || 0;
     const avgOrderValue = ordersCount > 0 ? totalRevenue / ordersCount : 0;
-    const conversionRate = gaMetrics.totalUsers > 0 
-      ? ((ordersCount / gaMetrics.totalUsers) * 100).toFixed(2) 
+    const conversionRate = vturbMetrics.uniquePlays > 0 
+      ? ((ordersCount / vturbMetrics.uniquePlays) * 100).toFixed(2) 
       : "0.00";
 
     return {
@@ -66,7 +60,7 @@ export default function Analises() {
       conversionRate,
       growth: 23.5
     };
-  }, [revenueData, gaMetrics]);
+  }, [revenueData, vturbMetrics]);
 
   const statCards: { title: string; value: string; change: string; isPositive: boolean; icon: LucideIcon; color: CardColorVariant }[] = [
     {
@@ -94,9 +88,9 @@ export default function Analises() {
       color: "green",
     },
     {
-      title: "VSL Online",
-      value: gaRealtime.activeUsers.toString(),
-      change: "últimos 30 min",
+      title: "Plays Únicos",
+      value: vturbMetrics.uniquePlays.toLocaleString('pt-BR'),
+      change: "no período",
       isPositive: true,
       icon: Activity,
       color: "orange",
