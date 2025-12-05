@@ -61,59 +61,65 @@
     --surface-overlay: 240 10% 6%;
   }
 
-  /* Theme: Cyberpunk Blue */
-  [data-theme="cyberpunk-blue"] {
-    --background: 222 47% 4%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 7%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 7%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217 91% 60%;
-    --primary-foreground: 222 47% 4%;
-    --secondary: 280 70% 55%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 20%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 188 94% 50%;
-    --accent-foreground: 222 47% 4%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217 33% 18%;
-    --input: 217 33% 18%;
-    --ring: 217 91% 60%;
-    --radius: 1rem;
+  /* Theme: Liquid Glass */
+  [data-theme="liquid-glass"] {
+    --background: 220 20% 12%;
+    --foreground: 0 0% 95%;
+    --card: 220 15% 18%;
+    --card-foreground: 0 0% 95%;
+    --popover: 220 15% 16%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 200 80% 70%;
+    --primary-foreground: 220 20% 10%;
+    --secondary: 260 50% 65%;
+    --secondary-foreground: 0 0% 95%;
+    --muted: 220 15% 25%;
+    --muted-foreground: 220 10% 60%;
+    --accent: 180 60% 65%;
+    --accent-foreground: 220 20% 10%;
+    --destructive: 0 65% 55%;
+    --destructive-foreground: 0 0% 95%;
+    --border: 220 15% 25%;
+    --input: 220 15% 22%;
+    --ring: 200 80% 70%;
+    --radius: 1.25rem;
     
-    /* Chart colors - Blue theme */
-    --chart-1: 217 91% 60%;
-    --chart-2: 188 94% 50%;
-    --chart-3: 280 70% 55%;
-    --chart-4: 330 81% 60%;
-    --chart-5: 142 71% 45%;
+    /* Chart colors - Soft glass palette */
+    --chart-1: 200 80% 70%;
+    --chart-2: 260 50% 65%;
+    --chart-3: 180 60% 65%;
+    --chart-4: 320 50% 65%;
+    --chart-5: 140 50% 60%;
     
-    /* Neon accent colors - Blue cyberpunk palette */
-    --neon-cyan: 188 94% 50%;
-    --neon-cyan-light: 188 94% 60%;
-    --neon-purple: 280 70% 55%;
-    --neon-purple-light: 280 70% 65%;
-    --neon-pink: 330 81% 60%;
-    --neon-pink-light: 330 81% 70%;
-    --neon-green: 142 71% 45%;
-    --neon-green-light: 142 71% 55%;
-    --neon-orange: 25 95% 53%;
-    --neon-orange-light: 25 95% 63%;
-    --neon-blue: 217 91% 60%;
-    --neon-blue-light: 217 91% 70%;
+    /* Neon accent colors - Soft glass palette */
+    --neon-cyan: 180 60% 65%;
+    --neon-cyan-light: 180 60% 75%;
+    --neon-purple: 260 50% 65%;
+    --neon-purple-light: 260 50% 75%;
+    --neon-pink: 320 50% 65%;
+    --neon-pink-light: 320 50% 75%;
+    --neon-green: 140 50% 60%;
+    --neon-green-light: 140 50% 70%;
+    --neon-orange: 30 70% 60%;
+    --neon-orange-light: 30 70% 70%;
+    --neon-blue: 200 80% 70%;
+    --neon-blue-light: 200 80% 80%;
     
     /* Status colors */
-    --status-success: 142 71% 45%;
-    --status-warning: 38 92% 50%;
-    --status-error: 0 72% 51%;
-    --status-info: 188 94% 50%;
+    --status-success: 140 50% 60%;
+    --status-warning: 40 70% 55%;
+    --status-error: 0 65% 55%;
+    --status-info: 200 80% 70%;
     
     /* Surface colors */
-    --surface-elevated: 222 47% 9%;
-    --surface-overlay: 222 47% 5%;
+    --surface-elevated: 220 15% 20%;
+    --surface-overlay: 220 20% 14%;
+    
+    /* Glass-specific variables */
+    --glass-blur: 20px;
+    --glass-opacity: 0.15;
+    --glass-border: 220 15% 35%;
+    --glass-highlight: 0 0% 100%;
   }
 
   * {
@@ -121,9 +127,23 @@
   }
   
   body {
-    @apply bg-gradient-to-br from-black via-zinc-900 to-zinc-800 text-foreground;
+    @apply text-foreground;
     font-family: 'Inter', sans-serif;
     min-height: 100vh;
+  }
+
+  /* Neon Green theme background */
+  [data-theme="neon-green"] body,
+  :root body {
+    @apply bg-gradient-to-br from-black via-zinc-900 to-zinc-800;
+  }
+
+  /* Liquid Glass theme background */
+  [data-theme="liquid-glass"] body {
+    background: linear-gradient(135deg, 
+      hsl(220, 25%, 8%) 0%, 
+      hsl(230, 20%, 15%) 50%, 
+      hsl(250, 25%, 12%) 100%);
   }
 }
 
@@ -217,6 +237,31 @@
   
   .loading-pulse {
     @apply opacity-50 blur-sm animate-pulse;
+  }
+
+  /* Liquid Glass theme specific cards */
+  [data-theme="liquid-glass"] .glass-card,
+  [data-theme="liquid-glass"] .standard-card {
+    @apply bg-white/[0.08] backdrop-blur-2xl border border-white/20 
+           shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.15),0_8px_32px_rgba(0,0,0,0.3)];
+  }
+
+  [data-theme="liquid-glass"] .glass-card:hover,
+  [data-theme="liquid-glass"] .standard-card:hover {
+    @apply bg-white/[0.12] border-white/30 
+           shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.2),0_12px_40px_rgba(0,0,0,0.4)];
+  }
+
+  [data-theme="liquid-glass"] .metric-card {
+    @apply bg-white/[0.06] backdrop-blur-2xl border border-white/15
+           shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.1),0_4px_24px_rgba(0,0,0,0.2)];
+  }
+
+  [data-theme="liquid-glass"] .standard-card-cyan,
+  [data-theme="liquid-glass"] .standard-card-purple,
+  [data-theme="liquid-glass"] .standard-card-green,
+  [data-theme="liquid-glass"] .standard-card-orange {
+    @apply border-white/20 shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.15),0_8px_32px_rgba(0,0,0,0.3)];
   }
   
   /* Scrollbar */
