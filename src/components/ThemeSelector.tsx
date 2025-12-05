@@ -7,13 +7,13 @@ export function ThemeSelector() {
   const { theme, setTheme, themes } = useTheme();
 
   return (
-    <Card className="bg-black/60 border-2 border-cyan-500/30 backdrop-blur-xl">
+    <Card className="bg-card/60 border-2 border-primary/30 backdrop-blur-xl">
       <CardHeader>
         <div className="flex items-center gap-2">
-          <Palette className="h-5 w-5 text-cyan-400" />
-          <CardTitle className="text-white">Tema do Dashboard</CardTitle>
+          <Palette className="h-5 w-5 text-primary" />
+          <CardTitle className="text-foreground">Tema do Dashboard</CardTitle>
         </div>
-        <CardDescription className="text-gray-400">
+        <CardDescription className="text-muted-foreground">
           Escolha o visual do seu dashboard
         </CardDescription>
       </CardHeader>
@@ -27,7 +27,7 @@ export function ThemeSelector() {
                 "relative p-4 rounded-xl border-2 transition-all duration-300 text-left group",
                 theme === preset.id
                   ? "border-primary bg-primary/10 shadow-lg shadow-primary/20"
-                  : "border-zinc-700 bg-zinc-900/50 hover:border-zinc-500 hover:bg-zinc-800/50"
+                  : "border-border bg-card/50 hover:border-muted-foreground hover:bg-accent/50"
               )}
             >
               {/* Check indicator */}
@@ -42,7 +42,7 @@ export function ThemeSelector() {
                 {preset.colors.map((color, i) => (
                   <div
                     key={i}
-                    className="w-6 h-6 rounded-full border border-white/20 shadow-lg"
+                    className="w-6 h-6 rounded-full border border-border shadow-lg"
                     style={{ 
                       backgroundColor: color,
                       boxShadow: `0 0 10px ${color}40`
@@ -54,16 +54,16 @@ export function ThemeSelector() {
               {/* Theme info */}
               <h3 className={cn(
                 "font-semibold mb-1 transition-colors",
-                theme === preset.id ? "text-primary" : "text-white group-hover:text-primary"
+                theme === preset.id ? "text-primary" : "text-foreground group-hover:text-primary"
               )}>
                 {preset.name}
               </h3>
-              <p className="text-sm text-zinc-400">
+              <p className="text-sm text-muted-foreground">
                 {preset.description}
               </p>
 
               {/* Preview bar */}
-              <div className="mt-3 h-2 rounded-full overflow-hidden bg-zinc-800">
+              <div className="mt-3 h-2 rounded-full overflow-hidden bg-muted">
                 <div 
                   className="h-full rounded-full transition-all duration-500"
                   style={{ 

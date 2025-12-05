@@ -19,11 +19,11 @@ export const MobileMenu = () => {
   return (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className="flex h-16 items-center justify-center border-b border-zinc-800">
+      <div className="flex h-16 items-center justify-center border-b border-border">
         <div className="flex items-center gap-2">
           <Zap className="w-7 h-7 text-primary" />
           <h1 className="text-2xl font-black tracking-tight">
-            <span className="text-white">Shop</span>
+            <span className="text-foreground">Shop</span>
             <span className="text-primary">Dash</span>
           </h1>
         </div>
@@ -42,7 +42,7 @@ export const MobileMenu = () => {
                 transition-all duration-300 ease-in-out
                 ${isActive 
                   ? 'glass-card-active text-primary' 
-                  : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-accent'
                 }
               `}
             >
@@ -54,11 +54,11 @@ export const MobileMenu = () => {
       </nav>
 
       {/* Logout Button */}
-      <div className="p-4 border-t border-zinc-800">
+      <div className="p-4 border-t border-border">
         <Button
           onClick={signOut}
           variant="ghost"
-          className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-zinc-400 hover:text-white hover:bg-zinc-800/50 rounded-xl transition-all duration-300"
+          className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-accent rounded-xl transition-all duration-300"
         >
           <LogOut className="h-5 w-5" />
           Sair

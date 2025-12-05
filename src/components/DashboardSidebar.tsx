@@ -30,8 +30,8 @@ export const DashboardSidebar = () => {
   const { open } = useSidebar();
 
   return (
-    <Sidebar collapsible="icon" className="bg-zinc-900/50 backdrop-blur-xl border-r border-zinc-800">
-      <SidebarHeader className="border-b border-zinc-800">
+    <Sidebar collapsible="icon" className="bg-sidebar/50 backdrop-blur-xl border-r border-sidebar-border">
+      <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex h-16 items-center justify-center">
           <h1 className={`text-2xl font-bold text-primary tracking-tight transition-opacity ${open ? 'opacity-100' : 'opacity-0'}`}>
             Dashify
@@ -54,7 +54,7 @@ export const DashboardSidebar = () => {
                       className={`
                         ${isActive 
                           ? 'glass-card-active text-primary' 
-                          : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
+                          : 'text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent'
                         }
                       `}
                     >
@@ -71,13 +71,13 @@ export const DashboardSidebar = () => {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-zinc-800">
+      <SidebarFooter className="border-t border-sidebar-border">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
               onClick={signOut}
               tooltip="Sair"
-              className="text-zinc-400 hover:text-white hover:bg-zinc-800/50"
+              className="text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
             >
               <LogOut className="h-5 w-5" />
               <span>Sair</span>

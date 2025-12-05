@@ -10,12 +10,12 @@ interface DashboardLayoutProps {
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-gradient-to-br from-black via-zinc-900 to-zinc-800">
+      <div className="flex min-h-screen w-full bg-background">
         <DashboardSidebar />
         
         <main className="flex-1 min-w-0">
-          <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-zinc-800 bg-zinc-900/80 backdrop-blur-xl px-4 h-16">
-            <SidebarTrigger className="text-zinc-400 hover:text-white md:flex hidden" />
+          <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-border bg-card/80 backdrop-blur-xl px-4 h-16">
+            <SidebarTrigger className="text-muted-foreground hover:text-foreground md:flex hidden" />
             <div className="flex-1">
               <DashboardHeader />
             </div>
@@ -25,9 +25,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             {children}
           </div>
 
-          <footer className="border-t border-zinc-800 mt-12 py-4 hidden md:block">
+          <footer className="border-t border-border mt-12 py-4 hidden md:block">
             <div className="px-4 md:px-6 lg:px-8">
-              <p className="text-center text-xs text-zinc-500">
+              <p className="text-center text-xs text-muted-foreground">
                 Built with <span className="text-primary">Lovable</span>
               </p>
             </div>

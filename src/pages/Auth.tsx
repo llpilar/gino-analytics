@@ -53,17 +53,17 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
       {/* Gradient orbs */}
-      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[120px]" />
-      <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-cyan-400/10 rounded-full blur-[100px]" />
+      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px]" />
+      <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-primary/10 rounded-full blur-[100px]" />
       
       {/* Grid pattern */}
       <div 
         className="absolute inset-0 opacity-[0.02]"
         style={{
-          backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-                           linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(hsl(var(--foreground) / 0.1) 1px, transparent 1px),
+                           linear-gradient(90deg, hsl(var(--foreground) / 0.1) 1px, transparent 1px)`,
           backgroundSize: '50px 50px'
         }}
       />
@@ -72,18 +72,18 @@ export default function Auth() {
         {/* Card */}
         <div className="relative">
           {/* Glow effect */}
-          <div className="absolute -inset-px bg-gradient-to-b from-zinc-700/50 to-zinc-800/50 rounded-2xl" />
+          <div className="absolute -inset-px bg-gradient-to-b from-border/50 to-border/30 rounded-2xl" />
           
-          <div className="relative bg-zinc-900/90 backdrop-blur-xl rounded-2xl p-8 border border-zinc-800/50">
+          <div className="relative bg-card/90 backdrop-blur-xl rounded-2xl p-8 border border-border/50">
             {/* Header */}
             <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-cyan-400/20 border border-cyan-500/20 mb-4">
-                <Lock className="w-5 h-5 text-cyan-400" />
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20 mb-4">
+                <Lock className="w-5 h-5 text-primary" />
               </div>
-              <h1 className="text-xl font-semibold text-white tracking-tight">
+              <h1 className="text-xl font-semibold text-foreground tracking-tight">
                 Entrar na conta
               </h1>
-              <p className="text-zinc-500 text-sm mt-1">
+              <p className="text-muted-foreground text-sm mt-1">
                 Acesso restrito
               </p>
             </div>
@@ -91,11 +91,11 @@ export default function Auth() {
             {/* Form */}
             <form onSubmit={handleLogin} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-zinc-400 text-xs font-medium uppercase tracking-wider">
+                <Label htmlFor="email" className="text-muted-foreground text-xs font-medium uppercase tracking-wider">
                   Email
                 </Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="email"
                     type="email"
@@ -103,17 +103,17 @@ export default function Auth() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="pl-10 bg-zinc-800/50 border-zinc-700/50 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 text-white placeholder:text-zinc-600 h-11 rounded-xl transition-all"
+                    className="pl-10 bg-input border-border focus:border-primary/50 focus:ring-1 focus:ring-primary/20 text-foreground placeholder:text-muted-foreground h-11 rounded-xl transition-all"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-zinc-400 text-xs font-medium uppercase tracking-wider">
+                <Label htmlFor="password" className="text-muted-foreground text-xs font-medium uppercase tracking-wider">
                   Senha
                 </Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="password"
                     type="password"
@@ -122,19 +122,19 @@ export default function Auth() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     minLength={6}
-                    className="pl-10 bg-zinc-800/50 border-zinc-700/50 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 text-white placeholder:text-zinc-600 h-11 rounded-xl transition-all"
+                    className="pl-10 bg-input border-border focus:border-primary/50 focus:ring-1 focus:ring-primary/20 text-foreground placeholder:text-muted-foreground h-11 rounded-xl transition-all"
                   />
                 </div>
               </div>
 
               <Button
                 type="submit"
-                className="w-full h-11 bg-gradient-to-r from-cyan-500 to-cyan-400 hover:from-cyan-400 hover:to-cyan-300 text-zinc-900 font-semibold rounded-xl shadow-lg shadow-cyan-500/25 transition-all hover:shadow-cyan-500/40 hover:scale-[1.02] active:scale-[0.98] group"
+                className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl shadow-lg shadow-primary/25 transition-all hover:shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] group"
                 disabled={loading}
               >
                 {loading ? (
                   <span className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                     Entrando...
                   </span>
                 ) : (
@@ -147,8 +147,8 @@ export default function Auth() {
             </form>
 
             {/* Footer info */}
-            <div className="mt-6 pt-6 border-t border-zinc-800/50">
-              <p className="text-zinc-600 text-xs text-center">
+            <div className="mt-6 pt-6 border-t border-border/50">
+              <p className="text-muted-foreground/70 text-xs text-center">
                 Acesso apenas para usuários autorizados
               </p>
             </div>

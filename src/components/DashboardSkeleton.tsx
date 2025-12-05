@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export const DashboardSkeleton = () => {
   return (
-    <div className="min-h-screen w-full bg-black p-4 pt-24">
+    <div className="min-h-screen w-full bg-background p-4 pt-24">
       {/* Mobile Grid Layout Skeleton */}
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header Skeleton */}

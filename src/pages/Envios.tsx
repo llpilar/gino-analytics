@@ -107,9 +107,9 @@ const HeroSection = () => {
     <div className="mb-8">
       <HyperText 
         text="Envios & Fulfillment" 
-        className="text-3xl md:text-4xl font-black text-white tracking-tight"
+        className="text-3xl md:text-4xl font-black text-foreground tracking-tight"
       />
-      <p className="text-zinc-400 text-sm md:text-base mt-1">
+      <p className="text-muted-foreground text-sm md:text-base mt-1">
         Gerencie seus envios e produtos com Hoko Colombia
       </p>
     </div>
@@ -240,11 +240,11 @@ const OrdersTable = () => {
   if (orders.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
-        <div className="p-4 rounded-2xl bg-zinc-800/50 border border-zinc-700/50 mb-4">
-          <Package className="h-10 w-10 text-zinc-500" />
+        <div className="p-4 rounded-2xl bg-muted/50 border border-border/50 mb-4">
+          <Package className="h-10 w-10 text-muted-foreground" />
         </div>
-        <p className="text-lg font-semibold text-white mb-1">Não há pedidos neste período</p>
-        <p className="text-sm text-zinc-500">Selecione outro período no filtro de data</p>
+        <p className="text-lg font-semibold text-foreground mb-1">Não há pedidos neste período</p>
+        <p className="text-sm text-muted-foreground">Selecione outro período no filtro de data</p>
       </div>
     );
   }
@@ -255,7 +255,7 @@ const OrdersTable = () => {
       <div className="flex flex-wrap gap-3 items-center justify-between">
         <div className="flex flex-wrap gap-3 items-center">
           {/* Results count */}
-          <Badge variant="outline" className="border-zinc-700 text-zinc-400">
+          <Badge variant="outline" className="border-border text-muted-foreground">
             {orders.length} pedidos
           </Badge>
         </div>
@@ -265,57 +265,57 @@ const OrdersTable = () => {
           variant="outline" 
           size="sm" 
           disabled={isFetching}
-          className="gap-2 rounded-xl border-zinc-700 hover:border-zinc-600"
+          className="gap-2 rounded-xl border-border hover:border-muted-foreground"
         >
           <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
           Atualizar
         </Button>
       </div>
       
-      <div className="rounded-xl border border-zinc-800/50 overflow-hidden bg-zinc-900/30">
+      <div className="rounded-xl border border-border/50 overflow-hidden bg-card/30">
         <Table>
           <TableHeader>
-            <TableRow className="border-zinc-800 hover:bg-transparent bg-zinc-900/50">
-              <TableHead className="text-zinc-500 font-semibold">
+            <TableRow className="border-border hover:bg-transparent bg-card/50">
+              <TableHead className="text-muted-foreground font-semibold">
                 <div className="flex items-center gap-2">
                   <Hash className="h-4 w-4" />
                   Pedido
                 </div>
               </TableHead>
-              <TableHead className="text-zinc-500 font-semibold">
+              <TableHead className="text-muted-foreground font-semibold">
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4" />
                   Cliente
                 </div>
               </TableHead>
-              <TableHead className="text-zinc-500 font-semibold">
+              <TableHead className="text-muted-foreground font-semibold">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4" />
                   Cidade
                 </div>
               </TableHead>
-              <TableHead className="text-zinc-500 font-semibold text-center">
+              <TableHead className="text-muted-foreground font-semibold text-center">
                 <div className="flex items-center gap-2 justify-center">
                   <Box className="h-4 w-4" />
                   Qtd
                 </div>
               </TableHead>
-              <TableHead className="text-zinc-500 font-semibold">Estado</TableHead>
-              <TableHead className="text-zinc-500 font-semibold">
+              <TableHead className="text-muted-foreground font-semibold">Estado</TableHead>
+              <TableHead className="text-muted-foreground font-semibold">
                 <div className="flex items-center gap-2">
                   <Truck className="h-4 w-4" />
                   Guia
                 </div>
               </TableHead>
-              <TableHead className="text-zinc-500 font-semibold text-right">
+              <TableHead className="text-muted-foreground font-semibold text-right">
                 <div className="flex items-center gap-2 justify-end">
                   <DollarSign className="h-4 w-4" />
                   Total Venda
                 </div>
               </TableHead>
-              <TableHead className="text-zinc-500 font-semibold text-right">Custo Produto</TableHead>
-              <TableHead className="text-zinc-500 font-semibold text-right">Custo Envio</TableHead>
-              <TableHead className="text-zinc-500 font-semibold text-right">
+              <TableHead className="text-muted-foreground font-semibold text-right">Custo Produto</TableHead>
+              <TableHead className="text-muted-foreground font-semibold text-right">Custo Envio</TableHead>
+              <TableHead className="text-muted-foreground font-semibold text-right">
                 <div className="flex items-center gap-2 justify-end">
                   <TrendingUp className="h-4 w-4" />
                   Lucro Bruto
@@ -355,7 +355,7 @@ const OrdersTable = () => {
               return (
                 <TableRow 
                   key={order.id} 
-                  className="border-zinc-800/50 hover:bg-zinc-800/30 transition-colors"
+                  className="border-border/50 hover:bg-accent/30 transition-colors"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <TableCell>
@@ -363,12 +363,12 @@ const OrdersTable = () => {
                       #{order.id}
                     </span>
                   </TableCell>
-                  <TableCell className="text-zinc-300 font-medium">
+                  <TableCell className="text-card-foreground font-medium">
                     <div className="max-w-[180px] truncate" title={order.customer?.name || order.customer_name}>
                       {order.customer?.name || order.customer_name || 'N/A'}
                     </div>
                   </TableCell>
-                  <TableCell className="text-zinc-400">
+                  <TableCell className="text-muted-foreground">
                     <div className="max-w-[120px] truncate" title={cityName}>
                       {cityName}
                     </div>
@@ -385,11 +385,11 @@ const OrdersTable = () => {
                   </TableCell>
                   <TableCell>
                     {guide?.number ? (
-                      <span className="font-mono text-xs px-2 py-1 rounded-lg bg-zinc-800 text-cyan-400">
+                      <span className="font-mono text-xs px-2 py-1 rounded-lg bg-muted text-primary">
                         {guide.number}
                       </span>
                     ) : (
-                      <span className="text-zinc-600">Sem guia</span>
+                      <span className="text-muted-foreground/50">Sem guia</span>
                     )}
                   </TableCell>
                   <TableCell className="text-right">
