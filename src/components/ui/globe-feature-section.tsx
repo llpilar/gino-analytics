@@ -32,18 +32,17 @@ const GLOBE_CONFIG: COBEOptions = {
   height: 800,
   onRender: () => {},
   devicePixelRatio: 2,
-  phi: 0.2, // Ajustado para focar na Colômbia
-  theta: 0.5, // Ajustado para melhor visualização
-  dark: 1, // Modo escuro para combinar com o dashboard
-  diffuse: 1.2,
+  phi: 0.2,
+  theta: 0.5,
+  dark: 0, // Light mode for Twitter Blue theme
+  diffuse: 1.5,
   mapSamples: 16000,
-  mapBrightness: 3,
-  baseColor: [0.1, 0.1, 0.1], // Cor base escura
-  markerColor: [0, 0.9, 1], // Ciano brilhante para marcadores
-  glowColor: [0.1, 0.4, 0.6], // Brilho azulado
+  mapBrightness: 6,
+  baseColor: [0.9, 0.93, 0.96], // Light gray base
+  markerColor: [0.11, 0.63, 0.95], // Twitter Blue for markers
+  glowColor: [0.11, 0.63, 0.95], // Twitter Blue glow
   markers: [
-    // Principais cidades da Colômbia onde há clientes
-    { location: [4.7110, -74.0721], size: 0.12 }, // Bogotá (capital, maior)
+    { location: [4.7110, -74.0721], size: 0.12 }, // Bogotá
     { location: [6.2442, -75.5812], size: 0.10 }, // Medellín
     { location: [3.4516, -76.5320], size: 0.09 }, // Cali
     { location: [10.9685, -74.7813], size: 0.08 }, // Barranquilla
@@ -208,8 +207,8 @@ export function Globe({
         className={cn(
           "absolute inset-0 rounded-full transition-all duration-300 pointer-events-none",
           isInteracting 
-            ? "shadow-[0_0_60px_20px_rgba(6,182,212,0.3)] ring-2 ring-neon-cyan/30" 
-            : "shadow-[0_0_30px_10px_rgba(6,182,212,0.1)]"
+            ? "shadow-[0_0_60px_20px_rgba(29,161,242,0.3)] ring-2 ring-primary/30" 
+            : "shadow-[0_0_30px_10px_rgba(29,161,242,0.1)]"
         )}
       />
       
@@ -229,10 +228,9 @@ export function Globe({
         onTouchStart={handleTouchStart}
       />
       
-
       {/* Zoom indicator */}
       {scale !== 1 && (
-        <div className="absolute top-4 right-4 px-2 py-1 rounded-full bg-black/60 border border-neon-cyan/30 text-[10px] text-neon-cyan font-bold">
+        <div className="absolute top-4 right-4 px-2 py-1 rounded-full bg-muted border border-primary/30 text-[10px] text-primary font-bold">
           {Math.round(scale * 100)}%
         </div>
       )}

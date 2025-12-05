@@ -66,8 +66,8 @@ export const DashboardMetrics = () => {
       <SectionCard color="green" className="h-full">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-green-500/10 border border-green-500/20">
-              <DollarSign className="w-5 h-5 text-green-500" />
+            <div className="p-3 rounded-xl bg-chart-4/10 border border-chart-4/20">
+              <DollarSign className="w-5 h-5 text-chart-4" />
             </div>
             <div>
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -89,17 +89,17 @@ export const DashboardMetrics = () => {
         </div>
 
         {/* BRL Conversion Box */}
-        <div className="p-4 rounded-xl bg-card/40 border border-green-500/20">
+        <div className="p-4 rounded-xl bg-muted/50 border border-chart-4/20">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground mb-1 font-semibold">Conversão BRL</p>
-              <div className="text-xl md:text-2xl font-bold text-green-400">
+              <div className="text-xl md:text-2xl font-bold text-chart-4">
                 {formatCurrencyBRL(totalRevenueBRL)}
               </div>
             </div>
             <div className="text-right">
               <div className="text-xs text-muted-foreground/70">Taxa: 0.0014</div>
-              <div className="flex items-center gap-1 text-green-500 mt-1">
+              <div className="flex items-center gap-1 text-chart-4 mt-1">
                 <TrendingUp className="w-3 h-3" />
                 <span className="text-xs font-semibold">Live</span>
               </div>
@@ -112,8 +112,8 @@ export const DashboardMetrics = () => {
       <SectionCard color="cyan" className="h-full">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
-              <ShoppingCart className="w-5 h-5 text-cyan-500" />
+            <div className="p-3 rounded-xl bg-primary/10 border border-primary/20">
+              <ShoppingCart className="w-5 h-5 text-primary" />
             </div>
             <div>
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -122,14 +122,14 @@ export const DashboardMetrics = () => {
               <p className="text-xs text-muted-foreground/70 mt-0.5">Total de pedidos</p>
             </div>
           </div>
-          <div className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse shadow-lg shadow-cyan-500/50" />
+          <div className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-lg shadow-primary/50" />
         </div>
 
         <div className="text-5xl md:text-6xl font-black mb-3 text-foreground">
           {ordersCount}
         </div>
 
-        <div className="flex items-center gap-2 text-cyan-400">
+        <div className="flex items-center gap-2 text-primary">
           <TrendingUp className="w-4 h-4" />
           <span className="text-sm font-semibold">
             {ordersCount} pedido{ordersCount !== 1 ? 's' : ''} no período

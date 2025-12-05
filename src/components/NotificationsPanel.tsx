@@ -61,7 +61,7 @@ export const NotificationsPanel = () => {
     <SectionCard color="green" className="flex flex-col h-full max-h-[600px]">
       <div className="flex items-center justify-between mb-4 flex-shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-lg shadow-green-500/50" />
+          <div className="w-2 h-2 rounded-full bg-chart-4 animate-pulse shadow-lg shadow-chart-4/50" />
           <h3 className="text-base font-bold tracking-wider uppercase text-foreground">
             Novas Vendas
           </h3>
@@ -99,17 +99,17 @@ export const NotificationsPanel = () => {
             return (
               <div 
                 key={order.id}
-                className="relative rounded-xl p-4 bg-card/40 border border-green-500/20 hover:bg-green-500/10 transition-all duration-300 animate-fade-in"
+                className="relative rounded-xl p-4 bg-card/40 border border-chart-4/20 hover:bg-chart-4/10 transition-all duration-300 animate-fade-in"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center border border-green-500/30 shadow-lg flex-shrink-0">
-                    <ShoppingBag className="w-6 h-6 text-green-400" />
+                  <div className="w-12 h-12 rounded-xl bg-chart-4/20 flex items-center justify-center border border-chart-4/30 shadow-lg flex-shrink-0">
+                    <ShoppingBag className="w-6 h-6 text-chart-4" />
                   </div>
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <h4 className="font-bold text-foreground text-base truncate">{order.name}</h4>
-                      <span className="text-base font-bold text-green-400 shrink-0">
+                      <span className="text-base font-bold text-chart-4 shrink-0">
                         {formatCurrency(order.amount, order.currency)}
                       </span>
                     </div>
@@ -125,7 +125,7 @@ export const NotificationsPanel = () => {
                   </div>
                 </div>
                 
-                <div className="mt-3 flex items-center gap-2 text-green-400">
+                <div className="mt-3 flex items-center gap-2 text-chart-4">
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
                     <polyline points="17 6 23 6 23 12"></polyline>
