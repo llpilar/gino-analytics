@@ -13,7 +13,7 @@ import {
 import { useHokoOrders, useHokoProducts, useHokoProductsWithStock } from "@/hooks/useHokoData";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
-import { format, isWithinInterval, startOfDay, endOfDay, parseISO } from "date-fns";
+import { format, isWithinInterval, startOfDay, endOfDay, parseISO, isAfter, isBefore } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useDateFilter } from "@/contexts/DateFilterContext";
@@ -135,17 +135,25 @@ const StatsGrid = () => {
   const allOrders: any[] = Array.isArray(ordersData?.data) ? ordersData.data : 
                 Array.isArray(ordersData) ? ordersData : [];
 
-  // Client-side date filtering as backup (Hoko API may not support date filtering)
+  // Client-side date filtering - minimum date: November 20, 2024
+  const minDate = new Date(2024, 10, 20); // November 20, 2024
+  
   const orders = allOrders.filter((order: any) => {
-    if (!dateRange.from || !dateRange.to) return true;
-    
     const orderDate = order.created_at ? parseISO(order.created_at) : null;
-    if (!orderDate) return true;
+    if (!orderDate) return false;
     
-    return isWithinInterval(orderDate, { 
-      start: startOfDay(dateRange.from), 
-      end: endOfDay(dateRange.to) 
-    });
+    // Always filter out orders before November 20
+    if (isBefore(orderDate, startOfDay(minDate))) return false;
+    
+    // Apply date range filter if set
+    if (dateRange.from && dateRange.to) {
+      return isWithinInterval(orderDate, { 
+        start: startOfDay(dateRange.from), 
+        end: endOfDay(dateRange.to) 
+      });
+    }
+    
+    return true;
   });
 
   const totalOrders = orders.length;
@@ -218,17 +226,25 @@ const OrdersTable = () => {
   const allOrders = Array.isArray(ordersData?.data) ? ordersData.data : 
                  Array.isArray(ordersData) ? ordersData : [];
 
-  // Client-side date filtering as backup (Hoko API may not support date filtering)
+  // Client-side date filtering - minimum date: November 20, 2024
+  const minDate = new Date(2024, 10, 20); // November 20, 2024
+  
   const orders = allOrders.filter((order: any) => {
-    if (!dateRange.from || !dateRange.to) return true;
-    
     const orderDate = order.created_at ? parseISO(order.created_at) : null;
-    if (!orderDate) return true;
+    if (!orderDate) return false;
     
-    return isWithinInterval(orderDate, { 
-      start: startOfDay(dateRange.from), 
-      end: endOfDay(dateRange.to) 
-    });
+    // Always filter out orders before November 20
+    if (isBefore(orderDate, startOfDay(minDate))) return false;
+    
+    // Apply date range filter if set
+    if (dateRange.from && dateRange.to) {
+      return isWithinInterval(orderDate, { 
+        start: startOfDay(dateRange.from), 
+        end: endOfDay(dateRange.to) 
+      });
+    }
+    
+    return true;
   });
 
   if (orders.length === 0) {
