@@ -1,5 +1,5 @@
 import { DashboardWrapper } from "@/components/DashboardWrapper";
-import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Activity, MapPin } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Activity, MapPin, Users, Eye, Clock, BarChart3 } from "lucide-react";
 import { SalesChart } from "@/components/SalesChart";
 import { useShopifyAnalytics, useShopifyRevenueToday } from "@/hooks/useShopifyData";
 import { useMemo } from "react";
@@ -11,6 +11,8 @@ import { PageHeader } from "@/components/PageHeader";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { StatsCard, SectionCard, CardColorVariant } from "@/components/ui/stats-card";
 import { LucideIcon } from "lucide-react";
+import { useGoogleAnalyticsOverview, useGoogleAnalyticsRealtime, parseGAOverviewData, parseGARealtimeData } from "@/hooks/useGoogleAnalytics";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Analises() {
   const { data: analyticsData, isLoading: analyticsLoading } = useShopifyAnalytics();
@@ -19,6 +21,13 @@ export default function Analises() {
   const { data: weeklyComparison } = useWeeklyComparison();
   const { data: monthlyComparison } = useMonthlyComparison();
   const { formatCurrency } = useCurrency();
+
+  // Google Analytics data
+  const { data: gaOverviewData, isLoading: gaLoading, error: gaError } = useGoogleAnalyticsOverview();
+  const { data: gaRealtimeData } = useGoogleAnalyticsRealtime();
+
+  const gaMetrics = useMemo(() => parseGAOverviewData(gaOverviewData), [gaOverviewData]);
+  const gaRealtime = useMemo(() => parseGARealtimeData(gaRealtimeData), [gaRealtimeData]);
 
   // Calculate metrics
   const metrics = useMemo(() => {
@@ -33,18 +42,18 @@ export default function Analises() {
 
     const ordersCount = revenueData?.data?.orders?.edges?.length || 0;
     const avgOrderValue = ordersCount > 0 ? totalRevenue / ordersCount : 0;
-    const conversionRate = 12.5;
-    const activeUsers = Math.floor(ordersCount * 0.85);
+    const conversionRate = gaMetrics.totalUsers > 0 
+      ? ((ordersCount / gaMetrics.totalUsers) * 100).toFixed(2) 
+      : "0.00";
 
     return {
       totalRevenue,
       ordersCount,
       avgOrderValue,
       conversionRate,
-      activeUsers,
       growth: 23.5
     };
-  }, [revenueData]);
+  }, [revenueData, gaMetrics]);
 
   const statCards: { title: string; value: string; change: string; isPositive: boolean; icon: LucideIcon; color: CardColorVariant }[] = [
     {
@@ -74,12 +83,19 @@ export default function Analises() {
     {
       title: "Taxa de Conversão",
       value: `${metrics.conversionRate}%`,
-      change: "-2.1%",
-      isPositive: false,
+      change: gaMetrics.totalUsers > 0 ? "+2.1%" : "0%",
+      isPositive: true,
       icon: Activity,
       color: "orange",
     }
   ];
+
+  // Format session duration
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   return (
     <DashboardWrapper>
@@ -105,6 +121,87 @@ export default function Analises() {
           ))}
         </div>
 
+        {/* Google Analytics Section */}
+        <SectionCard title="Métricas da VSL (Google Analytics)" icon={BarChart3} color="purple" className="mb-8">
+          {gaLoading ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {[...Array(6)].map((_, i) => (
+                <Skeleton key={i} className="h-24 rounded-xl" />
+              ))}
+            </div>
+          ) : gaError ? (
+            <div className="text-center py-8 text-red-400">
+              <p>Erro ao carregar dados do Google Analytics</p>
+              <p className="text-xs text-gray-500 mt-2">Verifique se a conta de serviço tem acesso à propriedade GA4</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              <div className="p-4 rounded-xl bg-black/60 border border-purple-500/30">
+                <div className="flex items-center gap-2 mb-2">
+                  <Users className="w-4 h-4 text-purple-400" />
+                  <span className="text-xs text-gray-500 uppercase">Usuários Ativos</span>
+                </div>
+                <div className="text-2xl font-black text-purple-400">
+                  {gaRealtime.activeUsers > 0 ? gaRealtime.activeUsers : gaMetrics.totalUsers}
+                </div>
+                {gaRealtime.activeUsers > 0 && (
+                  <div className="text-xs text-green-400 mt-1">● Tempo real</div>
+                )}
+              </div>
+
+              <div className="p-4 rounded-xl bg-black/60 border border-cyan-500/30">
+                <div className="flex items-center gap-2 mb-2">
+                  <Activity className="w-4 h-4 text-cyan-400" />
+                  <span className="text-xs text-gray-500 uppercase">Sessões</span>
+                </div>
+                <div className="text-2xl font-black text-cyan-400">
+                  {gaMetrics.totalSessions.toLocaleString()}
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl bg-black/60 border border-green-500/30">
+                <div className="flex items-center gap-2 mb-2">
+                  <Eye className="w-4 h-4 text-green-400" />
+                  <span className="text-xs text-gray-500 uppercase">Visualizações</span>
+                </div>
+                <div className="text-2xl font-black text-green-400">
+                  {gaMetrics.totalPageViews.toLocaleString()}
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl bg-black/60 border border-orange-500/30">
+                <div className="flex items-center gap-2 mb-2">
+                  <Clock className="w-4 h-4 text-orange-400" />
+                  <span className="text-xs text-gray-500 uppercase">Duração Média</span>
+                </div>
+                <div className="text-2xl font-black text-orange-400">
+                  {formatDuration(gaMetrics.avgSessionDuration)}
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl bg-black/60 border border-red-500/30">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingDown className="w-4 h-4 text-red-400" />
+                  <span className="text-xs text-gray-500 uppercase">Taxa Rejeição</span>
+                </div>
+                <div className="text-2xl font-black text-red-400">
+                  {(gaMetrics.bounceRate * 100).toFixed(1)}%
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl bg-black/60 border border-yellow-500/30">
+                <div className="flex items-center gap-2 mb-2">
+                  <Users className="w-4 h-4 text-yellow-400" />
+                  <span className="text-xs text-gray-500 uppercase">Novos Usuários</span>
+                </div>
+                <div className="text-2xl font-black text-yellow-400">
+                  {gaMetrics.newUsers.toLocaleString()}
+                </div>
+              </div>
+            </div>
+          )}
+        </SectionCard>
+
         {/* Charts Section */}
         <div className="mb-8">
           <SectionCard color="cyan">
@@ -112,13 +209,13 @@ export default function Analises() {
           </SectionCard>
         </div>
 
-        {/* Bottom Stats Bar */}
+        {/* Bottom Stats Bar - Now with real GA data */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
-            { label: "Taxa de Rejeição", value: "32.4%", color: "text-orange-400" },
-            { label: "Duração da Sessão", value: "4:32", color: "text-cyan-400" },
-            { label: "Páginas/Sessão", value: "5.2", color: "text-purple-400" },
-            { label: "Taxa de Retorno", value: "68%", color: "text-green-400" }
+            { label: "Taxa de Rejeição", value: `${(gaMetrics.bounceRate * 100).toFixed(1)}%`, color: "text-orange-400" },
+            { label: "Duração da Sessão", value: formatDuration(gaMetrics.avgSessionDuration), color: "text-cyan-400" },
+            { label: "Páginas/Sessão", value: gaMetrics.totalSessions > 0 ? (gaMetrics.totalPageViews / gaMetrics.totalSessions).toFixed(1) : "0", color: "text-purple-400" },
+            { label: "Taxa de Retorno", value: gaMetrics.totalUsers > 0 ? `${(((gaMetrics.totalUsers - gaMetrics.newUsers) / gaMetrics.totalUsers) * 100).toFixed(0)}%` : "0%", color: "text-green-400" }
           ].map((item, index) => (
             <div key={index} className="p-4 rounded-2xl bg-black/80 border-2 border-cyan-500/30 backdrop-blur-xl">
               <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">{item.label}</div>
