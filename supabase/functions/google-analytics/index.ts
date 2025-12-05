@@ -159,11 +159,30 @@ serve(async (req) => {
 
   try {
     const serviceAccountJson = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_JSON');
+    console.log('Secret exists:', !!serviceAccountJson);
+    console.log('Secret length:', serviceAccountJson?.length || 0);
+    
     if (!serviceAccountJson) {
       throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON not configured');
     }
 
-    const credentials: ServiceAccountCredentials = JSON.parse(serviceAccountJson);
+    let credentials: ServiceAccountCredentials;
+    try {
+      credentials = JSON.parse(serviceAccountJson);
+      console.log('Parsed credentials - client_email:', credentials.client_email);
+      console.log('Has private_key:', !!credentials.private_key);
+    } catch (parseError) {
+      console.error('Failed to parse JSON:', parseError);
+      throw new Error('Invalid JSON in GOOGLE_SERVICE_ACCOUNT_JSON secret');
+    }
+
+    if (!credentials.private_key) {
+      throw new Error('private_key is missing from credentials');
+    }
+    if (!credentials.client_email) {
+      throw new Error('client_email is missing from credentials');
+    }
+
     const accessToken = await getAccessToken(credentials);
 
     const { endpoint, startDate, endDate } = await req.json();
