@@ -5,7 +5,9 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  /* Theme: Neon Green (Default) */
+  :root,
+  [data-theme="neon-green"] {
     --background: 240 10% 5%;
     --foreground: 0 0% 100%;
     --card: 240 10% 8%;
@@ -57,6 +59,61 @@
     /* Surface colors */
     --surface-elevated: 240 10% 10%;
     --surface-overlay: 240 10% 6%;
+  }
+
+  /* Theme: Cyberpunk Blue */
+  [data-theme="cyberpunk-blue"] {
+    --background: 222 47% 4%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 7%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 7%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 47% 4%;
+    --secondary: 280 70% 55%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 33% 20%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 188 94% 50%;
+    --accent-foreground: 222 47% 4%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 33% 18%;
+    --input: 217 33% 18%;
+    --ring: 217 91% 60%;
+    --radius: 1rem;
+    
+    /* Chart colors - Blue theme */
+    --chart-1: 217 91% 60%;
+    --chart-2: 188 94% 50%;
+    --chart-3: 280 70% 55%;
+    --chart-4: 330 81% 60%;
+    --chart-5: 142 71% 45%;
+    
+    /* Neon accent colors - Blue cyberpunk palette */
+    --neon-cyan: 188 94% 50%;
+    --neon-cyan-light: 188 94% 60%;
+    --neon-purple: 280 70% 55%;
+    --neon-purple-light: 280 70% 65%;
+    --neon-pink: 330 81% 60%;
+    --neon-pink-light: 330 81% 70%;
+    --neon-green: 142 71% 45%;
+    --neon-green-light: 142 71% 55%;
+    --neon-orange: 25 95% 53%;
+    --neon-orange-light: 25 95% 63%;
+    --neon-blue: 217 91% 60%;
+    --neon-blue-light: 217 91% 70%;
+    
+    /* Status colors */
+    --status-success: 142 71% 45%;
+    --status-warning: 38 92% 50%;
+    --status-error: 0 72% 51%;
+    --status-info: 188 94% 50%;
+    
+    /* Surface colors */
+    --surface-elevated: 222 47% 9%;
+    --surface-overlay: 222 47% 5%;
   }
 
   * {
