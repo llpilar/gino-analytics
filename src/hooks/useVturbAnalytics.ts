@@ -3,6 +3,33 @@ import { supabase } from "@/integrations/supabase/client";
 import { useDateFilter } from "@/contexts/DateFilterContext";
 import { format } from "date-fns";
 
+// New interface for sessions/stats response (matches VTurb dashboard)
+interface VturbSessionStats {
+  total_viewed: number;
+  total_viewed_device_uniq: number;
+  total_viewed_session_uniq: number;
+  total_started: number;
+  total_started_session_uniq: number;
+  total_started_device_uniq: number;
+  total_finished: number;
+  total_finished_session_uniq: number;
+  total_finished_device_uniq: number;
+  engagement_rate: number;
+  total_clicked: number;
+  total_clicked_device_uniq: number;
+  total_clicked_session_uniq: number;
+  total_over_pitch: number;
+  total_under_pitch: number;
+  over_pitch_rate: number;
+  total_conversions: number;
+  overall_conversion_rate: number;
+  total_amount_usd: number;
+  total_amount_brl: number;
+  total_amount_eur: number;
+  play_rate: number;
+}
+
+// Legacy interface for events/total_by_company response
 interface VturbEventData {
   event: string;
   total: number;
@@ -83,34 +110,82 @@ export const useVturbRetention = (playerId?: string) => {
 };
 
 // Parse VTurb response data into usable format
-export const parseVturbData = (data: VturbEventData[] | undefined) => {
-  if (!data || !Array.isArray(data)) {
+// Handles both sessions/stats format and legacy events/total_by_company format
+export const parseVturbData = (data: VturbSessionStats | VturbEventData[] | undefined) => {
+  if (!data) {
     return {
-      totalPlays: 0,
-      uniquePlays: 0,
       totalViews: 0,
       uniqueViews: 0,
+      totalPlays: 0,
+      uniquePlays: 0,
       totalFinished: 0,
       uniqueFinished: 0,
-      retentionRate: 0,
+      engagementRate: 0,
+      playRate: 0,
+      totalClicks: 0,
+      uniqueClicks: 0,
+      overPitchRate: 0,
+      conversionRate: 0,
     };
   }
 
-  const started = data.find(e => e.event === 'started') || { total: 0, total_uniq_sessions: 0, total_uniq_device: 0 };
-  const viewed = data.find(e => e.event === 'viewed') || { total: 0, total_uniq_sessions: 0, total_uniq_device: 0 };
-  const finished = data.find(e => e.event === 'finished') || { total: 0, total_uniq_sessions: 0, total_uniq_device: 0 };
+  // Check if it's the new sessions/stats format (object with total_viewed)
+  if ('total_viewed' in data) {
+    const sessionData = data as VturbSessionStats;
+    return {
+      totalViews: sessionData.total_viewed || 0,
+      uniqueViews: sessionData.total_viewed_device_uniq || 0,
+      totalPlays: sessionData.total_started || 0,
+      uniquePlays: sessionData.total_started_device_uniq || 0,
+      totalFinished: sessionData.total_finished || 0,
+      uniqueFinished: sessionData.total_finished_device_uniq || 0,
+      engagementRate: sessionData.engagement_rate || 0,
+      playRate: sessionData.play_rate || 0,
+      totalClicks: sessionData.total_clicked || 0,
+      uniqueClicks: sessionData.total_clicked_device_uniq || 0,
+      overPitchRate: sessionData.over_pitch_rate || 0,
+      conversionRate: sessionData.overall_conversion_rate || 0,
+    };
+  }
 
-  // Calculate retention rate (finished / started * 100)
-  const retentionRate = started.total > 0 ? (finished.total / started.total) * 100 : 0;
+  // Legacy format: array of events (used when no player_id is specified)
+  if (Array.isArray(data)) {
+    const started = data.find(e => e.event === 'started') || { total: 0, total_uniq_sessions: 0, total_uniq_device: 0 };
+    const viewed = data.find(e => e.event === 'viewed') || { total: 0, total_uniq_sessions: 0, total_uniq_device: 0 };
+    const finished = data.find(e => e.event === 'finished') || { total: 0, total_uniq_sessions: 0, total_uniq_device: 0 };
+
+    // Calculate retention rate (finished / started * 100)
+    const engagementRate = started.total > 0 ? (finished.total / started.total) * 100 : 0;
+
+    return {
+      totalViews: viewed.total,
+      uniqueViews: viewed.total_uniq_device,
+      totalPlays: started.total,
+      uniquePlays: started.total_uniq_device,
+      totalFinished: finished.total,
+      uniqueFinished: finished.total_uniq_device,
+      engagementRate,
+      playRate: 0,
+      totalClicks: 0,
+      uniqueClicks: 0,
+      overPitchRate: 0,
+      conversionRate: 0,
+    };
+  }
 
   return {
-    totalPlays: started.total,
-    uniquePlays: started.total_uniq_device,
-    totalViews: viewed.total,
-    uniqueViews: viewed.total_uniq_device,
-    totalFinished: finished.total,
-    uniqueFinished: finished.total_uniq_device,
-    retentionRate,
+    totalViews: 0,
+    uniqueViews: 0,
+    totalPlays: 0,
+    uniquePlays: 0,
+    totalFinished: 0,
+    uniqueFinished: 0,
+    engagementRate: 0,
+    playRate: 0,
+    totalClicks: 0,
+    uniqueClicks: 0,
+    overPitchRate: 0,
+    conversionRate: 0,
   };
 };
 
