@@ -232,7 +232,7 @@ export default function Analises() {
               {/* Conversões */}
               <div className="p-4 rounded-lg bg-white/5 border border-white/10">
                 <div className="text-2xl font-bold text-foreground">
-                  0
+                  {metrics.ordersCount}
                 </div>
                 <div className="text-sm text-muted-foreground">
                   Conversões
@@ -242,7 +242,9 @@ export default function Analises() {
               {/* Taxa de Conversão */}
               <div className="p-4 rounded-lg bg-white/5 border border-white/10">
                 <div className="text-2xl font-bold text-foreground">
-                  {vturbMetrics.conversionRate.toFixed(2).replace('.', ',')}%
+                  {vturbMetrics.uniquePlays > 0 
+                    ? ((metrics.ordersCount / vturbMetrics.uniquePlays) * 100).toFixed(2).replace('.', ',')
+                    : '0,00'}%
                 </div>
                 <div className="text-sm text-muted-foreground">
                   Taxa de Conversão
