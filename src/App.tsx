@@ -28,14 +28,15 @@ const App = () => (
           <DateFilterProvider>
             <CurrencyProvider>
               <Routes>
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-                <Route path="/analises" element={<ProtectedRoute><Analises /></ProtectedRoute>} />
-                <Route path="/live-view" element={<ProtectedRoute><LiveView /></ProtectedRoute>} />
-                <Route path="/contas" element={<ProtectedRoute><Contas /></ProtectedRoute>} />
-                <Route path="/envios" element={<ProtectedRoute><Envios /></ProtectedRoute>} />
-                <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
-                <Route path="*" element={<NotFound />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+              <Route path="/analises" element={<ProtectedRoute><Analises /></ProtectedRoute>} />
+              <Route path="/live-view" element={<ProtectedRoute><LiveView /></ProtectedRoute>} />
+              <Route path="/contas" element={<ProtectedRoute><Contas /></ProtectedRoute>} />
+              <Route path="/envios" element={<ProtectedRoute><Envios /></ProtectedRoute>} />
+              <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
               </Routes>
             </CurrencyProvider>
           </DateFilterProvider>

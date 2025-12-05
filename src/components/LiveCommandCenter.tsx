@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { Globe } from "./ui/globe-feature-section";
+import { ShootingStars } from "./ui/shooting-stars";
 import { NavBar } from "./ui/tubelight-navbar";
 import { useShopifyRevenueToday, useShopifyAnalytics } from "@/hooks/useShopifyData";
-import { format, differenceInMinutes, isToday } from "date-fns";
+import { format, differenceInMinutes, isToday, isSameDay } from "date-fns";
 import { DashboardSkeleton } from "./DashboardSkeleton";
-import { LayoutDashboard, BarChart3, Settings, Wallet, TrendingUp, DollarSign, ShoppingCart, Zap, Monitor, LayoutGrid, Eye, Megaphone, Target, Truck } from "lucide-react";
+import { LayoutDashboard, BarChart3, Settings, Wallet, TrendingUp, DollarSign, ShoppingCart, Users, Zap, Monitor, LayoutGrid, Eye, Megaphone, Target, Truck } from "lucide-react";
 import { NotificationCenter } from "./NotificationCenter";
 import { ComparisonBadge } from "./ComparisonBadge";
 import { useDailyComparison } from "@/hooks/useComparisonMetrics";
@@ -33,6 +34,7 @@ export const LiveCommandCenter = () => {
   const { visitorCount } = useVslbioboostVisitors();
   const { data: facebookAdsData } = useFacebookAdsToday();
 
+  // Check for mobile viewport
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth < 1280;
@@ -49,6 +51,7 @@ export const LiveCommandCenter = () => {
     return () => clearInterval(timer);
   }, []);
 
+  // Orbital rotation animation - slower for better UX
   useEffect(() => {
     if (layoutMode !== "orbital") return;
     const rotationTimer = setInterval(() => {
@@ -57,6 +60,7 @@ export const LiveCommandCenter = () => {
     return () => clearInterval(rotationTimer);
   }, [layoutMode]);
 
+  // Calculate metrics
   const totalRevenue = revenueData?.data?.orders?.edges?.reduce((acc: number, edge: any) => {
     const amount = parseFloat(
       edge.node.currentTotalPriceSet?.shopMoney?.amount || 
@@ -68,14 +72,20 @@ export const LiveCommandCenter = () => {
 
   const ordersCount = revenueData?.data?.orders?.edges?.length || 0;
   
+  // Calculate minutes elapsed based on date range
   const now = new Date();
   const calculateMinutesElapsed = () => {
     if (!dateRange.from || !dateRange.to) return 1;
+    
     const rangeStart = dateRange.from;
     const rangeEnd = dateRange.to;
+    
+    // If range ends today, use current time as end
     if (isToday(rangeEnd)) {
       return Math.max(1, differenceInMinutes(now, rangeStart));
     }
+    
+    // If range is in the past, calculate full range
     return Math.max(1, differenceInMinutes(rangeEnd, rangeStart));
   };
   
@@ -84,6 +94,7 @@ export const LiveCommandCenter = () => {
   const uniqueShoppers = ordersCount > 0 ? Math.floor(ordersCount * 0.85).toString() : "0";
   const avgOrderValue = ordersCount > 0 ? totalRevenue / ordersCount : 0;
 
+  // Navigation items
   const navItems = [
     { name: 'Dashboard', url: '/', icon: LayoutDashboard },
     { name: 'Análises', url: '/analises', icon: BarChart3 },
@@ -96,11 +107,12 @@ export const LiveCommandCenter = () => {
     return <DashboardSkeleton />;
   }
 
+  // Satellite data for orbital view - reduced distance for better fit
   const satellites = [
-    { label: "RECEITA", value: formatCurrency(totalRevenue), icon: DollarSign, color: "primary" },
-    { label: "PEDIDOS", value: ordersCount.toString(), icon: ShoppingCart, color: "success" },
-    { label: "R$/MIN", value: formatCurrency(parseFloat(salesPerMinute)), icon: Zap, color: "primary" },
-    { label: "VSL ONLINE", value: visitorCount.toString(), icon: Eye, color: "warning" },
+    { label: "RECEITA", value: formatCurrency(totalRevenue), icon: DollarSign, color: "cyan", angle: 0, distance: 240 },
+    { label: "PEDIDOS", value: ordersCount.toString(), icon: ShoppingCart, color: "green", angle: 90, distance: 260 },
+    { label: "R$/MIN", value: formatCurrency(parseFloat(salesPerMinute)), icon: Zap, color: "purple", angle: 180, distance: 250 },
+    { label: "VSL ONLINE", value: visitorCount.toString(), icon: Eye, color: "orange", angle: 270, distance: 270 },
   ];
 
   const getSatellitePosition = (baseAngle: number, distance: number) => {
@@ -109,44 +121,64 @@ export const LiveCommandCenter = () => {
   };
 
   const colorVariants = {
-    primary: { bg: "bg-sky-500/10", border: "border-sky-500/20", text: "text-sky-400" },
-    success: { bg: "bg-emerald-500/10", border: "border-emerald-500/20", text: "text-emerald-400" },
-    warning: { bg: "bg-amber-500/10", border: "border-amber-500/20", text: "text-amber-400" },
-    error: { bg: "bg-red-500/10", border: "border-red-500/20", text: "text-red-400" },
+    cyan: { bg: "bg-neon-cyan/10", border: "border-neon-cyan/40", text: "text-neon-cyan", glow: "shadow-neon-cyan/30" },
+    green: { bg: "bg-neon-green/10", border: "border-neon-green/40", text: "text-neon-green", glow: "shadow-neon-green/30" },
+    purple: { bg: "bg-neon-purple/10", border: "border-neon-purple/40", text: "text-neon-purple", glow: "shadow-neon-purple/30" },
+    orange: { bg: "bg-neon-orange/10", border: "border-neon-orange/40", text: "text-neon-orange", glow: "shadow-neon-orange/30" },
+    pink: { bg: "bg-neon-pink/10", border: "border-neon-pink/40", text: "text-neon-pink", glow: "shadow-neon-pink/30" },
+    blue: { bg: "bg-neon-blue/10", border: "border-neon-blue/40", text: "text-neon-blue", glow: "shadow-neon-blue/30" },
   };
 
   return (
-    <main className="min-h-screen w-full relative overflow-hidden bg-[#020617]">
+    <main 
+      className="min-h-screen w-full relative overflow-hidden bg-black"
+      role="main"
+      aria-label="Dashboard principal de vendas"
+    >
+      {/* Navigation Bar */}
       <NavBar items={navItems} />
       
-      {/* Background */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(148,163,184,0.08),_transparent_50%)]" />
-        <div className="subtle-dots absolute inset-0 opacity-30" />
+      {/* Background Effects */}
+      <div className="absolute inset-0 bg-black" aria-hidden="true">
+        <div className="stars-bg absolute inset-0" />
       </div>
 
-      {/* Subtle ambient glow */}
-      <div className="absolute top-0 left-1/3 w-[600px] h-[600px] bg-sky-500/[0.02] rounded-full blur-[200px]" />
-      <div className="absolute bottom-0 right-1/3 w-[500px] h-[500px] bg-slate-500/[0.03] rounded-full blur-[200px]" />
+      {/* Shooting Stars */}
+      <div aria-hidden="true">
+        <ShootingStars starColor="#06b6d4" trailColor="#0891b2" minSpeed={15} maxSpeed={35} minDelay={800} maxDelay={2500} />
+        <ShootingStars starColor="#8b5cf6" trailColor="#a78bfa" minSpeed={10} maxSpeed={25} minDelay={1500} maxDelay={3500} />
+        <ShootingStars starColor="#ec4899" trailColor="#f472b6" minSpeed={20} maxSpeed={40} minDelay={1000} maxDelay={3000} />
+      </div>
+      
+      {/* Ambient Lighting */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-neon-purple/10 rounded-full blur-[150px]" aria-hidden="true" />
+      <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-neon-pink/10 rounded-full blur-[150px]" aria-hidden="true" />
+      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-neon-green/5 rounded-full blur-[180px]" aria-hidden="true" />
+      <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-neon-blue/5 rounded-full blur-[180px]" aria-hidden="true" />
 
-      {/* Clock & Notification */}
+      {/* Clock & Notification - Top Right */}
       <header className="fixed top-4 right-4 z-40 flex items-center gap-3">
         <NotificationCenter />
-        <div className="px-4 py-2 rounded-full bg-slate-950/70 border border-white/[0.08] backdrop-blur-xl shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
+          <div 
+          className="px-4 py-2 rounded-full bg-black/80 border border-neon-cyan/30 backdrop-blur-xl"
+          role="status"
+          aria-live="polite"
+          aria-label={`Hora atual: ${format(currentTime, "HH:mm:ss")}`}
+        >
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-            <span className="text-emerald-400 font-medium text-xs uppercase tracking-widest">AO VIVO</span>
-            <time className="text-sm font-mono font-semibold text-slate-300 tracking-wider">
+            <div className="w-2 h-2 bg-status-success rounded-full animate-pulse shadow-lg shadow-status-success/50" aria-hidden="true" />
+            <span className="text-status-success font-bold text-xs uppercase tracking-widest">AO VIVO</span>
+            <time className="text-sm font-mono font-black text-neon-cyan tracking-wider">
               {format(currentTime, "HH:mm:ss")}
             </time>
           </div>
         </div>
       </header>
 
-      {/* Layout Toggle */}
+      {/* Layout Toggle - Desktop Only */}
       {!isMobile && (
         <div className="fixed top-4 left-4 z-40">
-          <div className="flex items-center gap-1 p-1 rounded-full bg-slate-950/70 border border-white/[0.08] backdrop-blur-xl shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
+          <div className="flex items-center gap-1 p-1 rounded-full bg-black/80 border border-neon-cyan/30 backdrop-blur-xl">
             <Button
               variant="ghost"
               size="sm"
@@ -154,9 +186,11 @@ export const LiveCommandCenter = () => {
               className={cn(
                 "rounded-full h-8 px-3 transition-all",
                 layoutMode === "orbital" 
-                  ? "bg-white/[0.1] text-slate-100" 
-                  : "text-slate-500 hover:text-slate-300"
+                  ? "bg-neon-cyan/20 text-neon-cyan" 
+                  : "text-muted-foreground hover:text-foreground"
               )}
+              aria-label="Layout orbital com globo"
+              aria-pressed={layoutMode === "orbital"}
             >
               <Monitor className="h-4 w-4" />
             </Button>
@@ -167,9 +201,11 @@ export const LiveCommandCenter = () => {
               className={cn(
                 "rounded-full h-8 px-3 transition-all",
                 layoutMode === "grid" 
-                  ? "bg-white/[0.1] text-slate-100" 
-                  : "text-slate-500 hover:text-slate-300"
+                  ? "bg-neon-cyan/20 text-neon-cyan" 
+                  : "text-muted-foreground hover:text-foreground"
               )}
+              aria-label="Layout em grade"
+              aria-pressed={layoutMode === "grid"}
             >
               <LayoutGrid className="h-4 w-4" />
             </Button>
@@ -179,27 +215,28 @@ export const LiveCommandCenter = () => {
 
       {/* Main Content */}
       {layoutMode === "orbital" && !isMobile ? (
+        // ORBITAL LAYOUT - Desktop Only
         <div className="relative z-10 h-screen flex items-center justify-center gap-16 px-8 pt-16">
-          {/* Central Globe */}
-          <section className="relative w-[600px] h-[600px] flex-shrink-0 flex items-center justify-center mr-auto ml-48">
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="absolute w-[460px] h-[460px] border border-white/[0.04] rounded-full animate-spin" style={{ animationDuration: "60s" }} />
-              <div className="absolute w-[520px] h-[520px] border border-white/[0.03] rounded-full animate-spin" style={{ animationDuration: "80s" }} />
+          {/* Central Globe with Orbital Satellites */}
+          <section className="relative w-[600px] h-[600px] flex-shrink-0 flex items-center justify-center mr-auto ml-48" aria-label="Visualização orbital de métricas">
+            {/* Orbital rings */}
+            <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
+              <div className="absolute w-[460px] h-[460px] border border-neon-cyan/20 rounded-full animate-spin" style={{ animationDuration: "60s" }} />
+              <div className="absolute w-[520px] h-[520px] border border-neon-purple/20 rounded-full animate-spin" style={{ animationDuration: "80s" }} />
+              <div className="absolute w-[580px] h-[580px] border border-neon-pink/10 rounded-full animate-spin" style={{ animationDuration: "100s" }} />
             </div>
 
-            <div className="relative z-10 w-[380px] h-[380px]">
+            {/* Globe */}
+            <div className="relative z-10 w-[380px] h-[380px]" aria-hidden="true">
               <Globe className="w-full h-full" />
-              <div className="absolute inset-0 bg-[radial-gradient(circle,_rgba(14,165,233,0.1),_transparent_60%)] blur-2xl animate-pulse-glow" />
+              <div className="absolute inset-0 bg-gradient-radial from-neon-cyan/30 via-neon-cyan/10 to-transparent blur-3xl animate-pulse-glow" />
+              <div className="absolute inset-0 bg-gradient-radial from-neon-blue/20 via-transparent to-transparent blur-2xl animate-pulse-glow" style={{ animationDelay: "0.5s" }} />
             </div>
 
             {/* Orbital Satellites */}
-            {[
-              { label: "RECEITA", value: formatCurrency(totalRevenue), icon: DollarSign, angle: 0, distance: 240 },
-              { label: "PEDIDOS", value: ordersCount.toString(), icon: ShoppingCart, angle: 90, distance: 260 },
-              { label: "R$/MIN", value: formatCurrency(parseFloat(salesPerMinute)), icon: Zap, angle: 180, distance: 250 },
-              { label: "VSL ONLINE", value: visitorCount.toString(), icon: Eye, angle: 270, distance: 270 },
-            ].map((satellite, index) => {
+            {satellites.map((satellite, index) => {
               const pos = getSatellitePosition(satellite.angle, satellite.distance);
+              const colors = colorVariants[satellite.color as keyof typeof colorVariants];
               const Icon = satellite.icon;
               return (
                 <article
@@ -210,17 +247,22 @@ export const LiveCommandCenter = () => {
                     top: `calc(50% + ${pos.y}px)`,
                     transform: "translate(-50%, -50%)",
                   }}
+                  aria-label={`${satellite.label}: ${satellite.value}`}
                 >
                   <div className="relative group cursor-pointer">
-                    <div className="glass-card p-3 min-w-[120px] hover:scale-105 transition-all duration-300">
+                    <div className={cn(
+                      "relative p-3 rounded-2xl bg-black/90 border-2 backdrop-blur-xl min-w-[120px]",
+                      "hover:scale-105 transition-all duration-300",
+                      colors.border
+                    )}>
                       <div className="relative z-10">
-                        <div className="w-8 h-8 mx-auto mb-2 rounded-lg flex items-center justify-center bg-white/[0.05] border border-white/[0.08]">
-                          <Icon className="w-4 h-4 text-sky-400" />
+                        <div className={cn("w-8 h-8 mx-auto mb-2 rounded-lg flex items-center justify-center", colors.bg)}>
+                          <Icon className={cn("w-4 h-4", colors.text)} />
                         </div>
-                        <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider text-center mb-1">
+                        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-center mb-1">
                           {satellite.label}
                         </div>
-                        <div className="text-lg font-bold text-slate-100 text-center whitespace-nowrap">
+                        <div className={cn("text-lg font-black text-center whitespace-nowrap", colors.text)}>
                           {satellite.value}
                         </div>
                       </div>
@@ -231,8 +273,11 @@ export const LiveCommandCenter = () => {
             })}
           </section>
 
-          {/* Right Side Panel */}
-          <aside className="absolute right-16 top-1/2 -translate-y-[45%] w-[390px] glass-card p-5">
+          {/* Right Side: Data Stream Card */}
+          <aside 
+            className="absolute right-16 top-1/2 -translate-y-[45%] w-[390px] p-5 rounded-2xl bg-black/80 border-2 border-neon-cyan/30 backdrop-blur-xl"
+            aria-label="Painel de dados em tempo real"
+          >
             <DataStreamCard 
               totalRevenue={totalRevenue}
               ordersCount={ordersCount}
@@ -247,53 +292,60 @@ export const LiveCommandCenter = () => {
           </aside>
         </div>
       ) : (
+        // GRID LAYOUT - Mobile & Alternative
         <div className="relative z-10 min-h-screen p-4 pt-24 pb-8">
           <div className="max-w-7xl mx-auto space-y-6">
             {/* Header */}
             <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in">
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-slate-100 tracking-tight">
+                <h1 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">
                   Dashboard
                 </h1>
-                <p className="text-sm text-slate-500 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   Métricas em tempo real
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-                <span className="text-xs font-medium text-emerald-400 uppercase tracking-wider">
+                <div className="w-2 h-2 bg-status-success rounded-full animate-pulse" aria-hidden="true" />
+                <span className="text-xs font-bold text-status-success uppercase tracking-wider">
                   Online
                 </span>
               </div>
             </header>
 
             {/* Stats Grid */}
-            <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+            <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4" aria-label="Métricas principais">
               {satellites.map((stat, index) => {
                 const colors = colorVariants[stat.color as keyof typeof colorVariants];
                 const Icon = stat.icon;
                 return (
                   <article
                     key={stat.label}
-                    className="glass-card p-4 md:p-5 animate-fade-in-up hover:scale-[1.01] cursor-pointer"
+                    className={cn(
+                      "p-4 md:p-6 rounded-2xl bg-surface-elevated border-2 backdrop-blur-xl",
+                      "transition-all duration-300 hover:scale-[1.02] cursor-pointer",
+                      "animate-fade-in-up",
+                      colors.border
+                    )}
                     style={{ animationDelay: `${index * 100}ms` }}
+                    aria-label={`${stat.label}: ${stat.value}`}
                   >
                     <div className="flex items-center gap-3 mb-3">
                       <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center border", colors.bg, colors.border)}>
-                        <Icon className={cn("w-5 h-5", colors.text)} />
+                        <Icon className={cn("w-5 h-5", colors.text)} aria-hidden="true" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-[10px] md:text-xs font-semibold text-slate-500 uppercase tracking-wider truncate">
+                        <h3 className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-wider truncate">
                           {stat.label}
                         </h3>
                       </div>
                     </div>
-                    <div className="text-2xl md:text-3xl font-bold text-slate-100 truncate">
+                    <div className={cn("text-2xl md:text-3xl font-black truncate", colors.text)}>
                       {stat.value}
                     </div>
                     <div className="flex items-center gap-1 mt-2">
-                      <TrendingUp className="w-3 h-3 text-emerald-400" />
-                      <span className="text-xs font-medium text-emerald-400">Ao vivo</span>
+                      <TrendingUp className={cn("w-3 h-3", colors.text)} aria-hidden="true" />
+                      <span className={cn("text-xs font-semibold", colors.text)}>Ao vivo</span>
                     </div>
                   </article>
                 );
@@ -302,7 +354,12 @@ export const LiveCommandCenter = () => {
 
             {/* Main Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <section className="lg:col-span-2 glass-card p-4 md:p-6 animate-fade-in" style={{ animationDelay: "400ms" }}>
+              {/* Data Stream Panel */}
+              <section 
+                className="lg:col-span-2 p-4 md:p-6 rounded-2xl bg-surface-elevated border-2 border-neon-cyan/30 backdrop-blur-xl animate-fade-in"
+                style={{ animationDelay: "400ms" }}
+                aria-label="Detalhes de faturamento"
+              >
                 <DataStreamCard 
                   totalRevenue={totalRevenue}
                   ordersCount={ordersCount}
@@ -316,13 +373,18 @@ export const LiveCommandCenter = () => {
                 />
               </section>
 
-              <aside className="hidden lg:block glass-card p-6 animate-fade-in overflow-hidden" style={{ animationDelay: "500ms" }}>
-                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">
+              {/* Globe Preview - Desktop Grid Only */}
+              <aside 
+                className="hidden lg:block p-6 rounded-2xl bg-surface-elevated border-2 border-neon-purple/30 backdrop-blur-xl animate-fade-in overflow-hidden"
+                style={{ animationDelay: "500ms" }}
+                aria-label="Visualização do globo"
+              >
+                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">
                   Vendas Globais
                 </h3>
                 <div className="relative w-full aspect-square">
                   <Globe className="w-full h-full" />
-                  <div className="absolute inset-0 bg-[radial-gradient(circle,_rgba(14,165,233,0.1),_transparent_60%)] blur-2xl" />
+                  <div className="absolute inset-0 bg-gradient-radial from-neon-purple/20 via-transparent to-transparent blur-2xl" aria-hidden="true" />
                 </div>
               </aside>
             </div>
@@ -331,10 +393,39 @@ export const LiveCommandCenter = () => {
       )}
 
       <Toaster />
+
+      <style>{`
+        .stars-bg {
+          background-image: 
+            radial-gradient(2px 2px at 20px 30px, hsl(var(--neon-cyan)), rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 40px 70px, hsl(var(--neon-purple)), rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 50px 160px, hsl(var(--neon-pink)), rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 90px 40px, hsl(var(--primary)), rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 130px 80px, hsl(var(--neon-blue)), rgba(0,0,0,0)),
+            radial-gradient(1px 1px at 200px 50px, #fff, rgba(0,0,0,0)),
+            radial-gradient(1px 1px at 250px 100px, #fff, rgba(0,0,0,0)),
+            radial-gradient(1px 1px at 300px 150px, #fff, rgba(0,0,0,0));
+          background-repeat: repeat;
+          background-size: 350px 250px;
+          animation: twinkle 5s ease-in-out infinite;
+          opacity: 0.4;
+        }
+
+        @keyframes twinkle {
+          0% { opacity: 0.3; }
+          50% { opacity: 0.6; }
+          100% { opacity: 0.3; }
+        }
+
+        .bg-gradient-radial {
+          background: radial-gradient(circle, var(--tw-gradient-stops));
+        }
+      `}</style>
     </main>
   );
 };
 
+// Extracted Data Stream Card Component
 interface DataStreamCardProps {
   totalRevenue: number;
   ordersCount: number;
@@ -342,7 +433,7 @@ interface DataStreamCardProps {
   uniqueShoppers: string;
   dailyComparison: any;
   formatCurrency: (value: number) => string;
-  colorVariants: Record<string, { bg: string; border: string; text: string }>;
+  colorVariants: Record<string, { bg: string; border: string; text: string; glow: string }>;
   adSpend: number;
   cpa: number;
 }
@@ -364,10 +455,10 @@ const DataStreamCard = ({
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-sky-400 rounded-full animate-pulse" />
-            <h3 className="text-sm font-semibold text-sky-400 uppercase tracking-wider">Shopify Ao Vivo</h3>
+            <div className="w-3 h-3 bg-neon-cyan rounded-full animate-pulse shadow-lg shadow-neon-cyan/50" aria-hidden="true" />
+            <h3 className="text-sm font-black text-neon-cyan uppercase tracking-wider">Shopify Ao Vivo</h3>
           </div>
-          <time className="text-[10px] text-slate-500 font-mono">
+          <time className="text-[10px] text-muted-foreground font-mono">
             {format(new Date(), "HH:mm:ss")}
           </time>
         </div>
@@ -375,80 +466,72 @@ const DataStreamCard = ({
         {/* Key Metrics */}
         <div className="space-y-3">
           {/* Ad Spend */}
-          <div className={cn("p-4 rounded-xl border bg-white/[0.02]", colorVariants.warning.border)}>
+          <div className={cn("p-4 rounded-xl border-2 backdrop-blur-sm", colorVariants.pink.bg, colorVariants.pink.border)}>
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <Megaphone className={cn("w-4 h-4", colorVariants.warning.text)} />
-                <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Gasto em Ads Hoje</span>
+                <Megaphone className="w-4 h-4 text-neon-pink" />
+                <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Gasto em Ads Hoje</span>
               </div>
+              <div className="text-[9px] text-muted-foreground bg-black/30 px-2 py-0.5 rounded-full">Facebook Ads</div>
             </div>
-            <div className="flex items-baseline gap-2">
-              <span className={cn("text-2xl font-bold", colorVariants.warning.text)}>
-                {formatCurrency(adSpend)}
-              </span>
+            <div className="text-2xl md:text-3xl font-black text-neon-pink">
+              {formatCurrency(adSpend)}
             </div>
-          </div>
-
-          {/* CPA */}
-          <div className={cn("p-4 rounded-xl border bg-white/[0.02]", colorVariants.primary.border)}>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Target className={cn("w-4 h-4", colorVariants.primary.text)} />
-                <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">CPA Hoje</span>
-              </div>
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className={cn("text-2xl font-bold", colorVariants.primary.text)}>
-                {formatCurrency(cpa)}
-              </span>
-            </div>
+            <p className="text-[10px] text-muted-foreground mt-1">Total investido</p>
           </div>
           
-          {/* Total Revenue */}
-          <div className={cn("p-4 rounded-xl border bg-white/[0.02]", colorVariants.success.border)}>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <DollarSign className={cn("w-4 h-4", colorVariants.success.text)} />
-                <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Faturamento</span>
+          {/* Orders Grid */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className={cn("p-3 rounded-xl border-2 backdrop-blur-sm", colorVariants.purple.bg, colorVariants.purple.border)}>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Pedidos</span>
+                {dailyComparison?.orders && (
+                  <ComparisonBadge 
+                    changePercent={dailyComparison.orders.changePercent}
+                    isPositive={dailyComparison.orders.isPositive}
+                    label=""
+                  />
+                )}
               </div>
-              {dailyComparison && dailyComparison.yesterday?.revenue > 0 && (
-                <ComparisonBadge
-                  changePercent={((totalRevenue - dailyComparison.yesterday.revenue) / dailyComparison.yesterday.revenue) * 100}
-                  isPositive={totalRevenue >= dailyComparison.yesterday.revenue}
-                  label=""
-                />
-              )}
+              <div className="text-xl md:text-2xl font-black text-neon-purple">{ordersCount}</div>
+              <p className="text-[9px] text-muted-foreground mt-0.5">Total de hoje</p>
             </div>
-            <div className="flex items-baseline gap-2">
-              <span className={cn("text-3xl font-bold", colorVariants.success.text)}>
-                {formatCurrency(totalRevenue)}
-              </span>
+            
+            <div className={cn("p-3 rounded-xl border-2 backdrop-blur-sm", colorVariants.green.bg, colorVariants.green.border)}>
+              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-1 block">Ticket Médio</span>
+              <div className="text-xl md:text-2xl font-black text-neon-green">
+                {formatCurrency(avgOrderValue)}
+              </div>
+              <p className="text-[9px] text-muted-foreground mt-0.5">Por pedido</p>
             </div>
           </div>
 
-          {/* Average Ticket */}
-          <div className={cn("p-4 rounded-xl border bg-white/[0.02]", colorVariants.primary.border)}>
+          {/* CPA - Cost Per Acquisition */}
+          <div className={cn("p-4 rounded-xl border-2 backdrop-blur-sm", colorVariants.orange.bg, colorVariants.orange.border)}>
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <ShoppingCart className={cn("w-4 h-4", colorVariants.primary.text)} />
-                <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Ticket Médio</span>
+                <Target className="w-4 h-4 text-neon-orange" />
+                <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider">CPA</span>
               </div>
-              {dailyComparison && dailyComparison.yesterday?.averageOrderValue > 0 && (
-                <ComparisonBadge
-                  changePercent={((avgOrderValue - dailyComparison.yesterday.averageOrderValue) / dailyComparison.yesterday.averageOrderValue) * 100}
-                  isPositive={avgOrderValue >= dailyComparison.yesterday.averageOrderValue}
-                  label=""
-                />
-              )}
+              <div className="text-[9px] text-muted-foreground bg-black/30 px-2 py-0.5 rounded-full">Custo por Compra</div>
             </div>
-            <div className="flex items-baseline gap-2">
-              <span className={cn("text-2xl font-bold", colorVariants.primary.text)}>
-                {formatCurrency(avgOrderValue)}
-              </span>
-              <span className="text-slate-500 text-sm">/ pedido</span>
+            <div className="text-2xl md:text-3xl font-black text-neon-orange">
+              {formatCurrency(cpa)}
             </div>
+            <p className="text-[10px] text-muted-foreground mt-1">Facebook Ads</p>
           </div>
         </div>
+
+        {/* System Status Footer */}
+        <footer className="mt-4 pt-3 border-t border-border flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-status-success rounded-full animate-pulse" aria-hidden="true" />
+            <span className="text-xs font-bold text-status-success">OPERACIONAL</span>
+          </div>
+          <div className="text-[10px] text-muted-foreground">
+            Latência: <span className="text-neon-cyan font-bold">12ms</span>
+          </div>
+        </footer>
       </div>
     </div>
   );
