@@ -31,7 +31,7 @@ export default function Configuracoes() {
           subtitle="Gerencie suas preferências e informações da conta"
         />
 
-        <div className="grid gap-6 max-w-4xl">
+        <div className="grid gap-6 w-full">
           {/* Theme Selector */}
           <ThemeSelector />
 
