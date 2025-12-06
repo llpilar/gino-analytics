@@ -28,26 +28,26 @@ export const DashboardWrapper = ({ children }: DashboardWrapperProps) => {
   ];
 
   return (
-    <div className="min-h-screen w-full relative overflow-hidden bg-background">
+    <div className="min-h-screen w-full relative bg-background">
       {/* Navigation Bar */}
       <NavBar items={navItems} />
       
-      {/* Background with shooting stars and static stars */}
-      <div className="absolute inset-0 bg-background">
+      {/* Background with shooting stars and static stars - fixed position */}
+      <div className="fixed inset-0 bg-background pointer-events-none">
         <div className="stars-bg absolute inset-0 dark:opacity-40 opacity-0" />
+        
+        {/* Multiple shooting star layers - Only in dark mode */}
+        <div className="dark:block hidden">
+          <ShootingStars starColor="#1da1f2" trailColor="#1e9df1" minSpeed={15} maxSpeed={35} minDelay={800} maxDelay={2500} />
+          <ShootingStars starColor="#1c9cf0" trailColor="#1da1f2" minSpeed={10} maxSpeed={25} minDelay={1500} maxDelay={3500} />
+        </div>
+        
+        {/* Subtle Ambient Lighting Effects - Only in dark mode */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px] dark:opacity-100 opacity-0" />
+        <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px] dark:opacity-100 opacity-0" />
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-chart-4/5 rounded-full blur-[180px] dark:opacity-100 opacity-0" />
+        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-chart-1/5 rounded-full blur-[180px] dark:opacity-100 opacity-0" />
       </div>
-
-      {/* Multiple shooting star layers - Only in dark mode */}
-      <div className="dark:block hidden">
-        <ShootingStars starColor="#1da1f2" trailColor="#1e9df1" minSpeed={15} maxSpeed={35} minDelay={800} maxDelay={2500} />
-        <ShootingStars starColor="#1c9cf0" trailColor="#1da1f2" minSpeed={10} maxSpeed={25} minDelay={1500} maxDelay={3500} />
-      </div>
-      
-      {/* Subtle Ambient Lighting Effects - Only in dark mode */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px] dark:opacity-100 opacity-0" />
-      <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px] dark:opacity-100 opacity-0" />
-      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-chart-4/5 rounded-full blur-[180px] dark:opacity-100 opacity-0" />
-      <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-chart-1/5 rounded-full blur-[180px] dark:opacity-100 opacity-0" />
 
       {/* Live Indicator - Top Right */}
       <div className="fixed top-4 right-4 z-40">
@@ -63,7 +63,7 @@ export const DashboardWrapper = ({ children }: DashboardWrapperProps) => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 pt-20">
+      <div className="relative z-10 pt-20 min-h-screen">
         {children}
       </div>
 
