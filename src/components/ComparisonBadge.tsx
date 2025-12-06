@@ -10,12 +10,12 @@ interface ComparisonBadgeProps {
 export const ComparisonBadge = ({ changePercent, isPositive, label = "vs ontem" }: ComparisonBadgeProps) => {
   const Icon = isPositive ? TrendingUp : TrendingDown;
   const colorClass = isPositive 
-    ? "bg-status-success/20 text-status-success border-status-success/40" 
-    : "bg-status-error/20 text-status-error border-status-error/40";
+    ? "bg-chart-4/10 text-chart-4 border-chart-4/30" 
+    : "bg-destructive/10 text-destructive border-destructive/30";
   
   return (
     <Badge 
-      className={`gap-1 ${colorClass} border-2 font-bold`}
+      className={`gap-1 ${colorClass} border font-medium`}
       aria-label={`${isPositive ? 'Aumento' : 'Queda'} de ${Math.abs(changePercent).toFixed(1)} porcento ${label}`}
     >
       <Icon className="h-3 w-3" aria-hidden="true" />
