@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-export type ThemePreset = 'neon-green' | 'liquid-glass' | 'twitter-blue' | 'minimal-neutral';
+export type ThemePreset = 'neon-green' | 'liquid-glass' | 'twitter-blue' | 'minimal-neutral' | 'purple-modern';
 
 interface ThemeContextType {
   theme: ThemePreset;
@@ -34,6 +34,12 @@ const themePresets = [
     name: 'Minimal Neutral',
     description: 'Estilo minimalista com tons neutros e azul',
     colors: ['#171717', '#3a81f6', '#91c5ff', '#e5e5e5']
+  },
+  {
+    id: 'purple-modern' as ThemePreset,
+    name: 'Purple Modern',
+    description: 'Visual moderno com roxo vibrante e verde',
+    colors: ['#7033ff', '#4ac885', '#fd822b', '#3276e4']
   }
 ];
 
