@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-export type ThemePreset = 'neon-green' | 'liquid-glass' | 'twitter-blue';
+export type ThemePreset = 'neon-green' | 'liquid-glass' | 'twitter-blue' | 'minimal-neutral';
 
 interface ThemeContextType {
   theme: ThemePreset;
@@ -28,6 +28,12 @@ const themePresets = [
     name: 'Twitter Blue',
     description: 'Visual clean inspirado no X/Twitter',
     colors: ['#1da1f2', '#00b87a', '#f7b928', '#e0245e']
+  },
+  {
+    id: 'minimal-neutral' as ThemePreset,
+    name: 'Minimal Neutral',
+    description: 'Estilo minimalista com tons neutros e azul',
+    colors: ['#171717', '#3a81f6', '#91c5ff', '#e5e5e5']
   }
 ];
 
