@@ -25,7 +25,7 @@ export default function Configuracoes() {
 
   return (
     <DashboardWrapper>
-      <div className="container mx-auto p-6 md:p-8 lg:p-12">
+      <div className="container mx-auto p-6 md:p-8 lg:p-12 min-h-screen">
         <PageHeader 
           title="Configurações"
           subtitle="Gerencie suas preferências e informações da conta"
