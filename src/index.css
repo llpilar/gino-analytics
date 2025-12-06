@@ -190,6 +190,80 @@
     --sidebar-ring: 203 89% 53%;
   }
 
+  /* Theme: Minimal Neutral - Light Mode */
+  [data-theme="minimal-neutral"] {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 4%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 4%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 4%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 358 100% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 0 0% 63%;
+    --radius: 0.625rem;
+    --chart-1: 209 100% 78%;
+    --chart-2: 216 93% 60%;
+    --chart-3: 224 92% 57%;
+    --chart-4: 227 86% 48%;
+    --chart-5: 227 70% 40%;
+    --sidebar: 0 0% 98%;
+    --sidebar-foreground: 0 0% 4%;
+    --sidebar-primary: 0 0% 9%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 0 0% 96%;
+    --sidebar-accent-foreground: 0 0% 9%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 0 0% 63%;
+  }
+
+  /* Theme: Minimal Neutral - Dark Mode */
+  .dark [data-theme="minimal-neutral"],
+  [data-theme="minimal-neutral"].dark {
+    --background: 0 0% 4%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 4%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 4%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 4%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 63%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 358 100% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 0 0% 32%;
+    --chart-1: 209 100% 78%;
+    --chart-2: 216 93% 60%;
+    --chart-3: 224 92% 57%;
+    --chart-4: 227 86% 48%;
+    --chart-5: 227 70% 40%;
+    --sidebar: 0 0% 4%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 0 0% 98%;
+    --sidebar-primary-foreground: 0 0% 4%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 0 0% 32%;
+  }
+
   * {
     @apply border-border;
   }
@@ -222,6 +296,16 @@
   .dark [data-theme="twitter-blue"] body,
   [data-theme="twitter-blue"].dark body {
     background: hsl(0, 0%, 0%);
+  }
+
+  /* Minimal Neutral theme background */
+  [data-theme="minimal-neutral"] body {
+    background: hsl(0, 0%, 100%);
+  }
+
+  .dark [data-theme="minimal-neutral"] body,
+  [data-theme="minimal-neutral"].dark body {
+    background: hsl(0, 0%, 4%);
   }
 }
 
@@ -488,6 +572,73 @@
     background: hsl(225, 11%, 10%);
     border: 1px solid hsl(203, 89%, 53%, 0.2) !important;
     box-shadow: 0 0 20px hsl(203, 89%, 53%, 0.1) !important;
+  }
+
+  /* Minimal Neutral theme specific cards - Light Mode */
+  [data-theme="minimal-neutral"] .glass-card,
+  [data-theme="minimal-neutral"] .standard-card {
+    @apply rounded-xl;
+    background: hsl(0, 0%, 100%);
+    border: 1px solid hsl(0, 0%, 90%);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+
+  [data-theme="minimal-neutral"] .glass-card:hover,
+  [data-theme="minimal-neutral"] .standard-card:hover {
+    background: hsl(0, 0%, 98%);
+    border-color: hsl(0, 0%, 80%);
+  }
+
+  [data-theme="minimal-neutral"] .metric-card {
+    @apply rounded-lg;
+    background: hsl(0, 0%, 100%);
+    border: 1px solid hsl(0, 0%, 90%);
+  }
+
+  [data-theme="minimal-neutral"] .standard-card-cyan,
+  [data-theme="minimal-neutral"] .standard-card-purple,
+  [data-theme="minimal-neutral"] .standard-card-green,
+  [data-theme="minimal-neutral"] .standard-card-orange {
+    background: hsl(0, 0%, 100%);
+    border: 1px solid hsl(216, 93%, 60%, 0.2) !important;
+    box-shadow: 0 0 20px hsl(216, 93%, 60%, 0.05) !important;
+  }
+
+  /* Minimal Neutral theme specific cards - Dark Mode */
+  .dark [data-theme="minimal-neutral"] .glass-card,
+  .dark [data-theme="minimal-neutral"] .standard-card,
+  [data-theme="minimal-neutral"].dark .glass-card,
+  [data-theme="minimal-neutral"].dark .standard-card {
+    background: hsl(0, 0%, 8%);
+    border: 1px solid hsl(0, 0%, 15%);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+
+  .dark [data-theme="minimal-neutral"] .glass-card:hover,
+  .dark [data-theme="minimal-neutral"] .standard-card:hover,
+  [data-theme="minimal-neutral"].dark .glass-card:hover,
+  [data-theme="minimal-neutral"].dark .standard-card:hover {
+    background: hsl(0, 0%, 10%);
+    border-color: hsl(0, 0%, 20%);
+  }
+
+  .dark [data-theme="minimal-neutral"] .metric-card,
+  [data-theme="minimal-neutral"].dark .metric-card {
+    background: hsl(0, 0%, 8%);
+    border: 1px solid hsl(0, 0%, 15%);
+  }
+
+  .dark [data-theme="minimal-neutral"] .standard-card-cyan,
+  .dark [data-theme="minimal-neutral"] .standard-card-purple,
+  .dark [data-theme="minimal-neutral"] .standard-card-green,
+  .dark [data-theme="minimal-neutral"] .standard-card-orange,
+  [data-theme="minimal-neutral"].dark .standard-card-cyan,
+  [data-theme="minimal-neutral"].dark .standard-card-purple,
+  [data-theme="minimal-neutral"].dark .standard-card-green,
+  [data-theme="minimal-neutral"].dark .standard-card-orange {
+    background: hsl(0, 0%, 8%);
+    border: 1px solid hsl(216, 93%, 60%, 0.2) !important;
+    box-shadow: 0 0 20px hsl(216, 93%, 60%, 0.1) !important;
   }
   
   /* Scrollbar */
