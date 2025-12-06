@@ -123,7 +123,7 @@ export default function Analises() {
               title={stat.title}
               value={stat.value}
               subtitle={stat.change}
-              subtitleColor={stat.isPositive ? 'text-green-400' : 'text-red-400'}
+              subtitleColor={stat.isPositive ? 'text-chart-4' : 'text-destructive'}
               icon={stat.icon}
               color={stat.color}
             />
@@ -139,9 +139,9 @@ export default function Analises() {
               ))}
             </div>
           ) : vturbError ? (
-            <div className="text-center py-8 text-red-400">
+            <div className="text-center py-8 text-destructive">
               <p>Conectando ao VTurb...</p>
-              <p className="text-xs text-gray-500 mt-2">Verifique se a API Key está configurada corretamente</p>
+              <p className="text-xs text-muted-foreground mt-2">Verifique se a API Key está configurada corretamente</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
@@ -273,8 +273,8 @@ export default function Analises() {
         {/* Temporal Comparisons */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Daily Comparison */}
-          <SectionCard color="green">
-            <h3 className="text-sm font-black text-muted-foreground uppercase tracking-wider mb-4">Hoje vs Ontem</h3>
+          <SectionCard color="cyan">
+            <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4">Hoje vs Ontem</h3>
             {dailyComparison && (
               <div className="space-y-4">
                 <div>
@@ -286,7 +286,7 @@ export default function Analises() {
                       label=""
                     />
                   </div>
-                  <div className="text-2xl font-black text-green-400">
+                  <div className="text-2xl font-bold text-foreground">
                     {formatCurrency(dailyComparison.revenue.current)}
                   </div>
                 </div>
@@ -299,7 +299,7 @@ export default function Analises() {
                       label=""
                     />
                   </div>
-                  <div className="text-2xl font-black text-green-400">
+                  <div className="text-2xl font-bold text-foreground">
                     {dailyComparison.orders.current}
                   </div>
                 </div>
@@ -308,8 +308,8 @@ export default function Analises() {
           </SectionCard>
 
           {/* Weekly Comparison */}
-          <SectionCard color="purple">
-            <h3 className="text-sm font-black text-muted-foreground uppercase tracking-wider mb-4">Semana Atual vs Anterior</h3>
+          <SectionCard color="cyan">
+            <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4">Semana Atual vs Anterior</h3>
             {weeklyComparison && (
               <div className="space-y-4">
                 <div>
@@ -321,7 +321,7 @@ export default function Analises() {
                       label=""
                     />
                   </div>
-                  <div className="text-2xl font-black text-purple-400">
+                  <div className="text-2xl font-bold text-foreground">
                     {formatCurrency(weeklyComparison.revenue.current)}
                   </div>
                 </div>
@@ -334,7 +334,7 @@ export default function Analises() {
                       label=""
                     />
                   </div>
-                  <div className="text-2xl font-black text-purple-400">
+                  <div className="text-2xl font-bold text-foreground">
                     {weeklyComparison.orders.current}
                   </div>
                 </div>
@@ -344,7 +344,7 @@ export default function Analises() {
 
           {/* Monthly Comparison */}
           <SectionCard color="cyan">
-            <h3 className="text-sm font-black text-muted-foreground uppercase tracking-wider mb-4">Mês Atual vs Anterior</h3>
+            <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4">Mês Atual vs Anterior</h3>
             {monthlyComparison && (
               <div className="space-y-4">
                 <div>
@@ -356,7 +356,7 @@ export default function Analises() {
                       label=""
                     />
                   </div>
-                  <div className="text-2xl font-black text-primary">
+                  <div className="text-2xl font-bold text-foreground">
                     {formatCurrency(monthlyComparison.revenue.current)}
                   </div>
                 </div>
@@ -369,7 +369,7 @@ export default function Analises() {
                       label=""
                     />
                   </div>
-                  <div className="text-2xl font-black text-primary">
+                  <div className="text-2xl font-bold text-foreground">
                     {monthlyComparison.orders.current}
                   </div>
                 </div>
