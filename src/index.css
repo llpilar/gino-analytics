@@ -61,59 +61,69 @@
     --surface-overlay: 240 10% 6%;
   }
 
-  /* Theme: Liquid Glass */
-  [data-theme="liquid-glass"] {
-    --background: 230 15% 7%;
-    --foreground: 0 0% 95%;
-    --card: 230 12% 12%;
-    --card-foreground: 0 0% 95%;
-    --popover: 230 12% 10%;
-    --popover-foreground: 0 0% 95%;
-    --primary: 220 15% 80%;
-    --primary-foreground: 230 15% 7%;
-    --secondary: 230 10% 20%;
-    --secondary-foreground: 0 0% 90%;
-    --muted: 230 10% 18%;
-    --muted-foreground: 220 10% 55%;
-    --accent: 220 12% 70%;
-    --accent-foreground: 230 15% 7%;
-    --destructive: 0 50% 50%;
-    --destructive-foreground: 0 0% 95%;
-    --border: 230 10% 22%;
-    --input: 230 12% 15%;
-    --ring: 220 15% 70%;
-    --radius: 1.25rem;
+  /* Theme: Netflix Red */
+  [data-theme="netflix-red"] {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 357 91% 46%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 17%;
+    --secondary-foreground: 0 0% 64%;
+    --muted: 0 0% 17%;
+    --muted-foreground: 0 0% 64%;
+    --accent: 357 91% 46%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 357 91% 46%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 25%;
+    --input: 0 0% 25%;
+    --ring: 357 91% 46%;
+    --radius: 0.25rem;
     
-    /* Chart colors - Soft palette */
-    --chart-1: 220 20% 75%;
-    --chart-2: 200 15% 65%;
-    --chart-3: 180 12% 55%;
-    --chart-4: 260 15% 70%;
-    --chart-5: 240 12% 60%;
+    /* Chart colors - Netflix palette */
+    --chart-1: 357 91% 46%;
+    --chart-2: 0 0% 100%;
+    --chart-3: 0 0% 64%;
+    --chart-4: 357 91% 56%;
+    --chart-5: 0 0% 40%;
     
-    /* Accent colors - Soft tones */
-    --neon-cyan: 200 20% 70%;
-    --neon-cyan-light: 200 20% 80%;
-    --neon-purple: 260 15% 65%;
-    --neon-purple-light: 260 15% 75%;
-    --neon-pink: 320 15% 65%;
-    --neon-pink-light: 320 15% 75%;
-    --neon-green: 160 15% 65%;
-    --neon-green-light: 160 15% 75%;
-    --neon-orange: 30 20% 65%;
-    --neon-orange-light: 30 20% 75%;
-    --neon-blue: 220 20% 70%;
-    --neon-blue-light: 220 20% 80%;
+    /* Accent colors */
+    --neon-cyan: 357 91% 56%;
+    --neon-cyan-light: 357 91% 66%;
+    --neon-purple: 357 91% 46%;
+    --neon-purple-light: 357 91% 56%;
+    --neon-pink: 357 91% 46%;
+    --neon-pink-light: 357 91% 56%;
+    --neon-green: 357 91% 46%;
+    --neon-green-light: 357 91% 56%;
+    --neon-orange: 357 91% 46%;
+    --neon-orange-light: 357 91% 56%;
+    --neon-blue: 357 91% 46%;
+    --neon-blue-light: 357 91% 56%;
     
-    /* Status colors - Subtle */
-    --status-success: 150 30% 50%;
-    --status-warning: 40 40% 55%;
-    --status-error: 0 45% 50%;
-    --status-info: 210 30% 60%;
+    /* Status colors */
+    --status-success: 142 71% 45%;
+    --status-warning: 38 92% 50%;
+    --status-error: 357 91% 46%;
+    --status-info: 357 91% 56%;
     
     /* Surface colors */
-    --surface-elevated: 230 12% 14%;
-    --surface-overlay: 230 15% 9%;
+    --surface-elevated: 0 0% 12%;
+    --surface-overlay: 0 0% 6%;
+    
+    /* Sidebar */
+    --sidebar: 0 0% 10%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 357 91% 46%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 357 91% 46%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 25%;
+    --sidebar-ring: 357 91% 46%;
   }
 
   /* Theme: Twitter Blue - Light Mode */
@@ -428,12 +438,9 @@
     @apply bg-gradient-to-br from-black via-zinc-900 to-zinc-800;
   }
 
-  /* Liquid Glass theme background */
-  [data-theme="liquid-glass"] body {
-    background: linear-gradient(145deg, 
-      hsl(220, 15%, 8%) 0%, 
-      hsl(240, 10%, 6%) 50%, 
-      hsl(260, 15%, 8%) 100%);
+  /* Netflix Red theme background */
+  [data-theme="netflix-red"] body {
+    background: hsl(0, 0%, 0%);
   }
 
   /* Twitter Blue theme background */
