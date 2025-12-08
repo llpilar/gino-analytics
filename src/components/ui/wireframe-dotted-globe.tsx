@@ -126,6 +126,18 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
     const allDots: DotData[] = []
     let landFeatures: any
 
+    // Get computed CSS colors from the document
+    const getColor = (varName: string, fallback: string): string => {
+      if (typeof document !== 'undefined') {
+        const style = getComputedStyle(document.documentElement)
+        const value = style.getPropertyValue(varName).trim()
+        if (value) {
+          return `hsl(${value})`
+        }
+      }
+      return fallback
+    }
+
     const render = () => {
       // Clear canvas
       context.clearRect(0, 0, containerWidth, containerHeight)
@@ -133,12 +145,17 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
       const currentScale = projection.scale()
       const scaleFactor = currentScale / radius
 
+      // Get theme colors
+      const bgColor = getColor('--background', '#000000')
+      const primaryColor = getColor('--primary', '#c6f135')
+      const mutedColor = getColor('--muted-foreground', '#888888')
+
       // Draw ocean (globe background)
       context.beginPath()
       context.arc(containerWidth / 2, containerHeight / 2, currentScale, 0, 2 * Math.PI)
-      context.fillStyle = "hsl(var(--background))"
+      context.fillStyle = bgColor
       context.fill()
-      context.strokeStyle = "hsl(var(--primary))"
+      context.strokeStyle = primaryColor
       context.lineWidth = 2 * scaleFactor
       context.stroke()
 
@@ -147,7 +164,7 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
         const graticule = d3.geoGraticule()
         context.beginPath()
         path(graticule())
-        context.strokeStyle = "hsl(var(--primary))"
+        context.strokeStyle = primaryColor
         context.lineWidth = 1 * scaleFactor
         context.globalAlpha = 0.25
         context.stroke()
@@ -158,7 +175,7 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
         landFeatures.features.forEach((feature: any) => {
           path(feature)
         })
-        context.strokeStyle = "hsl(var(--primary))"
+        context.strokeStyle = primaryColor
         context.lineWidth = 1 * scaleFactor
         context.stroke()
 
@@ -174,7 +191,7 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
           ) {
             context.beginPath()
             context.arc(projected[0], projected[1], 1.2 * scaleFactor, 0, 2 * Math.PI)
-            context.fillStyle = "hsl(var(--muted-foreground))"
+            context.fillStyle = mutedColor
             context.fill()
           }
         })
