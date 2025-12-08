@@ -54,12 +54,33 @@ export const SalesMap = () => {
   useEffect(() => {
     if (!mapboxToken || !isTokenSet || !mapContainer.current || !data) return;
 
+    // Get theme colors from CSS variables
+    const getThemeColor = (varName: string) => {
+      const style = getComputedStyle(document.documentElement);
+      const value = style.getPropertyValue(varName).trim();
+      return value ? `hsl(${value})` : null;
+    };
+
+    const primaryColor = getThemeColor("--primary") || "hsl(85 100% 69%)";
+    const primaryRgba = (opacity: number) => {
+      const style = getComputedStyle(document.documentElement);
+      const value = style.getPropertyValue("--primary").trim();
+      if (!value) return `rgba(29, 161, 242, ${opacity})`;
+      // Parse HSL and convert to rgba-like format for mapbox
+      return `hsla(${value} / ${opacity})`;
+    };
+
     mapboxgl.accessToken = mapboxToken;
+    
+    // Get background color for map style
+    const bgStyle = getComputedStyle(document.documentElement);
+    const bgValue = bgStyle.getPropertyValue("--background").trim();
+    const isDark = bgValue ? parseInt(bgValue.split(' ')[2]) < 50 : true;
     
     // Initialize map
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/light-v11',
+      style: isDark ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11',
       center: [-74.006, 4.711], // Bogotá, Colombia
       zoom: 4,
       projection: 'mercator'
@@ -79,19 +100,19 @@ export const SalesMap = () => {
         el.className = 'sale-marker';
         el.style.width = `${size}px`;
         el.style.height = `${size}px`;
-        el.style.backgroundColor = 'rgba(29, 161, 242, 0.6)';
+        el.style.backgroundColor = primaryRgba(0.6);
         el.style.borderRadius = '50%';
-        el.style.border = '2px solid rgba(29, 161, 242, 1)';
+        el.style.border = `2px solid ${primaryColor}`;
         el.style.cursor = 'pointer';
-        el.style.boxShadow = '0 0 10px rgba(29, 161, 242, 0.5)';
+        el.style.boxShadow = `0 0 10px ${primaryRgba(0.5)}`;
         el.style.animation = `pulse 2s infinite ${index * 0.1}s`;
 
         const popup = new mapboxgl.Popup({ offset: 25 })
           .setHTML(`
-            <div class="p-3 bg-white rounded-lg border border-gray-200 shadow-lg">
+            <div class="p-3 bg-card rounded-lg border border-border shadow-lg">
               <h3 class="font-bold text-primary">${sale.orderName}</h3>
-              ${sale.city ? `<p class="text-sm text-gray-600">${sale.city}${sale.province ? `, ${sale.province}` : ''}</p>` : ''}
-              <p class="text-xs text-gray-500">${sale.country}</p>
+              ${sale.city ? `<p class="text-sm text-muted-foreground">${sale.city}${sale.province ? `, ${sale.province}` : ''}</p>` : ''}
+              <p class="text-xs text-muted-foreground">${sale.country}</p>
               <p class="text-lg font-bold text-primary mt-2">
                 $${sale.amount.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
               </p>
@@ -150,12 +171,12 @@ export const SalesMap = () => {
               'interpolate',
               ['linear'],
               ['heatmap-density'],
-              0, 'rgba(29, 161, 242, 0)',
-              0.2, 'rgb(29, 161, 242)',
-              0.4, 'rgb(56, 178, 248)',
-              0.6, 'rgb(100, 195, 250)',
-              0.8, 'rgb(150, 210, 252)',
-              1, 'rgb(200, 230, 255)'
+              0, 'hsla(var(--primary) / 0)',
+              0.2, primaryColor,
+              0.4, primaryRgba(0.8),
+              0.6, primaryRgba(0.6),
+              0.8, primaryRgba(0.4),
+              1, primaryRgba(0.2)
             ],
             'heatmap-radius': [
               'interpolate',
