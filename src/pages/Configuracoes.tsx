@@ -1,14 +1,13 @@
 import { DashboardWrapper } from "@/components/DashboardWrapper";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { User, Bell, Shield, LogOut } from "lucide-react";
+import { User, Shield, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { ProfileEditor } from "@/components/ProfileEditor";
 import { PageHeader } from "@/components/PageHeader";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { ThemeSelector } from "@/components/ThemeSelector";
-import { PushNotificationSettings } from "@/components/PushNotificationSettings";
 
 export default function Configuracoes() {
   const { profile, user, signOut } = useAuth();
@@ -54,19 +53,6 @@ export default function Configuracoes() {
                 <p className="text-foreground font-medium">{user?.email || 'Não definido'}</p>
               </div>
               <ProfileEditor />
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card/60 border-2 border-primary/30 backdrop-blur-xl">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Bell className="h-5 w-5 text-primary" />
-                <CardTitle className="text-foreground">Notificações</CardTitle>
-              </div>
-              <CardDescription className="text-muted-foreground">Configure como você recebe notificações de vendas</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <PushNotificationSettings />
             </CardContent>
           </Card>
 
