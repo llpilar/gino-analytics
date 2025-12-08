@@ -112,14 +112,9 @@ export const SalesChart = ({ analyticsData, isLoading }: SalesChartProps) => {
         <ResponsiveContainer width="100%" height={320}>
           <LineChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
             <defs>
-              <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="hsl(var(--chart-1))" />
-                <stop offset="50%" stopColor="hsl(var(--chart-2))" />
-                <stop offset="100%" stopColor="hsl(var(--chart-4))" />
-              </linearGradient>
               <linearGradient id="colorVendas" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.4}/>
-                <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0.05}/>
+                <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0.02}/>
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.3} />
@@ -161,20 +156,20 @@ export const SalesChart = ({ analyticsData, isLoading }: SalesChartProps) => {
             <Line 
               type="monotone" 
               dataKey="vendas" 
-              stroke="url(#lineGradient)" 
-              strokeWidth={4}
+              stroke="hsl(var(--chart-1))" 
+              strokeWidth={3}
               fill="url(#colorVendas)"
               dot={{ 
                 fill: 'hsl(var(--chart-1))', 
-                r: 6, 
-                strokeWidth: 3, 
+                r: 5, 
+                strokeWidth: 2, 
                 stroke: 'hsl(var(--background))' 
               }}
               activeDot={{ 
-                r: 9, 
-                fill: 'hsl(var(--chart-2))',
+                r: 8, 
+                fill: 'hsl(var(--chart-1))',
                 stroke: 'hsl(var(--background))',
-                strokeWidth: 3,
+                strokeWidth: 2,
               }}
             />
           </LineChart>
