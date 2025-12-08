@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { ThemeSelector } from "@/components/ThemeSelector";
+import { PushNotificationSettings } from "@/components/PushNotificationSettings";
 
 export default function Configuracoes() {
   const { profile, user, signOut } = useAuth();
@@ -62,10 +63,10 @@ export default function Configuracoes() {
                 <Bell className="h-5 w-5 text-primary" />
                 <CardTitle className="text-foreground">Notificações</CardTitle>
               </div>
-              <CardDescription className="text-muted-foreground">Configure como você recebe notificações</CardDescription>
+              <CardDescription className="text-muted-foreground">Configure como você recebe notificações de vendas</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground text-sm">Em breve: Configurações de notificações</p>
+              <PushNotificationSettings />
             </CardContent>
           </Card>
 
