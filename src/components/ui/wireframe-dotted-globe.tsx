@@ -150,11 +150,10 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
       const primaryColor = getColor('--primary', '#c6f135')
       const mutedColor = getColor('--muted-foreground', '#888888')
 
-      // Draw ocean (globe background)
+      // Draw ocean (globe background) - transparent to show site background
       context.beginPath()
       context.arc(containerWidth / 2, containerHeight / 2, currentScale, 0, 2 * Math.PI)
-      context.fillStyle = bgColor
-      context.fill()
+      // No fill - transparent background
       context.strokeStyle = primaryColor
       context.lineWidth = 2 * scaleFactor
       context.stroke()
@@ -310,7 +309,7 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
     <div className={`relative ${className}`}>
       <canvas
         ref={canvasRef}
-        className="w-full h-auto rounded-2xl bg-background"
+        className="w-full h-auto rounded-2xl bg-transparent"
         style={{ maxWidth: "100%", height: "auto" }}
       />
     </div>
