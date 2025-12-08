@@ -12,11 +12,11 @@ import { PageHeader } from "@/components/PageHeader";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { StatsCard, SectionCard, CardColorVariant } from "@/components/ui/stats-card";
 import { LucideIcon } from "lucide-react";
-
 import { Skeleton } from "@/components/ui/skeleton";
 import { useVturbOverview, useVturbPlayers, parseVturbData, parseVturbPlayers } from "@/hooks/useVturbAnalytics";
 import { useGA4Visitors } from "@/hooks/useGA4Visitors";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ConversionFunnel } from "@/components/ConversionFunnel";
 
 export default function Analises() {
   // Default to the VSL ESPANHOL Colômbia.mp4 video
@@ -262,6 +262,14 @@ export default function Analises() {
             </div>
           )}
         </SectionCard>
+
+        {/* Conversion Funnel */}
+        <ConversionFunnel 
+          visits={vturbMetrics.uniqueViews}
+          plays={vturbMetrics.uniquePlays}
+          clicks={vturbMetrics.uniqueClicks}
+          orders={metrics.ordersCount}
+        />
 
         {/* Charts Section */}
         <div className="mb-8">
