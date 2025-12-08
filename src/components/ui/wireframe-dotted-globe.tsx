@@ -267,24 +267,10 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
       }
     }
 
-    // Set up rotation and interaction
+    // Set up rotation and interaction (static by default, manual control only)
     const rotation: [number, number] = [0, 0]
-    let autoRotate = true
-    const rotationSpeed = 0.15
-
-    const rotate = () => {
-      if (autoRotate) {
-        rotation[0] += rotationSpeed
-        projection.rotate(rotation)
-        render()
-      }
-    }
-
-    // Auto-rotation timer
-    const rotationTimer = d3.timer(rotate)
 
     const handleMouseDown = (event: MouseEvent) => {
-      autoRotate = false
       const startX = event.clientX
       const startY = event.clientY
       const startRotation: [number, number] = [...rotation]
@@ -305,10 +291,6 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
       const handleMouseUp = () => {
         document.removeEventListener("mousemove", handleMouseMove)
         document.removeEventListener("mouseup", handleMouseUp)
-
-        setTimeout(() => {
-          autoRotate = true
-        }, 10)
       }
 
       document.addEventListener("mousemove", handleMouseMove)
@@ -331,7 +313,6 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
 
     // Cleanup
     return () => {
-      rotationTimer.stop()
       canvas.removeEventListener("mousedown", handleMouseDown)
       canvas.removeEventListener("wheel", handleWheel)
     }
