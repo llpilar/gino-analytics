@@ -58,8 +58,8 @@ const fetchVturbData = async (endpoint: string, startDate?: string, endDate?: st
 export const useVturbOverview = (playerId?: string) => {
   const { dateRange } = useDateFilter();
   
-  const startDate = format(dateRange.from, 'yyyy-MM-dd');
-  const endDate = format(dateRange.to, 'yyyy-MM-dd');
+  const startDate = dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
+  const endDate = dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
   
   return useQuery({
     queryKey: ['vturb-overview', startDate, endDate, playerId],
@@ -73,8 +73,8 @@ export const useVturbOverview = (playerId?: string) => {
 export const useVturbPlayers = () => {
   const { dateRange } = useDateFilter();
   
-  const startDate = format(dateRange.from, 'yyyy-MM-dd');
-  const endDate = format(dateRange.to, 'yyyy-MM-dd');
+  const startDate = dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
+  const endDate = dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
   
   return useQuery({
     queryKey: ['vturb-players', startDate, endDate],
@@ -96,8 +96,8 @@ export const useVturbListPlayers = () => {
 export const useVturbRetention = (playerId?: string) => {
   const { dateRange } = useDateFilter();
   
-  const startDate = format(dateRange.from, 'yyyy-MM-dd');
-  const endDate = format(dateRange.to, 'yyyy-MM-dd');
+  const startDate = dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
+  const endDate = dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
   
   return useQuery({
     queryKey: ['vturb-retention', startDate, endDate, playerId],
