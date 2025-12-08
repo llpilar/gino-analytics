@@ -176,16 +176,30 @@ export const usePushNotifications = () => {
     }
 
     try {
-      await supabase.functions.invoke('push-notifications', {
+      const { data, error } = await supabase.functions.invoke('push-notifications', {
         body: {
           action: 'send-test',
           userId: user.id,
         },
       });
-      toast.success('Notificação de teste enviada!');
+
+      if (error) {
+        throw error;
+      }
+
+      // Show a local notification as test
+      if (Notification.permission === 'granted') {
+        new Notification('🎉 Teste de Notificação', {
+          body: 'As notificações estão funcionando! Você receberá alertas de vendas.',
+          icon: '/app-icon.png',
+          tag: 'test',
+        });
+      }
+
+      toast.success('Notificações configuradas com sucesso!');
     } catch (error) {
       console.error('Error sending test notification:', error);
-      toast.error('Erro ao enviar notificação de teste');
+      toast.error('Erro ao testar notificação');
     }
   };
 
