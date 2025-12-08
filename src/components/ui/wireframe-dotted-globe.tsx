@@ -149,6 +149,24 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
       const bgColor = getColor('--background', '#000000')
       const primaryColor = getColor('--primary', '#c6f135')
       const mutedColor = getColor('--muted-foreground', '#888888')
+      const accentColor = getColor('--chart-4', '#4ade80') // Green for visitors
+      const highlightColor = getColor('--chart-3', '#fb923c') // Orange highlight
+
+      // Colombian cities coordinates [lng, lat] - simulating visitors
+      const colombiaVisitors: [number, number][] = [
+        [-74.0721, 4.7110],   // Bogotá
+        [-75.5636, 6.2442],   // Medellín
+        [-76.5225, 3.4516],   // Cali
+        [-74.7889, 10.9639],  // Barranquilla
+        [-75.5144, 10.3997],  // Cartagena
+        [-73.6266, 7.8891],   // Bucaramanga
+        [-75.6906, 4.5339],   // Pereira
+        [-76.2893, 3.8801],   // Palmira
+        [-75.4794, 5.0689],   // Manizales
+        [-74.7964, 11.0041],  // Soledad
+        [-72.5078, 7.8939],   // Cúcuta
+        [-75.8956, 8.7479],   // Montería
+      ]
 
       // Draw ocean (globe background) - transparent to show site background
       context.beginPath()
@@ -194,6 +212,32 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
             context.globalAlpha = 0.6
             context.fill()
             context.globalAlpha = 1
+          }
+        })
+
+        // Draw Colombia visitor dots with pulse effect
+        colombiaVisitors.forEach((coords, index) => {
+          const projected = projection(coords)
+          if (
+            projected &&
+            projected[0] >= 0 &&
+            projected[0] <= containerWidth &&
+            projected[1] >= 0 &&
+            projected[1] <= containerHeight
+          ) {
+            // Outer glow
+            context.beginPath()
+            context.arc(projected[0], projected[1], 6 * scaleFactor, 0, 2 * Math.PI)
+            context.fillStyle = index % 2 === 0 ? accentColor : highlightColor
+            context.globalAlpha = 0.3
+            context.fill()
+            
+            // Inner dot
+            context.beginPath()
+            context.arc(projected[0], projected[1], 3 * scaleFactor, 0, 2 * Math.PI)
+            context.fillStyle = index % 2 === 0 ? accentColor : highlightColor
+            context.globalAlpha = 1
+            context.fill()
           }
         })
       }
