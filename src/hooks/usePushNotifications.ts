@@ -73,10 +73,22 @@ export const usePushNotifications = () => {
     setIsLoading(true);
 
     try {
-      // Request permission first
-      if (permission !== 'granted') {
-        const granted = await requestPermission();
-        if (!granted) {
+      // Always check and request permission directly
+      const currentPermission = Notification.permission;
+      
+      if (currentPermission === 'denied') {
+        toast.error('Permissão negada. Altere nas configurações do navegador.');
+        setPermission('denied');
+        setIsLoading(false);
+        return false;
+      }
+
+      if (currentPermission !== 'granted') {
+        const result = await Notification.requestPermission();
+        setPermission(result);
+        
+        if (result !== 'granted') {
+          toast.error('Permissão não concedida para notificações');
           setIsLoading(false);
           return false;
         }
@@ -88,6 +100,7 @@ export const usePushNotifications = () => {
       });
 
       if (vapidError || !vapidData?.publicKey) {
+        console.error('VAPID error:', vapidError);
         throw new Error('Erro ao obter chave VAPID');
       }
 
@@ -121,20 +134,22 @@ export const usePushNotifications = () => {
       });
 
       if (saveError) {
+        console.error('Save error:', saveError);
         throw saveError;
       }
 
       setIsSubscribed(true);
+      setPermission('granted');
       toast.success('Notificações push ativadas com sucesso!');
       return true;
     } catch (error) {
       console.error('Error subscribing to push:', error);
-      toast.error('Erro ao ativar notificações push');
+      toast.error('Erro ao ativar notificações push: ' + (error instanceof Error ? error.message : 'Erro desconhecido'));
       return false;
     } finally {
       setIsLoading(false);
     }
-  }, [isSupported, user, permission]);
+  }, [isSupported, user]);
 
   const unsubscribe = useCallback(async () => {
     if (!user) return false;
