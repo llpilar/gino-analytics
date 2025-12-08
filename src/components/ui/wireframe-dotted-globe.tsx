@@ -1,302 +1,254 @@
 "use client"
 
-import React, { useEffect, useRef, useCallback, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import * as d3 from "d3"
 
 interface RotatingEarthProps {
   width?: number
   height?: number
   className?: string
-  visitorCount?: number
 }
 
-export default function RotatingEarth({
-  width = 800,
-  height = 600,
-  className = "",
-  visitorCount = 0,
-}: RotatingEarthProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
+export default function RotatingEarth({ width = 800, height = 600, className = "" }: RotatingEarthProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const drawGlobe = useCallback(() => {
+  useEffect(() => {
+    if (!canvasRef.current) return
+
     const canvas = canvasRef.current
-    const container = containerRef.current
-    if (!canvas || !container) return
+    const context = canvas.getContext("2d")
+    if (!context) return
 
-    const ctx = canvas.getContext("2d", { alpha: true })
-    if (!ctx) return
+    // Set up responsive dimensions
+    const containerWidth = Math.min(width, window.innerWidth - 40)
+    const containerHeight = Math.min(height, window.innerHeight - 100)
+    const radius = Math.min(containerWidth, containerHeight) / 2.5
 
-    const containerWidth = container.clientWidth
-    const containerHeight = container.clientHeight || height
     const dpr = window.devicePixelRatio || 1
-
     canvas.width = containerWidth * dpr
     canvas.height = containerHeight * dpr
     canvas.style.width = `${containerWidth}px`
     canvas.style.height = `${containerHeight}px`
-    ctx.scale(dpr, dpr)
+    context.scale(dpr, dpr)
 
-    const baseRadius = Math.min(containerWidth, containerHeight) * 0.4
-    let currentScale = 1
-    const minScale = 0.6
-    const maxScale = 2.2
-
-    const projection = d3.geoOrthographic()
-      .scale(baseRadius * currentScale)
+    // Create projection and path generator for Canvas
+    const projection = d3
+      .geoOrthographic()
+      .scale(radius)
       .translate([containerWidth / 2, containerHeight / 2])
       .clipAngle(90)
 
-    // Generate dot grid
-    const generateDotGrid = (density: number = 1.8) => {
-      const dots: [number, number][] = []
-      for (let lat = -85; lat <= 85; lat += density) {
-        const latRad = (lat * Math.PI) / 180
-        const lonStep = density / Math.cos(latRad)
-        for (let lng = -180; lng <= 180; lng += Math.max(lonStep, density)) {
-          dots.push([lng, lat])
+    const path = d3.geoPath().projection(projection).context(context)
+
+    const pointInPolygon = (point: [number, number], polygon: number[][]): boolean => {
+      const [x, y] = point
+      let inside = false
+
+      for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+        const [xi, yi] = polygon[i]
+        const [xj, yj] = polygon[j]
+
+        if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
+          inside = !inside
         }
       }
-      return dots
+
+      return inside
     }
 
-    const allDots = generateDotGrid(1.6)
+    const pointInFeature = (point: [number, number], feature: any): boolean => {
+      const geometry = feature.geometry
 
-    // Colombia points for visitor highlights
-    const colombiaPoints: [number, number][] = [
-      [-74.0721, 4.7110], [-75.5636, 6.2442], [-76.5320, 3.4516],
-      [-74.7813, 10.9685], [-75.5144, 10.3910], [-73.1198, 7.1254],
-      [-75.6906, 4.5339], [-76.2560, 4.8143], [-72.5078, 7.8939],
-      [-75.5012, 5.0689], [-74.1070, 4.5980], [-75.4794, 6.1808],
-      [-76.6020, 3.5200], [-73.2500, 7.0700], [-74.8500, 11.0200],
-      [-75.5500, 10.4200],
-    ]
+      if (geometry.type === "Polygon") {
+        const coordinates = geometry.coordinates
+        // Check if point is in outer ring
+        if (!pointInPolygon(point, coordinates[0])) {
+          return false
+        }
+        // Check if point is in any hole (inner rings)
+        for (let i = 1; i < coordinates.length; i++) {
+          if (pointInPolygon(point, coordinates[i])) {
+            return false // Point is in a hole
+          }
+        }
+        return true
+      } else if (geometry.type === "MultiPolygon") {
+        // Check each polygon in the MultiPolygon
+        for (const polygon of geometry.coordinates) {
+          // Check if point is in outer ring
+          if (pointInPolygon(point, polygon[0])) {
+            // Check if point is in any hole
+            let inHole = false
+            for (let i = 1; i < polygon.length; i++) {
+              if (pointInPolygon(point, polygon[i])) {
+                inHole = true
+                break
+              }
+            }
+            if (!inHole) {
+              return true
+            }
+          }
+        }
+        return false
+      }
 
-    // Colombia bounding box
-    const colombiaBounds = {
-      minLng: -79.5, maxLng: -66.8,
-      minLat: -4.2, maxLat: 12.5
-    }
-
-    const isInColombia = (lng: number, lat: number): boolean => {
-      return lng >= colombiaBounds.minLng && lng <= colombiaBounds.maxLng &&
-             lat >= colombiaBounds.minLat && lat <= colombiaBounds.maxLat
-    }
-
-    // Land detection
-    const isLand = (lng: number, lat: number): boolean => {
-      if (lat > 15 && lat < 72 && lng > -170 && lng < -50) return true
-      if (lat > 7 && lat < 25 && lng > -92 && lng < -60) return true
-      if (lat > -56 && lat < 15 && lng > -82 && lng < -34) return true
-      if (lat > 35 && lat < 72 && lng > -12 && lng < 60) return true
-      if (lat > -35 && lat < 38 && lng > -18 && lng < 52) return true
-      if (lat > 12 && lat < 42 && lng > 35 && lng < 63) return true
-      if (lat > 5 && lat < 78 && lng > 60 && lng < 145) return true
-      if (lat > -10 && lat < 25 && lng > 95 && lng < 145) return true
-      if (lat > -45 && lat < -10 && lng > 110 && lng < 155) return true
-      if (lat > -11 && lat < 6 && lng > 95 && lng < 141) return true
       return false
     }
 
-    const render = () => {
-      ctx.clearRect(0, 0, containerWidth, containerHeight)
+    const generateDotsInPolygon = (feature: any, dotSpacing = 16) => {
+      const dots: [number, number][] = []
+      const bounds = d3.geoBounds(feature)
+      const [[minLng, minLat], [maxLng, maxLat]] = bounds
 
-      const center = projection.translate()
-      const radius = projection.scale()
+      const stepSize = dotSpacing * 0.08
+      let pointsGenerated = 0
 
-      // Outer glow
-      const ambientGlow = ctx.createRadialGradient(
-        center[0], center[1], radius * 0.95,
-        center[0], center[1], radius * 1.15
-      )
-      ambientGlow.addColorStop(0, "rgba(79, 191, 217, 0.08)")
-      ambientGlow.addColorStop(0.5, "rgba(79, 191, 217, 0.03)")
-      ambientGlow.addColorStop(1, "rgba(79, 191, 217, 0)")
-      ctx.beginPath()
-      ctx.arc(center[0], center[1], radius * 1.15, 0, 2 * Math.PI)
-      ctx.fillStyle = ambientGlow
-      ctx.fill()
-
-      // Ocean
-      const oceanGradient = ctx.createRadialGradient(
-        center[0] - radius * 0.35, center[1] - radius * 0.35, 0,
-        center[0] + radius * 0.1, center[1] + radius * 0.1, radius * 1.1
-      )
-      oceanGradient.addColorStop(0, "#e8f6f9")
-      oceanGradient.addColorStop(0.3, "#dff1f7")
-      oceanGradient.addColorStop(0.7, "#d4ecf3")
-      oceanGradient.addColorStop(1, "#c8e5ef")
-
-      ctx.beginPath()
-      ctx.arc(center[0], center[1], radius, 0, 2 * Math.PI)
-      ctx.fillStyle = oceanGradient
-      ctx.fill()
-
-      // Inner shadow
-      const innerShadow = ctx.createRadialGradient(
-        center[0] + radius * 0.3, center[1] + radius * 0.3, radius * 0.5,
-        center[0], center[1], radius
-      )
-      innerShadow.addColorStop(0, "rgba(0, 0, 0, 0)")
-      innerShadow.addColorStop(0.7, "rgba(0, 0, 0, 0)")
-      innerShadow.addColorStop(1, "rgba(100, 140, 160, 0.08)")
-      ctx.beginPath()
-      ctx.arc(center[0], center[1], radius, 0, 2 * Math.PI)
-      ctx.fillStyle = innerShadow
-      ctx.fill()
-
-      // Glass highlight
-      const glassHighlight = ctx.createRadialGradient(
-        center[0] - radius * 0.5, center[1] - radius * 0.5, 0,
-        center[0] - radius * 0.3, center[1] - radius * 0.3, radius * 0.8
-      )
-      glassHighlight.addColorStop(0, "rgba(255, 255, 255, 0.25)")
-      glassHighlight.addColorStop(0.3, "rgba(255, 255, 255, 0.1)")
-      glassHighlight.addColorStop(1, "rgba(255, 255, 255, 0)")
-      ctx.beginPath()
-      ctx.arc(center[0], center[1], radius, 0, 2 * Math.PI)
-      ctx.fillStyle = glassHighlight
-      ctx.fill()
-
-      // Edge ring
-      ctx.beginPath()
-      ctx.arc(center[0], center[1], radius, 0, 2 * Math.PI)
-      ctx.strokeStyle = "rgba(79, 191, 217, 0.15)"
-      ctx.lineWidth = 1
-      ctx.stroke()
-
-      // Land dots
-      const scaleFactor = currentScale
-      allDots.forEach(([lng, lat]) => {
-        if (!isLand(lng, lat)) return
-
-        const projected = projection([lng, lat])
-        if (!projected) return
-
-        const [x, y] = projected
-        const distance = Math.sqrt(
-          Math.pow(x - center[0], 2) + Math.pow(y - center[1], 2)
-        )
-        if (distance > radius * 0.97) return
-
-        const depthFactor = 1 - (distance / radius) * 0.3
-        const inColombia = isInColombia(lng, lat)
-        const dotSize = (0.5 + (distance / radius) * 0.3) * scaleFactor
-
-        ctx.beginPath()
-        ctx.arc(x, y, dotSize, 0, 2 * Math.PI)
-        
-        if (inColombia) {
-          ctx.fillStyle = `rgba(64, 200, 224, ${0.85 * depthFactor})`
-        } else {
-          ctx.fillStyle = `rgba(79, 191, 217, ${0.65 * depthFactor})`
-        }
-        ctx.fill()
-      })
-
-      // Colombia glow
-      const colombiaCenter = projection([-74.3, 4.5])
-      if (colombiaCenter) {
-        const [cx, cy] = colombiaCenter
-        const distToCenter = Math.sqrt(
-          Math.pow(cx - center[0], 2) + Math.pow(cy - center[1], 2)
-        )
-        
-        if (distToCenter < radius * 0.9) {
-          const colombiaGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, 35 * scaleFactor)
-          colombiaGlow.addColorStop(0, "rgba(64, 200, 224, 0.15)")
-          colombiaGlow.addColorStop(0.5, "rgba(64, 200, 224, 0.05)")
-          colombiaGlow.addColorStop(1, "rgba(64, 200, 224, 0)")
-          ctx.beginPath()
-          ctx.arc(cx, cy, 35 * scaleFactor, 0, 2 * Math.PI)
-          ctx.fillStyle = colombiaGlow
-          ctx.fill()
+      for (let lng = minLng; lng <= maxLng; lng += stepSize) {
+        for (let lat = minLat; lat <= maxLat; lat += stepSize) {
+          const point: [number, number] = [lng, lat]
+          if (pointInFeature(point, feature)) {
+            dots.push(point)
+            pointsGenerated++
+          }
         }
       }
 
-      // Visitor dots
-      const pointsToShow = Math.min(visitorCount, colombiaPoints.length)
-      for (let i = 0; i < pointsToShow; i++) {
-        const [lng, lat] = colombiaPoints[i]
-        const projected = projection([lng, lat])
-        if (!projected) continue
+      console.log(
+        `[v0] Generated ${pointsGenerated} points for land feature:`,
+        feature.properties?.featurecla || "Land",
+      )
+      return dots
+    }
 
-        const [x, y] = projected
-        const distance = Math.sqrt(
-          Math.pow(x - center[0], 2) + Math.pow(y - center[1], 2)
-        )
-        if (distance > radius * 0.95) continue
+    interface DotData {
+      lng: number
+      lat: number
+      visible: boolean
+    }
 
-        const pointGlow = ctx.createRadialGradient(x, y, 0, x, y, 5 * scaleFactor)
-        pointGlow.addColorStop(0, "rgba(64, 200, 224, 0.6)")
-        pointGlow.addColorStop(0.5, "rgba(64, 200, 224, 0.2)")
-        pointGlow.addColorStop(1, "rgba(64, 200, 224, 0)")
-        ctx.beginPath()
-        ctx.arc(x, y, 5 * scaleFactor, 0, 2 * Math.PI)
-        ctx.fillStyle = pointGlow
-        ctx.fill()
+    const allDots: DotData[] = []
+    let landFeatures: any
 
-        ctx.beginPath()
-        ctx.arc(x, y, 1.5 * scaleFactor, 0, 2 * Math.PI)
-        ctx.fillStyle = "#40c8e0"
-        ctx.fill()
+    const render = () => {
+      // Clear canvas
+      context.clearRect(0, 0, containerWidth, containerHeight)
+
+      const currentScale = projection.scale()
+      const scaleFactor = currentScale / radius
+
+      // Draw ocean (globe background)
+      context.beginPath()
+      context.arc(containerWidth / 2, containerHeight / 2, currentScale, 0, 2 * Math.PI)
+      context.fillStyle = "#000000"
+      context.fill()
+      context.strokeStyle = "#ffffff"
+      context.lineWidth = 2 * scaleFactor
+      context.stroke()
+
+      if (landFeatures) {
+        // Draw graticule
+        const graticule = d3.geoGraticule()
+        context.beginPath()
+        path(graticule())
+        context.strokeStyle = "#ffffff"
+        context.lineWidth = 1 * scaleFactor
+        context.globalAlpha = 0.25
+        context.stroke()
+        context.globalAlpha = 1
+
+        // Draw land outlines
+        context.beginPath()
+        landFeatures.features.forEach((feature: any) => {
+          path(feature)
+        })
+        context.strokeStyle = "#ffffff"
+        context.lineWidth = 1 * scaleFactor
+        context.stroke()
+
+        // Draw halftone dots
+        allDots.forEach((dot) => {
+          const projected = projection([dot.lng, dot.lat])
+          if (
+            projected &&
+            projected[0] >= 0 &&
+            projected[0] <= containerWidth &&
+            projected[1] >= 0 &&
+            projected[1] <= containerHeight
+          ) {
+            context.beginPath()
+            context.arc(projected[0], projected[1], 1.2 * scaleFactor, 0, 2 * Math.PI)
+            context.fillStyle = "#999999"
+            context.fill()
+          }
+        })
       }
     }
 
-    setIsLoading(false)
+    const loadWorldData = async () => {
+      try {
+        setIsLoading(true)
 
-    // Rotation
-    const rotation: [number, number] = [-75, -5]
+        const response = await fetch(
+          "https://raw.githubusercontent.com/martynafford/natural-earth-geojson/refs/heads/master/110m/physical/ne_110m_land.json",
+        )
+        if (!response.ok) throw new Error("Failed to load land data")
+
+        landFeatures = await response.json()
+
+        // Generate dots for all land features
+        let totalDots = 0
+        landFeatures.features.forEach((feature: any) => {
+          const dots = generateDotsInPolygon(feature, 16)
+          dots.forEach(([lng, lat]) => {
+            allDots.push({ lng, lat, visible: true })
+            totalDots++
+          })
+        })
+
+        console.log(`[v0] Total dots generated: ${totalDots} across ${landFeatures.features.length} land features`)
+
+        render()
+        setIsLoading(false)
+      } catch (err) {
+        setError("Failed to load land map data")
+        setIsLoading(false)
+      }
+    }
+
+    // Set up rotation and interaction
+    const rotation: [number, number] = [0, 0]
     let autoRotate = true
-    const rotationSpeed = 0.015
-    let velocityX = 0
-    let velocityY = 0
-    const friction = 0.95
+    const rotationSpeed = 0.5
 
-    projection.rotate(rotation)
-    render()
-
-    const rotationTimer = d3.timer(() => {
+    const rotate = () => {
       if (autoRotate) {
         rotation[0] += rotationSpeed
-      } else if (Math.abs(velocityX) > 0.001 || Math.abs(velocityY) > 0.001) {
-        rotation[0] += velocityX
-        rotation[1] = Math.max(-60, Math.min(60, rotation[1] + velocityY))
-        velocityX *= friction
-        velocityY *= friction
+        projection.rotate(rotation)
+        render()
       }
-      projection.rotate(rotation)
-      render()
-    })
+    }
 
-    // Mouse drag
+    // Auto-rotation timer
+    const rotationTimer = d3.timer(rotate)
+
     const handleMouseDown = (event: MouseEvent) => {
       autoRotate = false
-      velocityX = 0
-      velocityY = 0
-      
-      let lastX = event.clientX
-      let lastY = event.clientY
-      let lastTime = Date.now()
+      const startX = event.clientX
+      const startY = event.clientY
+      const startRotation = [...rotation]
 
       const handleMouseMove = (moveEvent: MouseEvent) => {
-        const now = Date.now()
-        const dt = Math.max(1, now - lastTime)
-        
-        const dx = moveEvent.clientX - lastX
-        const dy = moveEvent.clientY - lastY
-        
-        velocityX = (dx * 0.15) / (dt / 16)
-        velocityY = (-dy * 0.15) / (dt / 16)
-        
-        rotation[0] += dx * 0.15
-        rotation[1] = Math.max(-60, Math.min(60, rotation[1] - dy * 0.15))
-        
-        lastX = moveEvent.clientX
-        lastY = moveEvent.clientY
-        lastTime = now
-        
+        const sensitivity = 0.5
+        const dx = moveEvent.clientX - startX
+        const dy = moveEvent.clientY - startY
+
+        rotation[0] = startRotation[0] + dx * sensitivity
+        rotation[1] = startRotation[1] - dy * sensitivity
+        rotation[1] = Math.max(-90, Math.min(90, rotation[1]))
+
         projection.rotate(rotation)
         render()
       }
@@ -304,92 +256,58 @@ export default function RotatingEarth({
       const handleMouseUp = () => {
         document.removeEventListener("mousemove", handleMouseMove)
         document.removeEventListener("mouseup", handleMouseUp)
-        
+
         setTimeout(() => {
-          if (Math.abs(velocityX) < 0.01 && Math.abs(velocityY) < 0.01) {
-            autoRotate = true
-          }
-        }, 3000)
+          autoRotate = true
+        }, 10)
       }
 
       document.addEventListener("mousemove", handleMouseMove)
       document.addEventListener("mouseup", handleMouseUp)
     }
 
-    // Wheel zoom
-    let targetScale = currentScale
     const handleWheel = (event: WheelEvent) => {
       event.preventDefault()
-      const delta = event.deltaY > 0 ? 0.92 : 1.08
-      targetScale = Math.max(minScale, Math.min(maxScale, targetScale * delta))
-      
-      const smoothZoom = () => {
-        const diff = targetScale - currentScale
-        if (Math.abs(diff) > 0.001) {
-          currentScale += diff * 0.15
-          projection.scale(baseRadius * currentScale)
-          render()
-          requestAnimationFrame(smoothZoom)
-        }
-      }
-      smoothZoom()
-    }
-
-    canvas.addEventListener("mousedown", handleMouseDown)
-    canvas.addEventListener("wheel", handleWheel, { passive: false })
-
-    const handleResize = () => {
-      const newWidth = container.clientWidth
-      const newHeight = container.clientHeight || height
-      canvas.width = newWidth * dpr
-      canvas.height = newHeight * dpr
-      canvas.style.width = `${newWidth}px`
-      canvas.style.height = `${newHeight}px`
-      ctx.setTransform(1, 0, 0, 1, 0, 0)
-      ctx.scale(dpr, dpr)
-      const newRadius = Math.min(newWidth, newHeight) * 0.4
-      projection.scale(newRadius * currentScale)
-      projection.translate([newWidth / 2, newHeight / 2])
+      const scaleFactor = event.deltaY > 0 ? 0.9 : 1.1
+      const newRadius = Math.max(radius * 0.5, Math.min(radius * 3, projection.scale() * scaleFactor))
+      projection.scale(newRadius)
       render()
     }
 
-    window.addEventListener("resize", handleResize)
+    canvas.addEventListener("mousedown", handleMouseDown)
+    canvas.addEventListener("wheel", handleWheel)
 
+    // Load the world data
+    loadWorldData()
+
+    // Cleanup
     return () => {
       rotationTimer.stop()
       canvas.removeEventListener("mousedown", handleMouseDown)
       canvas.removeEventListener("wheel", handleWheel)
-      window.removeEventListener("resize", handleResize)
     }
-  }, [height, visitorCount])
+  }, [width, height])
 
-  useEffect(() => {
-    const cleanup = drawGlobe()
-    return cleanup
-  }, [drawGlobe])
+  if (error) {
+    return (
+      <div className={`flex items-center justify-center bg-card rounded-2xl p-8 ${className}`}>
+        <div className="text-center">
+          <p className="text-destructive font-semibold mb-2">Error loading Earth visualization</p>
+          <p className="text-muted-foreground text-sm">{error}</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div
-      ref={containerRef}
-      className={`relative w-full ${className}`}
-      style={{ height: height || 600 }}
-    >
-      {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-6 h-6 border-2 border-cyan-400/30 border-t-cyan-400 rounded-full animate-spin" />
-        </div>
-      )}
-
+    <div className={`relative ${className}`}>
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 cursor-grab active:cursor-grabbing"
+        className="w-full h-auto rounded-2xl bg-background"
+        style={{ maxWidth: "100%", height: "auto" }}
       />
-
-      {/* Colombia Label */}
-      <div className="absolute top-1/2 left-1/2 ml-8 -mt-8 z-10 pointer-events-none">
-        <div className="bg-white/85 dark:bg-white/10 backdrop-blur-xl rounded-lg px-3 py-1.5 shadow-lg border border-white/90 dark:border-white/20">
-          <span className="text-xs font-medium text-slate-700 dark:text-white/90 tracking-wide">Colômbia</span>
-        </div>
+      <div className="absolute bottom-4 left-4 text-xs text-muted-foreground px-2 py-1 rounded-md bg-neutral-900">
+        Drag to rotate • Scroll to zoom
       </div>
     </div>
   )
