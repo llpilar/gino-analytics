@@ -5,7 +5,7 @@ import { NavBar } from "./ui/tubelight-navbar";
 import { useShopifyRevenueToday, useShopifyAnalytics } from "@/hooks/useShopifyData";
 import { format, differenceInMinutes, isToday, isSameDay } from "date-fns";
 import { DashboardSkeleton } from "./DashboardSkeleton";
-import { LayoutDashboard, BarChart3, Settings, Wallet, TrendingUp, DollarSign, ShoppingCart, Users, Zap, Monitor, LayoutGrid, Eye, Megaphone, Target, Truck } from "lucide-react";
+import { LayoutDashboard, BarChart3, Settings, Wallet, TrendingUp, DollarSign, ShoppingCart, Users, Zap, Monitor, LayoutGrid, Eye, Megaphone, Target, Truck, Info } from "lucide-react";
 import { NotificationCenter } from "./NotificationCenter";
 import { ComparisonBadge } from "./ComparisonBadge";
 import { useDailyComparison } from "@/hooks/useComparisonMetrics";
@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { useGA4Visitors } from "@/hooks/useGA4Visitors";
 import { useFacebookAdsToday } from "@/hooks/useFacebookAdsToday";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 type LayoutMode = "orbital" | "grid";
 
@@ -107,12 +108,44 @@ export const LiveCommandCenter = () => {
     return <DashboardSkeleton />;
   }
 
-  // Satellite data for orbital view - reduced distance for better fit
+  // Satellite data for orbital view - with descriptions for tooltips
   const satellites = [
-    { label: "RECEITA", value: formatCurrency(totalRevenue), icon: DollarSign, color: "cyan", angle: 0, distance: 240 },
-    { label: "PEDIDOS", value: ordersCount.toString(), icon: ShoppingCart, color: "green", angle: 90, distance: 260 },
-    { label: "R$/MIN", value: formatCurrency(parseFloat(salesPerMinute)), icon: Zap, color: "purple", angle: 180, distance: 250 },
-    { label: "VSL ONLINE", value: visitorCount.toString(), icon: Eye, color: "orange", angle: 270, distance: 270 },
+    { 
+      label: "RECEITA", 
+      value: formatCurrency(totalRevenue), 
+      icon: DollarSign, 
+      color: "cyan", 
+      angle: 0, 
+      distance: 240,
+      description: "Faturamento total de vendas no período selecionado. Representa o valor bruto de todas as transações concluídas."
+    },
+    { 
+      label: "PEDIDOS", 
+      value: ordersCount.toString(), 
+      icon: ShoppingCart, 
+      color: "green", 
+      angle: 90, 
+      distance: 260,
+      description: "Número total de pedidos realizados no período. Inclui todos os pedidos confirmados na loja."
+    },
+    { 
+      label: "R$/MIN", 
+      value: formatCurrency(parseFloat(salesPerMinute)), 
+      icon: Zap, 
+      color: "purple", 
+      angle: 180, 
+      distance: 250,
+      description: "Receita média por minuto. Calculada dividindo o faturamento total pelo tempo decorrido no período."
+    },
+    { 
+      label: "VSL ONLINE", 
+      value: visitorCount.toString(), 
+      icon: Eye, 
+      color: "orange", 
+      angle: 270, 
+      distance: 270,
+      description: "Usuários ativos nos últimos 5 minutos. Dados em tempo real do Google Analytics mostrando visitantes na VSL."
+    },
   ];
 
   const getSatellitePosition = (baseAngle: number, distance: number) => {
@@ -239,36 +272,48 @@ export const LiveCommandCenter = () => {
               const colors = colorVariants[satellite.color as keyof typeof colorVariants];
               const Icon = satellite.icon;
               return (
-                <article
-                  key={index}
-                  className="absolute flex items-center justify-center"
-                  style={{
-                    left: `calc(50% + ${pos.x}px)`,
-                    top: `calc(50% + ${pos.y}px)`,
-                    transform: "translate(-50%, -50%)",
-                  }}
-                  aria-label={`${satellite.label}: ${satellite.value}`}
-                >
-                  <div className="relative group cursor-pointer">
-                  <div className={cn(
-                      "relative p-3 rounded-2xl bg-card border-2 backdrop-blur-xl min-w-[120px]",
-                      "hover:scale-105 transition-all duration-300",
-                      colors.border
-                    )}>
-                      <div className="relative z-10">
-                        <div className={cn("w-8 h-8 mx-auto mb-2 rounded-lg flex items-center justify-center", colors.bg)}>
-                          <Icon className={cn("w-4 h-4", colors.text)} />
-                        </div>
-                        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-center mb-1">
-                          {satellite.label}
-                        </div>
-                        <div className={cn("text-lg font-black text-center whitespace-nowrap", colors.text)}>
-                          {satellite.value}
+                <Tooltip key={index} delayDuration={1000}>
+                  <TooltipTrigger asChild>
+                    <article
+                      className="absolute flex items-center justify-center"
+                      style={{
+                        left: `calc(50% + ${pos.x}px)`,
+                        top: `calc(50% + ${pos.y}px)`,
+                        transform: "translate(-50%, -50%)",
+                      }}
+                      aria-label={`${satellite.label}: ${satellite.value}`}
+                    >
+                      <div className="relative group cursor-pointer">
+                        <div className={cn(
+                          "relative p-3 rounded-2xl bg-card border-2 backdrop-blur-xl min-w-[120px]",
+                          "hover:scale-105 transition-all duration-300",
+                          colors.border
+                        )}>
+                          <div className="relative z-10">
+                            <div className={cn("w-8 h-8 mx-auto mb-2 rounded-lg flex items-center justify-center", colors.bg)}>
+                              <Icon className={cn("w-4 h-4", colors.text)} />
+                            </div>
+                            <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-center mb-1">
+                              {satellite.label}
+                            </div>
+                            <div className={cn("text-lg font-black text-center whitespace-nowrap", colors.text)}>
+                              {satellite.value}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                </article>
+                    </article>
+                  </TooltipTrigger>
+                  <TooltipContent 
+                    side="top" 
+                    className="max-w-[280px] p-3 bg-card border border-border shadow-xl z-50"
+                    sideOffset={8}
+                  >
+                    <p className="text-sm text-foreground leading-relaxed">
+                      {satellite.description}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
               );
             })}
           </section>
@@ -319,35 +364,47 @@ export const LiveCommandCenter = () => {
                 const colors = colorVariants[stat.color as keyof typeof colorVariants];
                 const Icon = stat.icon;
                 return (
-                  <article
-                    key={stat.label}
-                    className={cn(
-                      "p-4 md:p-6 rounded-2xl bg-card border-2 backdrop-blur-xl",
-                      "transition-all duration-300 hover:scale-[1.02] cursor-pointer",
-                      "animate-fade-in-up",
-                      colors.border
-                    )}
-                    style={{ animationDelay: `${index * 100}ms` }}
-                    aria-label={`${stat.label}: ${stat.value}`}
-                  >
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center border", colors.bg, colors.border)}>
-                        <Icon className={cn("w-5 h-5", colors.text)} aria-hidden="true" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-wider truncate">
-                          {stat.label}
-                        </h3>
-                      </div>
-                    </div>
-                    <div className={cn("text-2xl md:text-3xl font-black truncate", colors.text)}>
-                      {stat.value}
-                    </div>
-                    <div className="flex items-center gap-1 mt-2">
-                      <TrendingUp className={cn("w-3 h-3", colors.text)} aria-hidden="true" />
-                      <span className={cn("text-xs font-semibold", colors.text)}>Ao vivo</span>
-                    </div>
-                  </article>
+                  <Tooltip key={stat.label} delayDuration={1000}>
+                    <TooltipTrigger asChild>
+                      <article
+                        className={cn(
+                          "p-4 md:p-6 rounded-2xl bg-card border-2 backdrop-blur-xl",
+                          "transition-all duration-300 hover:scale-[1.02] cursor-pointer",
+                          "animate-fade-in-up",
+                          colors.border
+                        )}
+                        style={{ animationDelay: `${index * 100}ms` }}
+                        aria-label={`${stat.label}: ${stat.value}`}
+                      >
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center border", colors.bg, colors.border)}>
+                            <Icon className={cn("w-5 h-5", colors.text)} aria-hidden="true" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-wider truncate">
+                              {stat.label}
+                            </h3>
+                          </div>
+                        </div>
+                        <div className={cn("text-2xl md:text-3xl font-black truncate", colors.text)}>
+                          {stat.value}
+                        </div>
+                        <div className="flex items-center gap-1 mt-2">
+                          <TrendingUp className={cn("w-3 h-3", colors.text)} aria-hidden="true" />
+                          <span className={cn("text-xs font-semibold", colors.text)}>Ao vivo</span>
+                        </div>
+                      </article>
+                    </TooltipTrigger>
+                    <TooltipContent 
+                      side="top" 
+                      className="max-w-[280px] p-3 bg-card border border-border shadow-xl"
+                      sideOffset={8}
+                    >
+                      <p className="text-sm text-foreground leading-relaxed">
+                        {stat.description}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
                 );
               })}
             </section>
@@ -466,60 +523,96 @@ const DataStreamCard = ({
         {/* Key Metrics */}
         <div className="space-y-3">
           {/* Ad Spend */}
-          <div className={cn("p-4 rounded-xl border-2 backdrop-blur-sm", colorVariants.pink.bg, colorVariants.pink.border)}>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Megaphone className="w-4 h-4 text-chart-5" />
-                <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Gasto em Ads Hoje</span>
+          <Tooltip delayDuration={1000}>
+            <TooltipTrigger asChild>
+              <div className={cn("p-4 rounded-xl border-2 backdrop-blur-sm cursor-pointer hover:scale-[1.01] transition-transform", colorVariants.pink.bg, colorVariants.pink.border)}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Megaphone className="w-4 h-4 text-chart-5" />
+                    <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Gasto em Ads Hoje</span>
+                  </div>
+                  <div className="text-[9px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">Facebook Ads</div>
+                </div>
+                <div className="text-2xl md:text-3xl font-black text-chart-5">
+                  {formatCurrency(adSpend)}
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-1">Total investido</p>
               </div>
-              <div className="text-[9px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">Facebook Ads</div>
-            </div>
-            <div className="text-2xl md:text-3xl font-black text-chart-5">
-              {formatCurrency(adSpend)}
-            </div>
-            <p className="text-[10px] text-muted-foreground mt-1">Total investido</p>
-          </div>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-[280px] p-3 bg-card border border-border shadow-xl" sideOffset={8}>
+              <p className="text-sm text-foreground leading-relaxed">
+                Valor total gasto em anúncios do Facebook Ads hoje. Representa o investimento em marketing para aquisição de clientes.
+              </p>
+            </TooltipContent>
+          </Tooltip>
           
           {/* Orders Grid */}
           <div className="grid grid-cols-2 gap-3">
-            <div className={cn("p-3 rounded-xl border-2 backdrop-blur-sm", colorVariants.purple.bg, colorVariants.purple.border)}>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Pedidos</span>
-                {dailyComparison?.orders && (
-                  <ComparisonBadge 
-                    changePercent={dailyComparison.orders.changePercent}
-                    isPositive={dailyComparison.orders.isPositive}
-                    label=""
-                  />
-                )}
-              </div>
-              <div className="text-xl md:text-2xl font-black text-chart-5">{ordersCount}</div>
-              <p className="text-[9px] text-muted-foreground mt-0.5">Total de hoje</p>
-            </div>
+            <Tooltip delayDuration={1000}>
+              <TooltipTrigger asChild>
+                <div className={cn("p-3 rounded-xl border-2 backdrop-blur-sm cursor-pointer hover:scale-[1.01] transition-transform", colorVariants.purple.bg, colorVariants.purple.border)}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Pedidos</span>
+                    {dailyComparison?.orders && (
+                      <ComparisonBadge 
+                        changePercent={dailyComparison.orders.changePercent}
+                        isPositive={dailyComparison.orders.isPositive}
+                        label=""
+                      />
+                    )}
+                  </div>
+                  <div className="text-xl md:text-2xl font-black text-chart-5">{ordersCount}</div>
+                  <p className="text-[9px] text-muted-foreground mt-0.5">Total de hoje</p>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-[280px] p-3 bg-card border border-border shadow-xl" sideOffset={8}>
+                <p className="text-sm text-foreground leading-relaxed">
+                  Número total de pedidos realizados hoje. A badge mostra a variação percentual comparado ao mesmo horário de ontem.
+                </p>
+              </TooltipContent>
+            </Tooltip>
             
-            <div className={cn("p-3 rounded-xl border-2 backdrop-blur-sm", colorVariants.green.bg, colorVariants.green.border)}>
-              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-1 block">Ticket Médio</span>
-              <div className="text-xl md:text-2xl font-black text-chart-4">
-                {formatCurrency(avgOrderValue)}
-              </div>
-              <p className="text-[9px] text-muted-foreground mt-0.5">Por pedido</p>
-            </div>
+            <Tooltip delayDuration={1000}>
+              <TooltipTrigger asChild>
+                <div className={cn("p-3 rounded-xl border-2 backdrop-blur-sm cursor-pointer hover:scale-[1.01] transition-transform", colorVariants.green.bg, colorVariants.green.border)}>
+                  <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-1 block">Ticket Médio</span>
+                  <div className="text-xl md:text-2xl font-black text-chart-4">
+                    {formatCurrency(avgOrderValue)}
+                  </div>
+                  <p className="text-[9px] text-muted-foreground mt-0.5">Por pedido</p>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-[280px] p-3 bg-card border border-border shadow-xl" sideOffset={8}>
+                <p className="text-sm text-foreground leading-relaxed">
+                  Valor médio por pedido. Calculado dividindo o faturamento total pelo número de pedidos.
+                </p>
+              </TooltipContent>
+            </Tooltip>
           </div>
 
           {/* CPA - Cost Per Acquisition */}
-          <div className={cn("p-4 rounded-xl border-2 backdrop-blur-sm", colorVariants.orange.bg, colorVariants.orange.border)}>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Target className="w-4 h-4 text-chart-3" />
-                <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider">CPA</span>
+          <Tooltip delayDuration={1000}>
+            <TooltipTrigger asChild>
+              <div className={cn("p-4 rounded-xl border-2 backdrop-blur-sm cursor-pointer hover:scale-[1.01] transition-transform", colorVariants.orange.bg, colorVariants.orange.border)}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Target className="w-4 h-4 text-chart-3" />
+                    <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider">CPA</span>
+                  </div>
+                  <div className="text-[9px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">Custo por Compra</div>
+                </div>
+                <div className="text-2xl md:text-3xl font-black text-chart-3">
+                  {formatCurrency(cpa)}
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-1">Facebook Ads</p>
               </div>
-              <div className="text-[9px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">Custo por Compra</div>
-            </div>
-            <div className="text-2xl md:text-3xl font-black text-chart-3">
-              {formatCurrency(cpa)}
-            </div>
-            <p className="text-[10px] text-muted-foreground mt-1">Facebook Ads</p>
-          </div>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-[280px] p-3 bg-card border border-border shadow-xl" sideOffset={8}>
+              <p className="text-sm text-foreground leading-relaxed">
+                Custo por Aquisição. Quanto custa em média para adquirir um cliente. Calculado dividindo o gasto em ads pelo número de pedidos.
+              </p>
+            </TooltipContent>
+          </Tooltip>
         </div>
 
         {/* System Status Footer */}
