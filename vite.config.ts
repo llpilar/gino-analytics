@@ -69,6 +69,10 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "three/webgpu": "three",
     },
+  },
+  optimizeDeps: {
+    exclude: ["three/webgpu"],
   },
 }));
