@@ -422,6 +422,136 @@
     --sidebar-ring: 235 100% 44%;
   }
 
+  /* Theme: Dark Blue */
+  [data-theme="dark-blue"] {
+    --background: 222 47% 6%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 188 94% 43%;
+    --accent-foreground: 222 47% 6%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 217 33% 20%;
+    --input: 217 33% 17%;
+    --ring: 221 83% 53%;
+    --radius: 0.75rem;
+    
+    /* Chart colors */
+    --chart-1: 221 83% 53%;
+    --chart-2: 188 94% 43%;
+    --chart-3: 199 89% 48%;
+    --chart-4: 217 91% 60%;
+    --chart-5: 210 40% 75%;
+    
+    /* Accent colors */
+    --neon-cyan: 188 94% 43%;
+    --neon-cyan-light: 188 94% 53%;
+    --neon-purple: 221 83% 53%;
+    --neon-purple-light: 221 83% 63%;
+    --neon-pink: 199 89% 48%;
+    --neon-pink-light: 199 89% 58%;
+    --neon-green: 188 94% 43%;
+    --neon-green-light: 188 94% 53%;
+    --neon-orange: 221 83% 53%;
+    --neon-orange-light: 221 83% 63%;
+    --neon-blue: 221 83% 53%;
+    --neon-blue-light: 221 83% 63%;
+    
+    /* Status colors */
+    --status-success: 142 71% 45%;
+    --status-warning: 38 92% 50%;
+    --status-error: 0 72% 51%;
+    --status-info: 188 94% 43%;
+    
+    /* Surface colors */
+    --surface-elevated: 222 47% 11%;
+    --surface-overlay: 222 47% 7%;
+    
+    /* Sidebar */
+    --sidebar: 222 47% 9%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 221 83% 53%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 188 94% 43%;
+    --sidebar-accent-foreground: 222 47% 6%;
+    --sidebar-border: 217 33% 20%;
+    --sidebar-ring: 221 83% 53%;
+  }
+
+  /* Theme: Emerald Green */
+  [data-theme="emerald-green"] {
+    --background: 160 84% 4%;
+    --foreground: 152 81% 96%;
+    --card: 160 84% 7%;
+    --card-foreground: 152 81% 96%;
+    --popover: 160 84% 7%;
+    --popover-foreground: 152 81% 96%;
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 160 30% 15%;
+    --secondary-foreground: 152 81% 96%;
+    --muted: 160 30% 15%;
+    --muted-foreground: 152 20% 60%;
+    --accent: 158 64% 52%;
+    --accent-foreground: 160 84% 4%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 160 30% 18%;
+    --input: 160 30% 15%;
+    --ring: 160 84% 39%;
+    --radius: 0.75rem;
+    
+    /* Chart colors */
+    --chart-1: 160 84% 39%;
+    --chart-2: 158 64% 52%;
+    --chart-3: 142 71% 45%;
+    --chart-4: 152 69% 31%;
+    --chart-5: 166 72% 28%;
+    
+    /* Accent colors */
+    --neon-cyan: 158 64% 52%;
+    --neon-cyan-light: 158 64% 62%;
+    --neon-purple: 160 84% 39%;
+    --neon-purple-light: 160 84% 49%;
+    --neon-pink: 142 71% 45%;
+    --neon-pink-light: 142 71% 55%;
+    --neon-green: 160 84% 39%;
+    --neon-green-light: 160 84% 49%;
+    --neon-orange: 158 64% 52%;
+    --neon-orange-light: 158 64% 62%;
+    --neon-blue: 160 84% 39%;
+    --neon-blue-light: 160 84% 49%;
+    
+    /* Status colors */
+    --status-success: 160 84% 39%;
+    --status-warning: 38 92% 50%;
+    --status-error: 0 72% 51%;
+    --status-info: 158 64% 52%;
+    
+    /* Surface colors */
+    --surface-elevated: 160 84% 9%;
+    --surface-overlay: 160 84% 5%;
+    
+    /* Sidebar */
+    --sidebar: 160 84% 7%;
+    --sidebar-foreground: 152 81% 96%;
+    --sidebar-primary: 160 84% 39%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 158 64% 52%;
+    --sidebar-accent-foreground: 160 84% 4%;
+    --sidebar-border: 160 30% 18%;
+    --sidebar-ring: 160 84% 39%;
+  }
+
   * {
     @apply border-border;
   }
@@ -481,6 +611,22 @@
   .dark [data-theme="orange-bold"] body,
   [data-theme="orange-bold"].dark body {
     background: hsl(15, 35%, 9%);
+  }
+
+  /* Dark Blue theme background */
+  [data-theme="dark-blue"] body {
+    background: linear-gradient(145deg, 
+      hsl(222, 47%, 6%) 0%, 
+      hsl(220, 50%, 4%) 50%, 
+      hsl(224, 45%, 8%) 100%);
+  }
+
+  /* Emerald Green theme background */
+  [data-theme="emerald-green"] body {
+    background: linear-gradient(145deg, 
+      hsl(160, 84%, 4%) 0%, 
+      hsl(158, 80%, 3%) 50%, 
+      hsl(162, 75%, 6%) 100%);
   }
 }
 

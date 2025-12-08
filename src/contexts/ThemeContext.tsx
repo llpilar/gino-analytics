@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-export type ThemePreset = 'neon-green' | 'netflix-red' | 'twitter-blue' | 'minimal-neutral' | 'purple-modern' | 'orange-bold';
+export type ThemePreset = 'neon-green' | 'netflix-red' | 'twitter-blue' | 'minimal-neutral' | 'purple-modern' | 'orange-bold' | 'dark-blue' | 'emerald-green';
 
 interface ThemeContextType {
   theme: ThemePreset;
@@ -46,6 +46,18 @@ const themePresets = [
     name: 'Orange Bold',
     description: 'Tema vibrante com laranja e azul elétrico',
     colors: ['#ff5600', '#000ce1', '#00da00', '#f4f3ec']
+  },
+  {
+    id: 'dark-blue' as ThemePreset,
+    name: 'Dark Blue',
+    description: 'Tema escuro com azul profundo e ciano',
+    colors: ['#1e40af', '#06b6d4', '#0f172a', '#e2e8f0']
+  },
+  {
+    id: 'emerald-green' as ThemePreset,
+    name: 'Emerald Green',
+    description: 'Tema escuro com verde esmeralda vibrante',
+    colors: ['#10b981', '#34d399', '#022c22', '#d1fae5']
   }
 ];
 
