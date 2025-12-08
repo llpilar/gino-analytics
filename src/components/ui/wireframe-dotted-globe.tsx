@@ -142,10 +142,8 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
       const currentScale = projection.scale()
       const scaleFactor = currentScale / radius
 
-      // Get theme colors dynamically from CSS variables
+      // Get primary theme color
       const primaryColor = getThemeColor("--primary") || "hsl(85 100% 69%)"
-      const accentColor = getThemeColor("--accent") || primaryColor
-      const mutedColor = getThemeColor("--muted-foreground") || "hsl(240 5% 70%)"
       const backgroundColor = getThemeColor("--background") || "hsl(240 10% 5%)"
 
       // Draw ocean (globe background) - use theme background color
@@ -162,9 +160,9 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
         const graticule = d3.geoGraticule()
         context.beginPath()
         path(graticule())
-        context.strokeStyle = mutedColor
+        context.strokeStyle = primaryColor
         context.lineWidth = 1 * scaleFactor
-        context.globalAlpha = 0.2
+        context.globalAlpha = 0.15
         context.stroke()
         context.globalAlpha = 1
 
@@ -177,7 +175,7 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
         context.lineWidth = 1.5 * scaleFactor
         context.stroke()
 
-        // Draw halftone dots
+        // Draw halftone dots - all same primary color
         allDots.forEach((dot) => {
           const projected = projection([dot.lng, dot.lat])
           if (
@@ -189,7 +187,7 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
           ) {
             context.beginPath()
             context.arc(projected[0], projected[1], 1.2 * scaleFactor, 0, 2 * Math.PI)
-            context.fillStyle = accentColor
+            context.fillStyle = primaryColor
             context.fill()
           }
         })
