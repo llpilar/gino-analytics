@@ -112,21 +112,26 @@ export const SalesChart = ({ analyticsData, isLoading }: SalesChartProps) => {
         <ResponsiveContainer width="100%" height={320}>
           <LineChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
             <defs>
+              <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="hsl(var(--chart-1))" />
+                <stop offset="50%" stopColor="hsl(var(--chart-2))" />
+                <stop offset="100%" stopColor="hsl(var(--chart-4))" />
+              </linearGradient>
               <linearGradient id="colorVendas" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.6}/>
-                <stop offset="95%" stopColor="#06b6d4" stopOpacity={0.1}/>
+                <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.4}/>
+                <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0.05}/>
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} opacity={0.5} />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.3} />
             <XAxis 
               dataKey="data" 
-              stroke="#64748b"
+              stroke="hsl(var(--muted-foreground))"
               style={{ fontSize: '11px', fontWeight: '700' }}
               tickLine={false}
-              axisLine={{ stroke: '#1e293b' }}
+              axisLine={{ stroke: 'hsl(var(--border))' }}
             />
             <YAxis 
-              stroke="#64748b"
+              stroke="hsl(var(--muted-foreground))"
               style={{ fontSize: '11px', fontWeight: '700' }}
               tickFormatter={(value) => {
                 if (value >= 1000000) {
@@ -138,39 +143,38 @@ export const SalesChart = ({ analyticsData, isLoading }: SalesChartProps) => {
                 return new Intl.NumberFormat('pt-BR').format(value);
               }}
               tickLine={false}
-              axisLine={{ stroke: '#1e293b' }}
+              axisLine={{ stroke: 'hsl(var(--border))' }}
               width={60}
             />
             <Tooltip 
               contentStyle={{ 
-                backgroundColor: '#000', 
-                border: '2px solid #06b6d4',
+                backgroundColor: 'hsl(var(--card))', 
+                border: '2px solid hsl(var(--chart-1))',
                 borderRadius: '12px',
-                boxShadow: '0 0 30px rgba(6, 182, 212, 0.3)',
+                boxShadow: '0 0 30px hsla(var(--chart-1), 0.3)',
                 padding: '12px'
               }}
-              labelStyle={{ color: '#06b6d4', fontWeight: 'bold', marginBottom: '4px' }}
-              itemStyle={{ color: '#06b6d4', fontWeight: '700' }}
+              labelStyle={{ color: 'hsl(var(--chart-1))', fontWeight: 'bold', marginBottom: '4px' }}
+              itemStyle={{ color: 'hsl(var(--foreground))', fontWeight: '700' }}
               formatter={(value: number) => [new Intl.NumberFormat('pt-BR').format(value), 'Vendas']}
             />
             <Line 
               type="monotone" 
               dataKey="vendas" 
-              stroke="#06b6d4" 
+              stroke="url(#lineGradient)" 
               strokeWidth={4}
               fill="url(#colorVendas)"
               dot={{ 
-                fill: '#06b6d4', 
+                fill: 'hsl(var(--chart-1))', 
                 r: 6, 
                 strokeWidth: 3, 
-                stroke: '#000' 
+                stroke: 'hsl(var(--background))' 
               }}
               activeDot={{ 
                 r: 9, 
-                fill: '#06b6d4',
-                stroke: '#000',
+                fill: 'hsl(var(--chart-2))',
+                stroke: 'hsl(var(--background))',
                 strokeWidth: 3,
-                filter: 'drop-shadow(0 0 12px #06b6d4)'
               }}
             />
           </LineChart>
