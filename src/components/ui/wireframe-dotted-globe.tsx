@@ -190,8 +190,10 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
           ) {
             context.beginPath()
             context.arc(projected[0], projected[1], 1.2 * scaleFactor, 0, 2 * Math.PI)
-            context.fillStyle = mutedColor
+            context.fillStyle = primaryColor
+            context.globalAlpha = 0.6
             context.fill()
+            context.globalAlpha = 1
           }
         })
       }
