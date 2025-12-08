@@ -148,25 +148,7 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
       // Get theme colors
       const bgColor = getColor('--background', '#000000')
       const primaryColor = getColor('--primary', '#c6f135')
-      const mutedColor = getColor('--muted-foreground', '#888888')
-      const accentColor = getColor('--chart-4', '#4ade80') // Green for visitors
-      const highlightColor = getColor('--chart-3', '#fb923c') // Orange highlight
-
-      // Colombian cities coordinates [lng, lat] - simulating visitors
-      const colombiaVisitors: [number, number][] = [
-        [-74.0721, 4.7110],   // Bogotá
-        [-75.5636, 6.2442],   // Medellín
-        [-76.5225, 3.4516],   // Cali
-        [-74.7889, 10.9639],  // Barranquilla
-        [-75.5144, 10.3997],  // Cartagena
-        [-73.6266, 7.8891],   // Bucaramanga
-        [-75.6906, 4.5339],   // Pereira
-        [-76.2893, 3.8801],   // Palmira
-        [-75.4794, 5.0689],   // Manizales
-        [-74.7964, 11.0041],  // Soledad
-        [-72.5078, 7.8939],   // Cúcuta
-        [-75.8956, 8.7479],   // Montería
-      ]
+      const accentColor = getColor('--chart-4', '#4ade80') // Color for Colombia
 
       // Draw ocean (globe background) - transparent to show site background
       context.beginPath()
@@ -196,7 +178,22 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
         context.lineWidth = 1 * scaleFactor
         context.stroke()
 
-        // Draw halftone dots
+        // Colombia bounding box (approximate)
+        const colombiaBounds = {
+          minLng: -79.5,
+          maxLng: -66.5,
+          minLat: -4.5,
+          maxLat: 12.5
+        }
+
+        const isInColombia = (lng: number, lat: number) => {
+          return lng >= colombiaBounds.minLng && 
+                 lng <= colombiaBounds.maxLng && 
+                 lat >= colombiaBounds.minLat && 
+                 lat <= colombiaBounds.maxLat
+        }
+
+        // Draw halftone dots - different color for Colombia
         allDots.forEach((dot) => {
           const projected = projection([dot.lng, dot.lat])
           if (
@@ -206,55 +203,13 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
             projected[1] >= 0 &&
             projected[1] <= containerHeight
           ) {
-            context.beginPath()
-            context.arc(projected[0], projected[1], 1.2 * scaleFactor, 0, 2 * Math.PI)
-            context.fillStyle = primaryColor
-            context.globalAlpha = 0.6
-            context.fill()
-            context.globalAlpha = 1
-          }
-        })
-
-        // Draw Colombia visitor dots with smooth gradient effect
-        colombiaVisitors.forEach((coords, index) => {
-          const projected = projection(coords)
-          if (
-            projected &&
-            projected[0] >= 0 &&
-            projected[0] <= containerWidth &&
-            projected[1] >= 0 &&
-            projected[1] <= containerHeight
-          ) {
-            const color = accentColor
+            const inColombia = isInColombia(dot.lng, dot.lat)
             
-            // Soft outer glow - largest, most transparent
             context.beginPath()
-            context.arc(projected[0], projected[1], 8 * scaleFactor, 0, 2 * Math.PI)
-            context.fillStyle = color
-            context.globalAlpha = 0.08
+            context.arc(projected[0], projected[1], inColombia ? 1.8 * scaleFactor : 1.2 * scaleFactor, 0, 2 * Math.PI)
+            context.fillStyle = inColombia ? accentColor : primaryColor
+            context.globalAlpha = inColombia ? 0.9 : 0.6
             context.fill()
-            
-            // Medium glow
-            context.beginPath()
-            context.arc(projected[0], projected[1], 5 * scaleFactor, 0, 2 * Math.PI)
-            context.fillStyle = color
-            context.globalAlpha = 0.15
-            context.fill()
-            
-            // Inner glow
-            context.beginPath()
-            context.arc(projected[0], projected[1], 3 * scaleFactor, 0, 2 * Math.PI)
-            context.fillStyle = color
-            context.globalAlpha = 0.3
-            context.fill()
-            
-            // Core dot - small and bright
-            context.beginPath()
-            context.arc(projected[0], projected[1], 1.5 * scaleFactor, 0, 2 * Math.PI)
-            context.fillStyle = color
-            context.globalAlpha = 0.9
-            context.fill()
-            
             context.globalAlpha = 1
           }
         })
