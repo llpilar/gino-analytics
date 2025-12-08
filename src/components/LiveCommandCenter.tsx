@@ -261,7 +261,7 @@ export const LiveCommandCenter = () => {
 
             {/* Globe */}
             <div className="relative z-10 w-[380px] h-[380px]" aria-hidden="true">
-              <RotatingEarth width={380} height={380} className="w-full h-full" visitorCount={visitorCount} />
+              <RotatingEarth width={380} height={380} className="w-full h-full" />
               <div className="absolute inset-0 bg-gradient-radial from-primary/30 via-primary/10 to-transparent blur-3xl animate-pulse-glow pointer-events-none" />
               <div className="absolute inset-0 bg-gradient-radial from-chart-1/20 via-transparent to-transparent blur-2xl animate-pulse-glow pointer-events-none" style={{ animationDelay: "0.5s" }} />
             </div>
@@ -440,7 +440,7 @@ export const LiveCommandCenter = () => {
                   Vendas Globais
                 </h3>
                 <div className="relative w-full aspect-square">
-                  <RotatingEarth width={300} height={300} className="w-full h-full" visitorCount={visitorCount} />
+                  <RotatingEarth width={300} height={300} className="w-full h-full" />
                   <div className="absolute inset-0 bg-gradient-radial from-chart-5/20 via-transparent to-transparent blur-2xl pointer-events-none" aria-hidden="true" />
                 </div>
               </aside>
