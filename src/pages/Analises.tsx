@@ -14,7 +14,7 @@ import { LucideIcon } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { useVturbOverview, useVturbPlayers, parseVturbData, parseVturbPlayers } from "@/hooks/useVturbAnalytics";
-import { useVslbioboostVisitors } from "@/hooks/useVslbioboostVisitors";
+import { useGA4Visitors } from "@/hooks/useGA4Visitors";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Analises() {
@@ -32,7 +32,7 @@ export default function Analises() {
   const { data: vturbPlayersData, isLoading: vturbPlayersLoading } = useVturbPlayers();
   const { data: vturbData, isLoading: vturbLoading, error: vturbError } = useVturbOverview(selectedPlayerId);
   const vturbMetrics = useMemo(() => parseVturbData(vturbData), [vturbData]);
-  const { visitorCount } = useVslbioboostVisitors();
+  const { visitorCount } = useGA4Visitors();
 
   // Parse players list from VTurb response
   const vturbPlayers = useMemo(() => parseVturbPlayers(vturbPlayersData), [vturbPlayersData]);
