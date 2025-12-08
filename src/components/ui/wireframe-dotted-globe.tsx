@@ -128,6 +128,13 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
     const allDots: DotData[] = []
     let landFeatures: any
 
+    // Get theme colors from CSS variables
+    const getThemeColor = (varName: string, fallback: string) => {
+      const style = getComputedStyle(document.documentElement)
+      const value = style.getPropertyValue(varName).trim()
+      return value || fallback
+    }
+
     const render = () => {
       // Clear canvas
       context.clearRect(0, 0, containerWidth, containerHeight)
@@ -135,12 +142,17 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
       const currentScale = projection.scale()
       const scaleFactor = currentScale / radius
 
-      // Draw ocean (globe background)
+      // Get theme colors
+      const primaryColor = "hsl(142, 76%, 36%)" // lime-600 for accent
+      const strokeColor = "hsl(142, 76%, 46%)" // lime-500
+      const dotColor = "hsl(142, 76%, 56%)" // lime-400
+
+      // Draw ocean (globe background) - transparent with border
       context.beginPath()
       context.arc(containerWidth / 2, containerHeight / 2, currentScale, 0, 2 * Math.PI)
-      context.fillStyle = "#000000"
+      context.fillStyle = "rgba(0, 0, 0, 0.1)"
       context.fill()
-      context.strokeStyle = "#ffffff"
+      context.strokeStyle = strokeColor
       context.lineWidth = 2 * scaleFactor
       context.stroke()
 
@@ -149,9 +161,9 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
         const graticule = d3.geoGraticule()
         context.beginPath()
         path(graticule())
-        context.strokeStyle = "#ffffff"
+        context.strokeStyle = strokeColor
         context.lineWidth = 1 * scaleFactor
-        context.globalAlpha = 0.25
+        context.globalAlpha = 0.15
         context.stroke()
         context.globalAlpha = 1
 
@@ -160,8 +172,8 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
         landFeatures.features.forEach((feature: any) => {
           path(feature)
         })
-        context.strokeStyle = "#ffffff"
-        context.lineWidth = 1 * scaleFactor
+        context.strokeStyle = primaryColor
+        context.lineWidth = 1.5 * scaleFactor
         context.stroke()
 
         // Draw halftone dots
@@ -176,7 +188,7 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
           ) {
             context.beginPath()
             context.arc(projected[0], projected[1], 1.2 * scaleFactor, 0, 2 * Math.PI)
-            context.fillStyle = "#999999"
+            context.fillStyle = dotColor
             context.fill()
           }
         })
@@ -300,7 +312,7 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
         className="w-full h-auto rounded-2xl bg-background"
         style={{ maxWidth: "100%", height: "auto" }}
       />
-      <div className="absolute bottom-4 left-4 text-xs text-muted-foreground px-2 py-1 rounded-md bg-neutral-900/80">
+      <div className="absolute bottom-4 left-4 text-xs text-muted-foreground px-2 py-1 rounded-md bg-card/80 border border-border">
         Drag to rotate • Scroll to zoom
       </div>
     </div>
