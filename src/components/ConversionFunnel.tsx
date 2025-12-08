@@ -57,12 +57,12 @@ export const ConversionFunnel = ({ visits, plays, clicks, orders }: ConversionFu
         {/* Funnel visualization */}
         <div className="relative h-40 flex items-center">
           <svg viewBox="0 0 400 100" className="w-full h-full" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="funnelGrad" x1="0%" y1="50%" x2="100%" y2="50%">
-                <stop offset="0%" stopColor="#4f46e5" />
-                <stop offset="100%" stopColor="#7c3aed" />
-              </linearGradient>
-            </defs>
+          <defs>
+            <linearGradient id="funnelGrad" x1="0%" y1="50%" x2="100%" y2="50%">
+              <stop offset="0%" stopColor="hsl(var(--primary))" />
+              <stop offset="100%" stopColor="hsl(var(--chart-1))" />
+            </linearGradient>
+          </defs>
             
             {/* Funnel shape - smooth curves */}
             <path
@@ -136,11 +136,11 @@ export const ConversionFunnel = ({ visits, plays, clicks, orders }: ConversionFu
 
         {/* Connecting line */}
         <div className="flex items-center justify-between px-[12.5%]">
-          <div className="flex-1 h-0.5 bg-gradient-to-r from-indigo-500 to-violet-500 relative">
+          <div className="flex-1 h-0.5 bg-gradient-to-r from-primary to-chart-1 relative">
             {stages.map((_, i) => (
               <div
                 key={i}
-                className="absolute w-2 h-2 rounded-full bg-violet-400 border-2 border-background -top-[3px]"
+                className="absolute w-2 h-2 rounded-full bg-primary border-2 border-background -top-[3px]"
                 style={{ left: `${(i / (stages.length - 1)) * 100}%`, transform: 'translateX(-50%)' }}
               />
             ))}
