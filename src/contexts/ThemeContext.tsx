@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-export type ThemePreset = 'neon-green' | 'liquid-glass' | 'twitter-blue' | 'minimal-neutral' | 'purple-modern' | 'orange-bold';
+export type ThemePreset = 'neon-green' | 'netflix-red' | 'twitter-blue' | 'minimal-neutral' | 'purple-modern' | 'orange-bold';
 
 interface ThemeContextType {
   theme: ThemePreset;
@@ -18,10 +18,10 @@ const themePresets = [
     colors: ['#a3e635', '#22d3ee', '#a855f7', '#f97316']
   },
   {
-    id: 'liquid-glass' as ThemePreset,
-    name: 'Liquid Glass',
-    description: 'Estilo Apple com efeito de vidro líquido',
-    colors: ['rgba(255,255,255,0.5)', 'rgba(255,255,255,0.3)', 'rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)']
+    id: 'netflix-red' as ThemePreset,
+    name: 'Netflix Red',
+    description: 'Visual escuro com vermelho vibrante estilo Netflix',
+    colors: ['#e50914', '#ffffff', '#1a1a1a', '#000000']
   },
   {
     id: 'twitter-blue' as ThemePreset,
