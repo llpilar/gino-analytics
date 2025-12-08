@@ -15,7 +15,7 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { useDateFilter } from "@/contexts/DateFilterContext";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
-import { useVslbioboostVisitors } from "@/hooks/useVslbioboostVisitors";
+import { useGA4Visitors } from "@/hooks/useGA4Visitors";
 import { useFacebookAdsToday } from "@/hooks/useFacebookAdsToday";
 
 type LayoutMode = "orbital" | "grid";
@@ -31,7 +31,7 @@ export const LiveCommandCenter = () => {
   const { orderCount: realtimeOrderCount } = useRealtimeOrders();
   const { formatCurrency } = useCurrency();
   const { dateRange } = useDateFilter();
-  const { visitorCount } = useVslbioboostVisitors();
+  const { visitorCount } = useGA4Visitors();
   const { data: facebookAdsData } = useFacebookAdsToday();
 
   // Check for mobile viewport
