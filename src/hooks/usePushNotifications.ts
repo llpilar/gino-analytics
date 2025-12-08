@@ -231,15 +231,29 @@ export const usePushNotifications = () => {
 
 // Helper functions
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
-  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
+  // Remove any whitespace and sanitize the string
+  const sanitized = base64String.trim().replace(/\s/g, '');
+  
+  // Add padding if needed
+  const padding = '='.repeat((4 - (sanitized.length % 4)) % 4);
+  
+  // Convert URL-safe base64 to standard base64
+  const base64 = (sanitized + padding)
+    .replace(/-/g, '+')
+    .replace(/_/g, '/');
+  
+  try {
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
 
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  } catch (error) {
+    console.error('Error decoding VAPID key:', error, 'Original:', base64String, 'Sanitized:', sanitized);
+    throw new Error('Chave VAPID inválida. Verifique a configuração.');
   }
-  return outputArray;
 }
 
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
