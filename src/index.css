@@ -487,69 +487,134 @@
     --sidebar-ring: 221 83% 53%;
   }
 
-  /* Theme: Emerald Green */
-  [data-theme="emerald-green"] {
-    --background: 160 84% 4%;
-    --foreground: 152 81% 96%;
-    --card: 160 84% 7%;
-    --card-foreground: 152 81% 96%;
-    --popover: 160 84% 7%;
-    --popover-foreground: 152 81% 96%;
-    --primary: 160 84% 39%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 160 30% 15%;
-    --secondary-foreground: 152 81% 96%;
-    --muted: 160 30% 15%;
-    --muted-foreground: 152 20% 60%;
-    --accent: 158 64% 52%;
-    --accent-foreground: 160 84% 4%;
-    --destructive: 0 72% 51%;
+  /* Theme: Candy Pink - Light Mode */
+  [data-theme="candy-pink"] {
+    --background: 200 20% 98%;
+    --foreground: 0 0% 20%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 20%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 20%;
+    --primary: 350 100% 88%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 197 71% 73%;
+    --secondary-foreground: 0 0% 0%;
+    --muted: 47 23% 82%;
+    --muted-foreground: 0 0% 43%;
+    --accent: 60 100% 50%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 160 30% 18%;
-    --input: 160 30% 15%;
-    --ring: 160 84% 39%;
-    --radius: 0.75rem;
+    --border: 0 0% 83%;
+    --input: 0 0% 83%;
+    --ring: 350 100% 88%;
+    --radius: 0.5rem;
     
     /* Chart colors */
-    --chart-1: 160 84% 39%;
-    --chart-2: 158 64% 52%;
-    --chart-3: 142 71% 45%;
-    --chart-4: 152 69% 31%;
-    --chart-5: 166 72% 28%;
+    --chart-1: 350 100% 88%;
+    --chart-2: 197 71% 73%;
+    --chart-3: 60 100% 50%;
+    --chart-4: 330 100% 80%;
+    --chart-5: 120 60% 50%;
     
     /* Accent colors */
-    --neon-cyan: 158 64% 52%;
-    --neon-cyan-light: 158 64% 62%;
-    --neon-purple: 160 84% 39%;
-    --neon-purple-light: 160 84% 49%;
-    --neon-pink: 142 71% 45%;
-    --neon-pink-light: 142 71% 55%;
-    --neon-green: 160 84% 39%;
-    --neon-green-light: 160 84% 49%;
-    --neon-orange: 158 64% 52%;
-    --neon-orange-light: 158 64% 62%;
-    --neon-blue: 160 84% 39%;
-    --neon-blue-light: 160 84% 49%;
+    --neon-cyan: 197 71% 73%;
+    --neon-cyan-light: 197 71% 83%;
+    --neon-purple: 330 100% 80%;
+    --neon-purple-light: 330 100% 90%;
+    --neon-pink: 350 100% 88%;
+    --neon-pink-light: 350 100% 93%;
+    --neon-green: 120 60% 50%;
+    --neon-green-light: 120 60% 60%;
+    --neon-orange: 60 100% 50%;
+    --neon-orange-light: 60 100% 60%;
+    --neon-blue: 197 71% 73%;
+    --neon-blue-light: 197 71% 83%;
     
     /* Status colors */
-    --status-success: 160 84% 39%;
-    --status-warning: 38 92% 50%;
-    --status-error: 0 72% 51%;
-    --status-info: 158 64% 52%;
+    --status-success: 120 60% 50%;
+    --status-warning: 60 100% 50%;
+    --status-error: 0 84% 60%;
+    --status-info: 197 71% 73%;
     
     /* Surface colors */
-    --surface-elevated: 160 84% 9%;
-    --surface-overlay: 160 84% 5%;
+    --surface-elevated: 0 0% 100%;
+    --surface-overlay: 200 20% 96%;
     
     /* Sidebar */
-    --sidebar: 160 84% 7%;
-    --sidebar-foreground: 152 81% 96%;
-    --sidebar-primary: 160 84% 39%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 158 64% 52%;
-    --sidebar-accent-foreground: 160 84% 4%;
-    --sidebar-border: 160 30% 18%;
-    --sidebar-ring: 160 84% 39%;
+    --sidebar: 200 20% 98%;
+    --sidebar-foreground: 0 0% 20%;
+    --sidebar-primary: 350 100% 88%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 60 100% 50%;
+    --sidebar-accent-foreground: 0 0% 0%;
+    --sidebar-border: 0 0% 83%;
+    --sidebar-ring: 350 100% 88%;
+  }
+
+  /* Theme: Candy Pink - Dark Mode */
+  .dark [data-theme="candy-pink"],
+  [data-theme="candy-pink"].dark {
+    --background: 220 15% 12%;
+    --foreground: 0 0% 90%;
+    --card: 200 7% 20%;
+    --card-foreground: 0 0% 90%;
+    --popover: 200 7% 20%;
+    --popover-foreground: 0 0% 90%;
+    --primary: 330 100% 80%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 120 60% 50%;
+    --secondary-foreground: 0 0% 0%;
+    --muted: 0 0% 27%;
+    --muted-foreground: 0 0% 64%;
+    --accent: 197 71% 73%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 27%;
+    --input: 0 0% 27%;
+    --ring: 330 100% 80%;
+    
+    /* Chart colors */
+    --chart-1: 330 100% 80%;
+    --chart-2: 120 60% 50%;
+    --chart-3: 197 71% 73%;
+    --chart-4: 60 100% 50%;
+    --chart-5: 45 100% 50%;
+    
+    /* Accent colors */
+    --neon-cyan: 197 71% 73%;
+    --neon-cyan-light: 197 71% 83%;
+    --neon-purple: 330 100% 80%;
+    --neon-purple-light: 330 100% 90%;
+    --neon-pink: 350 100% 88%;
+    --neon-pink-light: 350 100% 93%;
+    --neon-green: 120 60% 50%;
+    --neon-green-light: 120 60% 60%;
+    --neon-orange: 60 100% 50%;
+    --neon-orange-light: 60 100% 60%;
+    --neon-blue: 197 71% 73%;
+    --neon-blue-light: 197 71% 83%;
+    
+    /* Status colors */
+    --status-success: 120 60% 50%;
+    --status-warning: 60 100% 50%;
+    --status-error: 0 84% 60%;
+    --status-info: 197 71% 73%;
+    
+    /* Surface colors */
+    --surface-elevated: 200 7% 22%;
+    --surface-overlay: 220 15% 10%;
+    
+    /* Sidebar */
+    --sidebar: 220 15% 12%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 330 100% 80%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 197 71% 73%;
+    --sidebar-accent-foreground: 0 0% 0%;
+    --sidebar-border: 0 0% 27%;
+    --sidebar-ring: 330 100% 80%;
   }
 
   * {
@@ -621,12 +686,14 @@
       hsl(224, 45%, 8%) 100%);
   }
 
-  /* Emerald Green theme background */
-  [data-theme="emerald-green"] body {
-    background: linear-gradient(145deg, 
-      hsl(160, 84%, 4%) 0%, 
-      hsl(158, 80%, 3%) 50%, 
-      hsl(162, 75%, 6%) 100%);
+  /* Candy Pink theme background */
+  [data-theme="candy-pink"] body {
+    background: hsl(200, 20%, 98%);
+  }
+
+  .dark [data-theme="candy-pink"] body,
+  [data-theme="candy-pink"].dark body {
+    background: hsl(220, 15%, 12%);
   }
 }
 
