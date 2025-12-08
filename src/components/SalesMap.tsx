@@ -54,21 +54,53 @@ export const SalesMap = () => {
   useEffect(() => {
     if (!mapboxToken || !isTokenSet || !mapContainer.current || !data) return;
 
-    // Get theme colors from CSS variables
-    const getThemeColor = (varName: string) => {
+    // Get theme colors from CSS variables and convert to RGB for Mapbox
+    const getHslValues = (varName: string) => {
       const style = getComputedStyle(document.documentElement);
       const value = style.getPropertyValue(varName).trim();
-      return value ? `hsl(${value})` : null;
+      if (!value) return null;
+      // Parse "85 100% 69%" format
+      const parts = value.split(' ');
+      if (parts.length >= 3) {
+        const h = parseFloat(parts[0]);
+        const s = parseFloat(parts[1]) / 100;
+        const l = parseFloat(parts[2]) / 100;
+        return { h, s, l };
+      }
+      return null;
     };
 
-    const primaryColor = getThemeColor("--primary") || "hsl(85 100% 69%)";
-    const primaryRgba = (opacity: number) => {
-      const style = getComputedStyle(document.documentElement);
-      const value = style.getPropertyValue("--primary").trim();
-      if (!value) return `rgba(29, 161, 242, ${opacity})`;
-      // Parse HSL and convert to rgba-like format for mapbox
-      return `hsla(${value} / ${opacity})`;
+    const hslToRgb = (h: number, s: number, l: number) => {
+      let r, g, b;
+      if (s === 0) {
+        r = g = b = l;
+      } else {
+        const hue2rgb = (p: number, q: number, t: number) => {
+          if (t < 0) t += 1;
+          if (t > 1) t -= 1;
+          if (t < 1/6) return p + (q - p) * 6 * t;
+          if (t < 1/2) return q;
+          if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+          return p;
+        };
+        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        const p = 2 * l - q;
+        r = hue2rgb(p, q, h / 360 + 1/3);
+        g = hue2rgb(p, q, h / 360);
+        b = hue2rgb(p, q, h / 360 - 1/3);
+      }
+      return {
+        r: Math.round(r * 255),
+        g: Math.round(g * 255),
+        b: Math.round(b * 255)
+      };
     };
+
+    const hslValues = getHslValues("--primary");
+    const rgb = hslValues ? hslToRgb(hslValues.h, hslValues.s, hslValues.l) : { r: 29, g: 161, b: 242 };
+    
+    const primaryColor = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+    const primaryRgba = (opacity: number) => `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`;
 
     mapboxgl.accessToken = mapboxToken;
     
@@ -171,12 +203,12 @@ export const SalesMap = () => {
               'interpolate',
               ['linear'],
               ['heatmap-density'],
-              0, 'hsla(var(--primary) / 0)',
-              0.2, primaryColor,
-              0.4, primaryRgba(0.8),
-              0.6, primaryRgba(0.6),
-              0.8, primaryRgba(0.4),
-              1, primaryRgba(0.2)
+              0, 'rgba(0, 0, 0, 0)',
+              0.2, primaryRgba(0.3),
+              0.4, primaryRgba(0.5),
+              0.6, primaryRgba(0.7),
+              0.8, primaryRgba(0.85),
+              1, primaryColor
             ],
             'heatmap-radius': [
               'interpolate',
