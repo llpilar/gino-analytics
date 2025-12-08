@@ -12,7 +12,9 @@ export const VariantPerformance = () => {
   const { formatCurrency } = useCurrency();
   const { dateRange } = useDateFilter();
 
-  const periodLabel = `${format(dateRange.from, "dd/MM", { locale: ptBR })} - ${format(dateRange.to, "dd/MM/yyyy", { locale: ptBR })}`;
+  const fromDate = dateRange?.from || new Date();
+  const toDate = dateRange?.to || new Date();
+  const periodLabel = `${format(fromDate, "dd/MM", { locale: ptBR })} - ${format(toDate, "dd/MM/yyyy", { locale: ptBR })}`;
 
   if (isLoading) {
     return (
