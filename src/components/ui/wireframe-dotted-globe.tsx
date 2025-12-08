@@ -129,10 +129,10 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
     let landFeatures: any
 
     // Get theme colors from CSS variables
-    const getThemeColor = (varName: string, fallback: string) => {
+    const getThemeColor = (varName: string) => {
       const style = getComputedStyle(document.documentElement)
       const value = style.getPropertyValue(varName).trim()
-      return value || fallback
+      return value ? `hsl(${value})` : null
     }
 
     const render = () => {
@@ -142,17 +142,18 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
       const currentScale = projection.scale()
       const scaleFactor = currentScale / radius
 
-      // Get theme colors
-      const primaryColor = "hsl(142, 76%, 36%)" // lime-600 for accent
-      const strokeColor = "hsl(142, 76%, 46%)" // lime-500
-      const dotColor = "hsl(142, 76%, 56%)" // lime-400
+      // Get theme colors dynamically from CSS variables
+      const primaryColor = getThemeColor("--primary") || "hsl(85 100% 69%)"
+      const accentColor = getThemeColor("--accent") || primaryColor
+      const mutedColor = getThemeColor("--muted-foreground") || "hsl(240 5% 70%)"
+      const borderColor = getThemeColor("--border") || "hsl(240 10% 20%)"
 
       // Draw ocean (globe background) - transparent with border
       context.beginPath()
       context.arc(containerWidth / 2, containerHeight / 2, currentScale, 0, 2 * Math.PI)
       context.fillStyle = "rgba(0, 0, 0, 0.1)"
       context.fill()
-      context.strokeStyle = strokeColor
+      context.strokeStyle = primaryColor
       context.lineWidth = 2 * scaleFactor
       context.stroke()
 
@@ -161,9 +162,9 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
         const graticule = d3.geoGraticule()
         context.beginPath()
         path(graticule())
-        context.strokeStyle = strokeColor
+        context.strokeStyle = mutedColor
         context.lineWidth = 1 * scaleFactor
-        context.globalAlpha = 0.15
+        context.globalAlpha = 0.2
         context.stroke()
         context.globalAlpha = 1
 
@@ -188,7 +189,7 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
           ) {
             context.beginPath()
             context.arc(projected[0], projected[1], 1.2 * scaleFactor, 0, 2 * Math.PI)
-            context.fillStyle = dotColor
+            context.fillStyle = accentColor
             context.fill()
           }
         })
