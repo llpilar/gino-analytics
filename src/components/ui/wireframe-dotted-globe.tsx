@@ -215,7 +215,7 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
           }
         })
 
-        // Draw Colombia visitor dots with pulse effect
+        // Draw Colombia visitor dots with smooth gradient effect
         colombiaVisitors.forEach((coords, index) => {
           const projected = projection(coords)
           if (
@@ -225,19 +225,37 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
             projected[1] >= 0 &&
             projected[1] <= containerHeight
           ) {
-            // Outer glow
+            const color = accentColor
+            
+            // Soft outer glow - largest, most transparent
             context.beginPath()
-            context.arc(projected[0], projected[1], 6 * scaleFactor, 0, 2 * Math.PI)
-            context.fillStyle = index % 2 === 0 ? accentColor : highlightColor
+            context.arc(projected[0], projected[1], 8 * scaleFactor, 0, 2 * Math.PI)
+            context.fillStyle = color
+            context.globalAlpha = 0.08
+            context.fill()
+            
+            // Medium glow
+            context.beginPath()
+            context.arc(projected[0], projected[1], 5 * scaleFactor, 0, 2 * Math.PI)
+            context.fillStyle = color
+            context.globalAlpha = 0.15
+            context.fill()
+            
+            // Inner glow
+            context.beginPath()
+            context.arc(projected[0], projected[1], 3 * scaleFactor, 0, 2 * Math.PI)
+            context.fillStyle = color
             context.globalAlpha = 0.3
             context.fill()
             
-            // Inner dot
+            // Core dot - small and bright
             context.beginPath()
-            context.arc(projected[0], projected[1], 3 * scaleFactor, 0, 2 * Math.PI)
-            context.fillStyle = index % 2 === 0 ? accentColor : highlightColor
-            context.globalAlpha = 1
+            context.arc(projected[0], projected[1], 1.5 * scaleFactor, 0, 2 * Math.PI)
+            context.fillStyle = color
+            context.globalAlpha = 0.9
             context.fill()
+            
+            context.globalAlpha = 1
           }
         })
       }
