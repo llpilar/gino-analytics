@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import React, { useEffect, useRef, useCallback, useState } from "react"
 import * as d3 from "d3"
+import { Search, Globe, Maximize2, Plus, Minus } from "lucide-react"
 
 interface RotatingEarthProps {
   width?: number
@@ -10,280 +11,230 @@ interface RotatingEarthProps {
   visitorCount?: number
 }
 
-export default function RotatingEarth({ width = 800, height = 600, className = "", visitorCount = 0 }: RotatingEarthProps) {
+export default function RotatingEarth({
+  width = 800,
+  height = 600,
+  className = "",
+  visitorCount = 0,
+}: RotatingEarthProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const zoomFunctionsRef = useRef<{ zoomIn: () => void; zoomOut: () => void } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (!canvasRef.current) return
-
+  const drawGlobe = useCallback(() => {
     const canvas = canvasRef.current
-    const context = canvas.getContext("2d")
-    if (!context) return
+    const container = containerRef.current
+    if (!canvas || !container) return
 
-    // Set up responsive dimensions
-    const containerWidth = Math.min(width, window.innerWidth - 40)
-    const containerHeight = Math.min(height, window.innerHeight - 100)
-    const radius = Math.min(containerWidth, containerHeight) / 2.5
+    const ctx = canvas.getContext("2d")
+    if (!ctx) return
 
+    // Get container dimensions for responsiveness
+    const containerWidth = container.clientWidth
+    const containerHeight = container.clientHeight || height
     const dpr = window.devicePixelRatio || 1
+
+    // Set canvas size with device pixel ratio for retina
     canvas.width = containerWidth * dpr
     canvas.height = containerHeight * dpr
     canvas.style.width = `${containerWidth}px`
     canvas.style.height = `${containerHeight}px`
-    context.scale(dpr, dpr)
+    ctx.scale(dpr, dpr)
 
-    // Create projection and path generator for Canvas
-    const projection = d3
-      .geoOrthographic()
-      .scale(radius)
+    // Calculate globe radius based on container size
+    const baseRadius = Math.min(containerWidth, containerHeight) * 0.38
+    let currentScale = 1
+    const minScale = 0.5
+    const maxScale = 2.5
+
+    // D3 projection
+    const projection = d3.geoOrthographic()
+      .scale(baseRadius * currentScale)
       .translate([containerWidth / 2, containerHeight / 2])
       .clipAngle(90)
 
-    const path = d3.geoPath().projection(projection).context(context)
-
-    const pointInPolygon = (point: [number, number], polygon: number[][]): boolean => {
-      const [x, y] = point
-      let inside = false
-
-      for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-        const [xi, yi] = polygon[i]
-        const [xj, yj] = polygon[j]
-
-        if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
-          inside = !inside
-        }
-      }
-
-      return inside
-    }
-
-    const pointInFeature = (point: [number, number], feature: any): boolean => {
-      const geometry = feature.geometry
-
-      if (geometry.type === "Polygon") {
-        const coordinates = geometry.coordinates
-        // Check if point is in outer ring
-        if (!pointInPolygon(point, coordinates[0])) {
-          return false
-        }
-        // Check if point is in any hole (inner rings)
-        for (let i = 1; i < coordinates.length; i++) {
-          if (pointInPolygon(point, coordinates[i])) {
-            return false // Point is in a hole
-          }
-        }
-        return true
-      } else if (geometry.type === "MultiPolygon") {
-        // Check each polygon in the MultiPolygon
-        for (const polygon of geometry.coordinates) {
-          // Check if point is in outer ring
-          if (pointInPolygon(point, polygon[0])) {
-            // Check if point is in any hole
-            let inHole = false
-            for (let i = 1; i < polygon.length; i++) {
-              if (pointInPolygon(point, polygon[i])) {
-                inHole = true
-                break
-              }
-            }
-            if (!inHole) {
-              return true
-            }
-          }
-        }
-        return false
-      }
-
-      return false
-    }
-
-    const generateDotsInPolygon = (feature: any, dotSpacing = 16) => {
+    // Generate dot grid for land
+    const generateDotGrid = (density: number = 2) => {
       const dots: [number, number][] = []
-      const bounds = d3.geoBounds(feature)
-      const [[minLng, minLat], [maxLng, maxLat]] = bounds
-
-      const stepSize = dotSpacing * 0.08
-
-      for (let lng = minLng; lng <= maxLng; lng += stepSize) {
-        for (let lat = minLat; lat <= maxLat; lat += stepSize) {
-          const point: [number, number] = [lng, lat]
-          if (pointInFeature(point, feature)) {
-            dots.push(point)
-          }
+      for (let lat = -80; lat <= 80; lat += density) {
+        for (let lng = -180; lng <= 180; lng += density) {
+          dots.push([lng, lat])
         }
       }
-
       return dots
     }
 
-    interface DotData {
-      lng: number
-      lat: number
-      visible: boolean
-    }
+    const allDots = generateDotGrid(2.5)
 
-    const allDots: DotData[] = []
-    let landFeatures: any
+    // Colombia highlight points
+    const colombiaPoints: [number, number][] = [
+      [-74.0721, 4.7110],   // Bogotá
+      [-75.5636, 6.2442],   // Medellín
+      [-76.5320, 3.4516],   // Cali
+      [-74.7813, 10.9685],  // Barranquilla
+      [-75.5144, 10.3910],  // Cartagena
+      [-73.1198, 7.1254],   // Bucaramanga
+      [-75.6906, 4.5339],   // Pereira
+      [-76.2560, 4.8143],   // Palmira
+      [-72.5078, 7.8939],   // Cúcuta
+      [-75.5012, 5.0689],   // Manizales
+      [-74.1070, 4.5980],   // Bogotá area 2
+      [-75.4794, 6.1808],   // Medellín area 2
+      [-76.6020, 3.5200],   // Cali area 2
+      [-73.2500, 7.0700],   // Bucaramanga area 2
+      [-74.8500, 11.0200],  // Barranquilla area 2
+      [-75.5500, 10.4200],  // Cartagena area 2
+    ]
 
-    // Get computed CSS colors from the document
-    const getColor = (varName: string, fallback: string): string => {
-      if (typeof document !== 'undefined') {
-        const style = getComputedStyle(document.documentElement)
-        const value = style.getPropertyValue(varName).trim()
-        if (value) {
-          return `hsl(${value})`
-        }
-      }
-      return fallback
+    // Simplified land check (approximate)
+    const isLand = (lng: number, lat: number): boolean => {
+      // North America
+      if (lat > 15 && lat < 72 && lng > -170 && lng < -50) return true
+      // South America
+      if (lat > -56 && lat < 15 && lng > -82 && lng < -34) return true
+      // Europe
+      if (lat > 35 && lat < 72 && lng > -12 && lng < 60) return true
+      // Africa
+      if (lat > -35 && lat < 38 && lng > -18 && lng < 52) return true
+      // Asia
+      if (lat > 5 && lat < 78 && lng > 60 && lng < 180) return true
+      // Australia
+      if (lat > -45 && lat < -10 && lng > 110 && lng < 155) return true
+      // Japan/Korea
+      if (lat > 30 && lat < 46 && lng > 125 && lng < 146) return true
+      return false
     }
 
     const render = () => {
-      // Clear canvas
-      context.clearRect(0, 0, containerWidth, containerHeight)
+      ctx.clearRect(0, 0, containerWidth, containerHeight)
 
-      const currentScale = projection.scale()
-      const scaleFactor = currentScale / radius
+      // Draw ocean glow
+      const center = projection.translate()
+      const radius = projection.scale()
 
-      // Get theme colors
-      const bgColor = getColor('--background', '#000000')
-      const primaryColor = getColor('--primary', '#c6f135')
-      const accentColor = getColor('--chart-4', '#4ade80') // Color for Colombia
+      // Outer glow
+      const glowGradient = ctx.createRadialGradient(
+        center[0], center[1], radius * 0.8,
+        center[0], center[1], radius * 1.3
+      )
+      glowGradient.addColorStop(0, "rgba(59, 130, 246, 0.15)")
+      glowGradient.addColorStop(0.5, "rgba(59, 130, 246, 0.05)")
+      glowGradient.addColorStop(1, "rgba(59, 130, 246, 0)")
+      ctx.beginPath()
+      ctx.arc(center[0], center[1], radius * 1.3, 0, 2 * Math.PI)
+      ctx.fillStyle = glowGradient
+      ctx.fill()
 
-      // Draw ocean (globe background) - transparent to show site background
-      context.beginPath()
-      context.arc(containerWidth / 2, containerHeight / 2, currentScale, 0, 2 * Math.PI)
-      // No fill - transparent background
-      context.strokeStyle = primaryColor
-      context.lineWidth = 2 * scaleFactor
-      context.stroke()
+      // Ocean circle
+      const oceanGradient = ctx.createRadialGradient(
+        center[0] - radius * 0.3, center[1] - radius * 0.3, 0,
+        center[0], center[1], radius
+      )
+      oceanGradient.addColorStop(0, "#e0f2fe")
+      oceanGradient.addColorStop(0.5, "#bae6fd")
+      oceanGradient.addColorStop(1, "#7dd3fc")
 
-      if (landFeatures) {
-        // Draw graticule
-        const graticule = d3.geoGraticule()
-        context.beginPath()
-        path(graticule())
-        context.strokeStyle = primaryColor
-        context.lineWidth = 1 * scaleFactor
-        context.globalAlpha = 0.25
-        context.stroke()
-        context.globalAlpha = 1
+      ctx.beginPath()
+      ctx.arc(center[0], center[1], radius, 0, 2 * Math.PI)
+      ctx.fillStyle = oceanGradient
+      ctx.fill()
 
-        // Draw land outlines
-        context.beginPath()
-        landFeatures.features.forEach((feature: any) => {
-          path(feature)
-        })
-        context.strokeStyle = primaryColor
-        context.lineWidth = 1 * scaleFactor
-        context.stroke()
+      // Subtle border
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.3)"
+      ctx.lineWidth = 1
+      ctx.stroke()
 
-        // Draw halftone dots
-        allDots.forEach((dot) => {
-          const projected = projection([dot.lng, dot.lat])
-          if (
-            projected &&
-            projected[0] >= 0 &&
-            projected[0] <= containerWidth &&
-            projected[1] >= 0 &&
-            projected[1] <= containerHeight
-          ) {
-            context.beginPath()
-            context.arc(projected[0], projected[1], 1.2 * scaleFactor, 0, 2 * Math.PI)
-            context.fillStyle = primaryColor
-            context.globalAlpha = 0.6
-            context.fill()
-            context.globalAlpha = 1
-          }
-        })
+      // Draw land dots
+      const scaleFactor = currentScale
+      allDots.forEach(([lng, lat]) => {
+        if (!isLand(lng, lat)) return
 
-        // All possible Colombia visitor locations
-        const allColombiaLocations: [number, number][] = [
-          [-74.0721, 4.7110],   // Bogotá
-          [-75.5636, 6.2442],   // Medellín
-          [-76.5225, 3.4516],   // Cali
-          [-74.7889, 10.9639],  // Barranquilla
-          [-75.5144, 10.3997],  // Cartagena
-          [-73.6266, 7.8891],   // Bucaramanga
-          [-75.6906, 4.5339],   // Pereira
-          [-76.2893, 3.8801],   // Palmira
-          [-75.4794, 5.0689],   // Manizales
-          [-72.5078, 7.8939],   // Cúcuta
-          [-75.8956, 8.7479],   // Montería
-          [-74.7964, 11.0041],  // Soledad
-          [-73.1198, 7.1254],   // Barrancabermeja
-          [-75.6795, 6.1823],   // Envigado
-        ]
+        const projected = projection([lng, lat])
+        if (!projected) return
 
-        // Show dots based on visitorCount (max 16)
-        const dotsToShow = Math.min(visitorCount, allColombiaLocations.length)
-        const colombiaHighlights = allColombiaLocations.slice(0, dotsToShow)
+        const [x, y] = projected
 
-        colombiaHighlights.forEach((coords) => {
-          const projected = projection(coords)
-          if (
-            projected &&
-            projected[0] >= 0 &&
-            projected[0] <= containerWidth &&
-            projected[1] >= 0 &&
-            projected[1] <= containerHeight
-          ) {
-            context.beginPath()
-            context.arc(projected[0], projected[1], 1.8 * scaleFactor, 0, 2 * Math.PI)
-            context.fillStyle = accentColor
-            context.globalAlpha = 0.95
-            context.fill()
-            context.globalAlpha = 1
-          }
-        })
-      }
-    }
-
-    const loadWorldData = async () => {
-      try {
-        setIsLoading(true)
-
-        const response = await fetch(
-          "https://raw.githubusercontent.com/martynafford/natural-earth-geojson/refs/heads/master/110m/physical/ne_110m_land.json",
+        // Check if point is on visible side
+        const distance = Math.sqrt(
+          Math.pow(x - center[0], 2) + Math.pow(y - center[1], 2)
         )
-        if (!response.ok) throw new Error("Failed to load land data")
+        if (distance > radius * 0.98) return
 
-        landFeatures = await response.json()
+        // Halftone effect - smaller dots in center, larger near edges
+        const edgeFactor = distance / radius
+        const dotSize = (0.8 + edgeFactor * 0.8) * scaleFactor
 
-        // Generate dots for all land features
-        landFeatures.features.forEach((feature: any) => {
-          const dots = generateDotsInPolygon(feature, 16)
-          dots.forEach(([lng, lat]) => {
-            allDots.push({ lng, lat, visible: true })
-          })
-        })
+        ctx.beginPath()
+        ctx.arc(x, y, dotSize, 0, 2 * Math.PI)
+        ctx.fillStyle = "rgba(6, 182, 212, 0.7)"
+        ctx.fill()
+      })
 
-        render()
-        setIsLoading(false)
-      } catch (err) {
-        setError("Failed to load land map data")
-        setIsLoading(false)
+      // Draw Colombia highlight points based on visitor count
+      const pointsToShow = Math.min(visitorCount, colombiaPoints.length)
+      for (let i = 0; i < pointsToShow; i++) {
+        const [lng, lat] = colombiaPoints[i]
+        const projected = projection([lng, lat])
+        if (!projected) continue
+
+        const [x, y] = projected
+        const distance = Math.sqrt(
+          Math.pow(x - center[0], 2) + Math.pow(y - center[1], 2)
+        )
+        if (distance > radius * 0.98) continue
+
+        // Glow effect
+        const glowSize = 6 * scaleFactor
+        const pointGlow = ctx.createRadialGradient(x, y, 0, x, y, glowSize)
+        pointGlow.addColorStop(0, "rgba(139, 92, 246, 0.8)")
+        pointGlow.addColorStop(0.5, "rgba(139, 92, 246, 0.3)")
+        pointGlow.addColorStop(1, "rgba(139, 92, 246, 0)")
+        ctx.beginPath()
+        ctx.arc(x, y, glowSize, 0, 2 * Math.PI)
+        ctx.fillStyle = pointGlow
+        ctx.fill()
+
+        // Center dot
+        ctx.beginPath()
+        ctx.arc(x, y, 2.5 * scaleFactor, 0, 2 * Math.PI)
+        ctx.fillStyle = "#a78bfa"
+        ctx.fill()
       }
     }
 
-    // Set up rotation and interaction (static by default, manual control only)
-    const rotation: [number, number] = [0, 0]
+    // Initial render
+    setIsLoading(false)
 
+    // Rotation state
+    const rotation: [number, number] = [-75, -5] // Start centered on Colombia
+    let autoRotate = true
+    const rotationSpeed = 0.08
+
+    projection.rotate(rotation)
+    render()
+
+    // Auto-rotation
+    const rotationTimer = d3.timer(() => {
+      if (autoRotate) {
+        rotation[0] += rotationSpeed
+        projection.rotate(rotation)
+        render()
+      }
+    })
+
+    // Mouse drag interaction
     const handleMouseDown = (event: MouseEvent) => {
+      autoRotate = false
       const startX = event.clientX
       const startY = event.clientY
       const startRotation: [number, number] = [...rotation]
 
       const handleMouseMove = (moveEvent: MouseEvent) => {
-        const sensitivity = 0.5
         const dx = moveEvent.clientX - startX
         const dy = moveEvent.clientY - startY
-
-        rotation[0] = startRotation[0] + dx * sensitivity
-        rotation[1] = startRotation[1] - dy * sensitivity
-        rotation[1] = Math.max(-90, Math.min(90, rotation[1]))
-
+        rotation[0] = startRotation[0] + dx * 0.3
+        rotation[1] = Math.max(-60, Math.min(60, startRotation[1] - dy * 0.3))
         projection.rotate(rotation)
         render()
       }
@@ -291,51 +242,154 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
       const handleMouseUp = () => {
         document.removeEventListener("mousemove", handleMouseMove)
         document.removeEventListener("mouseup", handleMouseUp)
+        setTimeout(() => {
+          autoRotate = true
+        }, 2000)
       }
 
       document.addEventListener("mousemove", handleMouseMove)
       document.addEventListener("mouseup", handleMouseUp)
     }
 
+    // Wheel zoom
     const handleWheel = (event: WheelEvent) => {
       event.preventDefault()
-      const scaleFactor = event.deltaY > 0 ? 0.9 : 1.1
-      const newRadius = Math.max(radius * 0.5, Math.min(radius * 3, projection.scale() * scaleFactor))
-      projection.scale(newRadius)
+      const delta = event.deltaY > 0 ? 0.95 : 1.05
+      currentScale = Math.max(minScale, Math.min(maxScale, currentScale * delta))
+      projection.scale(baseRadius * currentScale)
       render()
     }
 
+    // Zoom buttons
+    const zoomIn = () => {
+      currentScale = Math.min(maxScale, currentScale * 1.2)
+      projection.scale(baseRadius * currentScale)
+      render()
+    }
+
+    const zoomOut = () => {
+      currentScale = Math.max(minScale, currentScale * 0.8)
+      projection.scale(baseRadius * currentScale)
+      render()
+    }
+
+    // Store zoom functions in ref
+    zoomFunctionsRef.current = { zoomIn, zoomOut }
+
     canvas.addEventListener("mousedown", handleMouseDown)
-    canvas.addEventListener("wheel", handleWheel)
+    canvas.addEventListener("wheel", handleWheel, { passive: false })
 
-    // Load the world data
-    loadWorldData()
+    // Handle resize
+    const handleResize = () => {
+      const newWidth = container.clientWidth
+      const newHeight = container.clientHeight || height
+      canvas.width = newWidth * dpr
+      canvas.height = newHeight * dpr
+      canvas.style.width = `${newWidth}px`
+      canvas.style.height = `${newHeight}px`
+      ctx.setTransform(1, 0, 0, 1, 0, 0)
+      ctx.scale(dpr, dpr)
+      const newRadius = Math.min(newWidth, newHeight) * 0.38
+      projection.scale(newRadius * currentScale)
+      projection.translate([newWidth / 2, newHeight / 2])
+      render()
+    }
 
-    // Cleanup
+    window.addEventListener("resize", handleResize)
+
     return () => {
+      rotationTimer.stop()
       canvas.removeEventListener("mousedown", handleMouseDown)
       canvas.removeEventListener("wheel", handleWheel)
+      window.removeEventListener("resize", handleResize)
     }
-  }, [width, height, visitorCount])
+  }, [height, visitorCount])
 
-  if (error) {
-    return (
-      <div className={`flex items-center justify-center bg-card rounded-2xl p-8 ${className}`}>
-        <div className="text-center">
-          <p className="text-destructive font-semibold mb-2">Error loading Earth visualization</p>
-          <p className="text-muted-foreground text-sm">{error}</p>
-        </div>
-      </div>
-    )
+  useEffect(() => {
+    const cleanup = drawGlobe()
+    return cleanup
+  }, [drawGlobe])
+
+  const handleZoomIn = () => {
+    if (zoomFunctionsRef.current) {
+      zoomFunctionsRef.current.zoomIn()
+    }
+  }
+
+  const handleZoomOut = () => {
+    if (zoomFunctionsRef.current) {
+      zoomFunctionsRef.current.zoomOut()
+    }
   }
 
   return (
-    <div className={`relative ${className}`}>
+    <div
+      ref={containerRef}
+      className={`relative w-full ${className}`}
+      style={{ height: height || 600 }}
+    >
+      {/* Loading state */}
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      )}
+
+      {/* Canvas */}
       <canvas
         ref={canvasRef}
-        className="w-full h-auto rounded-2xl bg-transparent"
-        style={{ maxWidth: "100%", height: "auto" }}
+        className="absolute inset-0 cursor-grab active:cursor-grabbing"
       />
+
+      {/* Search Bar Overlay */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
+        <div className="flex items-center gap-2 bg-white/80 backdrop-blur-md rounded-full px-4 py-2 shadow-lg border border-white/50">
+          <Search className="w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Pesquisar local"
+            className="bg-transparent border-none outline-none text-sm text-gray-700 placeholder:text-gray-400 w-40 md:w-56"
+          />
+        </div>
+      </div>
+
+      {/* Top Right Controls */}
+      <div className="absolute top-4 right-4 z-10 flex gap-2">
+        <button className="w-9 h-9 flex items-center justify-center bg-white/80 backdrop-blur-md rounded-full shadow-lg border border-white/50 hover:bg-white/90 transition-colors">
+          <Globe className="w-4 h-4 text-gray-500" />
+        </button>
+        <button className="w-9 h-9 flex items-center justify-center bg-white/80 backdrop-blur-md rounded-full shadow-lg border border-white/50 hover:bg-white/90 transition-colors">
+          <Maximize2 className="w-4 h-4 text-gray-500" />
+        </button>
+      </div>
+
+      {/* Bottom Right Zoom Controls */}
+      <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2">
+        <button
+          onClick={handleZoomIn}
+          className="w-9 h-9 flex items-center justify-center bg-white/80 backdrop-blur-md rounded-full shadow-lg border border-white/50 hover:bg-white/90 transition-colors"
+        >
+          <Plus className="w-4 h-4 text-gray-500" />
+        </button>
+        <button
+          onClick={handleZoomOut}
+          className="w-9 h-9 flex items-center justify-center bg-white/80 backdrop-blur-md rounded-full shadow-lg border border-white/50 hover:bg-white/90 transition-colors"
+        >
+          <Minus className="w-4 h-4 text-gray-500" />
+        </button>
+      </div>
+
+      {/* Bottom Legend */}
+      <div className="absolute bottom-4 left-4 z-10 flex gap-2">
+        <div className="flex items-center gap-2 bg-white/80 backdrop-blur-md rounded-full px-3 py-1.5 shadow-lg border border-white/50">
+          <span className="w-2 h-2 rounded-full bg-violet-500" />
+          <span className="text-xs text-gray-700 font-medium">Pedidos</span>
+        </div>
+        <div className="flex items-center gap-2 bg-white/80 backdrop-blur-md rounded-full px-3 py-1.5 shadow-lg border border-white/50">
+          <span className="w-2 h-2 rounded-full bg-cyan-500" />
+          <span className="text-xs text-gray-700 font-medium">Visitantes agora</span>
+        </div>
+      </div>
     </div>
   )
 }
