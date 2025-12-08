@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Filter } from "lucide-react";
 import { SectionCard } from "@/components/ui/stats-card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface ConversionFunnelProps {
   visits: number;
@@ -11,6 +12,8 @@ interface ConversionFunnelProps {
 }
 
 export const ConversionFunnel = ({ visits, plays, clicks, orders }: ConversionFunnelProps) => {
+  const { theme } = useTheme();
+  const isNeonGreen = theme === 'neon-green';
   const stages = useMemo(() => {
     const base = visits || 1;
     
@@ -121,7 +124,7 @@ export const ConversionFunnel = ({ visits, plays, clicks, orders }: ConversionFu
               <Tooltip key={stage.label} delayDuration={500}>
                 <TooltipTrigger asChild>
                   <div className="flex items-center justify-center cursor-default">
-                    <span className="text-lg md:text-xl font-bold text-white drop-shadow-lg">
+                    <span className={`text-lg md:text-xl font-bold drop-shadow-lg ${isNeonGreen ? 'text-white' : 'text-black'}`}>
                       {stage.percent.toFixed(1).replace('.', ',')}%
                     </span>
                   </div>
