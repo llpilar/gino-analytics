@@ -7,9 +7,10 @@ interface RotatingEarthProps {
   width?: number
   height?: number
   className?: string
+  visitorCount?: number
 }
 
-export default function RotatingEarth({ width = 800, height = 600, className = "" }: RotatingEarthProps) {
+export default function RotatingEarth({ width = 800, height = 600, className = "", visitorCount = 0 }: RotatingEarthProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -197,15 +198,27 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
           }
         })
 
-        // 6 highlighted visitor points in Colombia
-        const colombiaHighlights: [number, number][] = [
+        // All possible Colombia visitor locations
+        const allColombiaLocations: [number, number][] = [
           [-74.0721, 4.7110],   // Bogotá
           [-75.5636, 6.2442],   // Medellín
           [-76.5225, 3.4516],   // Cali
           [-74.7889, 10.9639],  // Barranquilla
           [-75.5144, 10.3997],  // Cartagena
           [-73.6266, 7.8891],   // Bucaramanga
+          [-75.6906, 4.5339],   // Pereira
+          [-76.2893, 3.8801],   // Palmira
+          [-75.4794, 5.0689],   // Manizales
+          [-72.5078, 7.8939],   // Cúcuta
+          [-75.8956, 8.7479],   // Montería
+          [-74.7964, 11.0041],  // Soledad
+          [-73.1198, 7.1254],   // Barrancabermeja
+          [-75.6795, 6.1823],   // Envigado
         ]
+
+        // Show dots based on visitorCount (max 16)
+        const dotsToShow = Math.min(visitorCount, allColombiaLocations.length)
+        const colombiaHighlights = allColombiaLocations.slice(0, dotsToShow)
 
         colombiaHighlights.forEach((coords) => {
           const projected = projection(coords)
@@ -217,9 +230,9 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
             projected[1] <= containerHeight
           ) {
             context.beginPath()
-            context.arc(projected[0], projected[1], 2.5 * scaleFactor, 0, 2 * Math.PI)
+            context.arc(projected[0], projected[1], 1.8 * scaleFactor, 0, 2 * Math.PI)
             context.fillStyle = accentColor
-            context.globalAlpha = 0.9
+            context.globalAlpha = 0.95
             context.fill()
             context.globalAlpha = 1
           }
@@ -322,7 +335,7 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
       canvas.removeEventListener("mousedown", handleMouseDown)
       canvas.removeEventListener("wheel", handleWheel)
     }
-  }, [width, height])
+  }, [width, height, visitorCount])
 
   if (error) {
     return (
