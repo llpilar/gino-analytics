@@ -226,14 +226,45 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
     }
 
     // Set initial rotation to show South America
-    projection.rotate([-60, 0])
+    const rotation: [number, number] = [-60, 0]
+    projection.rotate(rotation)
+
+    // Mouse drag interaction
+    const handleMouseDown = (event: MouseEvent) => {
+      const startX = event.clientX
+      const startY = event.clientY
+      const startRotation: [number, number] = [...rotation]
+
+      const handleMouseMove = (moveEvent: MouseEvent) => {
+        const sensitivity = 0.5
+        const dx = moveEvent.clientX - startX
+        const dy = moveEvent.clientY - startY
+
+        rotation[0] = startRotation[0] + dx * sensitivity
+        rotation[1] = startRotation[1] - dy * sensitivity
+        rotation[1] = Math.max(-90, Math.min(90, rotation[1]))
+
+        projection.rotate(rotation)
+        render()
+      }
+
+      const handleMouseUp = () => {
+        document.removeEventListener("mousemove", handleMouseMove)
+        document.removeEventListener("mouseup", handleMouseUp)
+      }
+
+      document.addEventListener("mousemove", handleMouseMove)
+      document.addEventListener("mouseup", handleMouseUp)
+    }
+
+    canvas.addEventListener("mousedown", handleMouseDown)
 
     // Load the world data
     loadWorldData()
 
     // Cleanup
     return () => {
-      // No cleanup needed for static globe
+      canvas.removeEventListener("mousedown", handleMouseDown)
     }
   }, [width, height])
 
