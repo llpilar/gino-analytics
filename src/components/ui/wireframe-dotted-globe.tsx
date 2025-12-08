@@ -178,22 +178,7 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
         context.lineWidth = 1 * scaleFactor
         context.stroke()
 
-        // Colombia bounding box (approximate)
-        const colombiaBounds = {
-          minLng: -79.5,
-          maxLng: -66.5,
-          minLat: -4.5,
-          maxLat: 12.5
-        }
-
-        const isInColombia = (lng: number, lat: number) => {
-          return lng >= colombiaBounds.minLng && 
-                 lng <= colombiaBounds.maxLng && 
-                 lat >= colombiaBounds.minLat && 
-                 lat <= colombiaBounds.maxLat
-        }
-
-        // Draw halftone dots - different color for Colombia
+        // Draw halftone dots
         allDots.forEach((dot) => {
           const projected = projection([dot.lng, dot.lat])
           if (
@@ -203,12 +188,38 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
             projected[1] >= 0 &&
             projected[1] <= containerHeight
           ) {
-            const inColombia = isInColombia(dot.lng, dot.lat)
-            
             context.beginPath()
-            context.arc(projected[0], projected[1], inColombia ? 1.8 * scaleFactor : 1.2 * scaleFactor, 0, 2 * Math.PI)
-            context.fillStyle = inColombia ? accentColor : primaryColor
-            context.globalAlpha = inColombia ? 0.9 : 0.6
+            context.arc(projected[0], projected[1], 1.2 * scaleFactor, 0, 2 * Math.PI)
+            context.fillStyle = primaryColor
+            context.globalAlpha = 0.6
+            context.fill()
+            context.globalAlpha = 1
+          }
+        })
+
+        // 6 highlighted visitor points in Colombia
+        const colombiaHighlights: [number, number][] = [
+          [-74.0721, 4.7110],   // Bogotá
+          [-75.5636, 6.2442],   // Medellín
+          [-76.5225, 3.4516],   // Cali
+          [-74.7889, 10.9639],  // Barranquilla
+          [-75.5144, 10.3997],  // Cartagena
+          [-73.6266, 7.8891],   // Bucaramanga
+        ]
+
+        colombiaHighlights.forEach((coords) => {
+          const projected = projection(coords)
+          if (
+            projected &&
+            projected[0] >= 0 &&
+            projected[0] <= containerWidth &&
+            projected[1] >= 0 &&
+            projected[1] <= containerHeight
+          ) {
+            context.beginPath()
+            context.arc(projected[0], projected[1], 2.5 * scaleFactor, 0, 2 * Math.PI)
+            context.fillStyle = accentColor
+            context.globalAlpha = 0.9
             context.fill()
             context.globalAlpha = 1
           }
