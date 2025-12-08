@@ -146,12 +146,12 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
       const primaryColor = getThemeColor("--primary") || "hsl(85 100% 69%)"
       const accentColor = getThemeColor("--accent") || primaryColor
       const mutedColor = getThemeColor("--muted-foreground") || "hsl(240 5% 70%)"
-      const borderColor = getThemeColor("--border") || "hsl(240 10% 20%)"
+      const backgroundColor = getThemeColor("--background") || "hsl(240 10% 5%)"
 
-      // Draw ocean (globe background) - transparent with border
+      // Draw ocean (globe background) - use theme background color
       context.beginPath()
       context.arc(containerWidth / 2, containerHeight / 2, currentScale, 0, 2 * Math.PI)
-      context.fillStyle = "rgba(0, 0, 0, 0.1)"
+      context.fillStyle = backgroundColor
       context.fill()
       context.strokeStyle = primaryColor
       context.lineWidth = 2 * scaleFactor
@@ -225,73 +225,15 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
       }
     }
 
-    // Set up rotation and interaction
-    const rotation: [number, number] = [0, 0]
-    let autoRotate = true
-    const rotationSpeed = 0.5
-
-    const rotate = () => {
-      if (autoRotate) {
-        rotation[0] += rotationSpeed
-        projection.rotate(rotation)
-        render()
-      }
-    }
-
-    // Auto-rotation timer
-    const rotationTimer = d3.timer(rotate)
-
-    const handleMouseDown = (event: MouseEvent) => {
-      autoRotate = false
-      const startX = event.clientX
-      const startY = event.clientY
-      const startRotation = [...rotation]
-
-      const handleMouseMove = (moveEvent: MouseEvent) => {
-        const sensitivity = 0.5
-        const dx = moveEvent.clientX - startX
-        const dy = moveEvent.clientY - startY
-
-        rotation[0] = startRotation[0] + dx * sensitivity
-        rotation[1] = startRotation[1] - dy * sensitivity
-        rotation[1] = Math.max(-90, Math.min(90, rotation[1]))
-
-        projection.rotate(rotation)
-        render()
-      }
-
-      const handleMouseUp = () => {
-        document.removeEventListener("mousemove", handleMouseMove)
-        document.removeEventListener("mouseup", handleMouseUp)
-
-        setTimeout(() => {
-          autoRotate = true
-        }, 10)
-      }
-
-      document.addEventListener("mousemove", handleMouseMove)
-      document.addEventListener("mouseup", handleMouseUp)
-    }
-
-    const handleWheel = (event: WheelEvent) => {
-      event.preventDefault()
-      const scaleFactor = event.deltaY > 0 ? 0.9 : 1.1
-      const newRadius = Math.max(radius * 0.5, Math.min(radius * 3, projection.scale() * scaleFactor))
-      projection.scale(newRadius)
-      render()
-    }
-
-    canvas.addEventListener("mousedown", handleMouseDown)
-    canvas.addEventListener("wheel", handleWheel)
+    // Set initial rotation to show South America
+    projection.rotate([-60, 0])
 
     // Load the world data
     loadWorldData()
 
     // Cleanup
     return () => {
-      rotationTimer.stop()
-      canvas.removeEventListener("mousedown", handleMouseDown)
-      canvas.removeEventListener("wheel", handleWheel)
+      // No cleanup needed for static globe
     }
   }, [width, height])
 
@@ -310,12 +252,9 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
     <div className={`relative ${className}`}>
       <canvas
         ref={canvasRef}
-        className="w-full h-auto rounded-2xl bg-background"
+        className="w-full h-auto rounded-2xl"
         style={{ maxWidth: "100%", height: "auto" }}
       />
-      <div className="absolute bottom-4 left-4 text-xs text-muted-foreground px-2 py-1 rounded-md bg-card/80 border border-border">
-        Drag to rotate • Scroll to zoom
-      </div>
     </div>
   )
 }
