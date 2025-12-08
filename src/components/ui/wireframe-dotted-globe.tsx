@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useCallback, useState } from "react"
 import * as d3 from "d3"
-import { Search, Globe, Maximize2, Plus, Minus } from "lucide-react"
+import { Search, Plus, Minus } from "lucide-react"
 
 interface RotatingEarthProps {
   width?: number
@@ -27,125 +27,158 @@ export default function RotatingEarth({
     const container = containerRef.current
     if (!canvas || !container) return
 
-    const ctx = canvas.getContext("2d")
+    const ctx = canvas.getContext("2d", { alpha: true })
     if (!ctx) return
 
-    // Get container dimensions for responsiveness
     const containerWidth = container.clientWidth
     const containerHeight = container.clientHeight || height
     const dpr = window.devicePixelRatio || 1
 
-    // Set canvas size with device pixel ratio for retina
     canvas.width = containerWidth * dpr
     canvas.height = containerHeight * dpr
     canvas.style.width = `${containerWidth}px`
     canvas.style.height = `${containerHeight}px`
     ctx.scale(dpr, dpr)
 
-    // Calculate globe radius based on container size
-    const baseRadius = Math.min(containerWidth, containerHeight) * 0.38
+    const baseRadius = Math.min(containerWidth, containerHeight) * 0.4
     let currentScale = 1
-    const minScale = 0.5
-    const maxScale = 2.5
+    const minScale = 0.6
+    const maxScale = 2.2
 
-    // D3 projection
     const projection = d3.geoOrthographic()
       .scale(baseRadius * currentScale)
       .translate([containerWidth / 2, containerHeight / 2])
       .clipAngle(90)
 
-    // Generate dot grid for land
-    const generateDotGrid = (density: number = 2) => {
+    // Generate ultra-fine dot grid
+    const generateDotGrid = (density: number = 1.8) => {
       const dots: [number, number][] = []
-      for (let lat = -80; lat <= 80; lat += density) {
-        for (let lng = -180; lng <= 180; lng += density) {
+      for (let lat = -85; lat <= 85; lat += density) {
+        const latRad = (lat * Math.PI) / 180
+        const lonStep = density / Math.cos(latRad)
+        for (let lng = -180; lng <= 180; lng += Math.max(lonStep, density)) {
           dots.push([lng, lat])
         }
       }
       return dots
     }
 
-    const allDots = generateDotGrid(2.5)
+    const allDots = generateDotGrid(1.6)
 
-    // Colombia highlight points
+    // Colombia points for visitor highlights
     const colombiaPoints: [number, number][] = [
-      [-74.0721, 4.7110],   // Bogotá
-      [-75.5636, 6.2442],   // Medellín
-      [-76.5320, 3.4516],   // Cali
-      [-74.7813, 10.9685],  // Barranquilla
-      [-75.5144, 10.3910],  // Cartagena
-      [-73.1198, 7.1254],   // Bucaramanga
-      [-75.6906, 4.5339],   // Pereira
-      [-76.2560, 4.8143],   // Palmira
-      [-72.5078, 7.8939],   // Cúcuta
-      [-75.5012, 5.0689],   // Manizales
-      [-74.1070, 4.5980],   // Bogotá area 2
-      [-75.4794, 6.1808],   // Medellín area 2
-      [-76.6020, 3.5200],   // Cali area 2
-      [-73.2500, 7.0700],   // Bucaramanga area 2
-      [-74.8500, 11.0200],  // Barranquilla area 2
-      [-75.5500, 10.4200],  // Cartagena area 2
+      [-74.0721, 4.7110], [-75.5636, 6.2442], [-76.5320, 3.4516],
+      [-74.7813, 10.9685], [-75.5144, 10.3910], [-73.1198, 7.1254],
+      [-75.6906, 4.5339], [-76.2560, 4.8143], [-72.5078, 7.8939],
+      [-75.5012, 5.0689], [-74.1070, 4.5980], [-75.4794, 6.1808],
+      [-76.6020, 3.5200], [-73.2500, 7.0700], [-74.8500, 11.0200],
+      [-75.5500, 10.4200],
     ]
 
-    // Simplified land check (approximate)
+    // Colombia bounding box for highlight
+    const colombiaBounds = {
+      minLng: -79.5, maxLng: -66.8,
+      minLat: -4.2, maxLat: 12.5
+    }
+
+    const isInColombia = (lng: number, lat: number): boolean => {
+      return lng >= colombiaBounds.minLng && lng <= colombiaBounds.maxLng &&
+             lat >= colombiaBounds.minLat && lat <= colombiaBounds.maxLat
+    }
+
+    // Simplified land detection
     const isLand = (lng: number, lat: number): boolean => {
       // North America
       if (lat > 15 && lat < 72 && lng > -170 && lng < -50) return true
+      // Central America & Caribbean
+      if (lat > 7 && lat < 25 && lng > -92 && lng < -60) return true
       // South America
       if (lat > -56 && lat < 15 && lng > -82 && lng < -34) return true
       // Europe
       if (lat > 35 && lat < 72 && lng > -12 && lng < 60) return true
       // Africa
       if (lat > -35 && lat < 38 && lng > -18 && lng < 52) return true
+      // Middle East
+      if (lat > 12 && lat < 42 && lng > 35 && lng < 63) return true
       // Asia
-      if (lat > 5 && lat < 78 && lng > 60 && lng < 180) return true
+      if (lat > 5 && lat < 78 && lng > 60 && lng < 145) return true
+      // Southeast Asia
+      if (lat > -10 && lat < 25 && lng > 95 && lng < 145) return true
       // Australia
       if (lat > -45 && lat < -10 && lng > 110 && lng < 155) return true
-      // Japan/Korea
-      if (lat > 30 && lat < 46 && lng > 125 && lng < 146) return true
+      // Indonesia
+      if (lat > -11 && lat < 6 && lng > 95 && lng < 141) return true
       return false
     }
 
     const render = () => {
       ctx.clearRect(0, 0, containerWidth, containerHeight)
 
-      // Draw ocean glow
       const center = projection.translate()
       const radius = projection.scale()
 
-      // Outer glow
-      const glowGradient = ctx.createRadialGradient(
-        center[0], center[1], radius * 0.8,
-        center[0], center[1], radius * 1.3
+      // Outer ambient glow (very subtle)
+      const ambientGlow = ctx.createRadialGradient(
+        center[0], center[1], radius * 0.95,
+        center[0], center[1], radius * 1.15
       )
-      glowGradient.addColorStop(0, "rgba(59, 130, 246, 0.15)")
-      glowGradient.addColorStop(0.5, "rgba(59, 130, 246, 0.05)")
-      glowGradient.addColorStop(1, "rgba(59, 130, 246, 0)")
+      ambientGlow.addColorStop(0, "rgba(79, 191, 217, 0.08)")
+      ambientGlow.addColorStop(0.5, "rgba(79, 191, 217, 0.03)")
+      ambientGlow.addColorStop(1, "rgba(79, 191, 217, 0)")
       ctx.beginPath()
-      ctx.arc(center[0], center[1], radius * 1.3, 0, 2 * Math.PI)
-      ctx.fillStyle = glowGradient
+      ctx.arc(center[0], center[1], radius * 1.15, 0, 2 * Math.PI)
+      ctx.fillStyle = ambientGlow
       ctx.fill()
 
-      // Ocean circle
+      // Ocean sphere with premium gradient
       const oceanGradient = ctx.createRadialGradient(
-        center[0] - radius * 0.3, center[1] - radius * 0.3, 0,
-        center[0], center[1], radius
+        center[0] - radius * 0.35, center[1] - radius * 0.35, 0,
+        center[0] + radius * 0.1, center[1] + radius * 0.1, radius * 1.1
       )
-      oceanGradient.addColorStop(0, "#e0f2fe")
-      oceanGradient.addColorStop(0.5, "#bae6fd")
-      oceanGradient.addColorStop(1, "#7dd3fc")
+      oceanGradient.addColorStop(0, "#e8f6f9")
+      oceanGradient.addColorStop(0.3, "#dff1f7")
+      oceanGradient.addColorStop(0.7, "#d4ecf3")
+      oceanGradient.addColorStop(1, "#c8e5ef")
 
       ctx.beginPath()
       ctx.arc(center[0], center[1], radius, 0, 2 * Math.PI)
       ctx.fillStyle = oceanGradient
       ctx.fill()
 
-      // Subtle border
-      ctx.strokeStyle = "rgba(56, 189, 248, 0.3)"
+      // Subtle inner shadow for depth
+      const innerShadow = ctx.createRadialGradient(
+        center[0] + radius * 0.3, center[1] + radius * 0.3, radius * 0.5,
+        center[0], center[1], radius
+      )
+      innerShadow.addColorStop(0, "rgba(0, 0, 0, 0)")
+      innerShadow.addColorStop(0.7, "rgba(0, 0, 0, 0)")
+      innerShadow.addColorStop(1, "rgba(100, 140, 160, 0.08)")
+      ctx.beginPath()
+      ctx.arc(center[0], center[1], radius, 0, 2 * Math.PI)
+      ctx.fillStyle = innerShadow
+      ctx.fill()
+
+      // Top-left highlight (frosted glass effect)
+      const glassHighlight = ctx.createRadialGradient(
+        center[0] - radius * 0.5, center[1] - radius * 0.5, 0,
+        center[0] - radius * 0.3, center[1] - radius * 0.3, radius * 0.8
+      )
+      glassHighlight.addColorStop(0, "rgba(255, 255, 255, 0.25)")
+      glassHighlight.addColorStop(0.3, "rgba(255, 255, 255, 0.1)")
+      glassHighlight.addColorStop(1, "rgba(255, 255, 255, 0)")
+      ctx.beginPath()
+      ctx.arc(center[0], center[1], radius, 0, 2 * Math.PI)
+      ctx.fillStyle = glassHighlight
+      ctx.fill()
+
+      // Subtle edge ring
+      ctx.beginPath()
+      ctx.arc(center[0], center[1], radius, 0, 2 * Math.PI)
+      ctx.strokeStyle = "rgba(79, 191, 217, 0.15)"
       ctx.lineWidth = 1
       ctx.stroke()
 
-      // Draw land dots
+      // Draw land dots (ultra-fine)
       const scaleFactor = currentScale
       allDots.forEach(([lng, lat]) => {
         if (!isLand(lng, lat)) return
@@ -154,24 +187,53 @@ export default function RotatingEarth({
         if (!projected) return
 
         const [x, y] = projected
-
-        // Check if point is on visible side
         const distance = Math.sqrt(
           Math.pow(x - center[0], 2) + Math.pow(y - center[1], 2)
         )
-        if (distance > radius * 0.98) return
+        if (distance > radius * 0.97) return
 
-        // Halftone effect - smaller dots in center, larger near edges
-        const edgeFactor = distance / radius
-        const dotSize = (0.8 + edgeFactor * 0.8) * scaleFactor
+        // Calculate depth-based opacity (dots on edge are dimmer)
+        const depthFactor = 1 - (distance / radius) * 0.3
+        
+        // Check if in Colombia for subtle highlight
+        const inColombia = isInColombia(lng, lat)
+        
+        // Ultra-fine dot size
+        const dotSize = (0.5 + (distance / radius) * 0.3) * scaleFactor
 
         ctx.beginPath()
         ctx.arc(x, y, dotSize, 0, 2 * Math.PI)
-        ctx.fillStyle = "rgba(6, 182, 212, 0.7)"
+        
+        if (inColombia) {
+          ctx.fillStyle = `rgba(64, 200, 224, ${0.85 * depthFactor})`
+        } else {
+          ctx.fillStyle = `rgba(79, 191, 217, ${0.65 * depthFactor})`
+        }
         ctx.fill()
       })
 
-      // Draw Colombia highlight points based on visitor count
+      // Colombia accent glow (subtle blue, not purple)
+      const colombiaCenter = projection([-74.3, 4.5])
+      if (colombiaCenter) {
+        const [cx, cy] = colombiaCenter
+        const distToCenter = Math.sqrt(
+          Math.pow(cx - center[0], 2) + Math.pow(cy - center[1], 2)
+        )
+        
+        if (distToCenter < radius * 0.9) {
+          // Subtle glow around Colombia
+          const colombiaGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, 35 * scaleFactor)
+          colombiaGlow.addColorStop(0, "rgba(64, 200, 224, 0.15)")
+          colombiaGlow.addColorStop(0.5, "rgba(64, 200, 224, 0.05)")
+          colombiaGlow.addColorStop(1, "rgba(64, 200, 224, 0)")
+          ctx.beginPath()
+          ctx.arc(cx, cy, 35 * scaleFactor, 0, 2 * Math.PI)
+          ctx.fillStyle = colombiaGlow
+          ctx.fill()
+        }
+      }
+
+      // Draw visitor highlight dots
       const pointsToShow = Math.min(visitorCount, colombiaPoints.length)
       for (let i = 0; i < pointsToShow; i++) {
         const [lng, lat] = colombiaPoints[i]
@@ -182,59 +244,80 @@ export default function RotatingEarth({
         const distance = Math.sqrt(
           Math.pow(x - center[0], 2) + Math.pow(y - center[1], 2)
         )
-        if (distance > radius * 0.98) continue
+        if (distance > radius * 0.95) continue
 
-        // Glow effect
-        const glowSize = 6 * scaleFactor
-        const pointGlow = ctx.createRadialGradient(x, y, 0, x, y, glowSize)
-        pointGlow.addColorStop(0, "rgba(139, 92, 246, 0.8)")
-        pointGlow.addColorStop(0.5, "rgba(139, 92, 246, 0.3)")
-        pointGlow.addColorStop(1, "rgba(139, 92, 246, 0)")
+        // Soft glow
+        const pointGlow = ctx.createRadialGradient(x, y, 0, x, y, 5 * scaleFactor)
+        pointGlow.addColorStop(0, "rgba(64, 200, 224, 0.6)")
+        pointGlow.addColorStop(0.5, "rgba(64, 200, 224, 0.2)")
+        pointGlow.addColorStop(1, "rgba(64, 200, 224, 0)")
         ctx.beginPath()
-        ctx.arc(x, y, glowSize, 0, 2 * Math.PI)
+        ctx.arc(x, y, 5 * scaleFactor, 0, 2 * Math.PI)
         ctx.fillStyle = pointGlow
         ctx.fill()
 
-        // Center dot
+        // Bright center dot
         ctx.beginPath()
-        ctx.arc(x, y, 2.5 * scaleFactor, 0, 2 * Math.PI)
-        ctx.fillStyle = "#a78bfa"
+        ctx.arc(x, y, 1.5 * scaleFactor, 0, 2 * Math.PI)
+        ctx.fillStyle = "#40c8e0"
         ctx.fill()
       }
     }
 
-    // Initial render
     setIsLoading(false)
 
-    // Rotation state
-    const rotation: [number, number] = [-75, -5] // Start centered on Colombia
+    // Rotation state with inertia
+    const rotation: [number, number] = [-75, -5]
     let autoRotate = true
-    const rotationSpeed = 0.08
+    const rotationSpeed = 0.015 // Ultra slow
+    let velocityX = 0
+    let velocityY = 0
+    const friction = 0.95
 
     projection.rotate(rotation)
     render()
 
-    // Auto-rotation
+    // Animation loop with inertia
     const rotationTimer = d3.timer(() => {
       if (autoRotate) {
         rotation[0] += rotationSpeed
-        projection.rotate(rotation)
-        render()
+      } else if (Math.abs(velocityX) > 0.001 || Math.abs(velocityY) > 0.001) {
+        rotation[0] += velocityX
+        rotation[1] = Math.max(-60, Math.min(60, rotation[1] + velocityY))
+        velocityX *= friction
+        velocityY *= friction
       }
+      projection.rotate(rotation)
+      render()
     })
 
-    // Mouse drag interaction
+    // Mouse drag with inertia
     const handleMouseDown = (event: MouseEvent) => {
       autoRotate = false
-      const startX = event.clientX
-      const startY = event.clientY
-      const startRotation: [number, number] = [...rotation]
+      velocityX = 0
+      velocityY = 0
+      
+      let lastX = event.clientX
+      let lastY = event.clientY
+      let lastTime = Date.now()
 
       const handleMouseMove = (moveEvent: MouseEvent) => {
-        const dx = moveEvent.clientX - startX
-        const dy = moveEvent.clientY - startY
-        rotation[0] = startRotation[0] + dx * 0.3
-        rotation[1] = Math.max(-60, Math.min(60, startRotation[1] - dy * 0.3))
+        const now = Date.now()
+        const dt = Math.max(1, now - lastTime)
+        
+        const dx = moveEvent.clientX - lastX
+        const dy = moveEvent.clientY - lastY
+        
+        velocityX = (dx * 0.15) / (dt / 16)
+        velocityY = (-dy * 0.15) / (dt / 16)
+        
+        rotation[0] += dx * 0.15
+        rotation[1] = Math.max(-60, Math.min(60, rotation[1] - dy * 0.15))
+        
+        lastX = moveEvent.clientX
+        lastY = moveEvent.clientY
+        lastTime = now
+        
         projection.rotate(rotation)
         render()
       }
@@ -242,44 +325,70 @@ export default function RotatingEarth({
       const handleMouseUp = () => {
         document.removeEventListener("mousemove", handleMouseMove)
         document.removeEventListener("mouseup", handleMouseUp)
+        
         setTimeout(() => {
-          autoRotate = true
-        }, 2000)
+          if (Math.abs(velocityX) < 0.01 && Math.abs(velocityY) < 0.01) {
+            autoRotate = true
+          }
+        }, 3000)
       }
 
       document.addEventListener("mousemove", handleMouseMove)
       document.addEventListener("mouseup", handleMouseUp)
     }
 
-    // Wheel zoom
+    // Smooth wheel zoom
+    let targetScale = currentScale
     const handleWheel = (event: WheelEvent) => {
       event.preventDefault()
-      const delta = event.deltaY > 0 ? 0.95 : 1.05
-      currentScale = Math.max(minScale, Math.min(maxScale, currentScale * delta))
-      projection.scale(baseRadius * currentScale)
-      render()
+      const delta = event.deltaY > 0 ? 0.92 : 1.08
+      targetScale = Math.max(minScale, Math.min(maxScale, targetScale * delta))
+      
+      const smoothZoom = () => {
+        const diff = targetScale - currentScale
+        if (Math.abs(diff) > 0.001) {
+          currentScale += diff * 0.15
+          projection.scale(baseRadius * currentScale)
+          render()
+          requestAnimationFrame(smoothZoom)
+        }
+      }
+      smoothZoom()
     }
 
-    // Zoom buttons
     const zoomIn = () => {
-      currentScale = Math.min(maxScale, currentScale * 1.2)
-      projection.scale(baseRadius * currentScale)
-      render()
+      targetScale = Math.min(maxScale, currentScale * 1.3)
+      const smoothZoom = () => {
+        const diff = targetScale - currentScale
+        if (Math.abs(diff) > 0.001) {
+          currentScale += diff * 0.1
+          projection.scale(baseRadius * currentScale)
+          render()
+          requestAnimationFrame(smoothZoom)
+        }
+      }
+      smoothZoom()
     }
 
     const zoomOut = () => {
-      currentScale = Math.max(minScale, currentScale * 0.8)
-      projection.scale(baseRadius * currentScale)
-      render()
+      targetScale = Math.max(minScale, currentScale * 0.7)
+      const smoothZoom = () => {
+        const diff = targetScale - currentScale
+        if (Math.abs(diff) > 0.001) {
+          currentScale += diff * 0.1
+          projection.scale(baseRadius * currentScale)
+          render()
+          requestAnimationFrame(smoothZoom)
+        }
+      }
+      smoothZoom()
     }
 
-    // Store zoom functions in ref
     zoomFunctionsRef.current = { zoomIn, zoomOut }
 
     canvas.addEventListener("mousedown", handleMouseDown)
     canvas.addEventListener("wheel", handleWheel, { passive: false })
 
-    // Handle resize
     const handleResize = () => {
       const newWidth = container.clientWidth
       const newHeight = container.clientHeight || height
@@ -289,7 +398,7 @@ export default function RotatingEarth({
       canvas.style.height = `${newHeight}px`
       ctx.setTransform(1, 0, 0, 1, 0, 0)
       ctx.scale(dpr, dpr)
-      const newRadius = Math.min(newWidth, newHeight) * 0.38
+      const newRadius = Math.min(newWidth, newHeight) * 0.4
       projection.scale(newRadius * currentScale)
       projection.translate([newWidth / 2, newHeight / 2])
       render()
@@ -310,84 +419,67 @@ export default function RotatingEarth({
     return cleanup
   }, [drawGlobe])
 
-  const handleZoomIn = () => {
-    if (zoomFunctionsRef.current) {
-      zoomFunctionsRef.current.zoomIn()
-    }
-  }
-
-  const handleZoomOut = () => {
-    if (zoomFunctionsRef.current) {
-      zoomFunctionsRef.current.zoomOut()
-    }
-  }
-
   return (
     <div
       ref={containerRef}
       className={`relative w-full ${className}`}
       style={{ height: height || 600 }}
     >
-      {/* Loading state */}
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <div className="w-6 h-6 border-2 border-cyan-400/30 border-t-cyan-400 rounded-full animate-spin" />
         </div>
       )}
 
-      {/* Canvas */}
       <canvas
         ref={canvasRef}
         className="absolute inset-0 cursor-grab active:cursor-grabbing"
       />
 
-      {/* Search Bar Overlay */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
-        <div className="flex items-center gap-2 bg-white/80 backdrop-blur-md rounded-full px-4 py-2 shadow-lg border border-white/50">
-          <Search className="w-4 h-4 text-gray-400" />
+      {/* Premium Search Bar */}
+      <div className="absolute top-5 left-1/2 -translate-x-1/2 z-10">
+        <div className="flex items-center gap-2.5 bg-white/70 backdrop-blur-xl rounded-full px-4 py-2.5 shadow-[0_2px_20px_rgba(0,0,0,0.06)] border border-white/80">
+          <Search className="w-4 h-4 text-slate-400" />
           <input
             type="text"
             placeholder="Pesquisar local"
-            className="bg-transparent border-none outline-none text-sm text-gray-700 placeholder:text-gray-400 w-40 md:w-56"
+            className="bg-transparent border-none outline-none text-sm text-slate-600 placeholder:text-slate-400 w-44 md:w-60 font-light"
           />
         </div>
       </div>
 
-      {/* Top Right Controls */}
-      <div className="absolute top-4 right-4 z-10 flex gap-2">
-        <button className="w-9 h-9 flex items-center justify-center bg-white/80 backdrop-blur-md rounded-full shadow-lg border border-white/50 hover:bg-white/90 transition-colors">
-          <Globe className="w-4 h-4 text-gray-500" />
-        </button>
-        <button className="w-9 h-9 flex items-center justify-center bg-white/80 backdrop-blur-md rounded-full shadow-lg border border-white/50 hover:bg-white/90 transition-colors">
-          <Maximize2 className="w-4 h-4 text-gray-500" />
-        </button>
-      </div>
-
-      {/* Bottom Right Zoom Controls */}
-      <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2">
-        <button
-          onClick={handleZoomIn}
-          className="w-9 h-9 flex items-center justify-center bg-white/80 backdrop-blur-md rounded-full shadow-lg border border-white/50 hover:bg-white/90 transition-colors"
-        >
-          <Plus className="w-4 h-4 text-gray-500" />
-        </button>
-        <button
-          onClick={handleZoomOut}
-          className="w-9 h-9 flex items-center justify-center bg-white/80 backdrop-blur-md rounded-full shadow-lg border border-white/50 hover:bg-white/90 transition-colors"
-        >
-          <Minus className="w-4 h-4 text-gray-500" />
-        </button>
-      </div>
-
-      {/* Bottom Legend */}
-      <div className="absolute bottom-4 left-4 z-10 flex gap-2">
-        <div className="flex items-center gap-2 bg-white/80 backdrop-blur-md rounded-full px-3 py-1.5 shadow-lg border border-white/50">
-          <span className="w-2 h-2 rounded-full bg-violet-500" />
-          <span className="text-xs text-gray-700 font-medium">Pedidos</span>
+      {/* Colombia Label */}
+      <div className="absolute top-1/2 left-1/2 ml-8 -mt-8 z-10 pointer-events-none">
+        <div className="bg-white/85 backdrop-blur-xl rounded-lg px-3 py-1.5 shadow-[0_2px_12px_rgba(0,0,0,0.08)] border border-white/90">
+          <span className="text-xs font-medium text-slate-700 tracking-wide">Colômbia</span>
         </div>
-        <div className="flex items-center gap-2 bg-white/80 backdrop-blur-md rounded-full px-3 py-1.5 shadow-lg border border-white/50">
-          <span className="w-2 h-2 rounded-full bg-cyan-500" />
-          <span className="text-xs text-gray-700 font-medium">Visitantes agora</span>
+      </div>
+
+      {/* Premium Zoom Controls */}
+      <div className="absolute bottom-5 right-5 z-10 flex flex-col gap-1.5">
+        <button
+          onClick={() => zoomFunctionsRef.current?.zoomIn()}
+          className="w-9 h-9 flex items-center justify-center bg-white/70 backdrop-blur-xl rounded-full shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-white/80 hover:bg-white/85 transition-all duration-200"
+        >
+          <Plus className="w-4 h-4 text-slate-500" />
+        </button>
+        <button
+          onClick={() => zoomFunctionsRef.current?.zoomOut()}
+          className="w-9 h-9 flex items-center justify-center bg-white/70 backdrop-blur-xl rounded-full shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-white/80 hover:bg-white/85 transition-all duration-200"
+        >
+          <Minus className="w-4 h-4 text-slate-500" />
+        </button>
+      </div>
+
+      {/* Premium Status Pills */}
+      <div className="absolute bottom-5 left-5 z-10 flex gap-2">
+        <div className="flex items-center gap-2 bg-white/70 backdrop-blur-xl rounded-full px-3.5 py-2 shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-white/80">
+          <span className="w-1.5 h-1.5 rounded-full bg-cyan-500" />
+          <span className="text-xs text-slate-600 font-medium tracking-wide">Pedidos</span>
+        </div>
+        <div className="flex items-center gap-2 bg-white/70 backdrop-blur-xl rounded-full px-3.5 py-2 shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-white/80">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          <span className="text-xs text-slate-600 font-medium tracking-wide">Visitantes agora</span>
         </div>
       </div>
     </div>
