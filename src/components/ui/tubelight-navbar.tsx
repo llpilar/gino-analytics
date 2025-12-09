@@ -173,7 +173,7 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
                   ? 'bg-accent text-foreground' 
                   : 'text-muted-foreground'
               )}>
-                COP
+                $
               </div>
               <div className={cn(
                 "px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold transition-all duration-300",
@@ -181,7 +181,7 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
                   ? 'bg-accent text-foreground' 
                   : 'text-muted-foreground'
               )}>
-                BRL
+                R$
               </div>
             </div>
 
