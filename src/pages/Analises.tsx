@@ -282,9 +282,7 @@ export default function Analises() {
         {/* Sales Map Section */}
         <div className="mb-6 md:mb-8">
           <SectionCard title="Mapa de Vendas" icon={MapPin} color="cyan">
-            <div className="h-[300px] md:h-[400px]">
-              <SalesMap />
-            </div>
+            <SalesMap />
           </SectionCard>
         </div>
 
