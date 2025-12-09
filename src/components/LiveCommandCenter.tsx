@@ -330,12 +330,6 @@ export const LiveCommandCenter = () => {
                   Métricas em tempo real
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-status-success rounded-full animate-pulse" aria-hidden="true" />
-                <span className="text-xs font-bold text-status-success uppercase tracking-wider">
-                  Online
-                </span>
-              </div>
             </header>
 
             {/* Stats Grid */}
