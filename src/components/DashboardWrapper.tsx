@@ -41,7 +41,7 @@ export const DashboardWrapper = ({ children }: DashboardWrapperProps) => {
 
 
       {/* Content */}
-      <div className="relative z-10 pt-16 md:pt-20 min-h-screen">
+      <div className="relative z-10 pt-14 md:pt-20 min-h-screen">
         {children}
       </div>
 
