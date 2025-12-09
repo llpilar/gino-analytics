@@ -159,16 +159,16 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
         {/* Currency Toggle & Date Filter */}
         {showCurrencyToggle && (
           <>
-            <div className="h-6 w-px bg-border mx-1 hidden sm:block" aria-hidden="true" />
+            <div className="h-6 w-px bg-border mx-1" aria-hidden="true" />
             <div 
-              className="hidden sm:flex items-center bg-card border border-border rounded-full p-1 cursor-pointer"
+              className="flex items-center bg-card border border-border rounded-full p-0.5 sm:p-1 cursor-pointer"
               onClick={() => setCurrency(currency === 'COP' ? 'BRL' : 'COP')}
               role="button"
               tabIndex={0}
               aria-label={`Moeda atual: ${currency}. Clique para trocar.`}
             >
               <div className={cn(
-                "px-3 py-1 rounded-full text-xs font-bold transition-all duration-300",
+                "px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold transition-all duration-300",
                 currency === 'COP' 
                   ? 'bg-accent text-foreground' 
                   : 'text-muted-foreground'
@@ -176,7 +176,7 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
                 COP
               </div>
               <div className={cn(
-                "px-3 py-1 rounded-full text-xs font-bold transition-all duration-300",
+                "px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold transition-all duration-300",
                 currency === 'BRL' 
                   ? 'bg-accent text-foreground' 
                   : 'text-muted-foreground'
