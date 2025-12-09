@@ -2,22 +2,12 @@ import { ReactNode } from "react";
 import { NavBar } from "./ui/tubelight-navbar";
 import { ShootingStars } from "./ui/shooting-stars";
 import { LayoutDashboard, BarChart3, Settings, Wallet, Truck } from "lucide-react";
-import { format } from "date-fns";
-import { useState, useEffect } from "react";
 
 interface DashboardWrapperProps {
   children: ReactNode;
 }
 
 export const DashboardWrapper = ({ children }: DashboardWrapperProps) => {
-  const [currentTime, setCurrentTime] = useState(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   const navItems = [
     { name: 'Dashboard', url: '/', icon: LayoutDashboard },
@@ -49,18 +39,6 @@ export const DashboardWrapper = ({ children }: DashboardWrapperProps) => {
         <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-chart-1/5 rounded-full blur-[180px] dark:opacity-100 opacity-0" />
       </div>
 
-      {/* Live Indicator - Top Right */}
-      <div className="fixed top-4 right-4 z-40">
-        <div className="px-4 py-2 rounded-full bg-card border border-primary/30 backdrop-blur-xl shadow-lg shadow-primary/20">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-chart-4 rounded-full animate-pulse shadow-lg shadow-chart-4/50" />
-            <span className="text-chart-4 font-bold text-xs uppercase tracking-widest">AO VIVO</span>
-            <div className="text-sm font-mono font-black text-primary tracking-wider">
-              {format(currentTime, "HH:mm:ss")}
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Content */}
       <div className="relative z-10 pt-20 min-h-screen">
