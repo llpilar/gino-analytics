@@ -274,10 +274,10 @@ export const SalesMap = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Map */}
-      <div className="rounded-xl overflow-hidden border-2 border-primary/30">
-        <div ref={mapContainer} className="w-full h-[500px]" />
+      <div className="rounded-xl overflow-hidden border-2 border-primary/30 relative">
+        <div ref={mapContainer} className="w-full h-[300px] md:h-[400px] lg:h-[500px]" />
         <style>{`
           .sale-marker {
             transition: transform 0.3s ease;

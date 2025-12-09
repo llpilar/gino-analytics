@@ -148,7 +148,7 @@ export const SectionCard = ({
   return (
     <section
       className={cn(
-        "p-4 md:p-6 rounded-xl bg-card border border-border backdrop-blur-sm",
+        "p-4 md:p-6 rounded-xl bg-card border border-border backdrop-blur-sm overflow-hidden relative",
         "animate-fade-in",
         className
       )}
