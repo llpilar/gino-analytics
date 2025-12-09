@@ -22,7 +22,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 type LayoutMode = "orbital" | "grid";
 
 export const LiveCommandCenter = () => {
-  const [currentTime, setCurrentTime] = useState(new Date());
   const [rotationAngle, setRotationAngle] = useState(0);
   const [layoutMode, setLayoutMode] = useState<LayoutMode>("grid");
   const [isMobile, setIsMobile] = useState(false);
@@ -45,11 +44,6 @@ export const LiveCommandCenter = () => {
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
   }, []);
 
   // Orbital rotation animation - slower for better UX
@@ -189,23 +183,9 @@ export const LiveCommandCenter = () => {
       <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-chart-4/5 rounded-full blur-[180px] dark:opacity-100 opacity-0" aria-hidden="true" />
       <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-chart-1/5 rounded-full blur-[180px] dark:opacity-100 opacity-0" aria-hidden="true" />
 
-      {/* Clock & Notification - Top Right */}
+      {/* Notification - Top Right */}
       <header className="fixed top-4 right-4 z-40 flex items-center gap-3">
         <NotificationCenter />
-          <div 
-          className="px-4 py-2 rounded-full bg-card border border-primary/30 backdrop-blur-xl"
-          role="status"
-          aria-live="polite"
-          aria-label={`Hora atual: ${format(currentTime, "HH:mm:ss")}`}
-        >
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-chart-4 rounded-full animate-pulse shadow-lg shadow-chart-4/50" aria-hidden="true" />
-            <span className="text-chart-4 font-bold text-xs uppercase tracking-widest">AO VIVO</span>
-            <time className="text-sm font-mono font-black text-primary tracking-wider">
-              {format(currentTime, "HH:mm:ss")}
-            </time>
-          </div>
-        </div>
       </header>
 
       {/* Layout Toggle - Desktop Only */}
