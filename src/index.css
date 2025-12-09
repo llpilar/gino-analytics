@@ -5,60 +5,70 @@
 @tailwind utilities;
 
 @layer base {
-  /* Theme: Neon Green (Default) */
+  /* Theme: Neon Green (Default) - Dark with Neon Green & Dark Blue */
   :root,
   [data-theme="neon-green"] {
-    --background: 240 10% 5%;
+    --background: 0 0% 0%;
     --foreground: 0 0% 100%;
-    --card: 240 10% 8%;
+    --card: 220 50% 6%;
     --card-foreground: 0 0% 100%;
-    --popover: 240 10% 8%;
+    --popover: 220 50% 6%;
     --popover-foreground: 0 0% 100%;
-    --primary: 85 100% 69%;
-    --primary-foreground: 240 10% 5%;
-    --secondary: 263 70% 60%;
+    --primary: 120 100% 50%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 220 80% 45%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 240 5% 25%;
-    --muted-foreground: 240 5% 70%;
-    --accent: 85 100% 69%;
-    --accent-foreground: 240 10% 5%;
+    --muted: 220 30% 15%;
+    --muted-foreground: 220 20% 60%;
+    --accent: 120 100% 50%;
+    --accent-foreground: 0 0% 0%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 240 10% 20%;
-    --input: 240 10% 20%;
-    --ring: 85 100% 69%;
+    --border: 220 40% 20%;
+    --input: 220 40% 15%;
+    --ring: 120 100% 50%;
     --radius: 1rem;
     
     /* Chart colors */
-    --chart-1: 85 100% 69%;
-    --chart-2: 263 70% 60%;
-    --chart-3: 220 70% 50%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --chart-1: 120 100% 50%;
+    --chart-2: 220 80% 55%;
+    --chart-3: 180 100% 45%;
+    --chart-4: 200 90% 50%;
+    --chart-5: 140 80% 45%;
     
     /* Neon accent colors - semantic tokens */
-    --neon-cyan: 188 94% 43%;
-    --neon-cyan-light: 188 94% 53%;
-    --neon-purple: 271 91% 65%;
-    --neon-purple-light: 271 91% 75%;
+    --neon-cyan: 180 100% 45%;
+    --neon-cyan-light: 180 100% 55%;
+    --neon-purple: 220 80% 55%;
+    --neon-purple-light: 220 80% 65%;
     --neon-pink: 330 81% 60%;
     --neon-pink-light: 330 81% 70%;
-    --neon-green: 142 71% 45%;
-    --neon-green-light: 142 71% 55%;
+    --neon-green: 120 100% 50%;
+    --neon-green-light: 120 100% 60%;
     --neon-orange: 25 95% 53%;
     --neon-orange-light: 25 95% 63%;
-    --neon-blue: 217 91% 60%;
-    --neon-blue-light: 217 91% 70%;
+    --neon-blue: 220 80% 55%;
+    --neon-blue-light: 220 80% 65%;
     
     /* Status colors */
-    --status-success: 142 71% 45%;
+    --status-success: 120 100% 50%;
     --status-warning: 38 92% 50%;
     --status-error: 0 72% 51%;
-    --status-info: 188 94% 43%;
+    --status-info: 180 100% 45%;
     
     /* Surface colors */
-    --surface-elevated: 240 10% 10%;
-    --surface-overlay: 240 10% 6%;
+    --surface-elevated: 220 50% 8%;
+    --surface-overlay: 220 50% 4%;
+    
+    /* Sidebar */
+    --sidebar: 220 50% 5%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 120 100% 50%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 220 80% 45%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 220 40% 20%;
+    --sidebar-ring: 120 100% 50%;
   }
 
   /* Theme: Netflix Red */
