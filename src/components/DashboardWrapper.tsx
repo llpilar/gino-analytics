@@ -18,12 +18,12 @@ export const DashboardWrapper = ({ children }: DashboardWrapperProps) => {
   ];
 
   return (
-    <div className="min-h-screen w-full relative bg-background">
+    <div className="min-h-screen w-full relative bg-background overflow-x-hidden">
       {/* Navigation Bar */}
       <NavBar items={navItems} />
       
       {/* Background with shooting stars and static stars - fixed position */}
-      <div className="fixed inset-0 bg-background pointer-events-none">
+      <div className="fixed inset-0 bg-background pointer-events-none z-0" aria-hidden="true">
         <div className="stars-bg absolute inset-0 dark:opacity-40 opacity-0" />
         
         {/* Multiple shooting star layers - Only in dark mode */}
@@ -41,7 +41,7 @@ export const DashboardWrapper = ({ children }: DashboardWrapperProps) => {
 
 
       {/* Content */}
-      <div className="relative z-10 pt-20 min-h-screen">
+      <div className="relative z-10 pt-16 md:pt-20 min-h-screen">
         {children}
       </div>
 
