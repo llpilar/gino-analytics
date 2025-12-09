@@ -113,7 +113,7 @@ export default function Analises() {
 
   return (
     <DashboardWrapper>
-      <div className="container mx-auto p-6 md:p-8 lg:p-12 min-h-screen">
+      <div className="container mx-auto px-4 py-6 md:px-6 md:py-8 lg:px-12 lg:py-12 min-h-screen pb-24 md:pb-12">
         {/* Header */}
         <PageHeader 
           title="Central de Análises"
@@ -121,7 +121,7 @@ export default function Analises() {
         />
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
           {statCards.map((stat, index) => (
             <Tooltip key={index} delayDuration={1000}>
               <TooltipTrigger asChild>
@@ -144,25 +144,25 @@ export default function Analises() {
         </div>
 
         {/* VTurb Analytics Section */}
-        <SectionCard title="Métricas do Vídeo (VTurb)" icon={Video} color="red" className="mb-8">
+        <SectionCard title="Métricas do Vídeo (VTurb)" icon={Video} color="red" className="mb-6 md:mb-8">
           {vturbLoading ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
               {[...Array(10)].map((_, i) => (
-                <Skeleton key={i} className="h-20 rounded-lg" />
+                <Skeleton key={i} className="h-16 md:h-20 rounded-lg" />
               ))}
             </div>
           ) : vturbError ? (
-            <div className="text-center py-8 text-destructive">
-              <p>Conectando ao VTurb...</p>
+            <div className="text-center py-6 md:py-8 text-destructive">
+              <p className="text-sm md:text-base">Conectando ao VTurb...</p>
               <p className="text-xs text-muted-foreground mt-2">Verifique se a API Key está configurada corretamente</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-3">
               <Tooltip delayDuration={1000}>
                 <TooltipTrigger asChild>
-                  <div className="p-4 rounded-lg bg-card/50 border border-border cursor-default">
-                    <div className="text-2xl font-bold text-foreground">{vturbMetrics.totalViews.toLocaleString('pt-BR')}</div>
-                    <div className="text-sm text-muted-foreground">Visualizações</div>
+                  <div className="p-3 md:p-4 rounded-lg bg-card/50 border border-border cursor-default">
+                    <div className="text-lg md:text-2xl font-bold text-foreground">{vturbMetrics.totalViews.toLocaleString('pt-BR')}</div>
+                    <div className="text-xs md:text-sm text-muted-foreground">Visualizações</div>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent><p>Total de carregamentos da página</p></TooltipContent>
@@ -170,9 +170,9 @@ export default function Analises() {
 
               <Tooltip delayDuration={1000}>
                 <TooltipTrigger asChild>
-                  <div className="p-4 rounded-lg bg-card/50 border border-border cursor-default">
-                    <div className="text-2xl font-bold text-foreground">{vturbMetrics.uniqueViews.toLocaleString('pt-BR')}</div>
-                    <div className="text-sm text-muted-foreground">Visualizações Únicas</div>
+                  <div className="p-3 md:p-4 rounded-lg bg-card/50 border border-border cursor-default">
+                    <div className="text-lg md:text-2xl font-bold text-foreground">{vturbMetrics.uniqueViews.toLocaleString('pt-BR')}</div>
+                    <div className="text-xs md:text-sm text-muted-foreground">Views Únicos</div>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent><p>Visitantes únicos na página</p></TooltipContent>
@@ -180,9 +180,9 @@ export default function Analises() {
 
               <Tooltip delayDuration={1000}>
                 <TooltipTrigger asChild>
-                  <div className="p-4 rounded-lg bg-card/50 border border-border cursor-default">
-                    <div className="text-2xl font-bold text-foreground">{vturbMetrics.totalPlays.toLocaleString('pt-BR')}</div>
-                    <div className="text-sm text-muted-foreground">Plays</div>
+                  <div className="p-3 md:p-4 rounded-lg bg-card/50 border border-border cursor-default">
+                    <div className="text-lg md:text-2xl font-bold text-foreground">{vturbMetrics.totalPlays.toLocaleString('pt-BR')}</div>
+                    <div className="text-xs md:text-sm text-muted-foreground">Plays</div>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent><p>Vezes que o vídeo foi iniciado</p></TooltipContent>
@@ -190,9 +190,9 @@ export default function Analises() {
 
               <Tooltip delayDuration={1000}>
                 <TooltipTrigger asChild>
-                  <div className="p-4 rounded-lg bg-card/50 border border-border cursor-default">
-                    <div className="text-2xl font-bold text-foreground">{vturbMetrics.uniquePlays.toLocaleString('pt-BR')}</div>
-                    <div className="text-sm text-muted-foreground">Plays Únicos</div>
+                  <div className="p-3 md:p-4 rounded-lg bg-card/50 border border-border cursor-default">
+                    <div className="text-lg md:text-2xl font-bold text-foreground">{vturbMetrics.uniquePlays.toLocaleString('pt-BR')}</div>
+                    <div className="text-xs md:text-sm text-muted-foreground">Plays Únicos</div>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent><p>Pessoas únicas que deram play</p></TooltipContent>
@@ -200,9 +200,9 @@ export default function Analises() {
 
               <Tooltip delayDuration={1000}>
                 <TooltipTrigger asChild>
-                  <div className="p-4 rounded-lg bg-card/50 border border-border cursor-default">
-                    <div className="text-2xl font-bold text-foreground">{vturbMetrics.playRate.toFixed(2).replace('.', ',')}%</div>
-                    <div className="text-sm text-muted-foreground">Play Rate</div>
+                  <div className="p-3 md:p-4 rounded-lg bg-card/50 border border-border cursor-default">
+                    <div className="text-lg md:text-2xl font-bold text-foreground">{vturbMetrics.playRate.toFixed(2).replace('.', ',')}%</div>
+                    <div className="text-xs md:text-sm text-muted-foreground">Play Rate</div>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent><p>% que deu play ao visitar</p></TooltipContent>
@@ -210,9 +210,9 @@ export default function Analises() {
 
               <Tooltip delayDuration={1000}>
                 <TooltipTrigger asChild>
-                  <div className="p-4 rounded-lg bg-card/50 border border-border cursor-default">
-                    <div className="text-2xl font-bold text-foreground">{vturbMetrics.overPitchRate.toFixed(2).replace('.', ',')}%</div>
-                    <div className="text-sm text-muted-foreground">Retenção ao Pitch</div>
+                  <div className="p-3 md:p-4 rounded-lg bg-card/50 border border-border cursor-default">
+                    <div className="text-lg md:text-2xl font-bold text-foreground">{vturbMetrics.overPitchRate.toFixed(2).replace('.', ',')}%</div>
+                    <div className="text-xs md:text-sm text-muted-foreground">Ret. Pitch</div>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent><p>% que assistiu até o pitch</p></TooltipContent>
@@ -220,9 +220,9 @@ export default function Analises() {
 
               <Tooltip delayDuration={1000}>
                 <TooltipTrigger asChild>
-                  <div className="p-4 rounded-lg bg-card/50 border border-border cursor-default">
-                    <div className="text-2xl font-bold text-foreground">{vturbMetrics.engagementRate.toFixed(2).replace('.', ',')}%</div>
-                    <div className="text-sm text-muted-foreground">Engajamento</div>
+                  <div className="p-3 md:p-4 rounded-lg bg-card/50 border border-border cursor-default">
+                    <div className="text-lg md:text-2xl font-bold text-foreground">{vturbMetrics.engagementRate.toFixed(2).replace('.', ',')}%</div>
+                    <div className="text-xs md:text-sm text-muted-foreground">Engajamento</div>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent><p>Nível de interação com o vídeo</p></TooltipContent>
@@ -230,9 +230,9 @@ export default function Analises() {
 
               <Tooltip delayDuration={1000}>
                 <TooltipTrigger asChild>
-                  <div className="p-4 rounded-lg bg-card/50 border border-border cursor-default">
-                    <div className="text-2xl font-bold text-foreground">{vturbMetrics.uniqueClicks.toLocaleString('pt-BR')}</div>
-                    <div className="text-sm text-muted-foreground">Cliques no Botão</div>
+                  <div className="p-3 md:p-4 rounded-lg bg-card/50 border border-border cursor-default">
+                    <div className="text-lg md:text-2xl font-bold text-foreground">{vturbMetrics.uniqueClicks.toLocaleString('pt-BR')}</div>
+                    <div className="text-xs md:text-sm text-muted-foreground">Cliques CTA</div>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent><p>Cliques únicos no CTA</p></TooltipContent>
@@ -240,9 +240,9 @@ export default function Analises() {
 
               <Tooltip delayDuration={1000}>
                 <TooltipTrigger asChild>
-                  <div className="p-4 rounded-lg bg-card/50 border border-border cursor-default">
-                    <div className="text-2xl font-bold text-foreground">{metrics.ordersCount}</div>
-                    <div className="text-sm text-muted-foreground">Conversões</div>
+                  <div className="p-3 md:p-4 rounded-lg bg-card/50 border border-border cursor-default">
+                    <div className="text-lg md:text-2xl font-bold text-foreground">{metrics.ordersCount}</div>
+                    <div className="text-xs md:text-sm text-muted-foreground">Conversões</div>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent><p>Pedidos finalizados</p></TooltipContent>
@@ -250,11 +250,11 @@ export default function Analises() {
 
               <Tooltip delayDuration={1000}>
                 <TooltipTrigger asChild>
-                  <div className="p-4 rounded-lg bg-card/50 border border-border cursor-default">
-                    <div className="text-2xl font-bold text-foreground">
+                  <div className="p-3 md:p-4 rounded-lg bg-card/50 border border-border cursor-default">
+                    <div className="text-lg md:text-2xl font-bold text-foreground">
                       {vturbMetrics.uniquePlays > 0 ? ((metrics.ordersCount / vturbMetrics.uniquePlays) * 100).toFixed(2).replace('.', ',') : '0,00'}%
                     </div>
-                    <div className="text-sm text-muted-foreground">Taxa de Conversão</div>
+                    <div className="text-xs md:text-sm text-muted-foreground">Tx Conversão</div>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent><p>Conversões / Plays únicos</p></TooltipContent>
@@ -272,7 +272,7 @@ export default function Analises() {
         />
 
         {/* Charts Section */}
-        <div className="mb-8">
+        <div className="mb-6 md:mb-8">
           <SectionCard color="cyan">
             <SalesChart analyticsData={analyticsData} isLoading={analyticsLoading} />
           </SectionCard>
@@ -280,19 +280,21 @@ export default function Analises() {
 
 
         {/* Sales Map Section */}
-        <div className="mb-8">
+        <div className="mb-6 md:mb-8">
           <SectionCard title="Mapa de Vendas" icon={MapPin} color="cyan">
-            <SalesMap />
+            <div className="h-[300px] md:h-[400px]">
+              <SalesMap />
+            </div>
           </SectionCard>
         </div>
 
         {/* Variant Performance Section */}
-        <div className="mb-8">
+        <div className="mb-6 md:mb-8">
           <VariantPerformance />
         </div>
 
         {/* Temporal Comparisons */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
           {/* Daily Comparison */}
           <SectionCard color="cyan">
             <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4">Hoje vs Ontem</h3>

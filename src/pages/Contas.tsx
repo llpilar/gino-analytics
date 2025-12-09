@@ -232,9 +232,9 @@ export default function Contas() {
 
   return (
     <DashboardWrapper>
-      <div className="container mx-auto p-6 md:p-8 lg:p-12 min-h-screen">
+      <div className="container mx-auto px-4 py-6 md:px-6 md:py-8 lg:px-12 lg:py-12 min-h-screen pb-24 md:pb-12">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 md:mb-8">
           <PageHeader 
             title="Controle de Contas"
             subtitle="Gerencie as despesas entre os sócios"
@@ -243,8 +243,9 @@ export default function Contas() {
             <DialogTrigger asChild>
               <Button 
                 variant="outline" 
+                size="sm"
                 onClick={() => setNewConfig({ partner1_name: partner1, partner2_name: partner2 })}
-                className="bg-card/80 border-2 border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50"
+                className="bg-card/80 border-2 border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50 w-full sm:w-auto"
               >
                 <Settings className="h-4 w-4 mr-2" />
                 Configurar Nomes
@@ -287,7 +288,7 @@ export default function Contas() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
           {statCards.map((stat, index) => (
             <StatsCard
               key={index}
@@ -302,10 +303,10 @@ export default function Contas() {
         </div>
 
         {/* Add Expense Form */}
-        <SectionCard title="Nova Despesa" icon={Plus} color="cyan" className="mb-8">
+        <SectionCard title="Nova Despesa" icon={Plus} color="cyan" className="mb-6 md:mb-8">
           
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4">
-            <div className="md:col-span-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 md:gap-4 mb-4">
+            <div className="sm:col-span-2 lg:col-span-2">
               <Label className="text-muted-foreground text-xs uppercase tracking-wider">Descrição</Label>
               <Input
                 value={newExpense.description}
@@ -350,7 +351,7 @@ export default function Contas() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-end">
+            <div className="flex items-end sm:col-span-2 lg:col-span-1">
               <Button 
                 onClick={handleAddExpense} 
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
@@ -406,14 +407,14 @@ export default function Contas() {
         </SectionCard>
 
         {/* Fixed Expenses Section */}
-        <SectionCard title="Gastos Fixos" icon={Calendar} color="orange" className="mb-8">
-          <p className="text-muted-foreground text-sm mb-4">
+        <SectionCard title="Gastos Fixos" icon={Calendar} color="orange" className="mb-6 md:mb-8">
+          <p className="text-muted-foreground text-xs md:text-sm mb-4">
             Despesas que se repetem todo mês. Total mensal: <span className="text-primary font-bold">{formatBRL(fixedExpensesTotal)}</span>
           </p>
           
           {/* Add Fixed Expense Form */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-            <div className="md:col-span-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 mb-6">
+            <div className="sm:col-span-2 lg:col-span-2">
               <Label className="text-muted-foreground text-xs uppercase tracking-wider">Descrição</Label>
               <Input
                 value={newFixedExpense.description}
