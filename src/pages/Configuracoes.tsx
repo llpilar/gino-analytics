@@ -25,47 +25,47 @@ export default function Configuracoes() {
 
   return (
     <DashboardWrapper>
-      <div className="container mx-auto p-6 md:p-8 lg:p-12 min-h-screen">
+      <div className="container mx-auto px-4 py-6 md:px-6 md:py-8 lg:px-12 lg:py-12 min-h-screen pb-24 md:pb-12">
         <PageHeader 
           title="Configurações"
           subtitle="Gerencie suas preferências e informações da conta"
         />
 
-        <div className="grid gap-6 w-full">
+        <div className="grid gap-4 md:gap-6 w-full">
           {/* Theme Selector */}
           <ThemeSelector />
 
           <Card className="bg-card/60 border-2 border-primary/30 backdrop-blur-xl">
-            <CardHeader>
+            <CardHeader className="p-4 md:p-6">
               <div className="flex items-center gap-2">
                 <User className="h-5 w-5 text-primary" />
-                <CardTitle className="text-foreground">Perfil</CardTitle>
+                <CardTitle className="text-foreground text-base md:text-lg">Perfil</CardTitle>
               </div>
-              <CardDescription className="text-muted-foreground">Suas informações pessoais</CardDescription>
+              <CardDescription className="text-muted-foreground text-xs md:text-sm">Suas informações pessoais</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-4 pt-0 md:p-6 md:pt-0">
               <div>
-                <label className="text-sm text-muted-foreground">Nome</label>
-                <p className="text-foreground font-medium">{profile?.name || 'Não definido'}</p>
+                <label className="text-xs md:text-sm text-muted-foreground">Nome</label>
+                <p className="text-foreground font-medium text-sm md:text-base">{profile?.name || 'Não definido'}</p>
               </div>
               <div>
-                <label className="text-sm text-muted-foreground">Email</label>
-                <p className="text-foreground font-medium">{user?.email || 'Não definido'}</p>
+                <label className="text-xs md:text-sm text-muted-foreground">Email</label>
+                <p className="text-foreground font-medium text-sm md:text-base break-all">{user?.email || 'Não definido'}</p>
               </div>
               <ProfileEditor />
             </CardContent>
           </Card>
 
           <Card className="bg-card/60 border-2 border-primary/30 backdrop-blur-xl">
-            <CardHeader>
+            <CardHeader className="p-4 md:p-6">
               <div className="flex items-center gap-2">
                 <Shield className="h-5 w-5 text-primary" />
-                <CardTitle className="text-foreground">Segurança</CardTitle>
+                <CardTitle className="text-foreground text-base md:text-lg">Segurança</CardTitle>
               </div>
-              <CardDescription className="text-muted-foreground">Gerencie a segurança da sua conta</CardDescription>
+              <CardDescription className="text-muted-foreground text-xs md:text-sm">Gerencie a segurança da sua conta</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-muted-foreground text-sm">Em breve: Alteração de senha e autenticação</p>
+            <CardContent className="space-y-4 p-4 pt-0 md:p-6 md:pt-0">
+              <p className="text-muted-foreground text-xs md:text-sm">Em breve: Alteração de senha e autenticação</p>
               <Button
                 onClick={handleLogout}
                 variant="outline"

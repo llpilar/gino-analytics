@@ -318,22 +318,22 @@ export const LiveCommandCenter = () => {
         </div>
       ) : (
         // GRID LAYOUT - Mobile & Alternative
-        <div className="relative z-10 min-h-screen p-4 pt-24 pb-8">
-          <div className="max-w-7xl mx-auto space-y-6">
+        <div className="relative z-10 min-h-screen p-4 pt-20 pb-24 md:pt-24 md:pb-8">
+          <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
             {/* Header */}
-            <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in">
+            <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 animate-fade-in">
               <div>
-                <h1 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">
+                <h1 className="text-xl md:text-2xl lg:text-3xl font-black text-foreground tracking-tight">
                   Dashboard
                 </h1>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-xs md:text-sm text-muted-foreground mt-1">
                   Métricas em tempo real
                 </p>
               </div>
             </header>
 
             {/* Stats Grid */}
-            <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4" aria-label="Métricas principais">
+            <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 lg:gap-4" aria-label="Métricas principais">
               {satellites.map((stat, index) => {
                 const colors = colorVariants[stat.color as keyof typeof colorVariants];
                 const Icon = stat.icon;
@@ -342,7 +342,7 @@ export const LiveCommandCenter = () => {
                     <TooltipTrigger asChild>
                       <article
                         className={cn(
-                          "p-4 md:p-6 rounded-2xl bg-card border-2 backdrop-blur-xl",
+                          "p-3 md:p-4 lg:p-6 rounded-xl md:rounded-2xl bg-card border-2 backdrop-blur-xl",
                           "transition-all duration-300 hover:scale-[1.02] cursor-pointer",
                           "animate-fade-in-up",
                           colors.border
@@ -350,22 +350,22 @@ export const LiveCommandCenter = () => {
                         style={{ animationDelay: `${index * 100}ms` }}
                         aria-label={`${stat.label}: ${stat.value}`}
                       >
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center border", colors.bg, colors.border)}>
-                            <Icon className={cn("w-5 h-5", colors.text)} aria-hidden="true" />
+                        <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-3">
+                          <div className={cn("w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center border", colors.bg, colors.border)}>
+                            <Icon className={cn("w-4 h-4 md:w-5 md:h-5", colors.text)} aria-hidden="true" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-wider truncate">
+                            <h3 className="text-[9px] md:text-[10px] lg:text-xs font-bold text-muted-foreground uppercase tracking-wider truncate">
                               {stat.label}
                             </h3>
                           </div>
                         </div>
-                        <div className={cn("text-2xl md:text-3xl font-black truncate", colors.text)}>
+                        <div className={cn("text-lg md:text-2xl lg:text-3xl font-black truncate", colors.text)}>
                           {stat.value}
                         </div>
-                        <div className="flex items-center gap-1 mt-2">
+                        <div className="flex items-center gap-1 mt-1 md:mt-2">
                           <TrendingUp className={cn("w-3 h-3", colors.text)} aria-hidden="true" />
-                          <span className={cn("text-xs font-semibold", colors.text)}>Ao vivo</span>
+                          <span className={cn("text-[10px] md:text-xs font-semibold", colors.text)}>Ao vivo</span>
                         </div>
                       </article>
                     </TooltipTrigger>
@@ -384,10 +384,10 @@ export const LiveCommandCenter = () => {
             </section>
 
             {/* Main Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
               {/* Data Stream Panel */}
               <section 
-                className="lg:col-span-2 p-4 md:p-6 rounded-2xl bg-card border-2 border-primary/30 backdrop-blur-xl animate-fade-in"
+                className="lg:col-span-2 p-4 md:p-6 rounded-xl md:rounded-2xl bg-card border-2 border-primary/30 backdrop-blur-xl animate-fade-in"
                 style={{ animationDelay: "400ms" }}
                 aria-label="Detalhes de faturamento"
               >
