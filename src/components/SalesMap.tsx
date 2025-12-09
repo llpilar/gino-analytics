@@ -309,44 +309,43 @@ export const SalesMap = () => {
 
       {/* Top Countries and Cities - 2x2 Grid */}
       {data && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
           {/* Top País */}
           {data.metrics && data.metrics.length > 0 && (
             <SectionCard color="green" className="h-full">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-chart-4/20 flex items-center justify-center border border-chart-4/30 shrink-0">
-                    <span className="text-xs font-bold text-chart-4">#1</span>
+              <div className="flex items-center justify-between mb-2 md:mb-3">
+                <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                  <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-chart-4/20 flex items-center justify-center border border-chart-4/30 shrink-0">
+                    <span className="text-[10px] md:text-xs font-bold text-chart-4">#1</span>
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground">Top País</p>
-                    <h3 className="font-bold text-foreground truncate">{data.metrics[0].country}</h3>
-                    <p className="text-xs text-muted-foreground">&nbsp;</p>
+                    <p className="text-[10px] md:text-xs text-muted-foreground">Top País</p>
+                    <h3 className="text-sm md:text-base font-bold text-foreground truncate">{data.metrics[0].country}</h3>
                   </div>
                 </div>
-                <MapPin className="h-4 w-4 text-chart-4 shrink-0" />
+                <MapPin className="h-3.5 w-3.5 md:h-4 md:w-4 text-chart-4 shrink-0" />
               </div>
               
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Receita:</span>
-                  <span className="text-sm font-bold text-chart-4">
+              <div className="grid grid-cols-3 gap-1 md:gap-2">
+                <div className="text-center">
+                  <span className="text-[10px] md:text-xs text-muted-foreground block">Receita</span>
+                  <span className="text-xs md:text-sm font-bold text-chart-4 truncate block">
                     {formatCurrency(data.metrics[0].totalRevenue)}
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Pedidos:</span>
-                  <span className="text-sm font-bold text-foreground">{data.metrics[0].orderCount}</span>
+                <div className="text-center">
+                  <span className="text-[10px] md:text-xs text-muted-foreground block">Pedidos</span>
+                  <span className="text-xs md:text-sm font-bold text-foreground">{data.metrics[0].orderCount}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Ticket:</span>
-                  <span className="text-sm font-bold text-primary">
+                <div className="text-center">
+                  <span className="text-[10px] md:text-xs text-muted-foreground block">Ticket</span>
+                  <span className="text-xs md:text-sm font-bold text-primary truncate block">
                     {formatCurrency(data.metrics[0].avgOrderValue)}
                   </span>
                 </div>
               </div>
 
-              <div className="mt-3 h-1.5 bg-muted rounded-full overflow-hidden">
+              <div className="mt-2 md:mt-3 h-1 md:h-1.5 bg-muted rounded-full overflow-hidden">
                 <div className="h-full w-full bg-gradient-to-r from-chart-4 to-chart-4/70 rounded-full" />
               </div>
             </SectionCard>
@@ -355,39 +354,39 @@ export const SalesMap = () => {
           {/* Top Cidade #1 */}
           {data.topCities && data.topCities.length > 0 && (
             <SectionCard color="cyan" className="h-full">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 shrink-0">
-                    <span className="text-xs font-bold text-primary">#1</span>
+              <div className="flex items-center justify-between mb-2 md:mb-3">
+                <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                  <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 shrink-0">
+                    <span className="text-[10px] md:text-xs font-bold text-primary">#1</span>
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground">Top Cidade</p>
-                    <h3 className="font-bold text-foreground truncate">{data.topCities[0].city}</h3>
-                    <p className="text-xs text-muted-foreground truncate">{data.topCities[0].country}</p>
+                    <p className="text-[10px] md:text-xs text-muted-foreground">Top Cidade</p>
+                    <h3 className="text-sm md:text-base font-bold text-foreground truncate">{data.topCities[0].city}</h3>
+                    <p className="text-[10px] md:text-xs text-muted-foreground truncate">{data.topCities[0].country}</p>
                   </div>
                 </div>
               </div>
               
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Receita:</span>
-                  <span className="text-sm font-bold text-primary">
+              <div className="grid grid-cols-3 gap-1 md:gap-2">
+                <div className="text-center">
+                  <span className="text-[10px] md:text-xs text-muted-foreground block">Receita</span>
+                  <span className="text-xs md:text-sm font-bold text-primary truncate block">
                     {formatCurrency(data.topCities[0].totalRevenue)}
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Pedidos:</span>
-                  <span className="text-sm font-bold text-foreground">{data.topCities[0].orderCount}</span>
+                <div className="text-center">
+                  <span className="text-[10px] md:text-xs text-muted-foreground block">Pedidos</span>
+                  <span className="text-xs md:text-sm font-bold text-foreground">{data.topCities[0].orderCount}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Ticket:</span>
-                  <span className="text-sm font-bold text-chart-5">
+                <div className="text-center">
+                  <span className="text-[10px] md:text-xs text-muted-foreground block">Ticket</span>
+                  <span className="text-xs md:text-sm font-bold text-chart-5 truncate block">
                     {formatCurrency(data.topCities[0].avgOrderValue)}
                   </span>
                 </div>
               </div>
 
-              <div className="mt-3 h-1.5 bg-muted rounded-full overflow-hidden">
+              <div className="mt-2 md:mt-3 h-1 md:h-1.5 bg-muted rounded-full overflow-hidden">
                 <div className="h-full w-full bg-gradient-to-r from-primary to-primary/70 rounded-full" />
               </div>
             </SectionCard>
@@ -396,39 +395,39 @@ export const SalesMap = () => {
           {/* Top Cidade #2 */}
           {data.topCities && data.topCities.length > 1 && (
             <SectionCard color="cyan" className="h-full">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 shrink-0">
-                    <span className="text-xs font-bold text-primary">#2</span>
+              <div className="flex items-center justify-between mb-2 md:mb-3">
+                <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                  <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 shrink-0">
+                    <span className="text-[10px] md:text-xs font-bold text-primary">#2</span>
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground">Top Cidade</p>
-                    <h3 className="font-bold text-foreground truncate">{data.topCities[1].city}</h3>
-                    <p className="text-xs text-muted-foreground truncate">{data.topCities[1].country}</p>
+                    <p className="text-[10px] md:text-xs text-muted-foreground">Top Cidade</p>
+                    <h3 className="text-sm md:text-base font-bold text-foreground truncate">{data.topCities[1].city}</h3>
+                    <p className="text-[10px] md:text-xs text-muted-foreground truncate">{data.topCities[1].country}</p>
                   </div>
                 </div>
               </div>
               
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Receita:</span>
-                  <span className="text-sm font-bold text-primary">
+              <div className="grid grid-cols-3 gap-1 md:gap-2">
+                <div className="text-center">
+                  <span className="text-[10px] md:text-xs text-muted-foreground block">Receita</span>
+                  <span className="text-xs md:text-sm font-bold text-primary truncate block">
                     {formatCurrency(data.topCities[1].totalRevenue)}
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Pedidos:</span>
-                  <span className="text-sm font-bold text-foreground">{data.topCities[1].orderCount}</span>
+                <div className="text-center">
+                  <span className="text-[10px] md:text-xs text-muted-foreground block">Pedidos</span>
+                  <span className="text-xs md:text-sm font-bold text-foreground">{data.topCities[1].orderCount}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Ticket:</span>
-                  <span className="text-sm font-bold text-chart-5">
+                <div className="text-center">
+                  <span className="text-[10px] md:text-xs text-muted-foreground block">Ticket</span>
+                  <span className="text-xs md:text-sm font-bold text-chart-5 truncate block">
                     {formatCurrency(data.topCities[1].avgOrderValue)}
                   </span>
                 </div>
               </div>
 
-              <div className="mt-3 h-1.5 bg-muted rounded-full overflow-hidden">
+              <div className="mt-2 md:mt-3 h-1 md:h-1.5 bg-muted rounded-full overflow-hidden">
                 <div 
                   className="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full transition-all duration-500"
                   style={{ 
@@ -442,39 +441,39 @@ export const SalesMap = () => {
           {/* Top Cidade #3 */}
           {data.topCities && data.topCities.length > 2 && (
             <SectionCard color="cyan" className="h-full">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 shrink-0">
-                    <span className="text-xs font-bold text-primary">#3</span>
+              <div className="flex items-center justify-between mb-2 md:mb-3">
+                <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                  <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 shrink-0">
+                    <span className="text-[10px] md:text-xs font-bold text-primary">#3</span>
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground">Top Cidade</p>
-                    <h3 className="font-bold text-foreground truncate">{data.topCities[2].city}</h3>
-                    <p className="text-xs text-muted-foreground truncate">{data.topCities[2].country}</p>
+                    <p className="text-[10px] md:text-xs text-muted-foreground">Top Cidade</p>
+                    <h3 className="text-sm md:text-base font-bold text-foreground truncate">{data.topCities[2].city}</h3>
+                    <p className="text-[10px] md:text-xs text-muted-foreground truncate">{data.topCities[2].country}</p>
                   </div>
                 </div>
               </div>
               
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Receita:</span>
-                  <span className="text-sm font-bold text-primary">
+              <div className="grid grid-cols-3 gap-1 md:gap-2">
+                <div className="text-center">
+                  <span className="text-[10px] md:text-xs text-muted-foreground block">Receita</span>
+                  <span className="text-xs md:text-sm font-bold text-primary truncate block">
                     {formatCurrency(data.topCities[2].totalRevenue)}
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Pedidos:</span>
-                  <span className="text-sm font-bold text-foreground">{data.topCities[2].orderCount}</span>
+                <div className="text-center">
+                  <span className="text-[10px] md:text-xs text-muted-foreground block">Pedidos</span>
+                  <span className="text-xs md:text-sm font-bold text-foreground">{data.topCities[2].orderCount}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Ticket:</span>
-                  <span className="text-sm font-bold text-chart-5">
+                <div className="text-center">
+                  <span className="text-[10px] md:text-xs text-muted-foreground block">Ticket</span>
+                  <span className="text-xs md:text-sm font-bold text-chart-5 truncate block">
                     {formatCurrency(data.topCities[2].avgOrderValue)}
                   </span>
                 </div>
               </div>
 
-              <div className="mt-3 h-1.5 bg-muted rounded-full overflow-hidden">
+              <div className="mt-2 md:mt-3 h-1 md:h-1.5 bg-muted rounded-full overflow-hidden">
                 <div 
                   className="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full transition-all duration-500"
                   style={{ 
