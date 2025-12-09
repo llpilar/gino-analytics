@@ -318,15 +318,15 @@ export const LiveCommandCenter = () => {
         </div>
       ) : (
         // GRID LAYOUT - Mobile & Alternative
-        <div className="relative z-10 min-h-screen p-4 pt-20 pb-24 md:pt-24 md:pb-8">
-          <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
+        <div className="relative z-10 min-h-screen p-4 pt-14 pb-24 md:pt-20 md:pb-8">
+          <div className="max-w-7xl mx-auto space-y-3 md:space-y-6">
             {/* Header */}
-            <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 animate-fade-in">
+            <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 animate-fade-in">
               <div>
-                <h1 className="text-xl md:text-2xl lg:text-3xl font-black text-foreground tracking-tight">
+                <h1 className="text-lg md:text-2xl lg:text-3xl font-black text-foreground tracking-tight">
                   Dashboard
                 </h1>
-                <p className="text-xs md:text-sm text-muted-foreground mt-1">
+                <p className="text-[10px] md:text-sm text-muted-foreground mt-0.5">
                   Métricas em tempo real
                 </p>
               </div>
