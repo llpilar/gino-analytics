@@ -55,9 +55,10 @@ const Lucratividade = () => {
   const pedidosEfetivos = pedidosEntregues - pedidosDevolvidos;
   const taxaEfetiva = (efetividade / 100) * (1 - devolucao / 100);
 
-  // Custo por produto (11.000 COP cada) - só conta produtos efetivos (devolvidos voltam)
+  // Custo por produto (11.000 COP cada) - desconta produtos devolvidos (eles voltam)
   const custoPorProduto = 11000;
-  const produtosEfetivos = Math.round(totalProdutos * taxaEfetiva);
+  const produtosDevolvidos = Math.round(totalProdutos * (devolucao / 100));
+  const produtosEfetivos = totalProdutos - produtosDevolvidos;
   const custoProdutos = produtosEfetivos * custoPorProduto;
 
   // Custo de devoluções (envio ida + volta = custo médio × 2)
