@@ -27,24 +27,38 @@ const Lucratividade = () => {
   const [custoGoogleAds, setCustoGoogleAds] = useState(0); // Custos Google Ads
   const [margemMinima, setMargemMinima] = useState(30); // % de margem mínima desejada
 
-  // Faturamento do Shopify (sempre em COP)
-  const faturamentoBruto = useMemo(() => {
-    if (!shopifyData?.data?.orders?.edges) return 0;
-    return shopifyData.data.orders.edges.reduce((acc: number, edge: any) => {
-      const amount = parseFloat(edge.node?.totalPriceSet?.shopMoney?.amount || 0);
-      return acc + amount;
-    }, 0);
+  // Faturamento e quantidade de produtos do Shopify (sempre em COP)
+  const { faturamentoBruto, totalProdutos } = useMemo(() => {
+    if (!shopifyData?.data?.orders?.edges) return { faturamentoBruto: 0, totalProdutos: 0 };
+    
+    let faturamento = 0;
+    let produtos = 0;
+    
+    shopifyData.data.orders.edges.forEach((edge: any) => {
+      faturamento += parseFloat(edge.node?.totalPriceSet?.shopMoney?.amount || 0);
+      
+      // Somar quantidade de produtos de cada lineItem
+      edge.node?.lineItems?.edges?.forEach((lineItem: any) => {
+        produtos += lineItem.node?.quantity || 0;
+      });
+    });
+    
+    return { faturamentoBruto: faturamento, totalProdutos: produtos };
   }, [shopifyData]);
 
   const totalPedidos = shopifyData?.data?.orders?.edges?.length || 0;
+
+  // Custo por produto (11.000 COP cada)
+  const custoPorProduto = 11000;
+  const custoProdutos = totalProdutos * custoPorProduto;
 
   // Cálculos
   const pedidosEntregues = Math.round(totalPedidos * (efetividade / 100));
   const pedidosDevolvidos = Math.round(totalPedidos * (devolucao / 100));
   const pedidosEfetivos = pedidosEntregues - pedidosDevolvidos;
 
-  // Total de custos
-  const custoTotal = custoOperacional + custoFacebookAds + custoGoogleAds;
+  // Total de custos (inclui custo de produtos)
+  const custoTotal = custoOperacional + custoFacebookAds + custoGoogleAds + custoProdutos;
 
   // Receita líquida considerando efetividade e devolução
   const taxaEfetiva = (efetividade / 100) * (1 - devolucao / 100);
@@ -82,7 +96,7 @@ const Lucratividade = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Faturamento Bruto</p>
                 {isLoading ? (
@@ -100,12 +114,20 @@ const Lucratividade = () => {
                 )}
               </div>
               <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Ticket Médio</p>
+                <p className="text-xs text-muted-foreground">Total de Produtos</p>
+                {isLoading ? (
+                  <Skeleton className="h-8 w-16" />
+                ) : (
+                  <p className="text-xl md:text-2xl font-bold text-orange-500">{totalProdutos}</p>
+                )}
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Custo Produtos</p>
                 {isLoading ? (
                   <Skeleton className="h-8 w-24" />
                 ) : (
-                  <p className="text-xl md:text-2xl font-bold">
-                    {formatCurrency(totalPedidos > 0 ? faturamentoBruto / totalPedidos : 0)}
+                  <p className="text-xl md:text-2xl font-bold text-orange-500">
+                    {formatCurrency(custoProdutos)}
                   </p>
                 )}
               </div>
@@ -275,7 +297,11 @@ const Lucratividade = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Produtos ({totalProdutos}x)</p>
+                <p className="text-lg font-bold text-orange-500">{formatCurrency(custoProdutos)}</p>
+              </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Operacionais</p>
                 <p className="text-lg font-bold">{formatCurrency(custoOperacional)}</p>
