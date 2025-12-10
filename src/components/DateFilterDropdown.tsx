@@ -3,11 +3,10 @@ import {
   startOfDay, 
   endOfDay, 
   subDays, 
-  subMonths, 
-  format 
+  subMonths,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, ChevronDown, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useDateFilter } from "@/contexts/DateFilterContext";
 import {
   DropdownMenu,
@@ -23,7 +22,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 type PresetKey = 
@@ -44,6 +42,14 @@ interface DatePreset {
 }
 
 const presets: DatePreset[] = [
+  {
+    key: "all",
+    label: "Todo período",
+    getRange: () => ({
+      from: startOfDay(subMonths(new Date(), 24)),
+      to: endOfDay(new Date()),
+    }),
+  },
   {
     key: "today",
     label: "Hoje",
@@ -103,8 +109,9 @@ const presets: DatePreset[] = [
 ];
 
 export const DateFilterDropdown = () => {
-  const { dateRange, setCustomRange } = useDateFilter();
+  const { setCustomRange } = useDateFilter();
   const [selectedPreset, setSelectedPreset] = useState<PresetKey>("today");
+  const [isOpen, setIsOpen] = useState(false);
   const [isCustomOpen, setIsCustomOpen] = useState(false);
   const [customRange, setCustomRangeLocal] = useState<{
     from: Date | undefined;
@@ -118,6 +125,7 @@ export const DateFilterDropdown = () => {
     const range = preset.getRange();
     setSelectedPreset(preset.key);
     setCustomRange(range.from, range.to);
+    setIsOpen(false);
   };
 
   const handleCustomDateSelect = () => {
@@ -125,115 +133,118 @@ export const DateFilterDropdown = () => {
       setSelectedPreset("custom");
       setCustomRange(customRange.from, customRange.to);
       setIsCustomOpen(false);
+      setIsOpen(false);
     }
   };
 
   const getSelectedLabel = () => {
-    if (selectedPreset === "custom" && dateRange.from && dateRange.to) {
-      return `${format(dateRange.from, "dd/MM/yyyy", { locale: ptBR })} - ${format(dateRange.to, "dd/MM/yyyy", { locale: ptBR })}`;
-    }
     const preset = presets.find((p) => p.key === selectedPreset);
     return preset?.label || "Hoje";
   };
 
   const clearSelection = (e: React.MouseEvent) => {
     e.stopPropagation();
-    handlePresetSelect(presets[0]); // Reset to "Hoje"
+    handlePresetSelect(presets[1]); // Reset to "Hoje"
   };
 
   return (
-    <div className="flex items-center gap-2">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="outline"
-            className="gap-2 bg-background/50 border-border/50 hover:bg-background/80"
-          >
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">{getSelectedLabel()}</span>
-            {selectedPreset !== "today" && (
-              <Badge
-                variant="secondary"
-                className="ml-1 px-1.5 py-0.5 text-xs cursor-pointer hover:bg-destructive/20"
-                onClick={clearSelection}
-              >
-                <X className="h-3 w-3" />
-              </Badge>
-            )}
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent 
-          align="start" 
-          className="w-56 bg-popover/95 backdrop-blur-md border-border/50"
+    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          className="gap-2 bg-card border-border hover:bg-accent/50 px-3 py-2 h-auto"
         >
-          {presets.map((preset) => (
+          <span className="text-sm font-medium">{getSelectedLabel()}</span>
+          {selectedPreset !== "today" && (
+            <span
+              className="ml-1 hover:text-destructive cursor-pointer"
+              onClick={clearSelection}
+            >
+              <X className="h-4 w-4" />
+            </span>
+          )}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent 
+        align="start" 
+        className="w-48 bg-card border-border z-50"
+        sideOffset={4}
+      >
+        {presets.map((preset) => (
+          <DropdownMenuItem
+            key={preset.key}
+            onClick={() => handlePresetSelect(preset)}
+            className={cn(
+              "cursor-pointer py-2 px-3",
+              selectedPreset === preset.key 
+                ? "text-primary font-medium" 
+                : "text-foreground/80"
+            )}
+          >
+            {preset.label}
+          </DropdownMenuItem>
+        ))}
+        <DropdownMenuSeparator />
+        <Popover open={isCustomOpen} onOpenChange={setIsCustomOpen}>
+          <PopoverTrigger asChild>
             <DropdownMenuItem
-              key={preset.key}
-              onClick={() => handlePresetSelect(preset)}
+              onSelect={(e) => e.preventDefault()}
               className={cn(
-                "cursor-pointer",
-                selectedPreset === preset.key && "text-primary font-medium bg-primary/10"
+                "cursor-pointer py-2 px-3",
+                selectedPreset === "custom" 
+                  ? "text-primary font-medium" 
+                  : "text-foreground/80"
               )}
             >
-              {preset.label}
+              Personalizado
             </DropdownMenuItem>
-          ))}
-          <DropdownMenuSeparator />
-          <Popover open={isCustomOpen} onOpenChange={setIsCustomOpen}>
-            <PopoverTrigger asChild>
-              <DropdownMenuItem
-                onSelect={(e) => e.preventDefault()}
-                className={cn(
-                  "cursor-pointer",
-                  selectedPreset === "custom" && "text-primary font-medium bg-primary/10"
-                )}
-              >
-                Personalizado
-              </DropdownMenuItem>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start" side="right">
-              <div className="p-4 space-y-4">
-                <div className="grid gap-2">
-                  <p className="text-sm font-medium">Selecione o período</p>
-                  <CalendarComponent
-                    mode="range"
-                    selected={{
-                      from: customRange.from,
-                      to: customRange.to,
-                    }}
-                    onSelect={(range) => {
-                      setCustomRangeLocal({
-                        from: range?.from,
-                        to: range?.to,
-                      });
-                    }}
-                    numberOfMonths={2}
-                    locale={ptBR}
-                    className="rounded-md border"
-                  />
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsCustomOpen(false)}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={handleCustomDateSelect}
-                    disabled={!customRange.from || !customRange.to}
-                  >
-                    Aplicar
-                  </Button>
-                </div>
+          </PopoverTrigger>
+          <PopoverContent 
+            className="w-auto p-0 z-50 pointer-events-auto" 
+            align="start" 
+            side="right"
+            sideOffset={8}
+          >
+            <div className="p-4 space-y-4 bg-card">
+              <div className="grid gap-2">
+                <p className="text-sm font-medium">Selecione o período</p>
+                <CalendarComponent
+                  mode="range"
+                  selected={{
+                    from: customRange.from,
+                    to: customRange.to,
+                  }}
+                  onSelect={(range) => {
+                    setCustomRangeLocal({
+                      from: range?.from,
+                      to: range?.to,
+                    });
+                  }}
+                  numberOfMonths={2}
+                  locale={ptBR}
+                  className="rounded-md border pointer-events-auto"
+                />
               </div>
-            </PopoverContent>
-          </Popover>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsCustomOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleCustomDateSelect}
+                  disabled={!customRange.from || !customRange.to}
+                >
+                  Aplicar
+                </Button>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
