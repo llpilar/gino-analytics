@@ -1,3 +1,4 @@
+// Calculadora de Lucratividade
 import { useState, useMemo } from "react";
 import { Calculator, TrendingUp, TrendingDown, DollarSign, Package, Undo2, Percent, PiggyBank } from "lucide-react";
 import { DashboardWrapper } from "@/components/DashboardWrapper";
