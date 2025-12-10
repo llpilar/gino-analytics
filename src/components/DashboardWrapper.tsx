@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { NavBar } from "./ui/tubelight-navbar";
 import { ShootingStars } from "./ui/shooting-stars";
-import { LayoutDashboard, BarChart3, Settings, Wallet, Truck } from "lucide-react";
+import { LayoutDashboard, BarChart3, Settings, Wallet, Truck, Calculator } from "lucide-react";
 
 interface DashboardWrapperProps {
   children: ReactNode;
@@ -13,6 +13,7 @@ export const DashboardWrapper = ({ children }: DashboardWrapperProps) => {
     { name: 'Dashboard', url: '/', icon: LayoutDashboard },
     { name: 'Análises', url: '/analises', icon: BarChart3 },
     { name: 'Envios', url: '/envios', icon: Truck },
+    { name: 'Lucro', url: '/lucratividade', icon: Calculator },
     { name: 'Contas', url: '/contas', icon: Wallet },
     { name: 'Configurações', url: '/configuracoes', icon: Settings }
   ];
