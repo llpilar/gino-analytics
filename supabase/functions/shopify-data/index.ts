@@ -119,14 +119,14 @@ serve(async (req) => {
         }
       );
     } else if (endpoint === 'revenue-3days' || endpoint === 'revenue-7days' || endpoint === 'revenue-15days' || endpoint === 'revenue-30days' || endpoint === 'revenue-today') {
-      let startDateStr: string;
-      let endDateStr: string;
+      let startDateISO: string;
+      let endDateISO: string;
       
-      // Se houver datas customizadas, usar elas
+      // Se houver datas customizadas, usar elas com timestamps completos
       if (customDates && customDates.from && customDates.to) {
-        startDateStr = new Date(customDates.from).toISOString().split('T')[0];
-        endDateStr = new Date(customDates.to).toISOString().split('T')[0];
-        console.log(`Buscando pedidos de período customizado: ${startDateStr} até ${endDateStr}`);
+        startDateISO = new Date(customDates.from).toISOString();
+        endDateISO = new Date(customDates.to).toISOString();
+        console.log(`Buscando pedidos de período customizado: ${startDateISO} até ${endDateISO}`);
       } else {
         // Caso contrário, usar os períodos predefinidos
         let daysAgo = 0;
@@ -139,10 +139,11 @@ serve(async (req) => {
         
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - daysAgo);
-        startDateStr = startDate.toISOString().split('T')[0];
-        endDateStr = new Date().toISOString().split('T')[0];
+        startDate.setHours(0, 0, 0, 0);
+        startDateISO = startDate.toISOString();
+        endDateISO = new Date().toISOString();
         
-        console.log(`Buscando pedidos dos últimos ${daysAgo} dias a partir de ${startDateStr}`);
+        console.log(`Buscando pedidos dos últimos ${daysAgo} dias a partir de ${startDateISO}`);
       }
       
       // Precisamos fazer paginação para pegar todos os pedidos
@@ -155,10 +156,10 @@ serve(async (req) => {
           ? `, after: "${cursor}"` 
           : '';
         
-        // Construir query com range de datas se houver endDate
+        // Construir query com range de datas usando timestamps completos
         const dateQuery = customDates && customDates.to
-          ? `created_at:>='${startDateStr}' AND created_at:<='${endDateStr}'`
-          : `created_at:>='${startDateStr}'`;
+          ? `created_at:>='${startDateISO}' AND created_at:<='${endDateISO}'`
+          : `created_at:>='${startDateISO}'`;
         
         const paginatedQuery: string = `
           {
@@ -272,10 +273,10 @@ serve(async (req) => {
       // Suporte a datas customizadas para filtro de pedidos
       let dateFilter = '';
       if (customDates && customDates.from && customDates.to) {
-        const startDateStr = new Date(customDates.from).toISOString().split('T')[0];
-        const endDateStr = new Date(customDates.to).toISOString().split('T')[0];
-        dateFilter = `, query: "created_at:>='${startDateStr}' AND created_at:<='${endDateStr}'"`;
-        console.log(`Buscando pedidos de ${startDateStr} até ${endDateStr}`);
+        const startDateISO = new Date(customDates.from).toISOString();
+        const endDateISO = new Date(customDates.to).toISOString();
+        dateFilter = `, query: "created_at:>='${startDateISO}' AND created_at:<='${endDateISO}'"`;
+        console.log(`Buscando pedidos de ${startDateISO} até ${endDateISO}`);
       }
       
       graphqlQuery = `
