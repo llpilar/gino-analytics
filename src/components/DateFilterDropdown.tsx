@@ -4,6 +4,7 @@ import {
   endOfDay, 
   subDays, 
   subMonths,
+  format,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { X } from "lucide-react";
@@ -12,16 +13,16 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 type PresetKey = 
@@ -109,10 +110,10 @@ const presets: DatePreset[] = [
 ];
 
 export const DateFilterDropdown = () => {
-  const { setCustomRange } = useDateFilter();
+  const { dateRange, setCustomRange } = useDateFilter();
   const [selectedPreset, setSelectedPreset] = useState<PresetKey>("today");
   const [isOpen, setIsOpen] = useState(false);
-  const [isCustomOpen, setIsCustomOpen] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [customRange, setCustomRangeLocal] = useState<{
     from: Date | undefined;
     to: Date | undefined;
@@ -128,16 +129,23 @@ export const DateFilterDropdown = () => {
     setIsOpen(false);
   };
 
+  const handleCustomClick = () => {
+    setIsOpen(false);
+    setIsCalendarOpen(true);
+  };
+
   const handleCustomDateSelect = () => {
     if (customRange.from && customRange.to) {
       setSelectedPreset("custom");
       setCustomRange(customRange.from, customRange.to);
-      setIsCustomOpen(false);
-      setIsOpen(false);
+      setIsCalendarOpen(false);
     }
   };
 
   const getSelectedLabel = () => {
+    if (selectedPreset === "custom" && dateRange.from && dateRange.to) {
+      return `${format(dateRange.from, "dd/MM/yy", { locale: ptBR })} - ${format(dateRange.to, "dd/MM/yy", { locale: ptBR })}`;
+    }
     const preset = presets.find((p) => p.key === selectedPreset);
     return preset?.label || "Hoje";
   };
@@ -148,103 +156,98 @@ export const DateFilterDropdown = () => {
   };
 
   return (
-    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          className="gap-2 bg-card border-border hover:bg-accent/50 px-3 py-2 h-auto"
-        >
-          <span className="text-sm font-medium">{getSelectedLabel()}</span>
-          {selectedPreset !== "today" && (
-            <span
-              className="ml-1 hover:text-destructive cursor-pointer"
-              onClick={clearSelection}
-            >
-              <X className="h-4 w-4" />
-            </span>
-          )}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent 
-        align="start" 
-        className="w-48 bg-card border-border z-50"
-        sideOffset={4}
-      >
-        {presets.map((preset) => (
-          <DropdownMenuItem
-            key={preset.key}
-            onClick={() => handlePresetSelect(preset)}
-            className={cn(
-              "cursor-pointer py-2 px-3",
-              selectedPreset === preset.key 
-                ? "text-primary font-medium" 
-                : "text-foreground/80"
-            )}
+    <>
+      <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="outline"
+            className="gap-2 bg-card border-border hover:bg-accent/50 px-3 py-2 h-auto"
           >
-            {preset.label}
-          </DropdownMenuItem>
-        ))}
-        <DropdownMenuSeparator />
-        <Popover open={isCustomOpen} onOpenChange={setIsCustomOpen}>
-          <PopoverTrigger asChild>
+            <span className="text-sm font-medium">{getSelectedLabel()}</span>
+            {selectedPreset !== "today" && (
+              <span
+                className="ml-1 hover:text-destructive cursor-pointer"
+                onClick={clearSelection}
+              >
+                <X className="h-4 w-4" />
+              </span>
+            )}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent 
+          align="start" 
+          className="w-48 bg-card border-border z-50"
+          sideOffset={4}
+        >
+          {presets.map((preset) => (
             <DropdownMenuItem
-              onSelect={(e) => e.preventDefault()}
+              key={preset.key}
+              onClick={() => handlePresetSelect(preset)}
               className={cn(
                 "cursor-pointer py-2 px-3",
-                selectedPreset === "custom" 
+                selectedPreset === preset.key 
                   ? "text-primary font-medium" 
                   : "text-foreground/80"
               )}
             >
-              Personalizado
+              {preset.label}
             </DropdownMenuItem>
-          </PopoverTrigger>
-          <PopoverContent 
-            className="w-auto p-0 z-50 pointer-events-auto" 
-            align="start" 
-            side="right"
-            sideOffset={8}
+          ))}
+          <DropdownMenuItem
+            onClick={handleCustomClick}
+            className={cn(
+              "cursor-pointer py-2 px-3",
+              selectedPreset === "custom" 
+                ? "text-primary font-medium" 
+                : "text-foreground/80"
+            )}
           >
-            <div className="p-4 space-y-4 bg-card">
-              <div className="grid gap-2">
-                <p className="text-sm font-medium">Selecione o período</p>
-                <CalendarComponent
-                  mode="range"
-                  selected={{
-                    from: customRange.from,
-                    to: customRange.to,
-                  }}
-                  onSelect={(range) => {
-                    setCustomRangeLocal({
-                      from: range?.from,
-                      to: range?.to,
-                    });
-                  }}
-                  numberOfMonths={2}
-                  locale={ptBR}
-                  className="rounded-md border pointer-events-auto"
-                />
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsCustomOpen(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={handleCustomDateSelect}
-                  disabled={!customRange.from || !customRange.to}
-                >
-                  Aplicar
-                </Button>
-              </div>
+            Personalizado
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <Dialog open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+        <DialogContent className="sm:max-w-fit">
+          <DialogHeader>
+            <DialogTitle>Selecione o período</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <CalendarComponent
+              mode="range"
+              selected={{
+                from: customRange.from,
+                to: customRange.to,
+              }}
+              onSelect={(range) => {
+                setCustomRangeLocal({
+                  from: range?.from,
+                  to: range?.to,
+                });
+              }}
+              numberOfMonths={2}
+              locale={ptBR}
+              className="rounded-md border pointer-events-auto"
+            />
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsCalendarOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleCustomDateSelect}
+                disabled={!customRange.from || !customRange.to}
+              >
+                Aplicar
+              </Button>
             </div>
-          </PopoverContent>
-        </Popover>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
