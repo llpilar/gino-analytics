@@ -269,9 +269,18 @@ serve(async (req) => {
         }
       `;
     } else if (endpoint === 'orders') {
+      // Suporte a datas customizadas para filtro de pedidos
+      let dateFilter = '';
+      if (customDates && customDates.from && customDates.to) {
+        const startDateStr = new Date(customDates.from).toISOString().split('T')[0];
+        const endDateStr = new Date(customDates.to).toISOString().split('T')[0];
+        dateFilter = `, query: "created_at:>='${startDateStr}' AND created_at:<='${endDateStr}'"`;
+        console.log(`Buscando pedidos de ${startDateStr} até ${endDateStr}`);
+      }
+      
       graphqlQuery = `
         {
-          orders(first: 5, sortKey: CREATED_AT, reverse: true) {
+          orders(first: 250, sortKey: CREATED_AT, reverse: true${dateFilter}) {
             edges {
               node {
                 id
