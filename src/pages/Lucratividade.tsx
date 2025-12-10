@@ -1,6 +1,6 @@
 // Calculadora de Lucratividade
 import { useState, useMemo } from "react";
-import { Calculator, TrendingUp, TrendingDown, DollarSign, Package, Undo2, Percent, PiggyBank } from "lucide-react";
+import { Calculator, TrendingUp, TrendingDown, DollarSign, Package, Undo2, Percent, PiggyBank, Facebook, Globe } from "lucide-react";
 import { DashboardWrapper } from "@/components/DashboardWrapper";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,7 +21,9 @@ const Lucratividade = () => {
   // Inputs manuais (valores em COP - moeda base do Shopify)
   const [efetividade, setEfetividade] = useState(70); // % de pedidos entregues
   const [devolucao, setDevolucao] = useState(10); // % de devoluções
-  const [custoFixo, setCustoFixo] = useState(500000); // Custos fixos mensais em COP
+  const [custoOperacional, setCustoOperacional] = useState(500000); // Custos operacionais
+  const [custoFacebookAds, setCustoFacebookAds] = useState(0); // Custos Facebook Ads
+  const [custoGoogleAds, setCustoGoogleAds] = useState(0); // Custos Google Ads
   const [margemMinima, setMargemMinima] = useState(30); // % de margem mínima desejada
 
   // Faturamento do Shopify (sempre em COP)
@@ -40,12 +42,15 @@ const Lucratividade = () => {
   const pedidosDevolvidos = Math.round(totalPedidos * (devolucao / 100));
   const pedidosEfetivos = pedidosEntregues - pedidosDevolvidos;
 
+  // Total de custos
+  const custoTotal = custoOperacional + custoFacebookAds + custoGoogleAds;
+
   // Receita líquida considerando efetividade e devolução
   const taxaEfetiva = (efetividade / 100) * (1 - devolucao / 100);
   const receitaLiquida = faturamentoBruto * taxaEfetiva;
 
-  // Lucro após custos fixos
-  const lucroOperacional = receitaLiquida - custoFixo;
+  // Lucro após todos os custos
+  const lucroOperacional = receitaLiquida - custoTotal;
   const margemReal = receitaLiquida > 0 ? (lucroOperacional / receitaLiquida) * 100 : 0;
 
   // Análise de meta
@@ -53,7 +58,7 @@ const Lucratividade = () => {
   const diferencaMargem = margemReal - margemMinima;
 
   // Receita mínima necessária para atingir margem
-  const receitaMinimaNecessaria = margemMinima > 0 ? custoFixo / (1 - margemMinima / 100) : custoFixo;
+  const receitaMinimaNecessaria = margemMinima > 0 ? custoTotal / (1 - margemMinima / 100) : custoTotal;
   const faturamentoMinimoNecessario = taxaEfetiva > 0 ? receitaMinimaNecessaria / taxaEfetiva : 0;
 
   const periodLabel = dateRange.from && dateRange.to 
@@ -164,25 +169,25 @@ const Lucratividade = () => {
             </CardContent>
           </Card>
 
-          {/* Custos Fixos */}
+          {/* Custos Operacionais */}
           <Card className="glass-card">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <PiggyBank className="h-4 w-4 text-yellow-500" />
-                Custos Fixos Mensais ({currency})
+                Custos Operacionais ({currency})
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Input
                   type="number"
-                  value={custoFixo}
-                  onChange={(e) => setCustoFixo(Number(e.target.value))}
+                  value={custoOperacional}
+                  onChange={(e) => setCustoOperacional(Number(e.target.value))}
                   className="text-lg font-bold"
                   placeholder="0"
                 />
                 <p className="text-xs text-muted-foreground">
-                  {formatCurrency(custoFixo)} em custos operacionais
+                  {formatCurrency(custoOperacional)} em custos fixos
                 </p>
               </div>
             </CardContent>
@@ -211,7 +216,85 @@ const Lucratividade = () => {
               />
             </CardContent>
           </Card>
+
+          {/* Facebook Ads */}
+          <Card className="glass-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Facebook className="h-4 w-4 text-blue-600" />
+                Facebook Ads ({currency})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Input
+                  type="number"
+                  value={custoFacebookAds}
+                  onChange={(e) => setCustoFacebookAds(Number(e.target.value))}
+                  className="text-lg font-bold"
+                  placeholder="0"
+                />
+                <p className="text-xs text-muted-foreground">
+                  {formatCurrency(custoFacebookAds)} em anúncios
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Google Ads */}
+          <Card className="glass-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Globe className="h-4 w-4 text-red-500" />
+                Google Ads ({currency})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Input
+                  type="number"
+                  value={custoGoogleAds}
+                  onChange={(e) => setCustoGoogleAds(Number(e.target.value))}
+                  className="text-lg font-bold"
+                  placeholder="0"
+                />
+                <p className="text-xs text-muted-foreground">
+                  {formatCurrency(custoGoogleAds)} em anúncios
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
+
+        {/* Resumo de Custos */}
+        <Card className="glass-card border-yellow-500/20">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Calculator className="h-4 w-4 text-yellow-500" />
+              Resumo de Custos ({currency})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Operacionais</p>
+                <p className="text-lg font-bold">{formatCurrency(custoOperacional)}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Facebook Ads</p>
+                <p className="text-lg font-bold text-blue-600">{formatCurrency(custoFacebookAds)}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Google Ads</p>
+                <p className="text-lg font-bold text-red-500">{formatCurrency(custoGoogleAds)}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Total de Custos</p>
+                <p className="text-lg font-bold text-yellow-500">{formatCurrency(custoTotal)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Resultados */}
         <Card className={`glass-card border-2 ${atingiuMeta ? 'border-green-500/50' : 'border-red-500/50'}`}>
@@ -245,7 +328,7 @@ const Lucratividade = () => {
                   {formatCurrency(lucroOperacional)}
                 </p>
                 <p className="text-[10px] text-muted-foreground">
-                  Receita - Custos Fixos
+                  Receita - Custos Totais
                 </p>
               </div>
 
