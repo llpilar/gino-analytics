@@ -49,14 +49,16 @@ const Lucratividade = () => {
 
   const totalPedidos = shopifyData?.data?.orders?.edges?.length || 0;
 
-  // Custo por produto (11.000 COP cada)
-  const custoPorProduto = 11000;
-  const custoProdutos = totalProdutos * custoPorProduto;
-
-  // Cálculos
+  // Cálculos de efetividade
   const pedidosEntregues = Math.round(totalPedidos * (efetividade / 100));
   const pedidosDevolvidos = Math.round(totalPedidos * (devolucao / 100));
   const pedidosEfetivos = pedidosEntregues - pedidosDevolvidos;
+  const taxaEfetiva = (efetividade / 100) * (1 - devolucao / 100);
+
+  // Custo por produto (11.000 COP cada) - só conta produtos efetivos (devolvidos voltam)
+  const custoPorProduto = 11000;
+  const produtosEfetivos = Math.round(totalProdutos * taxaEfetiva);
+  const custoProdutos = produtosEfetivos * custoPorProduto;
 
   // Custo de devoluções (envio ida + volta = custo médio × 2)
   const custoDevolucoes = custoMedioEnvio * 2 * pedidosDevolvidos;
@@ -65,7 +67,6 @@ const Lucratividade = () => {
   const custoTotal = custoOperacional + custoFacebookAds + custoGoogleAds + custoProdutos + custoDevolucoes;
 
   // Receita líquida considerando efetividade e devolução
-  const taxaEfetiva = (efetividade / 100) * (1 - devolucao / 100);
   const receitaLiquida = faturamentoBruto * taxaEfetiva;
 
   // Lucro após todos os custos
@@ -313,7 +314,7 @@ const Lucratividade = () => {
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
               <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Produtos ({totalProdutos}x)</p>
+                <p className="text-xs text-muted-foreground">Produtos ({produtosEfetivos}x)</p>
                 <p className="text-lg font-bold text-orange-500">{formatCurrency(custoProdutos)}</p>
               </div>
               <div className="space-y-1">
