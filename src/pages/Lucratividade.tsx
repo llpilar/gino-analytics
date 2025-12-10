@@ -22,7 +22,7 @@ const Lucratividade = () => {
   // Inputs manuais (valores em COP - moeda base do Shopify)
   const [efetividade, setEfetividade] = useState(70); // % de pedidos entregues
   const [devolucao, setDevolucao] = useState(10); // % de devoluções
-  const [custoMedioEnvio, setCustoMedioEnvio] = useState(15000); // Custo médio de envio
+  const [custoMedioEnvio, setCustoMedioEnvio] = useState(25000); // Custo médio de envio
   const [custoOperacional, setCustoOperacional] = useState(500000); // Custos operacionais
   const [custoFacebookAds, setCustoFacebookAds] = useState(0); // Custos Facebook Ads
   const [custoGoogleAds, setCustoGoogleAds] = useState(0); // Custos Google Ads
