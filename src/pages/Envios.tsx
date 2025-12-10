@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Package, Truck, AlertCircle, RefreshCw, Box, 
   Clock, TrendingUp, MapPin, Hash, User, DollarSign,
-  CheckCircle2, XCircle, Timer, CalendarIcon, Wallet
+  CheckCircle2, XCircle, Timer, CalendarIcon, Wallet, Undo2
 } from "lucide-react";
 import { useHokoOrders, useHokoProducts, useHokoProductsWithStock } from "@/hooks/useHokoData";
 import { Button } from "@/components/ui/button";
@@ -164,14 +164,23 @@ const StatsGrid = () => {
   
   // Canceladas: delivery_state=5
   const canceladas = orders.filter((o) => parseInt(o.delivery_state) === 5).length;
+  
+  // Devoluções: orders with guide.state indicating return (states like 17, 18, 19 often mean returned/rejected)
+  // Also check for "Em Novidade" (state 6) which can indicate delivery issues leading to returns
+  const devolucoes = orders.filter((o) => {
+    const guideState = o.guide?.state;
+    const deliveryState = parseInt(o.delivery_state);
+    // Guide states 17+ often indicate return scenarios in COD systems
+    return guideState >= 17 || deliveryState === 6;
+  }).length;
 
-  const getPercent = (value: number) => totalOrders > 0 ? ((value / totalOrders) * 100).toFixed(2) : '0';
+  const getPercent = (value: number) => totalOrders > 0 ? ((value / totalOrders) * 100).toFixed(1) : '0';
 
   const statsConfig: { title: string; value: string; subtitle: string; icon: LucideIcon; color: CardColorVariant }[] = [
     { title: "Criadas", value: `${criadas} (${getPercent(criadas)}%)`, subtitle: "Pedidos recém criados", icon: Clock, color: "purple" },
     { title: "Em Processo", value: `${emProcesso} (${getPercent(emProcesso)}%)`, subtitle: "Em preparação/trânsito", icon: Timer, color: "cyan" },
     { title: "Finalizadas", value: `${finalizadas} (${getPercent(finalizadas)}%)`, subtitle: "Entregues com sucesso", icon: CheckCircle2, color: "green" },
-    { title: "Canceladas", value: `${canceladas} (${getPercent(canceladas)}%)`, subtitle: "Pedidos cancelados", icon: XCircle, color: "orange" },
+    { title: "Devoluções", value: `${devolucoes} (${getPercent(devolucoes)}%)`, subtitle: "Pedidos devolvidos", icon: Undo2, color: "orange" },
   ];
 
   return (
@@ -327,6 +336,11 @@ const OrdersTable = () => {
             <TableBody>
               {orders.map((order: any, index: number) => {
                 const deliveryState = getDeliveryState(parseInt(order.delivery_state));
+                const deliveryStateNum = parseInt(order.delivery_state);
+                const guideState = order.guide?.state;
+                
+                // Check if order is a return (guide.state >= 17 or delivery_state = 6)
+                const isDevolvido = guideState >= 17 || deliveryStateNum === 6;
                 
                 // Get products array
                 const products = order.products || [];
@@ -380,9 +394,17 @@ const OrdersTable = () => {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge className={`${deliveryState.bg} ${deliveryState.text} ${deliveryState.border} border text-xs`}>
-                        {deliveryState.label}
-                      </Badge>
+                      <div className="flex flex-wrap gap-1">
+                        <Badge className={`${deliveryState.bg} ${deliveryState.text} ${deliveryState.border} border text-xs`}>
+                          {deliveryState.label}
+                        </Badge>
+                        {isDevolvido && (
+                          <Badge className="bg-destructive/10 text-destructive border-destructive/30 border text-xs gap-1">
+                            <Undo2 className="h-3 w-3" />
+                            DEVOLVIDO
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
                       {guide?.number ? (
