@@ -133,7 +133,7 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
 
             {/* Date Filter Dropdown */}
             <div className="h-6 w-px bg-border mx-1 hidden sm:block" aria-hidden="true" />
-            <div className="hidden sm:block">
+            <div className="hidden sm:block -ml-1">
               <DateFilterDropdown />
             </div>
           </>
