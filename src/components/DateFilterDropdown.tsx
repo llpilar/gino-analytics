@@ -159,15 +159,17 @@ export const DateFilterDropdown = () => {
     <>
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>
-          <div className="flex items-center bg-card border border-border rounded-full px-3 py-1 cursor-pointer hover:bg-accent/50 transition-colors">
-            <span className="text-[10px] sm:text-xs font-bold text-foreground">{getSelectedLabel()}</span>
+          <div className="flex items-center bg-card border border-border rounded-full p-0.5 sm:p-1 cursor-pointer">
+            <div className="px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold bg-accent text-foreground transition-all duration-300">
+              {getSelectedLabel()}
+            </div>
             {selectedPreset !== "today" && (
-              <span
-                className="ml-1.5 hover:text-destructive cursor-pointer"
+              <div
+                className="px-1.5 py-0.5 rounded-full text-muted-foreground hover:text-destructive cursor-pointer transition-colors"
                 onClick={clearSelection}
               >
                 <X className="h-3 w-3" />
-              </span>
+              </div>
             )}
           </div>
         </DropdownMenuTrigger>
