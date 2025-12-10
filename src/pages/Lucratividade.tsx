@@ -22,6 +22,7 @@ const Lucratividade = () => {
   // Inputs manuais (valores em COP - moeda base do Shopify)
   const [efetividade, setEfetividade] = useState(70); // % de pedidos entregues
   const [devolucao, setDevolucao] = useState(10); // % de devoluções
+  const [custoMedioEnvio, setCustoMedioEnvio] = useState(15000); // Custo médio de envio
   const [custoOperacional, setCustoOperacional] = useState(500000); // Custos operacionais
   const [custoFacebookAds, setCustoFacebookAds] = useState(0); // Custos Facebook Ads
   const [custoGoogleAds, setCustoGoogleAds] = useState(0); // Custos Google Ads
@@ -57,8 +58,11 @@ const Lucratividade = () => {
   const pedidosDevolvidos = Math.round(totalPedidos * (devolucao / 100));
   const pedidosEfetivos = pedidosEntregues - pedidosDevolvidos;
 
-  // Total de custos (inclui custo de produtos)
-  const custoTotal = custoOperacional + custoFacebookAds + custoGoogleAds + custoProdutos;
+  // Custo de devoluções (envio ida + volta = custo médio × 2)
+  const custoDevolucoes = custoMedioEnvio * 2 * pedidosDevolvidos;
+
+  // Total de custos (inclui custo de produtos e devoluções)
+  const custoTotal = custoOperacional + custoFacebookAds + custoGoogleAds + custoProdutos + custoDevolucoes;
 
   // Receita líquida considerando efetividade e devolução
   const taxaEfetiva = (efetividade / 100) * (1 - devolucao / 100);
@@ -185,8 +189,18 @@ const Lucratividade = () => {
                 step={1}
                 className="w-full"
               />
+              <div className="space-y-2 pt-2 border-t border-border/50">
+                <p className="text-xs text-muted-foreground">Custo médio de envio ({currency})</p>
+                <Input
+                  type="number"
+                  value={custoMedioEnvio}
+                  onChange={(e) => setCustoMedioEnvio(Number(e.target.value))}
+                  className="text-sm"
+                  placeholder="0"
+                />
+              </div>
               <p className="text-xs text-muted-foreground">
-                ≈ {pedidosDevolvidos} devoluções
+                ≈ {pedidosDevolvidos} devoluções = <span className="text-red-500 font-medium">{formatCurrency(custoDevolucoes)}</span> (envio ida+volta)
               </p>
             </CardContent>
           </Card>
@@ -297,10 +311,14 @@ const Lucratividade = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Produtos ({totalProdutos}x)</p>
                 <p className="text-lg font-bold text-orange-500">{formatCurrency(custoProdutos)}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Devoluções ({pedidosDevolvidos}x)</p>
+                <p className="text-lg font-bold text-red-500">{formatCurrency(custoDevolucoes)}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Operacionais</p>
