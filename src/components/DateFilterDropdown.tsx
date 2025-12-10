@@ -173,36 +173,34 @@ export const DateFilterDropdown = () => {
         </DropdownMenuTrigger>
         <DropdownMenuContent 
           align="start" 
-          className="w-52 bg-card border-border z-50 p-1.5"
-          sideOffset={6}
+          className="w-48 bg-card border-border z-50"
+          sideOffset={4}
         >
-          <div className="space-y-0.5">
-            {presets.map((preset) => (
-              <DropdownMenuItem
-                key={preset.key}
-                onClick={() => handlePresetSelect(preset)}
-                className={cn(
-                  "cursor-pointer py-2.5 px-3 rounded-md text-sm",
-                  selectedPreset === preset.key 
-                    ? "text-primary font-medium bg-accent" 
-                    : "text-foreground/80"
-                )}
-              >
-                {preset.label}
-              </DropdownMenuItem>
-            ))}
+          {presets.map((preset) => (
             <DropdownMenuItem
-              onClick={handleCustomClick}
+              key={preset.key}
+              onClick={() => handlePresetSelect(preset)}
               className={cn(
-                "cursor-pointer py-2.5 px-3 rounded-md text-sm",
-                selectedPreset === "custom" 
-                  ? "text-primary font-medium bg-accent" 
+                "cursor-pointer py-2 px-3",
+                selectedPreset === preset.key 
+                  ? "text-primary font-medium" 
                   : "text-foreground/80"
               )}
             >
-              Personalizado
+              {preset.label}
             </DropdownMenuItem>
-          </div>
+          ))}
+          <DropdownMenuItem
+            onClick={handleCustomClick}
+            className={cn(
+              "cursor-pointer py-2 px-3",
+              selectedPreset === "custom" 
+                ? "text-primary font-medium" 
+                : "text-foreground/80"
+            )}
+          >
+            Personalizado
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
