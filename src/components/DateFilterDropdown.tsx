@@ -7,7 +7,7 @@ import {
   format,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { X } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
 import { useDateFilter } from "@/contexts/DateFilterContext";
 import {
   DropdownMenu,
@@ -159,19 +159,17 @@ export const DateFilterDropdown = () => {
     <>
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>
-          <div className="flex items-center bg-card border border-border rounded-full p-0.5 sm:p-1 cursor-pointer">
-            <div className="px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold bg-accent text-foreground transition-all duration-300">
-              {getSelectedLabel()}
-            </div>
-            {selectedPreset !== "today" && (
-              <div
-                className="px-1.5 py-0.5 rounded-full text-muted-foreground hover:text-destructive cursor-pointer transition-colors"
+          <Button variant="outline" className="rounded-full h-8 px-3 text-xs font-bold gap-1">
+            {getSelectedLabel()}
+            {selectedPreset !== "today" ? (
+              <X 
+                className="h-3 w-3 opacity-60 hover:opacity-100" 
                 onClick={clearSelection}
-              >
-                <X className="h-3 w-3" />
-              </div>
+              />
+            ) : (
+              <ChevronDown className="h-3 w-3 opacity-60" />
             )}
-          </div>
+          </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent 
           align="start" 
