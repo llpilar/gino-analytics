@@ -3,6 +3,7 @@ import { useState, useMemo } from "react";
 import { Calculator, TrendingUp, TrendingDown, DollarSign, Package, Undo2, Percent, PiggyBank, Facebook, Globe } from "lucide-react";
 import { DashboardWrapper } from "@/components/DashboardWrapper";
 import { PageHeader } from "@/components/PageHeader";
+import { DateFilterDropdown } from "@/components/DateFilterDropdown";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
@@ -61,24 +62,23 @@ const Lucratividade = () => {
   const receitaMinimaNecessaria = margemMinima > 0 ? custoTotal / (1 - margemMinima / 100) : custoTotal;
   const faturamentoMinimoNecessario = taxaEfetiva > 0 ? receitaMinimaNecessaria / taxaEfetiva : 0;
 
-  const periodLabel = dateRange.from && dateRange.to 
-    ? `${format(dateRange.from, "dd/MM", { locale: ptBR })} - ${format(dateRange.to, "dd/MM", { locale: ptBR })}`
-    : "Período selecionado";
-
   return (
     <DashboardWrapper>
       <div className="space-y-4 md:space-y-6 py-3 md:py-6 px-4 md:px-8">
-        <PageHeader
-          title="Calculadora de Lucro"
-          subtitle="Simule cenários de lucratividade com base na efetividade e custos"
-        />
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <PageHeader
+            title="Calculadora de Lucro"
+            subtitle="Simule cenários de lucratividade com base na efetividade e custos"
+          />
+          <DateFilterDropdown />
+        </div>
 
         {/* Dados Automáticos do Shopify */}
         <Card className="glass-card border-primary/20">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-primary" />
-              Dados do Shopify - {periodLabel} ({currency})
+              Dados do Shopify ({currency})
             </CardTitle>
           </CardHeader>
           <CardContent>
