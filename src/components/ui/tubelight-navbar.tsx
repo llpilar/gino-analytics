@@ -3,16 +3,10 @@
 import React, { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { Link, useLocation } from "react-router-dom"
-import { LucideIcon, CalendarIcon, Check } from "lucide-react"
+import { LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useCurrency } from "@/contexts/CurrencyContext"
-import { useDateFilter } from "@/contexts/DateFilterContext"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays } from "date-fns"
-import { ptBR } from "date-fns/locale"
-import { DateRange } from "react-day-picker"
+import { DateFilterDropdown } from "@/components/DateFilterDropdown"
 
 interface NavItem {
   name: string
@@ -30,55 +24,7 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
   const location = useLocation()
   const [activeTab, setActiveTab] = useState(items[0].name)
   const [isMobile, setIsMobile] = useState(false)
-  const [isOpen, setIsOpen] = useState(false)
   const { currency, setCurrency } = useCurrency()
-  const { dateRange, setCustomRange } = useDateFilter()
-  
-  // Local state for pending selection
-  const [pendingRange, setPendingRange] = useState<DateRange | undefined>(dateRange)
-
-  const handleCurrencyToggle = (checked: boolean) => {
-    setCurrency(checked ? 'BRL' : 'COP')
-  }
-
-  const handlePreset = (preset: 'today' | 'week' | 'month' | '90days') => {
-    const now = new Date()
-    let from: Date, to: Date
-    switch (preset) {
-      case 'today':
-        from = startOfDay(now)
-        to = endOfDay(now)
-        break
-      case 'week':
-        from = startOfWeek(now, { weekStartsOn: 0 })
-        to = endOfWeek(now, { weekStartsOn: 0 })
-        break
-      case 'month':
-        from = startOfMonth(now)
-        to = endOfMonth(now)
-        break
-      case '90days':
-        from = subDays(now, 90)
-        to = endOfDay(now)
-        break
-    }
-    setPendingRange({ from, to })
-  }
-
-  const handleApply = () => {
-    if (pendingRange?.from) {
-      setCustomRange(pendingRange.from, pendingRange.to)
-    }
-    setIsOpen(false)
-  }
-
-  // Sync pending range when popover opens
-  const handleOpenChange = (open: boolean) => {
-    if (open) {
-      setPendingRange(dateRange)
-    }
-    setIsOpen(open)
-  }
 
   useEffect(() => {
     // Update active tab based on current route
@@ -185,120 +131,11 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
               </div>
             </div>
 
-            {/* Date Filter */}
+            {/* Date Filter Dropdown */}
             <div className="h-6 w-px bg-border mx-1 hidden sm:block" aria-hidden="true" />
-            <Popover open={isOpen} onOpenChange={handleOpenChange}>
-              <PopoverTrigger asChild>
-                <Button 
-                  variant="ghost"
-                  size="sm"
-                  className="gap-2 rounded-full hover:bg-primary/10 h-8 px-3"
-                  aria-label={`Período selecionado: ${dateRange.from ? format(dateRange.from, "dd/MM", { locale: ptBR }) : 'não definido'}${dateRange.to ? ` até ${format(dateRange.to, "dd/MM", { locale: ptBR })}` : ''}`}
-                >
-                  <CalendarIcon className="h-4 w-4 text-primary" />
-                  <span className="text-xs font-bold text-foreground hidden md:inline">
-                    {dateRange.from ? (
-                      dateRange.to ? (
-                        <>
-                          {format(dateRange.from, "dd/MM", { locale: ptBR })} - {format(dateRange.to, "dd/MM", { locale: ptBR })}
-                        </>
-                      ) : (
-                        format(dateRange.from, "dd/MM", { locale: ptBR })
-                      )
-                    ) : (
-                      "Período"
-                    )}
-                  </span>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent 
-                className="w-auto p-0 bg-popover/95 border-border backdrop-blur-xl" 
-                align="end"
-              >
-                {/* Preset Buttons */}
-                <div className="p-3 border-b border-border">
-                  <p className="text-xs text-muted-foreground mb-2 font-medium">Selecione o período</p>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePreset('today')}
-                      className="flex-1 h-8 text-xs font-bold border-border bg-card hover:bg-primary/20 hover:text-primary hover:border-primary/50"
-                    >
-                      Hoje
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePreset('week')}
-                      className="flex-1 h-8 text-xs font-bold border-border bg-card hover:bg-primary/20 hover:text-primary hover:border-primary/50"
-                    >
-                      Semana
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePreset('month')}
-                      className="flex-1 h-8 text-xs font-bold border-border bg-card hover:bg-primary/20 hover:text-primary hover:border-primary/50"
-                    >
-                      Mês
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePreset('90days')}
-                      className="flex-1 h-8 text-xs font-bold border-border bg-card hover:bg-primary/20 hover:text-primary hover:border-primary/50"
-                    >
-                      90 Dias
-                    </Button>
-                  </div>
-                </div>
-                
-                {/* Calendar */}
-                <Calendar
-                  mode="range"
-                  selected={pendingRange}
-                  onSelect={setPendingRange}
-                  numberOfMonths={isMobile ? 1 : 2}
-                  className="p-3"
-                />
-
-                {/* Apply Button */}
-                <div className="p-3 border-t border-border">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="text-xs text-muted-foreground">
-                      {pendingRange?.from ? (
-                        pendingRange.to ? (
-                          <span>
-                            <span className="text-primary font-medium">
-                              {format(pendingRange.from, "dd MMM", { locale: ptBR })}
-                            </span>
-                            {" → "}
-                            <span className="text-primary font-medium">
-                              {format(pendingRange.to, "dd MMM", { locale: ptBR })}
-                            </span>
-                          </span>
-                        ) : (
-                          <span className="text-primary font-medium">
-                            {format(pendingRange.from, "dd MMM yyyy", { locale: ptBR })}
-                          </span>
-                        )
-                      ) : (
-                        "Selecione as datas"
-                      )}
-                    </div>
-                    <Button
-                      onClick={handleApply}
-                      disabled={!pendingRange?.from}
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-9 px-4 gap-2"
-                    >
-                      <Check className="h-4 w-4" />
-                      Aplicar
-                    </Button>
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
+            <div className="hidden sm:block">
+              <DateFilterDropdown />
+            </div>
           </>
         )}
       </div>
