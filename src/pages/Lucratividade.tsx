@@ -5,34 +5,26 @@ import { DashboardWrapper } from "@/components/DashboardWrapper";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { useDateFilter } from "@/contexts/DateFilterContext";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { useShopifyOrders } from "@/hooks/useShopifyData";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-const formatCOP = (value: number): string => {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(value).replace('COP', '$');
-};
-
 const Lucratividade = () => {
   const { dateRange } = useDateFilter();
   const { data: shopifyData, isLoading } = useShopifyOrders();
+  const { formatCurrency, currency } = useCurrency();
 
-  // Inputs manuais
+  // Inputs manuais (valores em COP - moeda base do Shopify)
   const [efetividade, setEfetividade] = useState(70); // % de pedidos entregues
   const [devolucao, setDevolucao] = useState(10); // % de devoluções
   const [custoFixo, setCustoFixo] = useState(500000); // Custos fixos mensais em COP
   const [margemMinima, setMargemMinima] = useState(30); // % de margem mínima desejada
 
-  // Faturamento do Shopify
+  // Faturamento do Shopify (sempre em COP)
   const faturamentoBruto = useMemo(() => {
     if (!shopifyData?.data?.orders?.edges) return 0;
     return shopifyData.data.orders.edges.reduce((acc: number, edge: any) => {
@@ -81,7 +73,7 @@ const Lucratividade = () => {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-primary" />
-              Dados do Shopify - {periodLabel}
+              Dados do Shopify - {periodLabel} ({currency})
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -91,7 +83,7 @@ const Lucratividade = () => {
                 {isLoading ? (
                   <Skeleton className="h-8 w-32" />
                 ) : (
-                  <p className="text-xl md:text-2xl font-bold text-primary">{formatCOP(faturamentoBruto)}</p>
+                  <p className="text-xl md:text-2xl font-bold text-primary">{formatCurrency(faturamentoBruto)}</p>
                 )}
               </div>
               <div className="space-y-1">
@@ -108,7 +100,7 @@ const Lucratividade = () => {
                   <Skeleton className="h-8 w-24" />
                 ) : (
                   <p className="text-xl md:text-2xl font-bold">
-                    {formatCOP(totalPedidos > 0 ? faturamentoBruto / totalPedidos : 0)}
+                    {formatCurrency(totalPedidos > 0 ? faturamentoBruto / totalPedidos : 0)}
                   </p>
                 )}
               </div>
@@ -177,7 +169,7 @@ const Lucratividade = () => {
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <PiggyBank className="h-4 w-4 text-yellow-500" />
-                Custos Fixos Mensais
+                Custos Fixos Mensais ({currency})
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -190,7 +182,7 @@ const Lucratividade = () => {
                   placeholder="0"
                 />
                 <p className="text-xs text-muted-foreground">
-                  {formatCOP(custoFixo)} em custos operacionais
+                  {formatCurrency(custoFixo)} em custos operacionais
                 </p>
               </div>
             </CardContent>
@@ -241,7 +233,7 @@ const Lucratividade = () => {
 
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Receita Líquida</p>
-                <p className="text-xl md:text-2xl font-bold text-primary">{formatCOP(receitaLiquida)}</p>
+                <p className="text-xl md:text-2xl font-bold text-primary">{formatCurrency(receitaLiquida)}</p>
                 <p className="text-[10px] text-muted-foreground">
                   Após efetividade e devoluções
                 </p>
@@ -250,7 +242,7 @@ const Lucratividade = () => {
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Lucro Operacional</p>
                 <p className={`text-xl md:text-2xl font-bold ${lucroOperacional >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                  {formatCOP(lucroOperacional)}
+                  {formatCurrency(lucroOperacional)}
                 </p>
                 <p className="text-[10px] text-muted-foreground">
                   Receita - Custos Fixos
@@ -294,7 +286,7 @@ const Lucratividade = () => {
                     <p className="font-semibold text-red-500">Abaixo da Meta</p>
                     <p className="text-sm text-muted-foreground">
                       Para atingir {margemMinima}% de margem, você precisa faturar pelo menos{' '}
-                      <span className="font-bold text-foreground">{formatCOP(faturamentoMinimoNecessario)}</span>{' '}
+                      <span className="font-bold text-foreground">{formatCurrency(faturamentoMinimoNecessario)}</span>{' '}
                       bruto no período.
                     </p>
                   </div>
