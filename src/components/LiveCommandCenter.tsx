@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { AnimatedLogo } from "./AnimatedLogo";
 import { ShootingStars } from "./ui/shooting-stars";
 import { NavBar } from "./ui/tubelight-navbar";
 import { useShopifyRevenueToday, useShopifyAnalytics } from "@/hooks/useShopifyData";
@@ -240,10 +239,6 @@ export const LiveCommandCenter = () => {
               <div className="absolute w-[580px] h-[580px] border border-chart-5/10 rounded-full animate-spin" style={{ animationDuration: "100s" }} />
             </div>
 
-            {/* Animated Logo */}
-            <div className="relative z-10 w-[300px] h-[300px] flex items-center justify-center">
-              <AnimatedLogo size={180} />
-            </div>
 
             {/* Orbital Satellites */}
             {satellites.map((satellite, index) => {
@@ -382,41 +377,24 @@ export const LiveCommandCenter = () => {
               })}
             </section>
 
-            {/* Main Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-              {/* Data Stream Panel */}
-              <section 
-                className="lg:col-span-2 p-4 md:p-6 rounded-xl md:rounded-2xl bg-card border-2 border-primary/30 backdrop-blur-xl animate-fade-in"
-                style={{ animationDelay: "400ms" }}
-                aria-label="Detalhes de faturamento"
-              >
-                <DataStreamCard 
-                  totalRevenue={totalRevenue}
-                  ordersCount={ordersCount}
-                  avgOrderValue={avgOrderValue}
-                  uniqueShoppers={uniqueShoppers}
-                  dailyComparison={dailyComparison}
-                  formatCurrency={formatCurrency}
-                  colorVariants={colorVariants}
-                  adSpend={facebookAdsData?.spend || 0}
-                  cpa={facebookAdsData?.cpa || 0}
-                />
-              </section>
-
-              {/* Logo Preview - Desktop Grid Only */}
-              <aside 
-                className="hidden lg:block p-6 rounded-2xl bg-card border-2 border-primary/30 backdrop-blur-xl animate-fade-in overflow-hidden"
-                style={{ animationDelay: "500ms" }}
-                aria-label="Logo Dashfy"
-              >
-                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">
-                  Dashfy
-                </h3>
-                <div className="relative w-full aspect-square flex items-center justify-center">
-                  <AnimatedLogo size={140} />
-                </div>
-              </aside>
-            </div>
+            {/* Data Stream Panel */}
+            <section 
+              className="p-4 md:p-6 rounded-xl md:rounded-2xl bg-card border-2 border-primary/30 backdrop-blur-xl animate-fade-in"
+              style={{ animationDelay: "400ms" }}
+              aria-label="Detalhes de faturamento"
+            >
+              <DataStreamCard 
+                totalRevenue={totalRevenue}
+                ordersCount={ordersCount}
+                avgOrderValue={avgOrderValue}
+                uniqueShoppers={uniqueShoppers}
+                dailyComparison={dailyComparison}
+                formatCurrency={formatCurrency}
+                colorVariants={colorVariants}
+                adSpend={facebookAdsData?.spend || 0}
+                cpa={facebookAdsData?.cpa || 0}
+              />
+            </section>
           </div>
         </div>
       )}
