@@ -277,10 +277,11 @@ export default function Analises() {
           <SectionCard title="Visitantes em Tempo Real" icon={Eye} color="orange">
             <RealTimeAnalytics
               title="Visitantes VSL"
-              subtitle="Pessoas assistindo o vídeo ao vivo"
-              unit=""
-              initialValue={visitorCount || 10}
+              subtitle="Dados do Google Analytics 4 (atualiza a cada 30s)"
+              unit=" online"
+              initialValue={visitorCount || 0}
               currentValue={visitorCount}
+              pollingInterval={30000}
             />
           </SectionCard>
         </div>
