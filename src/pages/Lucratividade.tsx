@@ -124,7 +124,7 @@ const Lucratividade = () => {
                 {isLoading ? (
                   <Skeleton className="h-8 w-16" />
                 ) : (
-                  <p className="text-xl md:text-2xl font-bold text-orange-500">{totalProdutos}</p>
+                  <p className="text-xl md:text-2xl font-bold text-primary">{totalProdutos}</p>
                 )}
               </div>
               <div className="space-y-1">
@@ -132,7 +132,7 @@ const Lucratividade = () => {
                 {isLoading ? (
                   <Skeleton className="h-8 w-24" />
                 ) : (
-                  <p className="text-xl md:text-2xl font-bold text-orange-500">
+                  <p className="text-xl md:text-2xl font-bold text-primary">
                     {formatCurrency(custoProdutos)}
                   </p>
                 )}
@@ -147,13 +147,13 @@ const Lucratividade = () => {
           <Card className="glass-card">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Package className="h-4 w-4 text-green-500" />
+                <Package className="h-4 w-4 text-primary" />
                 Taxa de Efetividade
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-2xl font-bold text-green-500">{efetividade}%</span>
+                <span className="text-2xl font-bold text-primary">{efetividade}%</span>
                 <span className="text-xs text-muted-foreground">Pedidos entregues</span>
               </div>
               <Slider
@@ -211,7 +211,7 @@ const Lucratividade = () => {
           <Card className="glass-card">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <PiggyBank className="h-4 w-4 text-yellow-500" />
+                <PiggyBank className="h-4 w-4 text-primary" />
                 Custos Operacionais ({currency})
               </CardTitle>
             </CardHeader>
@@ -235,13 +235,13 @@ const Lucratividade = () => {
           <Card className="glass-card">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Percent className="h-4 w-4 text-blue-500" />
+                <Percent className="h-4 w-4 text-primary" />
                 Margem Mínima Ideal
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-2xl font-bold text-blue-500">{margemMinima}%</span>
+                <span className="text-2xl font-bold text-primary">{margemMinima}%</span>
                 <span className="text-xs text-muted-foreground">Meta de lucro</span>
               </div>
               <Slider
@@ -259,7 +259,7 @@ const Lucratividade = () => {
           <Card className="glass-card">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Facebook className="h-4 w-4 text-blue-600" />
+                <Facebook className="h-4 w-4 text-primary" />
                 Facebook Ads ({currency})
               </CardTitle>
             </CardHeader>
@@ -283,7 +283,7 @@ const Lucratividade = () => {
           <Card className="glass-card">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Globe className="h-4 w-4 text-red-500" />
+                <Globe className="h-4 w-4 text-primary" />
                 Google Ads ({currency})
               </CardTitle>
             </CardHeader>
@@ -305,10 +305,10 @@ const Lucratividade = () => {
         </div>
 
         {/* Resumo de Custos */}
-        <Card className="glass-card border-yellow-500/20">
+        <Card className="glass-card border-primary/20">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Calculator className="h-4 w-4 text-yellow-500" />
+              <Calculator className="h-4 w-4 text-primary" />
               Resumo de Custos ({currency})
             </CardTitle>
           </CardHeader>
@@ -316,7 +316,7 @@ const Lucratividade = () => {
             <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Produtos ({produtosEfetivos}x)</p>
-                <p className="text-lg font-bold text-orange-500">{formatCurrency(custoProdutos)}</p>
+                <p className="text-lg font-bold text-primary">{formatCurrency(custoProdutos)}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Devoluções ({pedidosDevolvidos}x)</p>
@@ -328,15 +328,15 @@ const Lucratividade = () => {
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Facebook Ads</p>
-                <p className="text-lg font-bold text-blue-600">{formatCurrency(custoFacebookAds)}</p>
+                <p className="text-lg font-bold text-primary">{formatCurrency(custoFacebookAds)}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Google Ads</p>
-                <p className="text-lg font-bold text-red-500">{formatCurrency(custoGoogleAds)}</p>
+                <p className="text-lg font-bold text-primary">{formatCurrency(custoGoogleAds)}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Total de Custos</p>
-                <p className="text-lg font-bold text-yellow-500">{formatCurrency(custoTotal)}</p>
+                <p className="text-lg font-bold text-primary">{formatCurrency(custoTotal)}</p>
               </div>
             </div>
           </CardContent>
