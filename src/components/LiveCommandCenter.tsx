@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import Globe from "./ui/globe";
+import { SalesMapCompact } from "./SalesMapCompact";
 import { ShootingStars } from "./ui/shooting-stars";
 import { NavBar } from "./ui/tubelight-navbar";
 import { useShopifyRevenueToday, useShopifyAnalytics } from "@/hooks/useShopifyData";
@@ -240,10 +240,10 @@ export const LiveCommandCenter = () => {
               <div className="absolute w-[580px] h-[580px] border border-chart-5/10 rounded-full animate-spin" style={{ animationDuration: "100s" }} />
             </div>
 
-            {/* Globe */}
-            <div className="relative z-10 w-[300px] h-[300px]" aria-hidden="true">
-              <Globe />
-              <div className="absolute inset-0 bg-gradient-radial from-primary/30 via-primary/10 to-transparent blur-3xl animate-pulse-glow pointer-events-none" />
+            {/* Sales Map */}
+            <div className="relative z-10 w-[300px] h-[300px] rounded-full overflow-hidden border-2 border-primary/30">
+              <SalesMapCompact />
+              <div className="absolute inset-0 bg-gradient-radial from-primary/20 via-transparent to-transparent pointer-events-none" />
             </div>
 
             {/* Orbital Satellites */}
@@ -404,18 +404,17 @@ export const LiveCommandCenter = () => {
                 />
               </section>
 
-              {/* Globe Preview - Desktop Grid Only */}
+              {/* Sales Map Preview - Desktop Grid Only */}
               <aside 
-                className="hidden lg:block p-6 rounded-2xl bg-card border-2 border-chart-5/30 backdrop-blur-xl animate-fade-in overflow-hidden"
+                className="hidden lg:block p-6 rounded-2xl bg-card border-2 border-primary/30 backdrop-blur-xl animate-fade-in overflow-hidden"
                 style={{ animationDelay: "500ms" }}
-                aria-label="Visualização do globo"
+                aria-label="Mapa de vendas em tempo real"
               >
                 <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">
-                  Vendas Globais
+                  Mapa de Vendas
                 </h3>
-                <div className="relative w-full aspect-square flex items-center justify-center">
-                  <Globe />
-                  <div className="absolute inset-0 bg-gradient-radial from-chart-5/20 via-transparent to-transparent blur-2xl pointer-events-none" aria-hidden="true" />
+                <div className="relative w-full aspect-square rounded-xl overflow-hidden">
+                  <SalesMapCompact />
                 </div>
               </aside>
             </div>
