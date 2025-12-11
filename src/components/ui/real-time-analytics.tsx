@@ -16,56 +16,58 @@ interface RealTimeAnalyticsProps {
   maxPoints?: number
   className?: string
   initialValue?: number
-  simulateData?: boolean
   currentValue?: number
+  pollingInterval?: number // in ms, for real data updates
 }
 
 export function RealTimeAnalytics({
   title = "Atividade em Tempo Real",
   subtitle = "Métricas de performance ao vivo",
-  unit = "%",
+  unit = "",
   maxPoints = 30,
   className,
-  initialValue = 50,
-  simulateData = true,
-  currentValue: externalValue,
+  initialValue = 10,
+  currentValue,
+  pollingInterval = 30000,
 }: RealTimeAnalyticsProps) {
   const [data, setData] = useState<DataPoint[]>([])
   const [hoveredPoint, setHoveredPoint] = useState<DataPoint | null>(null)
   const svgRef = useRef<SVGSVGElement>(null)
+  const lastValueRef = useRef<number | null>(null)
 
   const width = 800
   const height = 280
   const padding = { top: 20, right: 20, bottom: 40, left: 50 }
 
+  // Initialize with initial value
   useEffect(() => {
-    // Initialize with some data
     const initial: DataPoint[] = []
-    for (let i = 0; i < 20; i++) {
+    const baseValue = currentValue ?? initialValue
+    for (let i = 0; i < 5; i++) {
       initial.push({
-        time: Date.now() - (20 - i) * 1000,
-        value: initialValue + Math.random() * 40 - 20,
+        time: Date.now() - (5 - i) * pollingInterval,
+        value: baseValue,
       })
     }
     setData(initial)
+    lastValueRef.current = baseValue
+  }, [])
 
-    if (!simulateData) return
-
-    // Add new data points every second
-    const interval = setInterval(() => {
+  // Add new data point when currentValue changes
+  useEffect(() => {
+    if (currentValue !== undefined && currentValue !== lastValueRef.current) {
+      console.log('GA4 Visitors update:', currentValue)
       setData((prev) => {
-        const baseValue = externalValue ?? prev[prev.length - 1]?.value ?? initialValue
         const newPoint: DataPoint = {
           time: Date.now(),
-          value: Math.max(10, Math.min(100, baseValue + (Math.random() - 0.5) * 15)),
+          value: currentValue,
         }
         const updated = [...prev, newPoint]
         return updated.slice(-maxPoints)
       })
-    }, 1000)
-
-    return () => clearInterval(interval)
-  }, [initialValue, maxPoints, simulateData, externalValue])
+      lastValueRef.current = currentValue
+    }
+  }, [currentValue, maxPoints])
 
   const getX = (time: number) => {
     if (data.length < 2) return padding.left
