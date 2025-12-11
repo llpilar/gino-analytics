@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { SalesMapCompact } from "./SalesMapCompact";
+import { AnimatedLogo } from "./AnimatedLogo";
 import { ShootingStars } from "./ui/shooting-stars";
 import { NavBar } from "./ui/tubelight-navbar";
 import { useShopifyRevenueToday, useShopifyAnalytics } from "@/hooks/useShopifyData";
@@ -240,10 +240,9 @@ export const LiveCommandCenter = () => {
               <div className="absolute w-[580px] h-[580px] border border-chart-5/10 rounded-full animate-spin" style={{ animationDuration: "100s" }} />
             </div>
 
-            {/* Sales Map */}
-            <div className="relative z-10 w-[300px] h-[300px] rounded-full overflow-hidden border-2 border-primary/30">
-              <SalesMapCompact />
-              <div className="absolute inset-0 bg-gradient-radial from-primary/20 via-transparent to-transparent pointer-events-none" />
+            {/* Animated Logo */}
+            <div className="relative z-10 w-[300px] h-[300px] flex items-center justify-center">
+              <AnimatedLogo size={180} />
             </div>
 
             {/* Orbital Satellites */}
@@ -404,17 +403,17 @@ export const LiveCommandCenter = () => {
                 />
               </section>
 
-              {/* Sales Map Preview - Desktop Grid Only */}
+              {/* Logo Preview - Desktop Grid Only */}
               <aside 
                 className="hidden lg:block p-6 rounded-2xl bg-card border-2 border-primary/30 backdrop-blur-xl animate-fade-in overflow-hidden"
                 style={{ animationDelay: "500ms" }}
-                aria-label="Mapa de vendas em tempo real"
+                aria-label="Logo Dashfy"
               >
                 <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">
-                  Mapa de Vendas
+                  Dashfy
                 </h3>
-                <div className="relative w-full aspect-square rounded-xl overflow-hidden">
-                  <SalesMapCompact />
+                <div className="relative w-full aspect-square flex items-center justify-center">
+                  <AnimatedLogo size={140} />
                 </div>
               </aside>
             </div>
