@@ -274,13 +274,13 @@ export default function Analises() {
 
         {/* Real-time Analytics Chart */}
         <div className="mb-6 md:mb-8">
-          <SectionCard title="Receita em Tempo Real" icon={Activity} color="purple">
+          <SectionCard title="Visitantes em Tempo Real" icon={Eye} color="orange">
             <RealTimeAnalytics
-              title="Fluxo de Receita"
-              subtitle="Simulação de receita por minuto"
-              unit=" COP"
-              initialValue={metrics.avgOrderValue || 150000}
-              currentValue={metrics.avgOrderValue}
+              title="Visitantes VSL"
+              subtitle="Pessoas assistindo o vídeo ao vivo"
+              unit=""
+              initialValue={visitorCount || 10}
+              currentValue={visitorCount}
             />
           </SectionCard>
         </div>
