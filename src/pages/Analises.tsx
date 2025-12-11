@@ -17,6 +17,7 @@ import { useVturbOverview, useVturbPlayers, parseVturbData, parseVturbPlayers } 
 import { useGA4Visitors } from "@/hooks/useGA4Visitors";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ConversionFunnel } from "@/components/ConversionFunnel";
+import { RealTimeAnalytics } from "@/components/ui/real-time-analytics";
 
 export default function Analises() {
   // Default to the VSL ESPANHOL Colômbia.mp4 video
@@ -270,6 +271,19 @@ export default function Analises() {
           clicks={vturbMetrics.uniqueClicks}
           orders={metrics.ordersCount}
         />
+
+        {/* Real-time Analytics Chart */}
+        <div className="mb-6 md:mb-8">
+          <SectionCard title="Receita em Tempo Real" icon={Activity} color="purple">
+            <RealTimeAnalytics
+              title="Fluxo de Receita"
+              subtitle="Simulação de receita por minuto"
+              unit=" COP"
+              initialValue={metrics.avgOrderValue || 150000}
+              currentValue={metrics.avgOrderValue}
+            />
+          </SectionCard>
+        </div>
 
         {/* Charts Section */}
         <div className="mb-6 md:mb-8">
