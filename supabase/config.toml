@@ -3,6 +3,15 @@ project_id = "eyevvanvdvcxdqyxzwfr"
 [functions.facebook-ads]
 verify_jwt = true
 
+[functions.facebook-oauth-start]
+verify_jwt = true
+
+[functions.facebook-oauth-callback]
+verify_jwt = false
+
+[functions.facebook-user-ads]
+verify_jwt = true
+
 [functions.shopify-data]
 verify_jwt = true
 
