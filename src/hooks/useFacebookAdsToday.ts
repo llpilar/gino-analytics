@@ -8,6 +8,7 @@ export interface FacebookTodayMetrics {
   cpa: number;
   impressions: number;
   clicks: number;
+  needsConnection?: boolean;
 }
 
 const defaultMetrics: FacebookTodayMetrics = { 
@@ -15,23 +16,27 @@ const defaultMetrics: FacebookTodayMetrics = {
   purchases: 0, 
   cpa: 0, 
   impressions: 0, 
-  clicks: 0 
+  clicks: 0,
+  needsConnection: false
 };
 
 export function useFacebookAdsToday() {
-  const { data: accounts, error: accountsError } = useFacebookAdAccounts();
-  const firstAccountId = accounts?.[0]?.id || null;
+  const { data: accountsData, error: accountsError, isLoading: accountsLoading } = useFacebookAdAccounts();
+  
+  // Check if user needs to connect
+  const needsConnection = accountsData?.needsConnection || false;
+  const firstAccountId = accountsData?.accounts?.[0]?.id || null;
 
   const query = useQuery({
     queryKey: ['facebook-ads-today', firstAccountId],
     queryFn: async (): Promise<FacebookTodayMetrics> => {
       if (!firstAccountId) {
-        return defaultMetrics;
+        return { ...defaultMetrics, needsConnection };
       }
 
       const today = new Date().toISOString().split('T')[0];
 
-      const { data, error } = await supabase.functions.invoke('facebook-ads', {
+      const { data, error } = await supabase.functions.invoke('facebook-user-ads', {
         body: { 
           endpoint: 'insights',
           accountId: firstAccountId,
@@ -41,8 +46,13 @@ export function useFacebookAdsToday() {
       });
 
       if (error) {
-        console.warn('Facebook Ads não configurado ou sem permissões:', error);
-        return defaultMetrics;
+        console.warn('Facebook Ads error:', error);
+        return { ...defaultMetrics, needsConnection: true };
+      }
+
+      // Check if needs connection
+      if (data.needsConnection || data.needsReconnection) {
+        return { ...defaultMetrics, needsConnection: true };
       }
 
       const insights = data?.data?.[0];
@@ -65,13 +75,29 @@ export function useFacebookAdsToday() {
 
       return { spend, purchases, cpa, impressions, clicks };
     },
-    enabled: !!firstAccountId && !accountsError,
+    enabled: !needsConnection && !!firstAccountId && !accountsError && !accountsLoading,
     refetchInterval: 60000,
     retry: false,
     staleTime: 30000,
   });
 
-  // Always return data, even on error
+  // If still loading accounts or needs connection, return appropriate state
+  if (accountsLoading) {
+    return {
+      ...query,
+      data: defaultMetrics,
+      isLoading: true,
+    };
+  }
+
+  if (needsConnection) {
+    return {
+      ...query,
+      data: { ...defaultMetrics, needsConnection: true },
+      isLoading: false,
+    };
+  }
+
   return {
     ...query,
     data: query.data ?? defaultMetrics
