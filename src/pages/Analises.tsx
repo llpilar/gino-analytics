@@ -272,20 +272,6 @@ export default function Analises() {
           orders={metrics.ordersCount}
         />
 
-        {/* Real-time Analytics Chart */}
-        <div className="mb-6 md:mb-8">
-          <SectionCard title="Visitantes em Tempo Real" icon={Eye} color="orange">
-            <RealTimeAnalytics
-              title="Visitantes VSL"
-              subtitle="Dados do Google Analytics 4 (atualiza a cada 30s)"
-              unit=" online"
-              initialValue={visitorCount || 0}
-              currentValue={visitorCount}
-              pollingInterval={30000}
-            />
-          </SectionCard>
-        </div>
-
         {/* Charts Section */}
         <div className="mb-6 md:mb-8">
           <SectionCard color="cyan">
