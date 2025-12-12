@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { ThemeSelector } from "@/components/ThemeSelector";
+import { FacebookConnection } from "@/components/FacebookConnection";
 
 export default function Configuracoes() {
   const { profile, user, signOut } = useAuth();
@@ -34,6 +35,9 @@ export default function Configuracoes() {
         <div className="grid gap-4 md:gap-6 w-full">
           {/* Theme Selector */}
           <ThemeSelector />
+
+          {/* Facebook Connection */}
+          <FacebookConnection />
 
           <Card className="bg-card/60 border-2 border-primary/30 backdrop-blur-xl">
             <CardHeader className="p-4 md:p-6">
