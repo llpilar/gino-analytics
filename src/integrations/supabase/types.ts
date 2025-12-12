@@ -50,6 +50,39 @@ export type Database = {
         }
         Relationships: []
       }
+      facebook_connections: {
+        Row: {
+          access_token: string
+          created_at: string
+          facebook_user_id: string | null
+          facebook_user_name: string | null
+          id: string
+          token_expires_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          facebook_user_id?: string | null
+          facebook_user_name?: string | null
+          id?: string
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          facebook_user_id?: string | null
+          facebook_user_name?: string | null
+          id?: string
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       fixed_expenses: {
         Row: {
           amount: number
