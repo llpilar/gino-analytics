@@ -27,11 +27,11 @@ serve(async (req) => {
     const state = encodeURIComponent(redirectUrl || 'https://lovableproject.com');
 
     // Facebook OAuth URL with required permissions
+    // Note: For development mode apps, only basic permissions work
+    // For ads_read/ads_management, the app needs Marketing API product enabled
     const scopes = [
-      'ads_read',
-      'ads_management', 
-      'business_management',
-      'read_insights'
+      'public_profile',
+      'email'
     ].join(',');
 
     const authUrl = `https://www.facebook.com/v18.0/dialog/oauth?` +
