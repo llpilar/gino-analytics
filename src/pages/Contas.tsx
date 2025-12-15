@@ -182,7 +182,7 @@ export default function Contas() {
   if (expensesLoading || configLoading || fixedLoading) {
     return (
       <DashboardWrapper>
-        <div className="container mx-auto p-6 md:p-8 lg:p-12 min-h-screen">
+        <div className="w-full max-w-[2400px] mx-auto px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 2xl:px-12 py-4 md:py-6 min-h-screen">
           <Skeleton className="h-10 w-48 bg-muted" />
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
             {[...Array(4)].map((_, i) => (
@@ -232,7 +232,7 @@ export default function Contas() {
 
   return (
     <DashboardWrapper>
-      <div className="container mx-auto px-4 py-6 md:px-6 md:py-8 lg:px-12 lg:py-12 min-h-screen pb-24 md:pb-12">
+      <div className="w-full max-w-[2400px] mx-auto px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 2xl:px-12 py-4 md:py-6 lg:py-8 min-h-screen pb-24 md:pb-12">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 md:mb-8">
           <PageHeader 

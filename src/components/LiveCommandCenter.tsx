@@ -354,8 +354,8 @@ export const LiveCommandCenter = () => {
         </div>
       ) : (
         // GRID LAYOUT - Mobile & Alternative
-        <div className="relative z-10 min-h-screen p-4 pt-14 pb-24 md:pt-20 md:pb-8">
-          <div className="max-w-7xl mx-auto space-y-3 md:space-y-6">
+        <div className="relative z-10 min-h-screen p-3 sm:p-4 pt-14 pb-24 md:pt-20 md:pb-8">
+          <div className="w-full max-w-[2400px] mx-auto space-y-3 md:space-y-4 lg:space-y-6">
             {/* Header */}
             <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 animate-fade-in">
               <div>
@@ -369,7 +369,7 @@ export const LiveCommandCenter = () => {
             </header>
 
             {/* Stats Grid - Premium Cards */}
-            <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-5" aria-label="Métricas principais">
+            <section className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 gap-2 sm:gap-3 md:gap-4 lg:gap-5 xl:gap-6" aria-label="Métricas principais">
               {satellites.map((stat, index) => {
                 const colors = colorVariants[stat.color as keyof typeof colorVariants];
                 const Icon = stat.icon;

@@ -51,7 +51,7 @@ const StatCard = ({
     className="relative group"
   >
     <div className={cn(
-      "relative overflow-hidden rounded-xl p-3 h-full",
+      "relative overflow-hidden rounded-xl p-2 sm:p-3 lg:p-4 xl:p-5 h-full",
       "bg-gradient-to-br from-card/90 to-card/50",
       "border border-border/40 hover:border-border/60",
       "transition-all duration-300 hover:shadow-lg hover:shadow-primary/5"
@@ -64,10 +64,10 @@ const StatCard = ({
       
       <div className="flex items-start justify-between mb-2">
         <div className={cn(
-          "p-1.5 rounded-lg",
+          "p-1 sm:p-1.5 lg:p-2 rounded-lg",
           "bg-gradient-to-br from-primary/10 to-primary/5"
         )}>
-          <Icon className="h-3.5 w-3.5 text-primary" />
+          <Icon className="h-3 w-3 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4 xl:h-5 xl:w-5 text-primary" />
         </div>
         {change !== undefined && (
           <div className={cn(
@@ -80,10 +80,10 @@ const StatCard = ({
         )}
       </div>
       
-      <div className="text-lg md:text-xl font-bold text-foreground tracking-tight leading-none mb-1">
+      <div className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl font-bold text-foreground tracking-tight leading-none mb-1">
         {value}
       </div>
-      <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
+      <div className="text-[8px] sm:text-[10px] lg:text-xs xl:text-sm text-muted-foreground uppercase tracking-wider font-medium">
         {title}
       </div>
     </div>
@@ -221,7 +221,7 @@ export const CombinedDashboard = () => {
         </motion.div>
       )}
 
-      <div className="container mx-auto px-4 py-4 md:px-6 min-h-screen pb-24 md:pb-8">
+      <div className="w-full max-w-[2400px] mx-auto px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 2xl:px-12 py-4 min-h-screen pb-24 md:pb-8">
         {/* Header */}
         <motion.header 
           initial={{ opacity: 0, y: -10 }}
@@ -229,10 +229,10 @@ export const CombinedDashboard = () => {
           className="flex items-center justify-between mb-4"
         >
           <div>
-            <h1 className="text-xl md:text-2xl font-black text-foreground tracking-tight">
+            <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-black text-foreground tracking-tight">
               Central de Comando
             </h1>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[10px] sm:text-xs lg:text-sm text-muted-foreground">
               {format(currentTime, "EEEE, d 'de' MMMM", { locale: ptBR })}
             </p>
           </div>
@@ -245,7 +245,7 @@ export const CombinedDashboard = () => {
         </motion.header>
 
         {/* Main Stats Grid - 6 columns on desktop */}
-        <section className="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-3 mb-4">
+        <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-3 lg:gap-4 xl:gap-5 mb-4">
           <StatCard 
             title="Receita Total" 
             value={formatCurrency(totalRevenue)} 
@@ -299,17 +299,16 @@ export const CombinedDashboard = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-3 mb-4"
+          className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 md:gap-3 lg:gap-4 xl:gap-5 mb-4"
         >
-          {/* VTurb Card */}
-          <div className="rounded-xl bg-gradient-to-br from-card/90 to-card/50 border border-border/40 p-3">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="p-1.5 rounded-lg bg-red-500/10">
-                <Video className="h-4 w-4 text-red-400" />
+          <div className="rounded-xl bg-gradient-to-br from-card/90 to-card/50 border border-border/40 p-2 sm:p-3 lg:p-4 xl:p-5">
+            <div className="flex items-center gap-2 mb-2 sm:mb-3 lg:mb-4">
+              <div className="p-1 sm:p-1.5 lg:p-2 rounded-lg bg-red-500/10">
+                <Video className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5 text-red-400" />
               </div>
-              <span className="text-xs font-bold text-foreground uppercase tracking-wide">VTurb Analytics</span>
+              <span className="text-[10px] sm:text-xs lg:text-sm xl:text-base font-bold text-foreground uppercase tracking-wide">VTurb Analytics</span>
             </div>
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-5 gap-1 sm:gap-2 lg:gap-3">
               {[
                 { label: "Views", value: vturbMetrics.uniqueViews },
                 { label: "Plays", value: vturbMetrics.uniquePlays },
@@ -317,67 +316,65 @@ export const CombinedDashboard = () => {
                 { label: "Pitch", value: `${vturbMetrics.overPitchRate.toFixed(0)}%` },
                 { label: "CTAs", value: vturbMetrics.uniqueClicks },
               ].map((item, i) => (
-                <div key={i} className="text-center p-2 rounded-lg bg-muted/30">
-                  <div className="text-sm md:text-base font-bold text-foreground">
+                <div key={i} className="text-center p-1 sm:p-2 lg:p-3 rounded-lg bg-muted/30">
+                  <div className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl font-bold text-foreground">
                     {typeof item.value === 'number' ? item.value.toLocaleString('pt-BR') : item.value}
                   </div>
-                  <div className="text-[9px] text-muted-foreground uppercase">{item.label}</div>
+                  <div className="text-[7px] sm:text-[9px] lg:text-xs text-muted-foreground uppercase">{item.label}</div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Facebook Ads Card */}
-          <div className="rounded-xl bg-gradient-to-br from-card/90 to-card/50 border border-border/40 p-3">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="p-1.5 rounded-lg bg-blue-500/10">
-                <Megaphone className="h-4 w-4 text-blue-400" />
+          <div className="rounded-xl bg-gradient-to-br from-card/90 to-card/50 border border-border/40 p-2 sm:p-3 lg:p-4 xl:p-5">
+            <div className="flex items-center gap-2 mb-2 sm:mb-3 lg:mb-4">
+              <div className="p-1 sm:p-1.5 lg:p-2 rounded-lg bg-blue-500/10">
+                <Megaphone className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5 text-blue-400" />
               </div>
-              <span className="text-xs font-bold text-foreground uppercase tracking-wide">Facebook Ads</span>
+              <span className="text-[10px] sm:text-xs lg:text-sm xl:text-base font-bold text-foreground uppercase tracking-wide">Facebook Ads</span>
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-1 sm:gap-2 lg:gap-3">
               {[
                 { label: "Gasto", value: formatCurrency(adSpend) },
                 { label: "CPA", value: formatCurrency(cpa) },
                 { label: "Conv%", value: `${conversionRate.toFixed(1)}%` },
               ].map((item, i) => (
-                <div key={i} className="text-center p-2 rounded-lg bg-muted/30">
-                  <div className="text-sm md:text-base font-bold text-foreground">{item.value}</div>
-                  <div className="text-[9px] text-muted-foreground uppercase">{item.label}</div>
+                <div key={i} className="text-center p-1 sm:p-2 lg:p-3 rounded-lg bg-muted/30">
+                  <div className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl font-bold text-foreground">{item.value}</div>
+                  <div className="text-[7px] sm:text-[9px] lg:text-xs text-muted-foreground uppercase">{item.label}</div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Comparisons Card */}
-          <div className="rounded-xl bg-gradient-to-br from-card/90 to-card/50 border border-border/40 p-3">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="p-1.5 rounded-lg bg-primary/10">
-                <TrendingUp className="h-4 w-4 text-primary" />
+          <div className="rounded-xl bg-gradient-to-br from-card/90 to-card/50 border border-border/40 p-2 sm:p-3 lg:p-4 xl:p-5">
+            <div className="flex items-center gap-2 mb-2 sm:mb-3 lg:mb-4">
+              <div className="p-1 sm:p-1.5 lg:p-2 rounded-lg bg-primary/10">
+                <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5 text-primary" />
               </div>
-              <span className="text-xs font-bold text-foreground uppercase tracking-wide">Comparativos</span>
+              <span className="text-[10px] sm:text-xs lg:text-sm xl:text-base font-bold text-foreground uppercase tracking-wide">Comparativos</span>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1 sm:space-y-2 lg:space-y-3">
               {dailyComparison && (
-                <div className="flex items-center justify-between p-2 rounded-lg bg-muted/30">
-                  <span className="text-xs text-muted-foreground">Hoje vs Ontem</span>
+                <div className="flex items-center justify-between p-1 sm:p-2 lg:p-3 rounded-lg bg-muted/30">
+                  <span className="text-[10px] sm:text-xs lg:text-sm text-muted-foreground">Hoje vs Ontem</span>
                   <div className={cn(
-                    "flex items-center gap-1 text-xs font-bold",
+                    "flex items-center gap-1 text-[10px] sm:text-xs lg:text-sm font-bold",
                     dailyComparison.revenue.isPositive ? "text-emerald-400" : "text-red-400"
                   )}>
-                    {dailyComparison.revenue.isPositive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                    {dailyComparison.revenue.isPositive ? <ArrowUpRight className="h-2.5 w-2.5 sm:h-3 sm:w-3 lg:h-4 lg:w-4" /> : <ArrowDownRight className="h-2.5 w-2.5 sm:h-3 sm:w-3 lg:h-4 lg:w-4" />}
                     {dailyComparison.revenue.changePercent.toFixed(0)}%
                   </div>
                 </div>
               )}
               {weeklyComparison && (
-                <div className="flex items-center justify-between p-2 rounded-lg bg-muted/30">
-                  <span className="text-xs text-muted-foreground">Semana vs Anterior</span>
+                <div className="flex items-center justify-between p-1 sm:p-2 lg:p-3 rounded-lg bg-muted/30">
+                  <span className="text-[10px] sm:text-xs lg:text-sm text-muted-foreground">Semana vs Anterior</span>
                   <div className={cn(
-                    "flex items-center gap-1 text-xs font-bold",
+                    "flex items-center gap-1 text-[10px] sm:text-xs lg:text-sm font-bold",
                     weeklyComparison.revenue.isPositive ? "text-emerald-400" : "text-red-400"
                   )}>
-                    {weeklyComparison.revenue.isPositive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                    {weeklyComparison.revenue.isPositive ? <ArrowUpRight className="h-2.5 w-2.5 sm:h-3 sm:w-3 lg:h-4 lg:w-4" /> : <ArrowDownRight className="h-2.5 w-2.5 sm:h-3 sm:w-3 lg:h-4 lg:w-4" />}
                     {weeklyComparison.revenue.changePercent.toFixed(0)}%
                   </div>
                 </div>
@@ -387,7 +384,7 @@ export const CombinedDashboard = () => {
         </motion.section>
 
         {/* Expandable Analysis Panels */}
-        <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+        <div className="grid gap-3 md:gap-4 lg:gap-5 xl:gap-6 grid-cols-1 lg:grid-cols-2">
           {/* Funnel Panel */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -402,7 +399,7 @@ export const CombinedDashboard = () => {
                 </div>
                 <span className="text-sm font-bold text-foreground">Funil de Conversão</span>
               </div>
-              <div className="h-[420px]">
+              <div className="h-[350px] sm:h-[380px] md:h-[420px] lg:h-[450px] xl:h-[500px] 2xl:h-[550px]">
                 <ConversionFunnel 
                   visits={vturbMetrics.uniqueViews}
                   plays={vturbMetrics.uniquePlays}
@@ -427,7 +424,7 @@ export const CombinedDashboard = () => {
                 </div>
                 <span className="text-sm font-bold text-foreground">Mapa de Vendas</span>
               </div>
-              <div className="h-[420px] rounded-lg overflow-hidden">
+              <div className="h-[350px] sm:h-[380px] md:h-[420px] lg:h-[450px] xl:h-[500px] 2xl:h-[550px] rounded-lg overflow-hidden">
                 <SalesMap compact />
               </div>
             </div>
