@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-export type ThemePreset = 'neon-green' | 'netflix-red' | 'twitter-blue' | 'minimal-neutral' | 'purple-modern' | 'orange-bold' | 'dark-blue' | 'candy-pink';
+export type ThemePreset = 'cyber-neon' | 'midnight-purple' | 'ocean-deep' | 'ember-glow' | 'forest-night' | 'rose-gold' | 'arctic-ice' | 'sunset-vibes';
 
 interface ThemeContextType {
   theme: ThemePreset;
@@ -12,59 +12,59 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 const themePresets = [
   {
-    id: 'neon-green' as ThemePreset,
-    name: 'Neon Green',
-    description: 'Tema escuro com verde neon vibrante',
-    colors: ['#a3e635', '#22d3ee', '#a855f7', '#f97316']
+    id: 'cyber-neon' as ThemePreset,
+    name: 'Cyber Neon',
+    description: 'Verde neon futurista com toques de ciano',
+    colors: ['#00ff88', '#00d4ff', '#0a0a0f', '#1a1a2e']
   },
   {
-    id: 'netflix-red' as ThemePreset,
-    name: 'Netflix Red',
-    description: 'Visual escuro com vermelho vibrante estilo Netflix',
-    colors: ['#e50914', '#ffffff', '#1a1a1a', '#000000']
+    id: 'midnight-purple' as ThemePreset,
+    name: 'Midnight Purple',
+    description: 'Roxo profundo com gradientes violeta',
+    colors: ['#a855f7', '#6366f1', '#0f0a1a', '#1e1b4b']
   },
   {
-    id: 'twitter-blue' as ThemePreset,
-    name: 'Twitter Blue',
-    description: 'Visual clean inspirado no X/Twitter',
-    colors: ['#1da1f2', '#00b87a', '#f7b928', '#e0245e']
+    id: 'ocean-deep' as ThemePreset,
+    name: 'Ocean Deep',
+    description: 'Azul oceânico com tons de teal',
+    colors: ['#0ea5e9', '#06b6d4', '#0a1628', '#164e63']
   },
   {
-    id: 'minimal-neutral' as ThemePreset,
-    name: 'Minimal Neutral',
-    description: 'Estilo minimalista com tons neutros e azul',
-    colors: ['#171717', '#3a81f6', '#91c5ff', '#e5e5e5']
+    id: 'ember-glow' as ThemePreset,
+    name: 'Ember Glow',
+    description: 'Laranja e vermelho vibrantes',
+    colors: ['#f97316', '#ef4444', '#1a0a05', '#451a03']
   },
   {
-    id: 'purple-modern' as ThemePreset,
-    name: 'Purple Modern',
-    description: 'Visual moderno com roxo vibrante e verde',
-    colors: ['#7033ff', '#4ac885', '#fd822b', '#3276e4']
+    id: 'forest-night' as ThemePreset,
+    name: 'Forest Night',
+    description: 'Verde floresta com tons naturais',
+    colors: ['#22c55e', '#84cc16', '#0a1a0f', '#14532d']
   },
   {
-    id: 'orange-bold' as ThemePreset,
-    name: 'Orange Bold',
-    description: 'Tema vibrante com laranja e azul elétrico',
-    colors: ['#ff5600', '#000ce1', '#00da00', '#f4f3ec']
+    id: 'rose-gold' as ThemePreset,
+    name: 'Rose Gold',
+    description: 'Rosa elegante com dourado sutil',
+    colors: ['#f472b6', '#fbbf24', '#1a0a14', '#4c1d2f']
   },
   {
-    id: 'dark-blue' as ThemePreset,
-    name: 'Dark Blue',
-    description: 'Tema escuro com azul profundo e ciano',
-    colors: ['#1e40af', '#06b6d4', '#0f172a', '#e2e8f0']
+    id: 'arctic-ice' as ThemePreset,
+    name: 'Arctic Ice',
+    description: 'Azul gelo com branco cristalino',
+    colors: ['#38bdf8', '#e0f2fe', '#0c1929', '#1e3a5f']
   },
   {
-    id: 'candy-pink' as ThemePreset,
-    name: 'Candy Pink',
-    description: 'Tema pastel com rosa, azul e amarelo',
-    colors: ['#ffc0cb', '#87ceeb', '#ffff00', '#ff99cc']
+    id: 'sunset-vibes' as ThemePreset,
+    name: 'Sunset Vibes',
+    description: 'Gradiente do pôr do sol laranja ao rosa',
+    colors: ['#fb923c', '#ec4899', '#1a0f0a', '#78350f']
   }
 ];
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<ThemePreset>(() => {
     const saved = localStorage.getItem('dashboard-theme');
-    return (saved as ThemePreset) || 'neon-green';
+    return (saved as ThemePreset) || 'cyber-neon';
   });
 
   const setTheme = (newTheme: ThemePreset) => {
