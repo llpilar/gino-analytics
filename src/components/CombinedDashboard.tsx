@@ -402,7 +402,7 @@ export const CombinedDashboard = () => {
                 </div>
                 <span className="text-sm font-bold text-foreground">Funil de Conversão</span>
               </div>
-              <div className="h-[350px]">
+              <div className="h-[420px]">
                 <ConversionFunnel 
                   visits={vturbMetrics.uniqueViews}
                   plays={vturbMetrics.uniquePlays}
@@ -427,7 +427,7 @@ export const CombinedDashboard = () => {
                 </div>
                 <span className="text-sm font-bold text-foreground">Mapa de Vendas</span>
               </div>
-              <div className="h-[350px] rounded-lg overflow-hidden">
+              <div className="h-[420px] rounded-lg overflow-hidden">
                 <SalesMap />
               </div>
             </div>
