@@ -428,7 +428,7 @@ export const CombinedDashboard = () => {
                 <span className="text-sm font-bold text-foreground">Mapa de Vendas</span>
               </div>
               <div className="h-[420px] rounded-lg overflow-hidden">
-                <SalesMap />
+                <SalesMap compact />
               </div>
             </div>
           </motion.div>

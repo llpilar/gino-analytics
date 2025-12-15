@@ -9,7 +9,11 @@ import { SectionCard, StatsCard } from "@/components/ui/stats-card";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
-export const SalesMap = () => {
+interface SalesMapProps {
+  compact?: boolean;
+}
+
+export const SalesMap = ({ compact = false }: SalesMapProps) => {
   const [mapboxToken, setMapboxToken] = useState("");
   const [isTokenSet, setIsTokenSet] = useState(false);
   const [tempToken, setTempToken] = useState("");
@@ -269,6 +273,42 @@ export const SalesMap = () => {
           <Skeleton className="h-24 bg-muted" />
           <Skeleton className="h-24 bg-muted" />
         </div>
+      </div>
+    );
+  }
+
+  // Compact mode - just the map
+  if (compact) {
+    return (
+      <div className="w-full h-full relative">
+        <div ref={mapContainer} className="w-full h-full" />
+        <style>{`
+          .sale-marker {
+            transition: transform 0.3s ease;
+          }
+          .sale-marker:hover {
+            transform: scale(1.2);
+            z-index: 1000;
+          }
+          @keyframes pulse {
+            0%, 100% {
+              opacity: 1;
+              transform: scale(1);
+            }
+            50% {
+              opacity: 0.7;
+              transform: scale(1.15);
+            }
+          }
+          .mapboxgl-popup-content {
+            background: transparent !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+          }
+          .mapboxgl-popup-tip {
+            border-top-color: white !important;
+          }
+        `}</style>
       </div>
     );
   }
