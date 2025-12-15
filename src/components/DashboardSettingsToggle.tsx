@@ -1,8 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LayoutGrid, RefreshCw } from "lucide-react";
-import { useDashboardSettings, RefreshInterval } from "@/contexts/DashboardSettingsContext";
+import { LayoutGrid, RefreshCw, Monitor, Layers } from "lucide-react";
+import { useDashboardSettings, RefreshInterval, ViewMode } from "@/contexts/DashboardSettingsContext";
+import { cn } from "@/lib/utils";
 
 const intervalOptions: { value: RefreshInterval; label: string }[] = [
   { value: 5000, label: "5 segundos" },
@@ -11,8 +11,14 @@ const intervalOptions: { value: RefreshInterval; label: string }[] = [
   { value: 60000, label: "1 minuto" },
 ];
 
+const viewModeOptions: { value: ViewMode; label: string; description: string; icon: typeof Monitor }[] = [
+  { value: "normal", label: "Normal", description: "Visualização padrão", icon: Monitor },
+  { value: "compact", label: "Compacto", description: "Cards menores", icon: LayoutGrid },
+  { value: "combined", label: "Combinado", description: "Dashboard + Análises", icon: Layers },
+];
+
 export const DashboardSettingsToggle = () => {
-  const { compactMode, setCompactMode, refreshInterval, setRefreshInterval } = useDashboardSettings();
+  const { viewMode, setViewMode, refreshInterval, setRefreshInterval } = useDashboardSettings();
 
   return (
     <Card className="bg-card/60 border-2 border-primary/30 backdrop-blur-xl">
@@ -26,19 +32,38 @@ export const DashboardSettingsToggle = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="p-4 pt-0 md:p-6 md:pt-0 space-y-6">
-        {/* Compact Mode */}
-        <div className="flex items-center justify-between">
+        {/* View Mode Selection */}
+        <div className="space-y-3">
           <div className="space-y-1">
-            <p className="text-sm font-medium text-foreground">Modo Compacto</p>
+            <p className="text-sm font-medium text-foreground">Modo de Visualização</p>
             <p className="text-xs text-muted-foreground">
-              Cards menores para visualizar mais dados
+              Escolha como exibir o dashboard
             </p>
           </div>
-          <Switch
-            checked={compactMode}
-            onCheckedChange={setCompactMode}
-            className="data-[state=checked]:bg-primary"
-          />
+          <div className="grid grid-cols-3 gap-2">
+            {viewModeOptions.map((option) => {
+              const Icon = option.icon;
+              const isSelected = viewMode === option.value;
+              return (
+                <button
+                  key={option.value}
+                  onClick={() => setViewMode(option.value)}
+                  className={cn(
+                    "flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all duration-200",
+                    isSelected 
+                      ? "border-primary bg-primary/10 text-primary" 
+                      : "border-border bg-card/50 text-muted-foreground hover:border-primary/50 hover:bg-primary/5"
+                  )}
+                >
+                  <Icon className={cn("h-5 w-5", isSelected && "text-primary")} />
+                  <span className="text-xs font-medium">{option.label}</span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-[10px] text-muted-foreground text-center">
+            {viewModeOptions.find(o => o.value === viewMode)?.description}
+          </p>
         </div>
 
         {/* Refresh Interval */}
