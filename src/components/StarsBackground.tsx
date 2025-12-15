@@ -4,10 +4,10 @@ import { useTheme } from "@/contexts/ThemeContext";
 
 export const StarsBackground = () => {
   const { premiumEffects } = useVisualEffects();
-  const { theme } = useTheme();
+  const { theme, isDarkMode } = useTheme();
 
-  // Don't show stars on light theme
-  if (theme === 'clean-blue') {
+  // Don't show stars on light theme (clean-blue without dark mode)
+  if (theme === 'clean-blue' && !isDarkMode) {
     return null;
   }
 
