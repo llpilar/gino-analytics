@@ -1,10 +1,15 @@
 import { useTheme, ThemePreset } from '@/contexts/ThemeContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Palette, Check } from 'lucide-react';
+import { Palette, Check, Sun, Moon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 export function ThemeSelector() {
-  const { theme, setTheme, themes } = useTheme();
+  const { theme, setTheme, themes, isDarkMode, toggleDarkMode } = useTheme();
+
+  const currentTheme = themes.find(t => t.id === theme);
+  const showDarkModeToggle = currentTheme?.supportsDarkMode;
 
   return (
     <Card className="bg-card/60 border-2 border-primary/30 backdrop-blur-xl">
@@ -17,7 +22,7 @@ export function ThemeSelector() {
           Escolha o visual do seu dashboard
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {themes.map((preset) => (
             <button
@@ -62,6 +67,14 @@ export function ThemeSelector() {
                 {preset.description}
               </p>
 
+              {/* Supports dark mode badge */}
+              {preset.supportsDarkMode && (
+                <div className="mt-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted text-xs text-muted-foreground">
+                  <Moon className="w-3 h-3" />
+                  <span>Suporta modo escuro</span>
+                </div>
+              )}
+
               {/* Preview bar */}
               <div className="mt-3 h-2 rounded-full overflow-hidden bg-muted">
                 <div 
@@ -75,6 +88,32 @@ export function ThemeSelector() {
             </button>
           ))}
         </div>
+
+        {/* Dark mode toggle - only shows when current theme supports it */}
+        {showDarkModeToggle && (
+          <div className="flex items-center justify-between p-4 rounded-xl border-2 border-border bg-card/50">
+            <div className="flex items-center gap-3">
+              {isDarkMode ? (
+                <Moon className="w-5 h-5 text-primary" />
+              ) : (
+                <Sun className="w-5 h-5 text-primary" />
+              )}
+              <div>
+                <Label htmlFor="dark-mode" className="text-foreground font-medium cursor-pointer">
+                  Modo Escuro
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  {isDarkMode ? 'Tema escuro ativado' : 'Tema claro ativado'}
+                </p>
+              </div>
+            </div>
+            <Switch
+              id="dark-mode"
+              checked={isDarkMode}
+              onCheckedChange={toggleDarkMode}
+            />
+          </div>
+        )}
       </CardContent>
     </Card>
   );
