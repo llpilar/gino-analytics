@@ -605,7 +605,7 @@ const Envios = () => {
 
   return (
     <DashboardWrapper>
-      <div className="max-w-7xl mx-auto px-4 py-6 pb-24 md:pb-12 animate-fade-in">
+      <div className="w-full max-w-[2400px] mx-auto px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 2xl:px-12 py-4 md:py-6 pb-24 md:pb-12 animate-fade-in">
         <HeroSection />
         <StatsGrid />
 
