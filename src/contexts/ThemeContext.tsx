@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-export type ThemePreset = 'cyber-neon' | 'clean-blue';
+export type ThemePreset = 'cyber-neon' | 'clean-blue' | 'royal-blue';
 
 interface ThemeContextType {
   theme: ThemePreset;
@@ -26,6 +26,13 @@ const themePresets = [
     name: 'Clean Blue',
     description: 'Visual limpo e profissional com azul corporativo',
     colors: ['#0477d1', '#edf6fc', '#ffffff', '#222222'],
+    supportsDarkMode: true
+  },
+  {
+    id: 'royal-blue' as ThemePreset,
+    name: 'Royal Blue',
+    description: 'Azul profundo com acentos em laranja',
+    colors: ['#0000bb', '#FFCC91', '#f5f5f5', '#000000'],
     supportsDarkMode: true
   }
 ];

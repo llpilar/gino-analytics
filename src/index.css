@@ -186,6 +186,126 @@
     --sidebar-ring: 204 90% 44%;
   }
 
+  /* ===== THEME 3: Royal Blue (Light Mode) ===== */
+  [data-theme="royal-blue"] {
+    --background: 0 0% 96%;
+    --foreground: 0 0% 0%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+    --popover: 0 0% 96%;
+    --popover-foreground: 0 0% 0%;
+    --primary: 240 100% 37%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 93%;
+    --secondary-foreground: 0 0% 0%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 34 100% 78%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 7 100% 67%;
+    --destructive-foreground: 0 0% 0%;
+    --border: 0 0% 90%;
+    --input: 0 0% 83%;
+    --ring: 240 100% 37%;
+    --radius: 0.5rem;
+    
+    --chart-1: 271 78% 87%;
+    --chart-2: 180 40% 37%;
+    --chart-3: 201 44% 71%;
+    --chart-4: 7 100% 67%;
+    --chart-5: 328 62% 24%;
+    
+    --neon-cyan: 201 44% 71%;
+    --neon-cyan-light: 201 44% 80%;
+    --neon-purple: 271 78% 87%;
+    --neon-purple-light: 271 78% 92%;
+    --neon-pink: 328 62% 44%;
+    --neon-pink-light: 328 62% 55%;
+    --neon-green: 180 40% 37%;
+    --neon-green-light: 180 40% 47%;
+    --neon-orange: 34 100% 78%;
+    --neon-orange-light: 34 100% 85%;
+    --neon-blue: 240 100% 37%;
+    --neon-blue-light: 240 100% 50%;
+    
+    --status-success: 180 40% 37%;
+    --status-warning: 34 100% 78%;
+    --status-error: 7 100% 67%;
+    --status-info: 240 100% 37%;
+    
+    --surface-elevated: 0 0% 100%;
+    --surface-overlay: 0 0% 94%;
+    
+    --sidebar: 0 0% 98%;
+    --sidebar-foreground: 0 0% 0%;
+    --sidebar-primary: 240 100% 37%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 34 100% 78%;
+    --sidebar-accent-foreground: 0 0% 0%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 240 100% 37%;
+  }
+
+  /* ===== Royal Blue Dark Mode ===== */
+  .dark [data-theme="royal-blue"],
+  [data-theme="royal-blue"].dark {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 96%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 96%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 96%;
+    --primary: 240 100% 37%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 17%;
+    --secondary-foreground: 0 0% 96%;
+    --muted: 0 0% 17%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 34 100% 78%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 7 100% 67%;
+    --destructive-foreground: 0 0% 0%;
+    --border: 0 0% 25%;
+    --input: 0 0% 32%;
+    --ring: 240 100% 37%;
+    
+    --chart-1: 271 78% 87%;
+    --chart-2: 180 40% 37%;
+    --chart-3: 201 44% 71%;
+    --chart-4: 7 100% 67%;
+    --chart-5: 328 62% 24%;
+    
+    --neon-cyan: 201 44% 71%;
+    --neon-cyan-light: 201 44% 80%;
+    --neon-purple: 271 78% 87%;
+    --neon-purple-light: 271 78% 92%;
+    --neon-pink: 328 62% 44%;
+    --neon-pink-light: 328 62% 55%;
+    --neon-green: 180 40% 37%;
+    --neon-green-light: 180 40% 47%;
+    --neon-orange: 34 100% 78%;
+    --neon-orange-light: 34 100% 85%;
+    --neon-blue: 240 100% 50%;
+    --neon-blue-light: 240 100% 60%;
+    
+    --status-success: 180 40% 37%;
+    --status-warning: 34 100% 78%;
+    --status-error: 7 100% 67%;
+    --status-info: 240 100% 50%;
+    
+    --surface-elevated: 0 0% 12%;
+    --surface-overlay: 0 0% 5%;
+    
+    --sidebar: 0 0% 8%;
+    --sidebar-foreground: 0 0% 96%;
+    --sidebar-primary: 240 100% 37%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 34 100% 78%;
+    --sidebar-accent-foreground: 0 0% 0%;
+    --sidebar-border: 0 0% 25%;
+    --sidebar-ring: 240 100% 37%;
+  }
+
   * {
     @apply border-border;
   }
@@ -208,6 +328,15 @@
 
   .dark [data-theme="clean-blue"] body,
   [data-theme="clean-blue"].dark body {
+    background: hsl(0, 0%, 0%);
+  }
+
+  [data-theme="royal-blue"] body {
+    background: hsl(0, 0%, 96%);
+  }
+
+  .dark [data-theme="royal-blue"] body,
+  [data-theme="royal-blue"].dark body {
     background: hsl(0, 0%, 0%);
   }
 }

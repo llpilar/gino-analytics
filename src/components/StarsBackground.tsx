@@ -6,8 +6,9 @@ export const StarsBackground = () => {
   const { premiumEffects } = useVisualEffects();
   const { theme, isDarkMode } = useTheme();
 
-  // Don't show stars on light theme (clean-blue without dark mode)
-  if (theme === 'clean-blue' && !isDarkMode) {
+  // Don't show stars on light themes
+  const isLightTheme = (theme === 'clean-blue' || theme === 'royal-blue') && !isDarkMode;
+  if (isLightTheme) {
     return null;
   }
 
