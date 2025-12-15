@@ -2,12 +2,19 @@ import { ReactNode } from "react";
 import { NavBar } from "./ui/tubelight-navbar";
 import { ShootingStars } from "./ui/shooting-stars";
 import { LayoutDashboard, BarChart3, Settings, Wallet, Truck, Calculator } from "lucide-react";
+import { useVisualEffects } from "@/contexts/VisualEffectsContext";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface DashboardWrapperProps {
   children: ReactNode;
 }
 
 export const DashboardWrapper = ({ children }: DashboardWrapperProps) => {
+  const { premiumEffects } = useVisualEffects();
+  const { theme, isDarkMode } = useTheme();
+
+  // Check if current theme is dark (cyber-neon is always dark, clean-blue depends on isDarkMode)
+  const isCurrentlyDark = theme === 'cyber-neon' || (theme === 'clean-blue' && isDarkMode);
 
   const navItems = [
     { name: 'Dashboard', url: '/', icon: LayoutDashboard },
@@ -25,19 +32,25 @@ export const DashboardWrapper = ({ children }: DashboardWrapperProps) => {
       
       {/* Background with shooting stars and static stars - fixed position */}
       <div className="fixed inset-0 bg-background pointer-events-none z-0" aria-hidden="true">
-        <div className="stars-bg absolute inset-0 dark:opacity-40 opacity-0" />
+        {isCurrentlyDark && <div className="stars-bg absolute inset-0 opacity-40" />}
         
-        {/* Multiple shooting star layers - Only in dark mode */}
-        <div className="dark:block hidden">
-          <ShootingStars starColor="#1da1f2" trailColor="#1e9df1" minSpeed={15} maxSpeed={35} minDelay={800} maxDelay={2500} />
-          <ShootingStars starColor="#1c9cf0" trailColor="#1da1f2" minSpeed={10} maxSpeed={25} minDelay={1500} maxDelay={3500} />
-        </div>
+        {/* Multiple shooting star layers - Only in dark themes and when premium effects enabled */}
+        {premiumEffects && isCurrentlyDark && (
+          <>
+            <ShootingStars starColor="hsl(var(--primary))" trailColor="hsl(var(--secondary))" minSpeed={15} maxSpeed={35} minDelay={800} maxDelay={2500} />
+            <ShootingStars starColor="hsl(var(--neon-cyan))" trailColor="hsl(var(--neon-purple))" minSpeed={10} maxSpeed={25} minDelay={1500} maxDelay={3500} />
+          </>
+        )}
         
-        {/* Subtle Ambient Lighting Effects - Only in dark mode */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px] dark:opacity-100 opacity-0" />
-        <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px] dark:opacity-100 opacity-0" />
-        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-chart-4/5 rounded-full blur-[180px] dark:opacity-100 opacity-0" />
-        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-chart-1/5 rounded-full blur-[180px] dark:opacity-100 opacity-0" />
+        {/* Subtle Ambient Lighting Effects - Only in dark themes and when premium effects enabled */}
+        {premiumEffects && isCurrentlyDark && (
+          <>
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px]" />
+            <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px]" />
+            <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-chart-4/5 rounded-full blur-[180px]" />
+            <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-chart-1/5 rounded-full blur-[180px]" />
+          </>
+        )}
       </div>
 
 
