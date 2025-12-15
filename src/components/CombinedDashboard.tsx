@@ -444,20 +444,15 @@ export const CombinedDashboard = () => {
                       <span className="text-sm font-bold text-foreground">Funil de Conversão</span>
                     </div>
                     <div 
-                      className="overflow-hidden"
+                      className={cn("overflow-hidden", !expandedPanel && "pointer-events-none")}
                       style={{ height: expandedPanel === "funnel" ? 400 : 200 }}
                     >
-                      <div className={cn(
-                        "w-full h-full transition-transform duration-300",
-                        !expandedPanel && "pointer-events-none scale-[0.9] origin-top"
-                      )}>
-                        <ConversionFunnel 
-                          visits={vturbMetrics.uniqueViews}
-                          plays={vturbMetrics.uniquePlays}
-                          clicks={vturbMetrics.uniqueClicks}
-                          orders={ordersCount}
-                        />
-                      </div>
+                      <ConversionFunnel 
+                        visits={vturbMetrics.uniqueViews}
+                        plays={vturbMetrics.uniquePlays}
+                        clicks={vturbMetrics.uniqueClicks}
+                        orders={ordersCount}
+                      />
                     </div>
                   </div>
                 </motion.div>
