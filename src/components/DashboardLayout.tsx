@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { DashboardSidebar } from "./DashboardSidebar";
 import { DashboardHeader } from "./DashboardHeader";
 import { SidebarProvider, SidebarTrigger } from "./ui/sidebar";
+import { StarsBackground } from "./StarsBackground";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -10,7 +11,8 @@ interface DashboardLayoutProps {
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background">
+      <div className="flex min-h-screen w-full bg-background relative">
+        <StarsBackground />
         <DashboardSidebar />
         
         <main className="flex-1 min-w-0">
