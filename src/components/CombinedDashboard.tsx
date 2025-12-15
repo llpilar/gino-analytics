@@ -1,11 +1,11 @@
 import { useMemo, useState, useEffect } from "react";
 import { DashboardWrapper } from "@/components/DashboardWrapper";
-import { DollarSign, ShoppingCart, TrendingUp, Eye, Video, MapPin, Zap, Users, Megaphone, Target, Monitor, LayoutGrid, Layers } from "lucide-react";
+import { DollarSign, ShoppingCart, TrendingUp, Eye, Video, MapPin, Zap, Megaphone, Monitor, LayoutGrid, Layers, X, Maximize2, Target, BarChart3, Percent } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { SalesChart } from "@/components/SalesChart";
 import { useShopifyAnalytics, useShopifyRevenueToday } from "@/hooks/useShopifyData";
 import { SalesMap } from "@/components/SalesMap";
-import { useDailyComparison } from "@/hooks/useComparisonMetrics";
+import { useDailyComparison, useWeeklyComparison } from "@/hooks/useComparisonMetrics";
 import { ComparisonBadge } from "@/components/ComparisonBadge";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { StatsCard, SectionCard, CardColorVariant } from "@/components/ui/stats-card";
@@ -21,18 +21,21 @@ import { useDashboardSettings } from "@/contexts/DashboardSettingsContext";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+type ExpandedPanel = "funnel" | "chart" | "map" | null;
+
 export const CombinedDashboard = () => {
   const [isMobile, setIsMobile] = useState(false);
+  const [expandedPanel, setExpandedPanel] = useState<ExpandedPanel>(null);
   const { data: analyticsData, isLoading: analyticsLoading } = useShopifyAnalytics();
   const { data: revenueData, isLoading: revenueLoading } = useShopifyRevenueToday();
   const { data: dailyComparison } = useDailyComparison();
+  const { data: weeklyComparison } = useWeeklyComparison();
   const { formatCurrency } = useCurrency();
   const { dateRange } = useDateFilter();
   const { visitorCount } = useGA4Visitors();
   const { data: facebookAdsData } = useFacebookAdsToday();
   const { viewMode, setViewMode } = useDashboardSettings();
 
-  // Check for mobile viewport
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1280);
     checkMobile();
@@ -40,11 +43,9 @@ export const CombinedDashboard = () => {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
   
-  // VTurb data
   const { data: vturbData, isLoading: vturbLoading } = useVturbOverview("685ac2f3f4d418e9eca55125");
   const vturbMetrics = useMemo(() => parseVturbData(vturbData), [vturbData]);
 
-  // Calculate metrics
   const totalRevenue = revenueData?.data?.orders?.edges?.reduce((acc: number, edge: any) => {
     const amount = parseFloat(
       edge.node.currentTotalPriceSet?.shopMoney?.amount || 
@@ -57,7 +58,6 @@ export const CombinedDashboard = () => {
   const ordersCount = revenueData?.data?.orders?.edges?.length || 0;
   const avgOrderValue = ordersCount > 0 ? totalRevenue / ordersCount : 0;
 
-  // Calculate sales per minute
   const now = new Date();
   const calculateMinutesElapsed = () => {
     if (!dateRange.from || !dateRange.to) return 1;
@@ -71,25 +71,33 @@ export const CombinedDashboard = () => {
   const minutesElapsed = calculateMinutesElapsed();
   const salesPerMinute = totalRevenue > 0 ? totalRevenue / minutesElapsed : 0;
 
-  // Ad metrics
   const adSpend = facebookAdsData?.spend || 0;
+  const cpa = facebookAdsData?.cpa || 0;
   const roas = adSpend > 0 ? totalRevenue / adSpend : 0;
+  const conversionRate = vturbMetrics.uniquePlays > 0 ? (ordersCount / vturbMetrics.uniquePlays) * 100 : 0;
 
   const mainStats: { title: string; value: string; icon: LucideIcon; color: CardColorVariant; description: string }[] = [
     { title: "Receita", value: formatCurrency(totalRevenue), icon: DollarSign, color: "cyan", description: "Faturamento total" },
     { title: "Pedidos", value: ordersCount.toString(), icon: ShoppingCart, color: "green", description: "Total de pedidos" },
-    { title: "Ticket Médio", value: formatCurrency(avgOrderValue), icon: TrendingUp, color: "purple", description: "Valor médio" },
-    { title: "VSL Online", value: visitorCount.toLocaleString('pt-BR'), icon: Eye, color: "orange", description: "Visitantes ativos" },
-    { title: "R$/min", value: formatCurrency(salesPerMinute), icon: Zap, color: "pink", description: "Receita por minuto" },
-    { title: "Gasto Ads", value: formatCurrency(adSpend), icon: Megaphone, color: "red", description: "Investimento em ads" },
+    { title: "Ticket", value: formatCurrency(avgOrderValue), icon: TrendingUp, color: "purple", description: "Ticket médio" },
+    { title: "Online", value: visitorCount.toLocaleString('pt-BR'), icon: Eye, color: "orange", description: "VSL Online" },
+    { title: "R$/min", value: formatCurrency(salesPerMinute), icon: Zap, color: "pink", description: "Receita/minuto" },
+    { title: "Ads", value: formatCurrency(adSpend), icon: Megaphone, color: "red", description: "Gasto em ads" },
+    { title: "ROAS", value: `${roas.toFixed(2)}x`, icon: Target, color: "cyan", description: "Retorno sobre ads" },
+    { title: "CPA", value: formatCurrency(cpa), icon: DollarSign, color: "orange", description: "Custo por aquisição" },
+    { title: "Conv %", value: `${conversionRate.toFixed(2)}%`, icon: Percent, color: "green", description: "Taxa de conversão" },
   ];
+
+  const togglePanel = (panel: ExpandedPanel) => {
+    setExpandedPanel(expandedPanel === panel ? null : panel);
+  };
 
   if (revenueLoading) {
     return (
       <DashboardWrapper>
         <div className="container mx-auto px-3 py-4 min-h-screen">
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-2 mb-4">
-            {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-20 rounded-lg" />)}
+          <div className="grid grid-cols-3 md:grid-cols-9 gap-2 mb-4">
+            {[...Array(9)].map((_, i) => <Skeleton key={i} className="h-16 rounded-lg" />)}
           </div>
         </div>
       </DashboardWrapper>
@@ -109,7 +117,6 @@ export const CombinedDashboard = () => {
                   size="sm"
                   onClick={() => setViewMode("normal")}
                   className="rounded-full h-8 px-3 transition-all text-muted-foreground hover:text-foreground"
-                  aria-label="Layout orbital"
                 >
                   <Monitor className="h-4 w-4" />
                 </Button>
@@ -123,7 +130,6 @@ export const CombinedDashboard = () => {
                   size="sm"
                   onClick={() => setViewMode("compact")}
                   className="rounded-full h-8 px-3 transition-all text-muted-foreground hover:text-foreground"
-                  aria-label="Layout grade"
                 >
                   <LayoutGrid className="h-4 w-4" />
                 </Button>
@@ -142,7 +148,6 @@ export const CombinedDashboard = () => {
                       ? "bg-primary/20 text-primary" 
                       : "text-muted-foreground hover:text-foreground"
                   )}
-                  aria-label="Modo combinado"
                 >
                   <Layers className="h-4 w-4" />
                 </Button>
@@ -154,26 +159,22 @@ export const CombinedDashboard = () => {
       )}
 
       <div className="container mx-auto px-3 py-4 md:px-4 md:py-6 min-h-screen pb-20 md:pb-8">
-        {/* Header Compacto */}
-        <header className="mb-3 md:mb-4">
-          <h1 className="text-base md:text-xl font-black text-foreground">Dashboard Combinado</h1>
-          <p className="text-[10px] md:text-xs text-muted-foreground">Visão completa em tempo real</p>
+        {/* Header */}
+        <header className="mb-3">
+          <h1 className="text-base md:text-lg font-black text-foreground">Dashboard Combinado</h1>
         </header>
 
-        {/* Main Stats - Super Compacto */}
-        <section className="grid grid-cols-3 md:grid-cols-6 gap-2 mb-4" aria-label="Métricas principais">
-          {mainStats.map((stat, index) => (
+        {/* Main Stats - 9 columns */}
+        <section className="grid grid-cols-3 md:grid-cols-9 gap-1.5 md:gap-2 mb-3" aria-label="Métricas principais">
+          {mainStats.map((stat) => (
             <Tooltip key={stat.title} delayDuration={500}>
               <TooltipTrigger asChild>
-                <div>
-                  <StatsCard
-                    title={stat.title}
-                    value={stat.value}
-                    icon={stat.icon}
-                    color={stat.color}
-                    hoverable={false}
-                    className="!p-2 md:!p-3"
-                  />
+                <div className="p-2 rounded-lg bg-card/80 border border-border/50 hover:border-primary/30 transition-colors cursor-default">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <stat.icon className={cn("h-3 w-3", `text-${stat.color === 'cyan' ? 'primary' : stat.color === 'green' ? 'chart-4' : stat.color === 'purple' ? 'chart-5' : stat.color === 'orange' ? 'chart-3' : stat.color === 'pink' ? 'chart-5' : 'destructive'}`)} />
+                    <span className="text-[9px] text-muted-foreground uppercase font-medium truncate">{stat.title}</span>
+                  </div>
+                  <div className="text-sm md:text-base font-bold text-foreground truncate">{stat.value}</div>
                 </div>
               </TooltipTrigger>
               <TooltipContent><p>{stat.description}</p></TooltipContent>
@@ -181,93 +182,193 @@ export const CombinedDashboard = () => {
           ))}
         </section>
 
-        {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4 mb-4">
-          {/* VTurb Metrics - Compacto */}
-          <SectionCard title="VTurb" icon={Video} color="red" className="!p-3 md:!p-4">
-            {vturbLoading ? (
-              <div className="grid grid-cols-5 gap-2">
-                {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 rounded" />)}
-              </div>
-            ) : (
-              <div className="grid grid-cols-5 gap-1 md:gap-2">
-                {[
-                  { label: "Views", value: vturbMetrics.uniqueViews },
-                  { label: "Plays", value: vturbMetrics.uniquePlays },
-                  { label: "Play %", value: `${vturbMetrics.playRate.toFixed(1)}%` },
-                  { label: "Pitch %", value: `${vturbMetrics.overPitchRate.toFixed(1)}%` },
-                  { label: "CTAs", value: vturbMetrics.uniqueClicks },
-                ].map((item, i) => (
-                  <div key={i} className="p-2 rounded bg-card/50 border border-border text-center">
-                    <div className="text-sm md:text-lg font-bold text-foreground">
-                      {typeof item.value === 'number' ? item.value.toLocaleString('pt-BR') : item.value}
-                    </div>
-                    <div className="text-[9px] md:text-[10px] text-muted-foreground">{item.label}</div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </SectionCard>
-
-          {/* Daily Comparison - Compacto */}
-          <SectionCard color="cyan" className="!p-3 md:!p-4">
-            <h3 className="text-xs font-bold text-muted-foreground uppercase mb-3">Hoje vs Ontem</h3>
-            {dailyComparison && (
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] text-muted-foreground">Receita</span>
-                    <ComparisonBadge 
-                      changePercent={dailyComparison.revenue.changePercent}
-                      isPositive={dailyComparison.revenue.isPositive}
-                      label=""
-                    />
-                  </div>
-                  <div className="text-lg font-bold text-foreground">
-                    {formatCurrency(dailyComparison.revenue.current)}
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] text-muted-foreground">Pedidos</span>
-                    <ComparisonBadge 
-                      changePercent={dailyComparison.orders.changePercent}
-                      isPositive={dailyComparison.orders.isPositive}
-                      label=""
-                    />
-                  </div>
-                  <div className="text-lg font-bold text-foreground">
-                    {dailyComparison.orders.current}
-                  </div>
-                </div>
-              </div>
-            )}
-          </SectionCard>
-        </div>
-
-        {/* Conversion Funnel - Compacto */}
-        <div className="mb-4">
-          <ConversionFunnel 
-            visits={vturbMetrics.uniqueViews}
-            plays={vturbMetrics.uniquePlays}
-            clicks={vturbMetrics.uniqueClicks}
-            orders={ordersCount}
-          />
-        </div>
-
-        {/* Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4">
-          {/* Sales Chart - Compacto */}
-          <SectionCard color="cyan" className="!p-3 md:!p-4">
-            <SalesChart analyticsData={analyticsData} isLoading={analyticsLoading} />
-          </SectionCard>
-
-          {/* Sales Map - Compacto */}
-          <SectionCard title="Mapa" icon={MapPin} color="cyan" className="!p-3 md:!p-4">
-            <div className="h-[250px] md:h-[300px]">
-              <SalesMap />
+        {/* VTurb + Comparisons Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 mb-3">
+          {/* VTurb Mini */}
+          <div className="p-2 rounded-lg bg-card/80 border border-border/50">
+            <div className="flex items-center gap-1.5 mb-2">
+              <Video className="h-3.5 w-3.5 text-destructive" />
+              <span className="text-[10px] text-muted-foreground uppercase font-bold">VTurb</span>
             </div>
-          </SectionCard>
+            <div className="grid grid-cols-5 gap-1">
+              {[
+                { label: "Views", value: vturbMetrics.uniqueViews },
+                { label: "Plays", value: vturbMetrics.uniquePlays },
+                { label: "Play%", value: `${vturbMetrics.playRate.toFixed(0)}%` },
+                { label: "Pitch", value: `${vturbMetrics.overPitchRate.toFixed(0)}%` },
+                { label: "CTAs", value: vturbMetrics.uniqueClicks },
+              ].map((item, i) => (
+                <div key={i} className="text-center">
+                  <div className="text-xs md:text-sm font-bold text-foreground">
+                    {typeof item.value === 'number' ? item.value.toLocaleString('pt-BR') : item.value}
+                  </div>
+                  <div className="text-[8px] text-muted-foreground">{item.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Daily Comparison */}
+          <div className="p-2 rounded-lg bg-card/80 border border-border/50">
+            <span className="text-[10px] text-muted-foreground uppercase font-bold">Hoje vs Ontem</span>
+            {dailyComparison && (
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] text-muted-foreground">Receita</span>
+                    <ComparisonBadge changePercent={dailyComparison.revenue.changePercent} isPositive={dailyComparison.revenue.isPositive} label="" />
+                  </div>
+                  <div className="text-sm font-bold text-foreground">{formatCurrency(dailyComparison.revenue.current)}</div>
+                </div>
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] text-muted-foreground">Pedidos</span>
+                    <ComparisonBadge changePercent={dailyComparison.orders.changePercent} isPositive={dailyComparison.orders.isPositive} label="" />
+                  </div>
+                  <div className="text-sm font-bold text-foreground">{dailyComparison.orders.current}</div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Weekly Comparison */}
+          <div className="p-2 rounded-lg bg-card/80 border border-border/50">
+            <span className="text-[10px] text-muted-foreground uppercase font-bold">Semana vs Anterior</span>
+            {weeklyComparison && (
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] text-muted-foreground">Receita</span>
+                    <ComparisonBadge changePercent={weeklyComparison.revenue.changePercent} isPositive={weeklyComparison.revenue.isPositive} label="" />
+                  </div>
+                  <div className="text-sm font-bold text-foreground">{formatCurrency(weeklyComparison.revenue.current)}</div>
+                </div>
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] text-muted-foreground">Pedidos</span>
+                    <ComparisonBadge changePercent={weeklyComparison.orders.changePercent} isPositive={weeklyComparison.orders.isPositive} label="" />
+                  </div>
+                  <div className="text-sm font-bold text-foreground">{weeklyComparison.orders.current}</div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Expandable Panels Row - Funnel, Chart, Map */}
+        <div className={cn(
+          "grid gap-2 transition-all duration-300",
+          expandedPanel ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-3"
+        )}>
+          {/* Funnel Panel */}
+          <div 
+            className={cn(
+              "relative rounded-lg bg-card/80 border border-border/50 overflow-hidden transition-all duration-300 cursor-pointer group",
+              expandedPanel === "funnel" ? "col-span-1" : "",
+              expandedPanel && expandedPanel !== "funnel" ? "hidden lg:block" : ""
+            )}
+            onClick={() => !expandedPanel && togglePanel("funnel")}
+          >
+            {expandedPanel !== "funnel" && (
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                <Maximize2 className="h-4 w-4 text-muted-foreground" />
+              </div>
+            )}
+            {expandedPanel === "funnel" && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute top-2 right-2 z-10 h-6 w-6 p-0"
+                onClick={(e) => { e.stopPropagation(); setExpandedPanel(null); }}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+            <div className={cn("p-2", expandedPanel === "funnel" && "p-4")}>
+              <div className="flex items-center gap-1.5 mb-2">
+                <Target className="h-3.5 w-3.5 text-primary" />
+                <span className="text-[10px] text-muted-foreground uppercase font-bold">Funil de Conversão</span>
+              </div>
+              <div className={cn(expandedPanel === "funnel" ? "h-auto" : "h-[180px] overflow-hidden")}>
+                <ConversionFunnel 
+                  visits={vturbMetrics.uniqueViews}
+                  plays={vturbMetrics.uniquePlays}
+                  clicks={vturbMetrics.uniqueClicks}
+                  orders={ordersCount}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Chart Panel */}
+          <div 
+            className={cn(
+              "relative rounded-lg bg-card/80 border border-border/50 overflow-hidden transition-all duration-300 cursor-pointer group",
+              expandedPanel === "chart" ? "col-span-1" : "",
+              expandedPanel && expandedPanel !== "chart" ? "hidden lg:block" : ""
+            )}
+            onClick={() => !expandedPanel && togglePanel("chart")}
+          >
+            {expandedPanel !== "chart" && (
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                <Maximize2 className="h-4 w-4 text-muted-foreground" />
+              </div>
+            )}
+            {expandedPanel === "chart" && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute top-2 right-2 z-10 h-6 w-6 p-0"
+                onClick={(e) => { e.stopPropagation(); setExpandedPanel(null); }}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+            <div className={cn("p-2", expandedPanel === "chart" && "p-4")}>
+              <div className="flex items-center gap-1.5 mb-2">
+                <BarChart3 className="h-3.5 w-3.5 text-chart-4" />
+                <span className="text-[10px] text-muted-foreground uppercase font-bold">Tendência de Vendas</span>
+              </div>
+              <div className={cn(expandedPanel === "chart" ? "h-[400px]" : "h-[180px]")}>
+                <SalesChart analyticsData={analyticsData} isLoading={analyticsLoading} />
+              </div>
+            </div>
+          </div>
+
+          {/* Map Panel */}
+          <div 
+            className={cn(
+              "relative rounded-lg bg-card/80 border border-border/50 overflow-hidden transition-all duration-300 cursor-pointer group",
+              expandedPanel === "map" ? "col-span-1" : "",
+              expandedPanel && expandedPanel !== "map" ? "hidden lg:block" : ""
+            )}
+            onClick={() => !expandedPanel && togglePanel("map")}
+          >
+            {expandedPanel !== "map" && (
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                <Maximize2 className="h-4 w-4 text-muted-foreground" />
+              </div>
+            )}
+            {expandedPanel === "map" && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute top-2 right-2 z-10 h-6 w-6 p-0"
+                onClick={(e) => { e.stopPropagation(); setExpandedPanel(null); }}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+            <div className={cn("p-2", expandedPanel === "map" && "p-4")}>
+              <div className="flex items-center gap-1.5 mb-2">
+                <MapPin className="h-3.5 w-3.5 text-chart-3" />
+                <span className="text-[10px] text-muted-foreground uppercase font-bold">Mapa de Vendas</span>
+              </div>
+              <div className={cn(expandedPanel === "map" ? "h-[400px]" : "h-[180px]")}>
+                <SalesMap />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </DashboardWrapper>
