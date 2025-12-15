@@ -148,12 +148,12 @@ export const LiveCommandCenter = () => {
   };
 
   const colorVariants = {
-    cyan: { bg: "bg-primary/10", border: "border-primary/40", text: "text-primary", glow: "shadow-primary/30" },
-    green: { bg: "bg-chart-4/10", border: "border-chart-4/40", text: "text-chart-4", glow: "shadow-chart-4/30" },
-    purple: { bg: "bg-chart-5/10", border: "border-chart-5/40", text: "text-chart-5", glow: "shadow-chart-5/30" },
-    orange: { bg: "bg-chart-3/10", border: "border-chart-3/40", text: "text-chart-3", glow: "shadow-chart-3/30" },
-    pink: { bg: "bg-chart-5/10", border: "border-chart-5/40", text: "text-chart-5", glow: "shadow-chart-5/30" },
-    blue: { bg: "bg-chart-1/10", border: "border-chart-1/40", text: "text-chart-1", glow: "shadow-chart-1/30" },
+    cyan: { bg: "bg-gradient-to-br from-primary/20 to-primary/5", border: "border-primary/30", text: "text-primary", glow: "shadow-[0_0_30px_rgba(var(--primary),0.2)]" },
+    green: { bg: "bg-gradient-to-br from-chart-4/20 to-chart-4/5", border: "border-chart-4/30", text: "text-chart-4", glow: "shadow-[0_0_30px_rgba(var(--chart-4),0.2)]" },
+    purple: { bg: "bg-gradient-to-br from-chart-5/20 to-chart-5/5", border: "border-chart-5/30", text: "text-chart-5", glow: "shadow-[0_0_30px_rgba(var(--chart-5),0.2)]" },
+    orange: { bg: "bg-gradient-to-br from-chart-3/20 to-chart-3/5", border: "border-chart-3/30", text: "text-chart-3", glow: "shadow-[0_0_30px_rgba(var(--chart-3),0.2)]" },
+    pink: { bg: "bg-gradient-to-br from-chart-5/20 to-chart-5/5", border: "border-chart-5/30", text: "text-chart-5", glow: "shadow-[0_0_30px_rgba(var(--chart-5),0.2)]" },
+    blue: { bg: "bg-gradient-to-br from-chart-1/20 to-chart-1/5", border: "border-chart-1/30", text: "text-chart-1", glow: "shadow-[0_0_30px_rgba(var(--chart-1),0.2)]" },
   };
 
   return (
@@ -326,8 +326,8 @@ export const LiveCommandCenter = () => {
               </div>
             </header>
 
-            {/* Stats Grid */}
-            <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 lg:gap-4" aria-label="Métricas principais">
+            {/* Stats Grid - Premium Cards */}
+            <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-5" aria-label="Métricas principais">
               {satellites.map((stat, index) => {
                 const colors = colorVariants[stat.color as keyof typeof colorVariants];
                 const Icon = stat.icon;
@@ -336,36 +336,62 @@ export const LiveCommandCenter = () => {
                     <TooltipTrigger asChild>
                       <article
                         className={cn(
-                          "p-3 md:p-4 lg:p-6 rounded-xl md:rounded-2xl bg-card border-2 backdrop-blur-xl",
-                          "transition-all duration-300 hover:scale-[1.02] cursor-pointer",
-                          "animate-fade-in-up",
-                          colors.border
+                          "group relative p-4 md:p-5 lg:p-6 rounded-2xl overflow-hidden",
+                          "bg-card/80 backdrop-blur-xl border",
+                          "transition-all duration-500 ease-out cursor-pointer",
+                          "hover:scale-[1.03] hover:-translate-y-1",
+                          colors.border,
+                          colors.glow
                         )}
-                        style={{ animationDelay: `${index * 100}ms` }}
+                        style={{ 
+                          animationDelay: `${index * 100}ms`,
+                          animation: `fadeInUp 0.6s ease-out ${index * 100}ms both`
+                        }}
                         aria-label={`${stat.label}: ${stat.value}`}
                       >
-                        <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-3">
-                          <div className={cn("w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center border", colors.bg, colors.border)}>
-                            <Icon className={cn("w-4 h-4 md:w-5 md:h-5", colors.text)} aria-hidden="true" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-[9px] md:text-[10px] lg:text-xs font-bold text-muted-foreground uppercase tracking-wider truncate">
-                              {stat.label}
-                            </h3>
-                          </div>
+                        {/* Gradient overlay */}
+                        <div className={cn(
+                          "absolute inset-0 opacity-40 group-hover:opacity-70 transition-opacity duration-500",
+                          colors.bg
+                        )} />
+                        
+                        {/* Shine effect */}
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
                         </div>
-                        <div className={cn("text-lg md:text-2xl lg:text-3xl font-black truncate", colors.text)}>
-                          {stat.value}
-                        </div>
-                        <div className="flex items-center gap-1 mt-1 md:mt-2">
-                          <TrendingUp className={cn("w-3 h-3", colors.text)} aria-hidden="true" />
-                          <span className={cn("text-[10px] md:text-xs font-semibold", colors.text)}>Ao vivo</span>
+                        
+                        {/* Content */}
+                        <div className="relative z-10">
+                          <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
+                            <div className={cn(
+                              "w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center",
+                              "transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3",
+                              colors.bg
+                            )}>
+                              <Icon className={cn("w-5 h-5", colors.text)} aria-hidden="true" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-[9px] md:text-[10px] lg:text-xs font-bold text-muted-foreground uppercase tracking-widest truncate">
+                                {stat.label}
+                              </h3>
+                            </div>
+                          </div>
+                          <div className={cn("text-xl md:text-2xl lg:text-3xl font-black truncate text-foreground")}>
+                            {stat.value}
+                          </div>
+                          <div className="flex items-center gap-2 mt-2 md:mt-3">
+                            <div className="relative">
+                              <div className={cn("w-2 h-2 rounded-full", colors.text.replace('text-', 'bg-'))} />
+                              <div className={cn("absolute inset-0 w-2 h-2 rounded-full animate-ping opacity-75", colors.text.replace('text-', 'bg-'))} />
+                            </div>
+                            <span className={cn("text-[10px] md:text-xs font-semibold", colors.text)}>Ao vivo</span>
+                          </div>
                         </div>
                       </article>
                     </TooltipTrigger>
                     <TooltipContent 
                       side="top" 
-                      className="max-w-[280px] p-3 bg-card border border-border shadow-xl"
+                      className="max-w-[280px] p-3 bg-card/95 backdrop-blur-xl border border-border shadow-2xl"
                       sideOffset={8}
                     >
                       <p className="text-sm text-foreground leading-relaxed">
@@ -377,23 +403,31 @@ export const LiveCommandCenter = () => {
               })}
             </section>
 
-            {/* Data Stream Panel */}
+            {/* Data Stream Panel - Premium */}
             <section 
-              className="p-4 md:p-6 rounded-xl md:rounded-2xl bg-card border-2 border-primary/30 backdrop-blur-xl animate-fade-in"
-              style={{ animationDelay: "400ms" }}
+              className="relative p-5 md:p-6 rounded-2xl bg-card/80 backdrop-blur-xl border border-primary/20 overflow-hidden"
+              style={{ animation: "fadeInUp 0.6s ease-out 400ms both" }}
               aria-label="Detalhes de faturamento"
             >
-              <DataStreamCard 
-                totalRevenue={totalRevenue}
-                ordersCount={ordersCount}
-                avgOrderValue={avgOrderValue}
-                uniqueShoppers={uniqueShoppers}
-                dailyComparison={dailyComparison}
-                formatCurrency={formatCurrency}
-                colorVariants={colorVariants}
-                adSpend={facebookAdsData?.spend || 0}
-                cpa={facebookAdsData?.cpa || 0}
-              />
+              {/* Gradient background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-chart-5/5 opacity-50" />
+              
+              {/* Animated border glow */}
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/20 via-chart-5/10 to-primary/20 opacity-0 hover:opacity-100 transition-opacity duration-500 blur-xl -z-10" />
+              
+              <div className="relative z-10">
+                <DataStreamCard 
+                  totalRevenue={totalRevenue}
+                  ordersCount={ordersCount}
+                  avgOrderValue={avgOrderValue}
+                  uniqueShoppers={uniqueShoppers}
+                  dailyComparison={dailyComparison}
+                  formatCurrency={formatCurrency}
+                  colorVariants={colorVariants}
+                  adSpend={facebookAdsData?.spend || 0}
+                  cpa={facebookAdsData?.cpa || 0}
+                />
+              </div>
             </section>
           </div>
         </div>
@@ -422,6 +456,17 @@ export const LiveCommandCenter = () => {
           0% { opacity: 0.3; }
           50% { opacity: 0.6; }
           100% { opacity: 0.3; }
+        }
+
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
 
         .bg-gradient-radial {
@@ -457,36 +502,46 @@ const DataStreamCard = ({
   cpa
 }: DataStreamCardProps) => {
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-5">
       <div className="flex flex-col tracking-tight w-full">
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-primary rounded-full animate-pulse shadow-lg shadow-primary/50" aria-hidden="true" />
-            <h3 className="text-sm font-black text-primary uppercase tracking-wider">Shopify Ao Vivo</h3>
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="w-3 h-3 bg-primary rounded-full shadow-lg shadow-primary/50" aria-hidden="true" />
+              <div className="absolute inset-0 w-3 h-3 bg-primary rounded-full animate-ping opacity-75" />
+            </div>
+            <h3 className="text-sm font-black text-primary uppercase tracking-widest">Shopify Ao Vivo</h3>
           </div>
-          <time className="text-[10px] text-muted-foreground font-mono">
+          <time className="text-[10px] text-muted-foreground font-mono bg-muted/50 px-2 py-1 rounded-lg">
             {format(new Date(), "HH:mm:ss")}
           </time>
         </div>
         
         {/* Key Metrics */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           {/* Ad Spend */}
           <Tooltip delayDuration={1000}>
             <TooltipTrigger asChild>
-              <div className={cn("p-4 rounded-xl border-2 backdrop-blur-sm cursor-pointer hover:scale-[1.01] transition-transform", colorVariants.pink.bg, colorVariants.pink.border)}>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Megaphone className="w-4 h-4 text-chart-5" />
-                    <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Gasto em Ads Hoje</span>
+              <div className={cn(
+                "group relative p-4 rounded-xl border backdrop-blur-sm cursor-pointer overflow-hidden",
+                "transition-all duration-500 hover:scale-[1.01] hover:shadow-lg",
+                colorVariants.pink.border
+              )}>
+                <div className={cn("absolute inset-0 opacity-50 group-hover:opacity-70 transition-opacity", colorVariants.pink.bg)} />
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Megaphone className="w-4 h-4 text-chart-5" />
+                      <span className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Gasto em Ads Hoje</span>
+                    </div>
+                    <div className="text-[9px] text-muted-foreground bg-muted/80 px-2 py-0.5 rounded-full">Facebook Ads</div>
                   </div>
-                  <div className="text-[9px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">Facebook Ads</div>
+                  <div className="text-2xl md:text-3xl font-black text-foreground">
+                    {formatCurrency(adSpend)}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-1">Total investido</p>
                 </div>
-                <div className="text-2xl md:text-3xl font-black text-chart-5">
-                  {formatCurrency(adSpend)}
-                </div>
-                <p className="text-[10px] text-muted-foreground mt-1">Total investido</p>
               </div>
             </TooltipTrigger>
             <TooltipContent side="top" className="max-w-[280px] p-3 bg-card border border-border shadow-xl" sideOffset={8}>
