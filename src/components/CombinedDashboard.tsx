@@ -333,11 +333,10 @@ export const CombinedDashboard = () => {
               </div>
               <span className="text-[10px] sm:text-xs lg:text-sm xl:text-base font-bold text-foreground uppercase tracking-wide">Facebook Ads</span>
             </div>
-            <div className="grid grid-cols-3 gap-1 sm:gap-2 lg:gap-3">
+            <div className="grid grid-cols-2 gap-1 sm:gap-2 lg:gap-3">
               {[
-                { label: "Gasto", value: formatCurrency(adSpend) },
                 { label: "CPA", value: formatCurrency(cpa) },
-                { label: "Conv%", value: `${conversionRate.toFixed(1)}%` },
+                { label: "Conversões", value: facebookAdsData?.purchases?.toString() || "0" },
               ].map((item, i) => (
                 <div key={i} className="text-center p-1 sm:p-2 lg:p-3 rounded-lg bg-muted/30">
                   <div className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl font-bold text-foreground">{item.value}</div>
