@@ -14,56 +14,64 @@ interface StatsCardProps {
   className?: string;
   children?: React.ReactNode;
   showLiveIndicator?: boolean;
+  delay?: number;
 }
 
-// Twitter Blue theme: all variants use the same blue primary color
 const colorClasses: Record<CardColorVariant, {
   border: string;
   glow: string;
   bg: string;
   text: string;
+  gradient: string;
 }> = {
   cyan: {
-    border: "border-primary/30",
-    glow: "shadow-primary/20",
-    bg: "bg-primary/10",
+    border: "border-primary/20 hover:border-primary/40",
+    glow: "hover:shadow-[0_0_30px_rgba(var(--primary),0.15)]",
+    bg: "bg-gradient-to-br from-primary/15 to-primary/5",
     text: "text-primary",
+    gradient: "from-primary/20 via-primary/5 to-transparent",
   },
   purple: {
-    border: "border-primary/30",
-    glow: "shadow-primary/20",
-    bg: "bg-primary/10",
-    text: "text-primary",
+    border: "border-chart-5/20 hover:border-chart-5/40",
+    glow: "hover:shadow-[0_0_30px_rgba(var(--chart-5),0.15)]",
+    bg: "bg-gradient-to-br from-chart-5/15 to-chart-5/5",
+    text: "text-chart-5",
+    gradient: "from-chart-5/20 via-chart-5/5 to-transparent",
   },
   green: {
-    border: "border-chart-2/30",
-    glow: "shadow-chart-2/20",
-    bg: "bg-chart-2/10",
+    border: "border-chart-2/20 hover:border-chart-2/40",
+    glow: "hover:shadow-[0_0_30px_rgba(var(--chart-2),0.15)]",
+    bg: "bg-gradient-to-br from-chart-2/15 to-chart-2/5",
     text: "text-chart-2",
+    gradient: "from-chart-2/20 via-chart-2/5 to-transparent",
   },
   orange: {
-    border: "border-chart-3/30",
-    glow: "shadow-chart-3/20",
-    bg: "bg-chart-3/10",
+    border: "border-chart-3/20 hover:border-chart-3/40",
+    glow: "hover:shadow-[0_0_30px_rgba(var(--chart-3),0.15)]",
+    bg: "bg-gradient-to-br from-chart-3/15 to-chart-3/5",
     text: "text-chart-3",
+    gradient: "from-chart-3/20 via-chart-3/5 to-transparent",
   },
   pink: {
-    border: "border-chart-5/30",
-    glow: "shadow-chart-5/20",
-    bg: "bg-chart-5/10",
+    border: "border-chart-5/20 hover:border-chart-5/40",
+    glow: "hover:shadow-[0_0_30px_rgba(var(--chart-5),0.15)]",
+    bg: "bg-gradient-to-br from-chart-5/15 to-chart-5/5",
     text: "text-chart-5",
+    gradient: "from-chart-5/20 via-chart-5/5 to-transparent",
   },
   blue: {
-    border: "border-primary/30",
-    glow: "shadow-primary/20",
-    bg: "bg-primary/10",
+    border: "border-primary/20 hover:border-primary/40",
+    glow: "hover:shadow-[0_0_30px_rgba(var(--primary),0.15)]",
+    bg: "bg-gradient-to-br from-primary/15 to-primary/5",
     text: "text-primary",
+    gradient: "from-primary/20 via-primary/5 to-transparent",
   },
   red: {
-    border: "border-destructive/30",
-    glow: "shadow-destructive/20",
-    bg: "bg-destructive/10",
+    border: "border-destructive/20 hover:border-destructive/40",
+    glow: "hover:shadow-[0_0_30px_rgba(var(--destructive),0.15)]",
+    bg: "bg-gradient-to-br from-destructive/15 to-destructive/5",
     text: "text-destructive",
+    gradient: "from-destructive/20 via-destructive/5 to-transparent",
   },
 };
 
@@ -78,52 +86,82 @@ export const StatsCard = ({
   className,
   children,
   showLiveIndicator = false,
+  delay = 0,
 }: StatsCardProps) => {
   const colors = colorClasses[color];
 
   return (
     <article
       className={cn(
-        "p-4 md:p-6 rounded-xl bg-card border backdrop-blur-sm",
-        "transition-all duration-300",
-        "border-border",
-        hoverable && "hover:border-primary/30 hover:shadow-sm cursor-pointer",
-        "animate-fade-in-up",
+        "group relative p-5 md:p-6 rounded-2xl overflow-hidden",
+        "bg-card/80 backdrop-blur-xl border",
+        "transition-all duration-500 ease-out",
+        colors.border,
+        hoverable && cn("hover:scale-[1.02] hover:-translate-y-1 cursor-pointer", colors.glow),
         className
       )}
+      style={{ animationDelay: `${delay}ms` }}
       role="region"
       aria-label={`${title}: ${value}`}
     >
-      {/* Header with icon and title */}
-      <div className="flex items-center gap-3 mb-3">
-        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", colors.bg)}>
-          <Icon className={cn("w-5 h-5", colors.text)} aria-hidden="true" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-wider truncate">
-            {title}
-          </h3>
-        </div>
+      {/* Gradient overlay */}
+      <div 
+        className={cn(
+          "absolute inset-0 bg-gradient-to-br opacity-50 transition-opacity duration-500",
+          "group-hover:opacity-100",
+          colors.gradient
+        )} 
+      />
+      
+      {/* Shine effect on hover */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
       </div>
       
-      {/* Value */}
-      <div className="text-2xl md:text-3xl font-black truncate text-foreground">
-        {value}
-      </div>
-      
-      {/* Subtitle or Live indicator */}
-      {subtitle ? (
-        <p className={cn("text-xs md:text-sm mt-2 font-medium", subtitleColor)}>
-          {subtitle}
-        </p>
-      ) : showLiveIndicator ? (
-        <div className="flex items-center gap-1 mt-2">
-          <TrendingUp className="w-3 h-3 text-primary" aria-hidden="true" />
-          <span className="text-xs font-semibold text-primary">Ao vivo</span>
+      {/* Content */}
+      <div className="relative z-10">
+        {/* Header with icon and title */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className={cn(
+            "w-11 h-11 rounded-xl flex items-center justify-center",
+            "transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3",
+            colors.bg
+          )}>
+            <Icon className={cn("w-5 h-5 transition-all duration-300", colors.text)} aria-hidden="true" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest truncate">
+              {title}
+            </h3>
+          </div>
         </div>
-      ) : null}
-      
-      {children}
+        
+        {/* Value with gradient text effect */}
+        <div className={cn(
+          "text-2xl md:text-3xl lg:text-4xl font-black truncate",
+          "bg-clip-text transition-all duration-300",
+          "text-foreground"
+        )}>
+          {value}
+        </div>
+        
+        {/* Subtitle or Live indicator */}
+        {subtitle ? (
+          <p className={cn("text-xs md:text-sm mt-3 font-medium", subtitleColor)}>
+            {subtitle}
+          </p>
+        ) : showLiveIndicator ? (
+          <div className="flex items-center gap-2 mt-3">
+            <div className="relative">
+              <div className={cn("w-2 h-2 rounded-full", colors.text.replace('text-', 'bg-'))} />
+              <div className={cn("absolute inset-0 w-2 h-2 rounded-full animate-ping opacity-75", colors.text.replace('text-', 'bg-'))} />
+            </div>
+            <span className={cn("text-xs font-semibold", colors.text)}>Ao vivo</span>
+          </div>
+        ) : null}
+        
+        {children}
+      </div>
     </article>
   );
 };
@@ -148,25 +186,31 @@ export const SectionCard = ({
   return (
     <section
       className={cn(
-        "p-4 md:p-6 rounded-xl bg-card border border-border backdrop-blur-sm overflow-hidden relative",
-        "animate-fade-in",
+        "relative p-5 md:p-6 rounded-2xl overflow-hidden",
+        "bg-card/80 backdrop-blur-xl border border-border/50",
+        "transition-all duration-300",
         className
       )}
       aria-label={title}
     >
-      {title && (
-        <header className="flex items-center gap-3 mb-4 md:mb-6">
-          {Icon && (
-            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", colors.bg)}>
-              <Icon className={cn("w-5 h-5", colors.text)} aria-hidden="true" />
-            </div>
-          )}
-          <h2 className="text-lg md:text-xl font-black text-foreground">
-            {title}
-          </h2>
-        </header>
-      )}
-      {children}
+      {/* Subtle gradient background */}
+      <div className={cn("absolute inset-0 bg-gradient-to-br opacity-30", colors.gradient)} />
+      
+      <div className="relative z-10">
+        {title && (
+          <header className="flex items-center gap-3 mb-5 md:mb-6">
+            {Icon && (
+              <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center", colors.bg)}>
+                <Icon className={cn("w-5 h-5", colors.text)} aria-hidden="true" />
+              </div>
+            )}
+            <h2 className="text-lg md:text-xl font-black text-foreground tracking-tight">
+              {title}
+            </h2>
+          </header>
+        )}
+        {children}
+      </div>
     </section>
   );
 };
