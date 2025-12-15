@@ -1,8 +1,15 @@
 import { ShootingStars } from "@/components/ui/shooting-stars";
 import { useVisualEffects } from "@/contexts/VisualEffectsContext";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export const StarsBackground = () => {
   const { premiumEffects } = useVisualEffects();
+  const { theme } = useTheme();
+
+  // Don't show stars on light theme
+  if (theme === 'clean-blue') {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
