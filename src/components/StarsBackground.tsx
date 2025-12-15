@@ -7,7 +7,7 @@ export const StarsBackground = () => {
   const { theme, isDarkMode } = useTheme();
 
   // Don't show stars on light themes
-  const isLightTheme = (theme === 'clean-blue' || theme === 'royal-blue') && !isDarkMode;
+  const isLightTheme = (theme === 'clean-blue' || theme === 'royal-blue' || theme === 'netflix-red') && !isDarkMode;
   if (isLightTheme) {
     return null;
   }

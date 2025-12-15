@@ -14,7 +14,7 @@ export const DashboardWrapper = ({ children }: DashboardWrapperProps) => {
   const { theme, isDarkMode } = useTheme();
 
   // Check if current theme is dark (cyber-neon is always dark, other themes depend on isDarkMode)
-  const isCurrentlyDark = theme === 'cyber-neon' || ((theme === 'clean-blue' || theme === 'royal-blue') && isDarkMode);
+  const isCurrentlyDark = theme === 'cyber-neon' || (['clean-blue', 'royal-blue', 'netflix-red'].includes(theme) && isDarkMode);
 
   const navItems = [
     { name: 'Dashboard', url: '/', icon: LayoutDashboard },
