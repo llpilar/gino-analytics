@@ -276,8 +276,8 @@ export const CombinedDashboard = () => {
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
                   className={cn(
-                    "relative rounded-lg bg-card/80 border border-border/50 overflow-hidden cursor-pointer group",
-                    expandedPanel === "funnel" && "border-primary/30"
+                    "relative rounded-lg bg-card/80 border border-border/50 cursor-pointer group hover:border-primary/40 transition-colors",
+                    expandedPanel === "funnel" && "border-primary/50 cursor-default"
                   )}
                   onClick={() => !expandedPanel && togglePanel("funnel")}
                 >
@@ -291,34 +291,38 @@ export const CombinedDashboard = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-7 w-7 p-0 bg-card/80 hover:bg-card"
+                        className="h-7 w-7 p-0 bg-card/80 hover:bg-card border border-border/50"
                         onClick={(e) => { e.stopPropagation(); setExpandedPanel(null); }}
                       >
                         <X className="h-4 w-4" />
                       </Button>
                     ) : (
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Maximize2 className="h-4 w-4 text-muted-foreground" />
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-card/80 p-1 rounded">
+                        <Maximize2 className="h-3.5 w-3.5 text-muted-foreground" />
                       </div>
                     )}
                   </motion.div>
-                  <motion.div layout="position" className={cn("p-2", expandedPanel === "funnel" && "p-4")}>
+                  <motion.div layout="position" className={cn("p-3", expandedPanel === "funnel" && "p-4")}>
                     <div className="flex items-center gap-1.5 mb-2">
                       <Target className="h-3.5 w-3.5 text-primary" />
                       <span className="text-[10px] text-muted-foreground uppercase font-bold">Funil de Conversão</span>
                     </div>
                     <motion.div 
                       layout
-                      animate={{ height: expandedPanel === "funnel" ? "auto" : 180 }}
-                      transition={{ duration: 0.3 }}
                       className="overflow-hidden"
+                      style={{ height: expandedPanel === "funnel" ? "auto" : 160 }}
                     >
-                      <ConversionFunnel 
-                        visits={vturbMetrics.uniqueViews}
-                        plays={vturbMetrics.uniquePlays}
-                        clicks={vturbMetrics.uniqueClicks}
-                        orders={ordersCount}
-                      />
+                      <div className={cn(
+                        "w-full h-full",
+                        !expandedPanel && "pointer-events-none scale-[0.85] origin-top"
+                      )}>
+                        <ConversionFunnel 
+                          visits={vturbMetrics.uniqueViews}
+                          plays={vturbMetrics.uniquePlays}
+                          clicks={vturbMetrics.uniqueClicks}
+                          orders={ordersCount}
+                        />
+                      </div>
                     </motion.div>
                   </motion.div>
                 </motion.div>
@@ -336,8 +340,8 @@ export const CombinedDashboard = () => {
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
                   className={cn(
-                    "relative rounded-lg bg-card/80 border border-border/50 overflow-hidden cursor-pointer group",
-                    expandedPanel === "chart" && "border-primary/30"
+                    "relative rounded-lg bg-card/80 border border-border/50 cursor-pointer group hover:border-primary/40 transition-colors",
+                    expandedPanel === "chart" && "border-primary/50 cursor-default"
                   )}
                   onClick={() => !expandedPanel && togglePanel("chart")}
                 >
@@ -351,28 +355,33 @@ export const CombinedDashboard = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-7 w-7 p-0 bg-card/80 hover:bg-card"
+                        className="h-7 w-7 p-0 bg-card/80 hover:bg-card border border-border/50"
                         onClick={(e) => { e.stopPropagation(); setExpandedPanel(null); }}
                       >
                         <X className="h-4 w-4" />
                       </Button>
                     ) : (
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Maximize2 className="h-4 w-4 text-muted-foreground" />
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-card/80 p-1 rounded">
+                        <Maximize2 className="h-3.5 w-3.5 text-muted-foreground" />
                       </div>
                     )}
                   </motion.div>
-                  <motion.div layout="position" className={cn("p-2", expandedPanel === "chart" && "p-4")}>
+                  <motion.div layout="position" className={cn("p-3", expandedPanel === "chart" && "p-4")}>
                     <div className="flex items-center gap-1.5 mb-2">
                       <BarChart3 className="h-3.5 w-3.5 text-chart-4" />
                       <span className="text-[10px] text-muted-foreground uppercase font-bold">Tendência de Vendas</span>
                     </div>
-                    <motion.div 
-                      animate={{ height: expandedPanel === "chart" ? 400 : 180 }}
-                      transition={{ duration: 0.3 }}
+                    <div 
+                      className="overflow-hidden"
+                      style={{ height: expandedPanel === "chart" ? 350 : 160 }}
                     >
-                      <SalesChart analyticsData={analyticsData} isLoading={analyticsLoading} />
-                    </motion.div>
+                      <div className={cn(
+                        "w-full h-full",
+                        !expandedPanel && "pointer-events-none"
+                      )}>
+                        <SalesChart analyticsData={analyticsData} isLoading={analyticsLoading} />
+                      </div>
+                    </div>
                   </motion.div>
                 </motion.div>
               )}
@@ -389,8 +398,8 @@ export const CombinedDashboard = () => {
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
                   className={cn(
-                    "relative rounded-lg bg-card/80 border border-border/50 overflow-hidden cursor-pointer group",
-                    expandedPanel === "map" && "border-primary/30"
+                    "relative rounded-lg bg-card/80 border border-border/50 cursor-pointer group hover:border-primary/40 transition-colors",
+                    expandedPanel === "map" && "border-primary/50 cursor-default"
                   )}
                   onClick={() => !expandedPanel && togglePanel("map")}
                 >
@@ -404,28 +413,33 @@ export const CombinedDashboard = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-7 w-7 p-0 bg-card/80 hover:bg-card"
+                        className="h-7 w-7 p-0 bg-card/80 hover:bg-card border border-border/50"
                         onClick={(e) => { e.stopPropagation(); setExpandedPanel(null); }}
                       >
                         <X className="h-4 w-4" />
                       </Button>
                     ) : (
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Maximize2 className="h-4 w-4 text-muted-foreground" />
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-card/80 p-1 rounded">
+                        <Maximize2 className="h-3.5 w-3.5 text-muted-foreground" />
                       </div>
                     )}
                   </motion.div>
-                  <motion.div layout="position" className={cn("p-2", expandedPanel === "map" && "p-4")}>
+                  <motion.div layout="position" className={cn("p-3", expandedPanel === "map" && "p-4")}>
                     <div className="flex items-center gap-1.5 mb-2">
                       <MapPin className="h-3.5 w-3.5 text-chart-3" />
                       <span className="text-[10px] text-muted-foreground uppercase font-bold">Mapa de Vendas</span>
                     </div>
-                    <motion.div 
-                      animate={{ height: expandedPanel === "map" ? 400 : 180 }}
-                      transition={{ duration: 0.3 }}
+                    <div 
+                      className="overflow-hidden rounded-md"
+                      style={{ height: expandedPanel === "map" ? 350 : 160 }}
                     >
-                      <SalesMap />
-                    </motion.div>
+                      <div className={cn(
+                        "w-full h-full",
+                        !expandedPanel && "pointer-events-none"
+                      )}>
+                        <SalesMap />
+                      </div>
+                    </div>
                   </motion.div>
                 </motion.div>
               )}
