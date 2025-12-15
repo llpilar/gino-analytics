@@ -4,7 +4,7 @@ import { NavBar } from "./ui/tubelight-navbar";
 import { useShopifyRevenueToday, useShopifyAnalytics } from "@/hooks/useShopifyData";
 import { format, differenceInMinutes, isToday, isSameDay } from "date-fns";
 import { DashboardSkeleton } from "./DashboardSkeleton";
-import { LayoutDashboard, BarChart3, Settings, Wallet, TrendingUp, DollarSign, ShoppingCart, Users, Zap, Monitor, LayoutGrid, Eye, Megaphone, Target, Truck, Info, Calculator } from "lucide-react";
+import { LayoutDashboard, BarChart3, Settings, Wallet, TrendingUp, DollarSign, ShoppingCart, Users, Zap, Monitor, LayoutGrid, Eye, Megaphone, Target, Truck, Info, Calculator, Layers } from "lucide-react";
 import { NotificationCenter } from "./NotificationCenter";
 import { ComparisonBadge } from "./ComparisonBadge";
 import { useDailyComparison } from "@/hooks/useComparisonMetrics";
@@ -14,6 +14,7 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { useDateFilter } from "@/contexts/DateFilterContext";
 import { useVisualEffects } from "@/contexts/VisualEffectsContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useDashboardSettings } from "@/contexts/DashboardSettingsContext";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { useGA4Visitors } from "@/hooks/useGA4Visitors";
@@ -36,6 +37,7 @@ export const LiveCommandCenter = () => {
   const { data: facebookAdsData } = useFacebookAdsToday();
   const { premiumEffects } = useVisualEffects();
   const { theme, isDarkMode } = useTheme();
+  const { setViewMode } = useDashboardSettings();
 
   // Check if current theme is dark (cyber-neon is always dark, other themes depend on isDarkMode)
   const isCurrentlyDark = theme === 'cyber-neon' || (['clean-blue', 'royal-blue', 'netflix-red'].includes(theme) && isDarkMode);
@@ -205,36 +207,63 @@ export const LiveCommandCenter = () => {
       {!isMobile && (
         <div className="fixed top-4 left-4 z-40">
           <div className="flex items-center gap-1 p-1 rounded-full bg-card border border-primary/30 backdrop-blur-xl">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setLayoutMode("orbital")}
-              className={cn(
-                "rounded-full h-8 px-3 transition-all",
-                layoutMode === "orbital" 
-                  ? "bg-primary/20 text-primary" 
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-              aria-label="Layout orbital com globo"
-              aria-pressed={layoutMode === "orbital"}
-            >
-              <Monitor className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setLayoutMode("grid")}
-              className={cn(
-                "rounded-full h-8 px-3 transition-all",
-                layoutMode === "grid" 
-                  ? "bg-primary/20 text-primary" 
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-              aria-label="Layout em grade"
-              aria-pressed={layoutMode === "grid"}
-            >
-              <LayoutGrid className="h-4 w-4" />
-            </Button>
+            <Tooltip delayDuration={500}>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setLayoutMode("orbital")}
+                  className={cn(
+                    "rounded-full h-8 px-3 transition-all",
+                    layoutMode === "orbital" 
+                      ? "bg-primary/20 text-primary" 
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                  aria-label="Layout orbital com globo"
+                  aria-pressed={layoutMode === "orbital"}
+                >
+                  <Monitor className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent><p>Orbital</p></TooltipContent>
+            </Tooltip>
+            <Tooltip delayDuration={500}>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setLayoutMode("grid")}
+                  className={cn(
+                    "rounded-full h-8 px-3 transition-all",
+                    layoutMode === "grid" 
+                      ? "bg-primary/20 text-primary" 
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                  aria-label="Layout em grade"
+                  aria-pressed={layoutMode === "grid"}
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent><p>Grade</p></TooltipContent>
+            </Tooltip>
+            <Tooltip delayDuration={500}>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setViewMode("combined")}
+                  className={cn(
+                    "rounded-full h-8 px-3 transition-all",
+                    "text-muted-foreground hover:text-foreground"
+                  )}
+                  aria-label="Modo combinado"
+                >
+                  <Layers className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent><p>Combinado</p></TooltipContent>
+            </Tooltip>
           </div>
         </div>
       )}

@@ -1,21 +1,27 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 export type RefreshInterval = 5000 | 10000 | 30000 | 60000;
+export type ViewMode = "normal" | "compact" | "combined";
 
 interface DashboardSettingsContextType {
   compactMode: boolean;
   setCompactMode: (value: boolean) => void;
   refreshInterval: RefreshInterval;
   setRefreshInterval: (value: RefreshInterval) => void;
+  viewMode: ViewMode;
+  setViewMode: (value: ViewMode) => void;
 }
 
 const DashboardSettingsContext = createContext<DashboardSettingsContextType | undefined>(undefined);
 
 export const DashboardSettingsProvider = ({ children }: { children: ReactNode }) => {
-  const [compactMode, setCompactModeState] = useState(() => {
-    const stored = localStorage.getItem("compactMode");
-    return stored !== null ? JSON.parse(stored) : false;
+  const [viewMode, setViewModeState] = useState<ViewMode>(() => {
+    const stored = localStorage.getItem("viewMode");
+    return stored !== null ? JSON.parse(stored) : "normal";
   });
+
+  // compactMode is derived from viewMode for backwards compatibility
+  const compactMode = viewMode === "compact" || viewMode === "combined";
 
   const [refreshInterval, setRefreshIntervalState] = useState<RefreshInterval>(() => {
     const stored = localStorage.getItem("refreshInterval");
@@ -23,8 +29,14 @@ export const DashboardSettingsProvider = ({ children }: { children: ReactNode })
   });
 
   const setCompactMode = (value: boolean) => {
-    setCompactModeState(value);
-    localStorage.setItem("compactMode", JSON.stringify(value));
+    // Legacy support - converts boolean to viewMode
+    setViewModeState(value ? "compact" : "normal");
+    localStorage.setItem("viewMode", JSON.stringify(value ? "compact" : "normal"));
+  };
+
+  const setViewMode = (value: ViewMode) => {
+    setViewModeState(value);
+    localStorage.setItem("viewMode", JSON.stringify(value));
   };
 
   const setRefreshInterval = (value: RefreshInterval) => {
@@ -37,7 +49,9 @@ export const DashboardSettingsProvider = ({ children }: { children: ReactNode })
       compactMode, 
       setCompactMode, 
       refreshInterval, 
-      setRefreshInterval 
+      setRefreshInterval,
+      viewMode,
+      setViewMode
     }}>
       {children}
     </DashboardSettingsContext.Provider>
