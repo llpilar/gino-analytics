@@ -136,77 +136,68 @@
     --sidebar-ring: 357 91% 46%;
   }
 
-  /* Theme: Twitter Blue - Light Mode */
+  /* Theme: Twitter Blue - Dark Mode (Primary) */
   [data-theme="twitter-blue"] {
-    --background: 0 0% 100%;
-    --foreground: 210 25% 8%;
-    --card: 180 7% 97%;
-    --card-foreground: 210 25% 8%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 210 25% 8%;
+    --background: 210 20% 6%;
+    --foreground: 200 20% 95%;
+    --card: 210 25% 10%;
+    --card-foreground: 200 20% 95%;
+    --popover: 210 25% 8%;
+    --popover-foreground: 200 20% 95%;
     --primary: 203 89% 53%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 210 25% 8%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 240 2% 90%;
-    --muted-foreground: 210 25% 8%;
-    --accent: 212 52% 93%;
-    --accent-foreground: 203 89% 53%;
+    --secondary: 210 20% 15%;
+    --secondary-foreground: 200 20% 90%;
+    --muted: 210 15% 18%;
+    --muted-foreground: 200 15% 55%;
+    --accent: 203 60% 20%;
+    --accent-foreground: 203 89% 65%;
     --destructive: 356 91% 54%;
     --destructive-foreground: 0 0% 100%;
-    --border: 200 32% 91%;
-    --input: 195 23% 97%;
+    --border: 210 20% 18%;
+    --input: 210 20% 15%;
     --ring: 203 89% 53%;
-    --radius: 1.3rem;
+    --radius: 0.75rem;
+    
+    /* Chart colors - Twitter palette */
     --chart-1: 203 89% 53%;
     --chart-2: 160 100% 36%;
     --chart-3: 43 93% 56%;
     --chart-4: 152 82% 42%;
     --chart-5: 343 81% 51%;
-    --sidebar: 180 7% 97%;
-    --sidebar-foreground: 210 25% 8%;
+    
+    /* Neon accent colors */
+    --neon-cyan: 203 89% 53%;
+    --neon-cyan-light: 203 89% 65%;
+    --neon-purple: 262 80% 55%;
+    --neon-purple-light: 262 80% 65%;
+    --neon-pink: 343 81% 51%;
+    --neon-pink-light: 343 81% 61%;
+    --neon-green: 160 100% 36%;
+    --neon-green-light: 160 100% 46%;
+    --neon-orange: 43 93% 56%;
+    --neon-orange-light: 43 93% 66%;
+    --neon-blue: 203 89% 53%;
+    --neon-blue-light: 203 89% 65%;
+    
+    /* Status colors */
+    --status-success: 160 100% 36%;
+    --status-warning: 43 93% 56%;
+    --status-error: 356 91% 54%;
+    --status-info: 203 89% 53%;
+    
+    /* Surface colors */
+    --surface-elevated: 210 25% 12%;
+    --surface-overlay: 210 25% 5%;
+    
+    /* Sidebar */
+    --sidebar-background: 210 25% 8%;
+    --sidebar-foreground: 200 20% 90%;
     --sidebar-primary: 203 89% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 212 52% 93%;
-    --sidebar-accent-foreground: 203 89% 53%;
-    --sidebar-border: 200 27% 91%;
-    --sidebar-ring: 203 89% 53%;
-  }
-
-  /* Theme: Twitter Blue - Dark Mode */
-  .dark [data-theme="twitter-blue"],
-  [data-theme="twitter-blue"].dark {
-    --background: 0 0% 0%;
-    --foreground: 200 6% 91%;
-    --card: 225 11% 10%;
-    --card-foreground: 0 0% 85%;
-    --popover: 0 0% 0%;
-    --popover-foreground: 200 6% 91%;
-    --primary: 204 87% 53%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 195 14% 95%;
-    --secondary-foreground: 210 25% 8%;
-    --muted: 0 0% 9%;
-    --muted-foreground: 210 3% 46%;
-    --accent: 209 72% 8%;
-    --accent-foreground: 204 87% 53%;
-    --destructive: 356 91% 54%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 210 4% 15%;
-    --input: 207 28% 18%;
-    --ring: 203 89% 53%;
-    --chart-1: 203 89% 53%;
-    --chart-2: 160 100% 36%;
-    --chart-3: 43 93% 56%;
-    --chart-4: 152 82% 42%;
-    --chart-5: 343 81% 51%;
-    --sidebar: 225 11% 10%;
-    --sidebar-foreground: 0 0% 85%;
-    --sidebar-primary: 203 89% 53%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 209 72% 8%;
-    --sidebar-accent-foreground: 204 87% 53%;
-    --sidebar-border: 207 15% 26%;
+    --sidebar-accent: 203 60% 20%;
+    --sidebar-accent-foreground: 203 89% 65%;
+    --sidebar-border: 210 20% 18%;
     --sidebar-ring: 203 89% 53%;
   }
 
