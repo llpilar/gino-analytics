@@ -150,12 +150,12 @@ export const LiveCommandCenter = () => {
   };
 
   const colorVariants = {
-    cyan: { bg: "bg-cyan-500/20", border: "border-cyan-500/40", text: "text-cyan-400", glow: "shadow-[0_0_30px_rgba(6,182,212,0.3)]" },
-    green: { bg: "bg-emerald-500/20", border: "border-emerald-500/40", text: "text-emerald-400", glow: "shadow-[0_0_30px_rgba(16,185,129,0.3)]" },
-    purple: { bg: "bg-violet-500/20", border: "border-violet-500/40", text: "text-violet-400", glow: "shadow-[0_0_30px_rgba(139,92,246,0.3)]" },
-    orange: { bg: "bg-orange-500/20", border: "border-orange-500/40", text: "text-orange-400", glow: "shadow-[0_0_30px_rgba(249,115,22,0.3)]" },
-    pink: { bg: "bg-pink-500/20", border: "border-pink-500/40", text: "text-pink-400", glow: "shadow-[0_0_30px_rgba(236,72,153,0.3)]" },
-    blue: { bg: "bg-blue-500/20", border: "border-blue-500/40", text: "text-blue-400", glow: "shadow-[0_0_30px_rgba(59,130,246,0.3)]" },
+    cyan: { bg: "bg-gradient-to-br from-primary/20 to-primary/5", border: "border-primary/30", text: "text-primary", glow: "shadow-[0_0_30px_rgba(var(--primary),0.2)]" },
+    green: { bg: "bg-gradient-to-br from-chart-4/20 to-chart-4/5", border: "border-chart-4/30", text: "text-chart-4", glow: "shadow-[0_0_30px_rgba(var(--chart-4),0.2)]" },
+    purple: { bg: "bg-gradient-to-br from-chart-5/20 to-chart-5/5", border: "border-chart-5/30", text: "text-chart-5", glow: "shadow-[0_0_30px_rgba(var(--chart-5),0.2)]" },
+    orange: { bg: "bg-gradient-to-br from-chart-3/20 to-chart-3/5", border: "border-chart-3/30", text: "text-chart-3", glow: "shadow-[0_0_30px_rgba(var(--chart-3),0.2)]" },
+    pink: { bg: "bg-gradient-to-br from-chart-5/20 to-chart-5/5", border: "border-chart-5/30", text: "text-chart-5", glow: "shadow-[0_0_30px_rgba(var(--chart-5),0.2)]" },
+    blue: { bg: "bg-gradient-to-br from-chart-1/20 to-chart-1/5", border: "border-chart-1/30", text: "text-chart-1", glow: "shadow-[0_0_30px_rgba(var(--chart-1),0.2)]" },
   };
 
   return (
