@@ -12,6 +12,7 @@ import { useRealtimeOrders } from "@/hooks/useRealtimeOrders";
 import { Toaster } from "./ui/toaster";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useDateFilter } from "@/contexts/DateFilterContext";
+import { useVisualEffects } from "@/contexts/VisualEffectsContext";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { useGA4Visitors } from "@/hooks/useGA4Visitors";
@@ -32,6 +33,7 @@ export const LiveCommandCenter = () => {
   const { dateRange } = useDateFilter();
   const { visitorCount } = useGA4Visitors();
   const { data: facebookAdsData } = useFacebookAdsToday();
+  const { premiumEffects } = useVisualEffects();
 
   // Check for mobile viewport
   useEffect(() => {
@@ -170,18 +172,24 @@ export const LiveCommandCenter = () => {
         <div className="stars-bg absolute inset-0 dark:opacity-100 opacity-0" />
       </div>
 
-      {/* Shooting Stars - Only in dark mode */}
-      <div aria-hidden="true" className="dark:block hidden">
-        <ShootingStars starColor="#1da1f2" trailColor="#1e9df1" minSpeed={15} maxSpeed={35} minDelay={800} maxDelay={2500} />
-        <ShootingStars starColor="#1c9cf0" trailColor="#1da1f2" minSpeed={10} maxSpeed={25} minDelay={1500} maxDelay={3500} />
-        <ShootingStars starColor="#1da1f2" trailColor="#1e9df1" minSpeed={20} maxSpeed={40} minDelay={1000} maxDelay={3000} />
-      </div>
+      {/* Shooting Stars - Only in dark mode and when premium effects enabled */}
+      {premiumEffects && (
+        <div aria-hidden="true" className="dark:block hidden">
+          <ShootingStars starColor="#1da1f2" trailColor="#1e9df1" minSpeed={15} maxSpeed={35} minDelay={800} maxDelay={2500} />
+          <ShootingStars starColor="#1c9cf0" trailColor="#1da1f2" minSpeed={10} maxSpeed={25} minDelay={1500} maxDelay={3500} />
+          <ShootingStars starColor="#1da1f2" trailColor="#1e9df1" minSpeed={20} maxSpeed={40} minDelay={1000} maxDelay={3000} />
+        </div>
+      )}
       
-      {/* Ambient Lighting - Only in dark mode */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px] dark:opacity-100 opacity-0" aria-hidden="true" />
-      <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px] dark:opacity-100 opacity-0" aria-hidden="true" />
-      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-chart-4/5 rounded-full blur-[180px] dark:opacity-100 opacity-0" aria-hidden="true" />
-      <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-chart-1/5 rounded-full blur-[180px] dark:opacity-100 opacity-0" aria-hidden="true" />
+      {/* Ambient Lighting - Only in dark mode and when premium effects enabled */}
+      {premiumEffects && (
+        <>
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px] dark:opacity-100 opacity-0" aria-hidden="true" />
+          <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px] dark:opacity-100 opacity-0" aria-hidden="true" />
+          <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-chart-4/5 rounded-full blur-[180px] dark:opacity-100 opacity-0" aria-hidden="true" />
+          <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-chart-1/5 rounded-full blur-[180px] dark:opacity-100 opacity-0" aria-hidden="true" />
+        </>
+      )}
 
       {/* Notification - Top Right */}
       <header className="fixed top-4 right-4 z-40 flex items-center gap-3">
@@ -339,33 +347,37 @@ export const LiveCommandCenter = () => {
                           "group relative p-4 md:p-5 lg:p-6 rounded-2xl overflow-hidden",
                           "bg-card/80 backdrop-blur-xl border",
                           "transition-all duration-500 ease-out cursor-pointer",
-                          "hover:scale-[1.03] hover:-translate-y-1",
+                          premiumEffects && "hover:scale-[1.03] hover:-translate-y-1",
                           colors.border,
-                          colors.glow
+                          premiumEffects && colors.glow
                         )}
-                        style={{ 
+                        style={premiumEffects ? { 
                           animationDelay: `${index * 100}ms`,
                           animation: `fadeInUp 0.6s ease-out ${index * 100}ms both`
-                        }}
+                        } : undefined}
                         aria-label={`${stat.label}: ${stat.value}`}
                       >
                         {/* Gradient overlay */}
-                        <div className={cn(
-                          "absolute inset-0 opacity-40 group-hover:opacity-70 transition-opacity duration-500",
-                          colors.bg
-                        )} />
+                        {premiumEffects && (
+                          <div className={cn(
+                            "absolute inset-0 opacity-40 group-hover:opacity-70 transition-opacity duration-500",
+                            colors.bg
+                          )} />
+                        )}
                         
                         {/* Shine effect */}
-                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
-                        </div>
+                        {premiumEffects && (
+                          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
+                          </div>
+                        )}
                         
                         {/* Content */}
                         <div className="relative z-10">
                           <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
                             <div className={cn(
                               "w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center",
-                              "transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3",
+                              premiumEffects && "transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3",
                               colors.bg
                             )}>
                               <Icon className={cn("w-5 h-5", colors.text)} aria-hidden="true" />
@@ -382,7 +394,9 @@ export const LiveCommandCenter = () => {
                           <div className="flex items-center gap-2 mt-2 md:mt-3">
                             <div className="relative">
                               <div className={cn("w-2 h-2 rounded-full", colors.text.replace('text-', 'bg-'))} />
-                              <div className={cn("absolute inset-0 w-2 h-2 rounded-full animate-ping opacity-75", colors.text.replace('text-', 'bg-'))} />
+                              {premiumEffects && (
+                                <div className={cn("absolute inset-0 w-2 h-2 rounded-full animate-ping opacity-75", colors.text.replace('text-', 'bg-'))} />
+                              )}
                             </div>
                             <span className={cn("text-[10px] md:text-xs font-semibold", colors.text)}>Ao vivo</span>
                           </div>

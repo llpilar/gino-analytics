@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { ThemeSelector } from "@/components/ThemeSelector";
 import { FacebookConnection } from "@/components/FacebookConnection";
+import { VisualEffectsToggle } from "@/components/VisualEffectsToggle";
 
 export default function Configuracoes() {
   const { profile, user, signOut } = useAuth();
@@ -35,6 +36,9 @@ export default function Configuracoes() {
         <div className="grid gap-4 md:gap-6 w-full">
           {/* Theme Selector */}
           <ThemeSelector />
+
+          {/* Visual Effects Toggle */}
+          <VisualEffectsToggle />
 
           {/* Facebook Connection */}
           <FacebookConnection />
