@@ -387,142 +387,52 @@ export const CombinedDashboard = () => {
         </motion.section>
 
         {/* Expandable Analysis Panels */}
-        <LayoutGroup>
+        <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+          {/* Funnel Panel */}
           <motion.div 
-            layout
-            className={cn(
-              "grid gap-3",
-              expandedPanel ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-2"
-            )}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="relative rounded-xl overflow-hidden bg-gradient-to-br from-card/90 to-card/50 border border-border/40"
           >
-            {/* Funnel Panel */}
-            <AnimatePresence mode="popLayout">
-              {(!expandedPanel || expandedPanel === "funnel") && (
-                <motion.div 
-                  layout
-                  layoutId="funnel-panel"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-                  className={cn(
-                    "relative rounded-xl overflow-hidden cursor-pointer group",
-                    "bg-gradient-to-br from-card/90 to-card/50",
-                    "border border-border/40 hover:border-primary/30",
-                    "transition-all duration-300",
-                    expandedPanel === "funnel" && "border-primary/50 cursor-default shadow-xl shadow-primary/10"
-                  )}
-                  onClick={() => !expandedPanel && togglePanel("funnel")}
-                >
-                  {/* Glow effect when expanded */}
-                  {expandedPanel === "funnel" && (
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 pointer-events-none" />
-                  )}
-                  
-                  <div className="absolute top-3 right-3 z-10">
-                    {expandedPanel === "funnel" ? (
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        className="h-8 w-8 p-0 rounded-lg shadow-md"
-                        onClick={(e) => { e.stopPropagation(); setExpandedPanel(null); }}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    ) : (
-                      <div className="opacity-0 group-hover:opacity-100 transition-all duration-200 p-2 rounded-lg bg-primary/10 backdrop-blur-sm">
-                        <Maximize2 className="h-4 w-4 text-primary" />
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className={cn("p-4", expandedPanel === "funnel" && "p-6")}>
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="p-1.5 rounded-lg bg-primary/10">
-                        <Target className="h-4 w-4 text-primary" />
-                      </div>
-                      <span className="text-sm font-bold text-foreground">Funil de Conversão</span>
-                    </div>
-                    <div 
-                      className={cn("overflow-hidden", !expandedPanel && "pointer-events-none")}
-                      style={{ height: expandedPanel === "funnel" ? 400 : 200 }}
-                    >
-                      <ConversionFunnel 
-                        visits={vturbMetrics.uniqueViews}
-                        plays={vturbMetrics.uniquePlays}
-                        clicks={vturbMetrics.uniqueClicks}
-                        orders={ordersCount}
-                      />
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Map Panel */}
-            <AnimatePresence mode="popLayout">
-              {(!expandedPanel || expandedPanel === "map") && (
-                <motion.div 
-                  layout
-                  layoutId="map-panel"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-                  className={cn(
-                    "relative rounded-xl overflow-hidden cursor-pointer group",
-                    "bg-gradient-to-br from-card/90 to-card/50",
-                    "border border-border/40 hover:border-chart-3/30",
-                    "transition-all duration-300",
-                    expandedPanel === "map" && "border-chart-3/50 cursor-default shadow-xl shadow-chart-3/10"
-                  )}
-                  onClick={() => !expandedPanel && togglePanel("map")}
-                >
-                  {expandedPanel === "map" && (
-                    <div className="absolute inset-0 bg-gradient-to-br from-chart-3/5 via-transparent to-chart-3/5 pointer-events-none" />
-                  )}
-                  
-                  <div className="absolute top-3 right-3 z-10">
-                    {expandedPanel === "map" ? (
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        className="h-8 w-8 p-0 rounded-lg shadow-md"
-                        onClick={(e) => { e.stopPropagation(); setExpandedPanel(null); }}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    ) : (
-                      <div className="opacity-0 group-hover:opacity-100 transition-all duration-200 p-2 rounded-lg bg-chart-3/10 backdrop-blur-sm">
-                        <Maximize2 className="h-4 w-4 text-chart-3" />
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className={cn("p-4", expandedPanel === "map" && "p-6")}>
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="p-1.5 rounded-lg bg-chart-3/10">
-                        <MapPin className="h-4 w-4 text-chart-3" />
-                      </div>
-                      <span className="text-sm font-bold text-foreground">Mapa de Vendas</span>
-                    </div>
-                    <div 
-                      className="overflow-hidden rounded-lg"
-                      style={{ height: expandedPanel === "map" ? 400 : 200 }}
-                    >
-                      <div className={cn(
-                        "w-full h-full",
-                        !expandedPanel && "pointer-events-none"
-                      )}>
-                        <SalesMap />
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <div className="p-4">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="p-1.5 rounded-lg bg-primary/10">
+                  <Target className="h-4 w-4 text-primary" />
+                </div>
+                <span className="text-sm font-bold text-foreground">Funil de Conversão</span>
+              </div>
+              <div className="h-[350px]">
+                <ConversionFunnel 
+                  visits={vturbMetrics.uniqueViews}
+                  plays={vturbMetrics.uniquePlays}
+                  clicks={vturbMetrics.uniqueClicks}
+                  orders={ordersCount}
+                />
+              </div>
+            </div>
           </motion.div>
-        </LayoutGroup>
+
+          {/* Map Panel */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+            className="relative rounded-xl overflow-hidden bg-gradient-to-br from-card/90 to-card/50 border border-border/40"
+          >
+            <div className="p-4">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="p-1.5 rounded-lg bg-chart-3/10">
+                  <MapPin className="h-4 w-4 text-chart-3" />
+                </div>
+                <span className="text-sm font-bold text-foreground">Mapa de Vendas</span>
+              </div>
+              <div className="h-[350px] rounded-lg overflow-hidden">
+                <SalesMap />
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </div>
     </DashboardWrapper>
   );
