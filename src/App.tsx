@@ -8,6 +8,7 @@ import { DateFilterProvider } from "@/contexts/DateFilterContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { VisualEffectsProvider } from "@/contexts/VisualEffectsContext";
+import { DashboardSettingsProvider } from "@/contexts/DashboardSettingsContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -32,18 +33,20 @@ const App = () => (
             <DateFilterProvider>
               <CurrencyProvider>
                 <VisualEffectsProvider>
-                  <Routes>
-                    <Route path="/auth" element={<Auth />} />
-                    <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-                    <Route path="/analises" element={<ProtectedRoute><Analises /></ProtectedRoute>} />
-                    <Route path="/live-view" element={<ProtectedRoute><LiveView /></ProtectedRoute>} />
-                    <Route path="/contas" element={<ProtectedRoute><Contas /></ProtectedRoute>} />
-                    <Route path="/envios" element={<ProtectedRoute><Envios /></ProtectedRoute>} />
-                    <Route path="/lucratividade" element={<ProtectedRoute><Lucratividade /></ProtectedRoute>} />
-                    <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
-                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
+                  <DashboardSettingsProvider>
+                    <Routes>
+                      <Route path="/auth" element={<Auth />} />
+                      <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+                      <Route path="/analises" element={<ProtectedRoute><Analises /></ProtectedRoute>} />
+                      <Route path="/live-view" element={<ProtectedRoute><LiveView /></ProtectedRoute>} />
+                      <Route path="/contas" element={<ProtectedRoute><Contas /></ProtectedRoute>} />
+                      <Route path="/envios" element={<ProtectedRoute><Envios /></ProtectedRoute>} />
+                      <Route path="/lucratividade" element={<ProtectedRoute><Lucratividade /></ProtectedRoute>} />
+                      <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
+                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </DashboardSettingsProvider>
                 </VisualEffectsProvider>
               </CurrencyProvider>
             </DateFilterProvider>

@@ -1,7 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useDashboardSettings } from "@/contexts/DashboardSettingsContext";
 
 export const useLiveShopify = () => {
+  const { refreshInterval } = useDashboardSettings();
+  
   return useQuery({
     queryKey: ["live-shopify"],
     queryFn: async () => {
@@ -53,6 +56,6 @@ export const useLiveShopify = () => {
         orderCount,
       };
     },
-    refetchInterval: 10000, // Atualiza a cada 10 segundos
+    refetchInterval: refreshInterval,
   });
 };

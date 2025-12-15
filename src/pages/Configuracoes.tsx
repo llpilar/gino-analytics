@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ThemeSelector } from "@/components/ThemeSelector";
 import { FacebookConnection } from "@/components/FacebookConnection";
 import { VisualEffectsToggle } from "@/components/VisualEffectsToggle";
+import { DashboardSettingsToggle } from "@/components/DashboardSettingsToggle";
 
 export default function Configuracoes() {
   const { profile, user, signOut } = useAuth();
@@ -39,6 +40,9 @@ export default function Configuracoes() {
 
           {/* Visual Effects Toggle */}
           <VisualEffectsToggle />
+
+          {/* Dashboard Settings */}
+          <DashboardSettingsToggle />
 
           {/* Facebook Connection */}
           <FacebookConnection />

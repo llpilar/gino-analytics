@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useFacebookAdAccounts } from "./useFacebookAds";
+import { useDashboardSettings } from "@/contexts/DashboardSettingsContext";
 
 export interface FacebookTodayMetrics {
   spend: number;
@@ -22,6 +23,7 @@ const defaultMetrics: FacebookTodayMetrics = {
 
 export function useFacebookAdsToday() {
   const { data: accountsData, error: accountsError, isLoading: accountsLoading } = useFacebookAdAccounts();
+  const { refreshInterval } = useDashboardSettings();
   
   // Check if user needs to connect
   const needsConnection = accountsData?.needsConnection || false;
@@ -76,9 +78,9 @@ export function useFacebookAdsToday() {
       return { spend, purchases, cpa, impressions, clicks };
     },
     enabled: !needsConnection && !!firstAccountId && !accountsError && !accountsLoading,
-    refetchInterval: 60000,
+    refetchInterval: refreshInterval * 2,
     retry: false,
-    staleTime: 30000,
+    staleTime: refreshInterval,
   });
 
   // If still loading accounts or needs connection, return appropriate state
