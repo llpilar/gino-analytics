@@ -392,7 +392,7 @@ export const CombinedDashboard = () => {
             layout
             className={cn(
               "grid gap-3",
-              expandedPanel ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-3"
+              expandedPanel ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-2"
             )}
           >
             {/* Funnel Panel */}
@@ -453,69 +453,6 @@ export const CombinedDashboard = () => {
                         clicks={vturbMetrics.uniqueClicks}
                         orders={ordersCount}
                       />
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Chart Panel */}
-            <AnimatePresence mode="popLayout">
-              {(!expandedPanel || expandedPanel === "chart") && (
-                <motion.div 
-                  layout
-                  layoutId="chart-panel"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-                  className={cn(
-                    "relative rounded-xl overflow-hidden cursor-pointer group",
-                    "bg-gradient-to-br from-card/90 to-card/50",
-                    "border border-border/40 hover:border-chart-4/30",
-                    "transition-all duration-300",
-                    expandedPanel === "chart" && "border-chart-4/50 cursor-default shadow-xl shadow-chart-4/10"
-                  )}
-                  onClick={() => !expandedPanel && togglePanel("chart")}
-                >
-                  {expandedPanel === "chart" && (
-                    <div className="absolute inset-0 bg-gradient-to-br from-chart-4/5 via-transparent to-chart-4/5 pointer-events-none" />
-                  )}
-                  
-                  <div className="absolute top-3 right-3 z-10">
-                    {expandedPanel === "chart" ? (
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        className="h-8 w-8 p-0 rounded-lg shadow-md"
-                        onClick={(e) => { e.stopPropagation(); setExpandedPanel(null); }}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    ) : (
-                      <div className="opacity-0 group-hover:opacity-100 transition-all duration-200 p-2 rounded-lg bg-chart-4/10 backdrop-blur-sm">
-                        <Maximize2 className="h-4 w-4 text-chart-4" />
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className={cn("p-4", expandedPanel === "chart" && "p-6")}>
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="p-1.5 rounded-lg bg-chart-4/10">
-                        <BarChart3 className="h-4 w-4 text-chart-4" />
-                      </div>
-                      <span className="text-sm font-bold text-foreground">Tendência de Vendas</span>
-                    </div>
-                    <div 
-                      className="overflow-hidden"
-                      style={{ height: expandedPanel === "chart" ? 400 : 200 }}
-                    >
-                      <div className={cn(
-                        "w-full h-full",
-                        !expandedPanel && "pointer-events-none"
-                      )}>
-                        <SalesChart analyticsData={analyticsData} isLoading={analyticsLoading} />
-                      </div>
                     </div>
                   </div>
                 </motion.div>
