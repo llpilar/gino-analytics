@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-export type ThemePreset = 'cyber-neon' | 'clean-blue' | 'royal-blue';
+export type ThemePreset = 'cyber-neon' | 'clean-blue' | 'royal-blue' | 'netflix-red';
 
 interface ThemeContextType {
   theme: ThemePreset;
@@ -33,6 +33,13 @@ const themePresets = [
     name: 'Royal Blue',
     description: 'Azul profundo com acentos em laranja',
     colors: ['#0000bb', '#FFCC91', '#f5f5f5', '#000000'],
+    supportsDarkMode: true
+  },
+  {
+    id: 'netflix-red' as ThemePreset,
+    name: 'Netflix Red',
+    description: 'Vermelho vibrante estilo streaming',
+    colors: ['#e50914', '#000000', '#ffffff', '#1a1a1a'],
     supportsDarkMode: true
   }
 ];
