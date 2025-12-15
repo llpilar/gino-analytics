@@ -13,6 +13,7 @@ import { Toaster } from "./ui/toaster";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useDateFilter } from "@/contexts/DateFilterContext";
 import { useVisualEffects } from "@/contexts/VisualEffectsContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { useGA4Visitors } from "@/hooks/useGA4Visitors";
@@ -34,6 +35,10 @@ export const LiveCommandCenter = () => {
   const { visitorCount } = useGA4Visitors();
   const { data: facebookAdsData } = useFacebookAdsToday();
   const { premiumEffects } = useVisualEffects();
+  const { theme, isDarkMode } = useTheme();
+
+  // Check if current theme is dark (cyber-neon is always dark, clean-blue depends on isDarkMode)
+  const isCurrentlyDark = theme === 'cyber-neon' || (theme === 'clean-blue' && isDarkMode);
 
   // Check for mobile viewport
   useEffect(() => {
@@ -169,25 +174,25 @@ export const LiveCommandCenter = () => {
       
       {/* Background Effects */}
       <div className="absolute inset-0 bg-background" aria-hidden="true">
-        <div className="stars-bg absolute inset-0 dark:opacity-100 opacity-0" />
+        {isCurrentlyDark && <div className="stars-bg absolute inset-0" />}
       </div>
 
-      {/* Shooting Stars - Only in dark mode and when premium effects enabled */}
-      {premiumEffects && (
-        <div aria-hidden="true" className="dark:block hidden">
-          <ShootingStars starColor="#1da1f2" trailColor="#1e9df1" minSpeed={15} maxSpeed={35} minDelay={800} maxDelay={2500} />
-          <ShootingStars starColor="#1c9cf0" trailColor="#1da1f2" minSpeed={10} maxSpeed={25} minDelay={1500} maxDelay={3500} />
-          <ShootingStars starColor="#1da1f2" trailColor="#1e9df1" minSpeed={20} maxSpeed={40} minDelay={1000} maxDelay={3000} />
+      {/* Shooting Stars - Only in dark themes and when premium effects enabled */}
+      {premiumEffects && isCurrentlyDark && (
+        <div aria-hidden="true">
+          <ShootingStars starColor="hsl(var(--primary))" trailColor="hsl(var(--secondary))" minSpeed={15} maxSpeed={35} minDelay={800} maxDelay={2500} />
+          <ShootingStars starColor="hsl(var(--neon-cyan))" trailColor="hsl(var(--neon-purple))" minSpeed={10} maxSpeed={25} minDelay={1500} maxDelay={3500} />
+          <ShootingStars starColor="hsl(var(--neon-pink))" trailColor="hsl(var(--neon-green))" minSpeed={20} maxSpeed={40} minDelay={1000} maxDelay={3000} />
         </div>
       )}
       
-      {/* Ambient Lighting - Only in dark mode and when premium effects enabled */}
-      {premiumEffects && (
+      {/* Ambient Lighting - Only in dark themes and when premium effects enabled */}
+      {premiumEffects && isCurrentlyDark && (
         <>
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px] dark:opacity-100 opacity-0" aria-hidden="true" />
-          <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px] dark:opacity-100 opacity-0" aria-hidden="true" />
-          <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-chart-4/5 rounded-full blur-[180px] dark:opacity-100 opacity-0" aria-hidden="true" />
-          <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-chart-1/5 rounded-full blur-[180px] dark:opacity-100 opacity-0" aria-hidden="true" />
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px]" aria-hidden="true" />
+          <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px]" aria-hidden="true" />
+          <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-chart-4/5 rounded-full blur-[180px]" aria-hidden="true" />
+          <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-chart-1/5 rounded-full blur-[180px]" aria-hidden="true" />
         </>
       )}
 
