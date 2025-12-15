@@ -1,5 +1,6 @@
 import { LucideIcon, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useVisualEffects } from "@/contexts/VisualEffectsContext";
 
 export type CardColorVariant = "cyan" | "purple" | "green" | "orange" | "pink" | "blue" | "red";
 
@@ -89,6 +90,7 @@ export const StatsCard = ({
   delay = 0,
 }: StatsCardProps) => {
   const colors = colorClasses[color];
+  const { premiumEffects } = useVisualEffects();
 
   return (
     <article
@@ -97,26 +99,31 @@ export const StatsCard = ({
         "bg-card/80 backdrop-blur-xl border",
         "transition-all duration-500 ease-out",
         colors.border,
-        hoverable && cn("hover:scale-[1.02] hover:-translate-y-1 cursor-pointer", colors.glow),
+        hoverable && premiumEffects && cn("hover:scale-[1.02] hover:-translate-y-1 cursor-pointer", colors.glow),
+        hoverable && !premiumEffects && "cursor-pointer",
         className
       )}
-      style={{ animationDelay: `${delay}ms` }}
+      style={premiumEffects ? { animationDelay: `${delay}ms` } : undefined}
       role="region"
       aria-label={`${title}: ${value}`}
     >
-      {/* Gradient overlay */}
-      <div 
-        className={cn(
-          "absolute inset-0 bg-gradient-to-br opacity-50 transition-opacity duration-500",
-          "group-hover:opacity-100",
-          colors.gradient
-        )} 
-      />
+      {/* Gradient overlay - only with premium effects */}
+      {premiumEffects && (
+        <div 
+          className={cn(
+            "absolute inset-0 bg-gradient-to-br opacity-50 transition-opacity duration-500",
+            "group-hover:opacity-100",
+            colors.gradient
+          )} 
+        />
+      )}
       
-      {/* Shine effect on hover */}
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
-      </div>
+      {/* Shine effect on hover - only with premium effects */}
+      {premiumEffects && (
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
+        </div>
+      )}
       
       {/* Content */}
       <div className="relative z-10">
@@ -124,10 +131,10 @@ export const StatsCard = ({
         <div className="flex items-center gap-3 mb-4">
           <div className={cn(
             "w-11 h-11 rounded-xl flex items-center justify-center",
-            "transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3",
+            premiumEffects && "transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3",
             colors.bg
           )}>
-            <Icon className={cn("w-5 h-5 transition-all duration-300", colors.text)} aria-hidden="true" />
+            <Icon className={cn("w-5 h-5", premiumEffects && "transition-all duration-300", colors.text)} aria-hidden="true" />
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest truncate">
