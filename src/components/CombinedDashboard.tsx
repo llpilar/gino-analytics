@@ -331,7 +331,7 @@ export const CombinedDashboard = () => {
               <div className="p-1 sm:p-1.5 lg:p-2 rounded-lg bg-blue-500/10">
                 <Megaphone className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5 text-blue-400" />
               </div>
-              <span className="text-[10px] sm:text-xs lg:text-sm xl:text-base font-bold text-foreground uppercase tracking-wide">Facebook Ads</span>
+              <span className="text-[10px] sm:text-xs lg:text-sm xl:text-base font-bold text-foreground uppercase tracking-wide">Ads</span>
             </div>
             <div className="grid grid-cols-2 gap-1 sm:gap-2 lg:gap-3">
               {[
