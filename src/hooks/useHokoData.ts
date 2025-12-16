@@ -188,3 +188,45 @@ export const useHokoSharedStock = (params?: { search?: string; category?: number
     retry: 2,
   });
 };
+
+export interface HokoLiquidacion {
+  id: number;
+  order_id?: number;
+  order_number?: string;
+  status?: string;
+  amount?: number;
+  commission?: number;
+  net_amount?: number;
+  created_at?: string;
+  paid_at?: string;
+  customer_name?: string;
+  city?: string;
+}
+
+export const useHokoLiquidaciones = (page: number = 1, dateFilter?: { from: Date; to: Date }) => {
+  return useQuery({
+    queryKey: ['hoko-liquidaciones', page, dateFilter?.from, dateFilter?.to],
+    queryFn: async () => {
+      const params: Record<string, any> = { page };
+      if (dateFilter?.from) {
+        params.start_date = dateFilter.from.toISOString().split('T')[0];
+      }
+      if (dateFilter?.to) {
+        params.end_date = dateFilter.to.toISOString().split('T')[0];
+      }
+      
+      const response = await fetchHokoData<any>('liquidaciones', params);
+      return {
+        status: 'success',
+        data: response.data || response,
+        pagination: {
+          current_page: response.current_page || 1,
+          total_pages: response.last_page || 1,
+          total_items: response.total || 0,
+        }
+      };
+    },
+    staleTime: 30 * 1000, // 30 seconds
+    retry: 2,
+  });
+};
