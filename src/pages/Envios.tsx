@@ -10,7 +10,7 @@ import {
   Clock, TrendingUp, MapPin, Hash, User, DollarSign,
   CheckCircle2, XCircle, Timer, CalendarIcon, Wallet, Undo2
 } from "lucide-react";
-import { useHokoOrders, useHokoProducts, useHokoProductsWithStock } from "@/hooks/useHokoData";
+import { useHokoOrders, useHokoProducts, useHokoProductsWithStock, useHokoLiquidaciones } from "@/hooks/useHokoData";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 import { format, parseISO, isWithinInterval, startOfDay, endOfDay } from "date-fns";
@@ -593,6 +593,155 @@ const ProductsTable = () => {
   );
 };
 
+const LiquidacionesTable = () => {
+  const { dateRange } = useDateFilter();
+  const { data: liquidacionesData, isLoading, error, refetch, isFetching } = useHokoLiquidaciones(1, dateRange.from ? { from: dateRange.from, to: dateRange.to || dateRange.from } : undefined);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <Skeleton key={i} className="h-20 w-full rounded-xl" />
+        ))}
+      </div>
+    );
+  }
+
+  if (error || liquidacionesData?.status === 'error') {
+    return (
+      <div className="flex flex-col items-center justify-center py-16">
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 mb-4">
+          <AlertCircle className="h-10 w-10 text-amber-400" />
+        </div>
+        <p className="text-lg font-semibold text-foreground mb-1">Não foi possível carregar as liquidações</p>
+        <p className="text-sm text-muted-foreground mb-6">{(liquidacionesData as any)?.message || 'Tente novamente mais tarde'}</p>
+        <Button onClick={() => refetch()} variant="outline" className="gap-2 rounded-xl">
+          <RefreshCw className="h-4 w-4" />
+          Tentar novamente
+        </Button>
+      </div>
+    );
+  }
+
+  const liquidaciones = Array.isArray(liquidacionesData?.data) ? liquidacionesData.data : 
+                       Array.isArray(liquidacionesData) ? liquidacionesData : [];
+
+  if (liquidaciones.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16">
+        <div className="p-4 rounded-2xl bg-muted/50 border border-border/50 mb-4">
+          <Wallet className="h-10 w-10 text-muted-foreground" />
+        </div>
+        <p className="text-lg font-semibold text-foreground mb-1">Não há liquidações neste período</p>
+        <p className="text-sm text-muted-foreground">Selecione outro período no filtro de data</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-2 md:gap-3 items-center justify-between">
+        <Badge variant="outline" className="border-border text-muted-foreground text-xs">
+          {liquidaciones.length} liquidações
+        </Badge>
+
+        <Button 
+          onClick={() => refetch()} 
+          variant="outline" 
+          size="sm" 
+          disabled={isFetching}
+          className="gap-2 rounded-xl border-border hover:border-muted-foreground"
+        >
+          <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+          <span className="hidden sm:inline">Atualizar</span>
+        </Button>
+      </div>
+      
+      <div className="rounded-xl border border-border/50 overflow-hidden bg-card/30">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-border hover:bg-transparent bg-card/50">
+                <TableHead className="text-muted-foreground font-semibold whitespace-nowrap">
+                  <div className="flex items-center gap-2">
+                    <Hash className="h-4 w-4" />
+                    ID
+                  </div>
+                </TableHead>
+                <TableHead className="text-muted-foreground font-semibold whitespace-nowrap">
+                  <div className="flex items-center gap-2">
+                    <CalendarIcon className="h-4 w-4" />
+                    Data
+                  </div>
+                </TableHead>
+                <TableHead className="text-muted-foreground font-semibold whitespace-nowrap">Estado</TableHead>
+                <TableHead className="text-muted-foreground font-semibold text-right whitespace-nowrap">
+                  <div className="flex items-center gap-2 justify-end">
+                    <DollarSign className="h-4 w-4" />
+                    Valor
+                  </div>
+                </TableHead>
+                <TableHead className="text-muted-foreground font-semibold text-right whitespace-nowrap hidden md:table-cell">Comissão</TableHead>
+                <TableHead className="text-muted-foreground font-semibold text-right whitespace-nowrap">
+                  <div className="flex items-center gap-2 justify-end">
+                    <TrendingUp className="h-4 w-4" />
+                    Líquido
+                  </div>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {liquidaciones.map((liquidacion: any, index: number) => {
+                const amount = parseFloat(liquidacion.amount || liquidacion.total || 0);
+                const commission = parseFloat(liquidacion.commission || liquidacion.comision || 0);
+                const netAmount = parseFloat(liquidacion.net_amount || liquidacion.neto || (amount - commission) || 0);
+                const status = liquidacion.status || liquidacion.estado || 'Pendiente';
+                const createdAt = liquidacion.created_at || liquidacion.fecha;
+                
+                const statusConfig = status?.toLowerCase().includes('pagad') || status?.toLowerCase().includes('paid') 
+                  ? { bg: 'bg-chart-2/10', text: 'text-chart-2', border: 'border-chart-2/30' }
+                  : status?.toLowerCase().includes('pend') 
+                    ? { bg: 'bg-chart-3/10', text: 'text-chart-3', border: 'border-chart-3/30' }
+                    : { bg: 'bg-muted', text: 'text-muted-foreground', border: 'border-border' };
+                
+                return (
+                  <TableRow 
+                    key={liquidacion.id || index} 
+                    className="border-border/50 hover:bg-accent/30 transition-colors"
+                  >
+                    <TableCell>
+                      <span className="font-mono font-bold text-chart-5 text-xs md:text-sm">
+                        #{liquidacion.id}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-xs md:text-sm">
+                      {createdAt ? format(parseISO(createdAt), 'dd/MM/yyyy', { locale: ptBR }) : 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={`${statusConfig.bg} ${statusConfig.text} ${statusConfig.border} border text-xs`}>
+                        {status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right font-mono font-bold text-foreground text-xs md:text-sm">
+                      {formatCOP(amount)}
+                    </TableCell>
+                    <TableCell className="text-right font-mono text-destructive text-xs md:text-sm hidden md:table-cell">
+                      -{formatCOP(commission)}
+                    </TableCell>
+                    <TableCell className="text-right font-mono font-bold text-chart-2 text-xs md:text-sm">
+                      {formatCOP(netAmount)}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Envios = () => {
   const queryClient = useQueryClient();
 
@@ -601,6 +750,7 @@ const Envios = () => {
     queryClient.invalidateQueries({ queryKey: ['hoko-orders'] });
     queryClient.invalidateQueries({ queryKey: ['hoko-products'] });
     queryClient.invalidateQueries({ queryKey: ['hoko-stock'] });
+    queryClient.invalidateQueries({ queryKey: ['hoko-liquidaciones'] });
   };
 
   return (
@@ -618,6 +768,13 @@ const Envios = () => {
               >
                 <Truck className="h-4 w-4 mr-1.5 md:mr-2" />
                 Pedidos
+              </TabsTrigger>
+              <TabsTrigger 
+                value="liquidaciones" 
+                className="flex-1 sm:flex-none rounded-full px-3 md:px-5 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:text-muted-foreground transition-all duration-300 text-sm"
+              >
+                <Wallet className="h-4 w-4 mr-1.5 md:mr-2" />
+                Liquidações
               </TabsTrigger>
               <TabsTrigger 
                 value="products" 
@@ -647,6 +804,18 @@ const Envios = () => {
                   <p className="text-xs md:text-sm text-muted-foreground">Gerencie e rastreie seus envios</p>
                 </div>
                 <OrdersTable />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="liquidaciones" className="mt-4 md:mt-6">
+            <Card className="bg-card/40 border-border rounded-2xl backdrop-blur-sm overflow-hidden">
+              <CardContent className="p-4 md:p-6">
+                <div className="mb-4 md:mb-6">
+                  <h2 className="text-base md:text-lg font-bold text-foreground">Liquidações</h2>
+                  <p className="text-xs md:text-sm text-muted-foreground">Pagamentos e repasses da Hoko</p>
+                </div>
+                <LiquidacionesTable />
               </CardContent>
             </Card>
           </TabsContent>

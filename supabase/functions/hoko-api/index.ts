@@ -211,6 +211,20 @@ serve(async (req) => {
         result = await hokoRequest(`/member/shared_stock${stockParams}`);
         break;
 
+      case 'liquidaciones':
+        // Fetch liquidaciones (settlements) with pagination
+        const liquidacionesPage = params?.page || 1;
+        let liquidacionesQuery = `?page=${liquidacionesPage}`;
+        if (params?.start_date) {
+          liquidacionesQuery += `&start_date=${params.start_date}`;
+        }
+        if (params?.end_date) {
+          liquidacionesQuery += `&end_date=${params.end_date}`;
+        }
+        console.log(`Fetching liquidaciones: /member/liquidacion${liquidacionesQuery}`);
+        result = await hokoRequest(`/member/liquidacion${liquidacionesQuery}`);
+        break;
+
       default:
         throw new Error(`Unknown endpoint: ${endpoint}`);
     }
