@@ -212,7 +212,7 @@ serve(async (req) => {
         break;
 
       case 'liquidaciones':
-        // Fetch liquidaciones (settlements) with pagination
+        // Try multiple possible endpoints for liquidaciones/settlements
         const liquidacionesPage = params?.page || 1;
         let liquidacionesQuery = `?page=${liquidacionesPage}`;
         if (params?.start_date) {
@@ -221,8 +221,41 @@ serve(async (req) => {
         if (params?.end_date) {
           liquidacionesQuery += `&end_date=${params.end_date}`;
         }
-        console.log(`Fetching liquidaciones: /member/liquidacion${liquidacionesQuery}`);
-        result = await hokoRequest(`/member/liquidacion${liquidacionesQuery}`);
+        
+        // Try different possible endpoint names
+        const possibleEndpoints = [
+          `/member/liquidaciones${liquidacionesQuery}`,
+          `/member/settlement${liquidacionesQuery}`,
+          `/member/settlements${liquidacionesQuery}`,
+          `/member/balance${liquidacionesQuery}`,
+          `/member/payments${liquidacionesQuery}`,
+        ];
+        
+        let liquidacionesResult = null;
+        for (const endpoint of possibleEndpoints) {
+          console.log(`Trying liquidaciones endpoint: ${endpoint}`);
+          try {
+            const response = await hokoRequest(endpoint);
+            if (!response.exception && !response.message?.includes('could not be found')) {
+              console.log(`Found working endpoint: ${endpoint}`);
+              liquidacionesResult = response;
+              break;
+            }
+          } catch (e) {
+            console.log(`Endpoint ${endpoint} failed, trying next...`);
+          }
+        }
+        
+        if (!liquidacionesResult) {
+          console.log('No liquidaciones endpoint found, returning empty data');
+          result = { 
+            data: [], 
+            message: 'Endpoint de liquidaciones não disponível na API Hoko. Verifique com o suporte da Hoko qual é o endpoint correto.',
+            endpoints_tried: possibleEndpoints 
+          };
+        } else {
+          result = liquidacionesResult;
+        }
         break;
 
       default:
