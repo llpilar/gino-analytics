@@ -426,35 +426,64 @@ serve(async (req) => {
         }
       `;
     } else if (endpoint === 'products-sales') {
-      // Query para pegar vendas dos últimos 30 dias com detalhes dos produtos e variantes
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      // Query para pegar vendas com detalhes dos produtos e variantes
+      let startDateISO: string;
+      let endDateISO: string;
       
-      graphqlQuery = `
-        {
-          orders(first: 250, query: "created_at:>='${thirtyDaysAgo.toISOString()}'") {
-            edges {
-              node {
-                id
-                createdAt
-                shippingAddress {
-                  city
-                  provinceCode
-                  countryCode
-                  country
-                }
-                lineItems(first: 50) {
-                  edges {
-                    node {
-                      quantity
-                      variant {
-                        id
-                        title
-                        sku
-                        price
-                        product {
+      // Se houver datas customizadas, usar elas
+      if (customDates && customDates.from && customDates.to) {
+        startDateISO = new Date(customDates.from).toISOString();
+        endDateISO = new Date(customDates.to).toISOString();
+        console.log(`[products-sales] Buscando vendas de ${startDateISO} até ${endDateISO}`);
+      } else {
+        // Caso contrário, usar os últimos 30 dias
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        startDateISO = thirtyDaysAgo.toISOString();
+        endDateISO = new Date().toISOString();
+        console.log(`[products-sales] Buscando vendas dos últimos 30 dias`);
+      }
+      
+      // Usar paginação para pegar todos os pedidos
+      let allOrders: any[] = [];
+      let hasNextPage = true;
+      let cursor = null;
+      
+      while (hasNextPage && allOrders.length < 5000) {
+        const paginationQuery: string = cursor 
+          ? `, after: "${cursor}"` 
+          : '';
+        
+        const paginatedQuery: string = `
+          {
+            orders(first: 250, sortKey: CREATED_AT, reverse: true, query: "created_at:>='${startDateISO}' AND created_at:<='${endDateISO}'"${paginationQuery}) {
+              pageInfo {
+                hasNextPage
+                endCursor
+              }
+              edges {
+                node {
+                  id
+                  createdAt
+                  shippingAddress {
+                    city
+                    provinceCode
+                    countryCode
+                    country
+                  }
+                  lineItems(first: 50) {
+                    edges {
+                      node {
+                        quantity
+                        variant {
                           id
                           title
+                          sku
+                          price
+                          product {
+                            id
+                            title
+                          }
                         }
                       }
                     }
@@ -463,8 +492,48 @@ serve(async (req) => {
               }
             }
           }
+        `;
+        
+        const pageResponse = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Shopify-Access-Token': shopifyAccessToken,
+          },
+          body: JSON.stringify({ query: paginatedQuery }),
+        });
+        
+        if (!pageResponse.ok) {
+          throw new Error(`Erro na paginação products-sales: ${pageResponse.status}`);
         }
-      `;
+        
+        const pageData = await pageResponse.json();
+        const orders = pageData.data?.orders?.edges || [];
+        allOrders = [...allOrders, ...orders];
+        
+        hasNextPage = pageData.data?.orders?.pageInfo?.hasNextPage || false;
+        cursor = pageData.data?.orders?.pageInfo?.endCursor || null;
+        
+        console.log(`[products-sales] Página carregada: ${orders.length} pedidos. Total: ${allOrders.length}`);
+      }
+      
+      console.log(`[products-sales] Total de pedidos: ${allOrders.length}`);
+      
+      return new Response(
+        JSON.stringify({
+          data: {
+            orders: {
+              edges: allOrders
+            }
+          }
+        }),
+        { 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          } 
+        }
+      );
     } else if (endpoint === 'customers') {
       graphqlQuery = `
         {
