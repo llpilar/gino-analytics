@@ -7,7 +7,7 @@ interface PageHeaderProps {
 
 export const PageHeader = ({ title, subtitle }: PageHeaderProps) => {
   return (
-    <div className="mb-4 md:mb-8">
+    <div>
       <HyperText 
         text={title} 
         className="text-2xl md:text-4xl font-black text-foreground tracking-tight"

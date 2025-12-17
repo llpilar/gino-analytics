@@ -18,6 +18,7 @@ import { useGA4Visitors } from "@/hooks/useGA4Visitors";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ConversionFunnel } from "@/components/ConversionFunnel";
 import { RealTimeAnalytics } from "@/components/ui/real-time-analytics";
+import { DateFilterDropdown } from "@/components/DateFilterDropdown";
 
 export default function Analises() {
   // Default to the VSL ESPANHOL Colômbia.mp4 video
@@ -116,10 +117,13 @@ export default function Analises() {
     <DashboardWrapper>
       <div className="w-full max-w-[2400px] mx-auto px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 2xl:px-12 py-4 md:py-6 lg:py-8 min-h-screen pb-24 md:pb-12">
         {/* Header */}
-        <PageHeader 
-          title="Central de Análises"
-          subtitle="Monitoramento de desempenho em tempo real"
-        />
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 md:mb-8">
+          <PageHeader 
+            title="Central de Análises"
+            subtitle="Monitoramento de desempenho em tempo real"
+          />
+          <DateFilterDropdown />
+        </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
