@@ -66,11 +66,16 @@ const fetchVariantPerformance = async (dateRange: { from: Date; to: Date }): Pro
 export const useVariantPerformance = () => {
   const { dateRange } = useDateFilter();
   
+  // Garantir que as datas existem antes de fazer a query
+  const from = dateRange.from || new Date();
+  const to = dateRange.to || new Date();
+  
   return useQuery({
-    queryKey: ['variant-performance', dateRange.from, dateRange.to],
-    queryFn: () => fetchVariantPerformance(dateRange),
+    queryKey: ['variant-performance', from.toISOString(), to.toISOString()],
+    queryFn: () => fetchVariantPerformance({ from, to }),
     refetchInterval: 300000, // 5 minutos
     retry: 3,
     staleTime: 60000,
+    enabled: !!dateRange.from && !!dateRange.to,
   });
 };
