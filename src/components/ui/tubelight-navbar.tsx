@@ -3,10 +3,12 @@
 import React, { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { Link, useLocation } from "react-router-dom"
-import { LucideIcon } from "lucide-react"
+import { LucideIcon, RefreshCw } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useCurrency } from "@/contexts/CurrencyContext"
 import { DateFilterDropdown } from "@/components/DateFilterDropdown"
+import { useQueryClient } from "@tanstack/react-query"
+import { toast } from "@/hooks/use-toast"
 
 interface NavItem {
   name: string
@@ -24,7 +26,20 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
   const location = useLocation()
   const [activeTab, setActiveTab] = useState(items[0].name)
   const [isMobile, setIsMobile] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const { currency, setCurrency } = useCurrency()
+  const queryClient = useQueryClient()
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    await queryClient.invalidateQueries()
+    toast({
+      title: "Dados atualizados",
+      description: "Todos os dados foram recarregados.",
+      duration: 2000,
+    })
+    setIsRefreshing(false)
+  }
 
   useEffect(() => {
     // Update active tab based on current route
@@ -136,6 +151,21 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
             <div className="hidden sm:block -ml-1">
               <DateFilterDropdown />
             </div>
+
+            {/* Refresh Button */}
+            <div className="h-6 w-px bg-border mx-1 hidden sm:block" aria-hidden="true" />
+            <button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className={cn(
+                "hidden sm:flex items-center justify-center w-8 h-8 rounded-full",
+                "bg-card border border-border hover:bg-accent transition-all duration-300",
+                isRefreshing && "opacity-50 cursor-not-allowed"
+              )}
+              aria-label="Atualizar dados"
+            >
+              <RefreshCw className={cn("h-4 w-4 text-muted-foreground", isRefreshing && "animate-spin")} />
+            </button>
           </>
         )}
       </div>
