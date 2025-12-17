@@ -1,14 +1,29 @@
-import { Bell } from "lucide-react";
+import { Bell, RefreshCw } from "lucide-react";
 import { Button } from "./ui/button";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { ProfileEditor } from "./ProfileEditor";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import { NotificationsPanel } from "./NotificationsPanel";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "@/hooks/use-toast";
 
 export const DashboardHeader = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const { profile } = useAuth();
+  const queryClient = useQueryClient();
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await queryClient.invalidateQueries();
+    toast({
+      title: "Dados atualizados",
+      description: "Todos os dados foram recarregados com sucesso.",
+      duration: 2000,
+    });
+    setIsRefreshing(false);
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -57,6 +72,16 @@ export const DashboardHeader = () => {
             </span>
           </div>
           
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="glass-card hover:bg-accent"
+          >
+            <RefreshCw className={`h-5 w-5 text-foreground ${isRefreshing ? 'animate-spin' : ''}`} />
+          </Button>
+
           <Sheet>
             <SheetTrigger asChild>
               <Button 
