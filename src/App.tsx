@@ -15,7 +15,7 @@ import Auth from "./pages/Auth";
 import Analises from "./pages/Analises";
 import Configuracoes from "./pages/Configuracoes";
 import LiveView from "./pages/LiveView";
-import Contas from "./pages/Contas";
+import Financeiro from "./pages/Financeiro";
 import Envios from "./pages/Envios";
 import Lucratividade from "./pages/Lucratividade";
 import Cloaker from "./pages/Cloaker";
@@ -41,7 +41,7 @@ const App = () => (
                       <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
                       <Route path="/analises" element={<ProtectedRoute><Analises /></ProtectedRoute>} />
                       <Route path="/live-view" element={<ProtectedRoute><LiveView /></ProtectedRoute>} />
-                      <Route path="/contas" element={<ProtectedRoute><Contas /></ProtectedRoute>} />
+                      <Route path="/financeiro" element={<ProtectedRoute><Financeiro /></ProtectedRoute>} />
                       <Route path="/envios" element={<ProtectedRoute><Envios /></ProtectedRoute>} />
                       <Route path="/lucratividade" element={<ProtectedRoute><Lucratividade /></ProtectedRoute>} />
                       <Route path="/cloaker" element={<ProtectedRoute><Cloaker /></ProtectedRoute>} />

@@ -278,3 +278,86 @@ export const useToggleFixedExpense = () => {
     },
   });
 };
+
+// Withdrawals (Saques)
+export interface Withdrawal {
+  id: string;
+  partner_name: string;
+  amount: number;
+  description: string | null;
+  withdrawal_date: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export const useWithdrawals = () => {
+  const { dateRange } = useDateFilter();
+  
+  return useQuery({
+    queryKey: ['withdrawals', dateRange.from, dateRange.to],
+    queryFn: async () => {
+      let query = supabase
+        .from('withdrawals')
+        .select('*')
+        .order('withdrawal_date', { ascending: false });
+      
+      if (dateRange.from) {
+        query = query.gte('withdrawal_date', format(dateRange.from, 'yyyy-MM-dd'));
+      }
+      if (dateRange.to) {
+        query = query.lte('withdrawal_date', format(dateRange.to, 'yyyy-MM-dd'));
+      }
+      
+      const { data, error } = await query;
+      
+      if (error) throw error;
+      return data as Withdrawal[];
+    },
+  });
+};
+
+export const useAddWithdrawal = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (withdrawal: Omit<Withdrawal, 'id' | 'created_at' | 'updated_at'>) => {
+      const { data, error } = await supabase
+        .from('withdrawals')
+        .insert(withdrawal)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['withdrawals'] });
+      toast.success('Saque registrado com sucesso!');
+    },
+    onError: (error) => {
+      toast.error('Erro ao registrar saque: ' + error.message);
+    },
+  });
+};
+
+export const useDeleteWithdrawal = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('withdrawals')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['withdrawals'] });
+      toast.success('Saque removido com sucesso!');
+    },
+    onError: (error) => {
+      toast.error('Erro ao remover saque: ' + error.message);
+    },
+  });
+};
