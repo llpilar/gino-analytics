@@ -1,4 +1,4 @@
-import { Home, BarChart3, Activity, Settings, Zap, LogOut, Truck, Wallet, Calculator } from "lucide-react";
+import { Home, BarChart3, Activity, Settings, Zap, LogOut, Truck, Wallet, Calculator, Shield } from "lucide-react";
 import { Button } from "./ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation, Link } from "react-router-dom";
@@ -9,7 +9,8 @@ const menuItems = [
   { icon: Activity, label: "Ao Vivo", path: "/live-view" },
   { icon: Truck, label: "Envios", path: "/envios" },
   { icon: Calculator, label: "Lucro", path: "/lucratividade" },
-  { icon: Wallet, label: "Contas", path: "/contas" },
+  { icon: Shield, label: "Cloaker", path: "/cloaker" },
+  { icon: Wallet, label: "Financeiro", path: "/financeiro" },
   { icon: Settings, label: "Configurações", path: "/configuracoes" },
 ];
 
