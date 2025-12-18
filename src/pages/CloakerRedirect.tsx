@@ -185,7 +185,7 @@ function getFontsFingerprint(): string {
   return Math.abs(hash).toString(16);
 }
 
-// Automation detection
+// Automation detection - improved to reduce false positives
 function detectAutomation(): {
   hasWebdriver: boolean;
   hasPhantom: boolean;
@@ -197,29 +197,36 @@ function detectAutomation(): {
   const nav = navigator as any;
   const win = window as any;
   
-  const hasWebdriver = !!(nav.webdriver || win.document.$cdc_asdjflasutopfhvcZLmcfl_ || 
-    win.$chrome_asyncScriptInfo || win.__webdriver_evaluate || win.__selenium_evaluate ||
-    win.__webdriver_script_function || win.__webdriver_script_func || 
-    win.__webdriver_script_fn || win.__fxdriver_evaluate || 
-    win.__driver_unwrapped || win.__webdriver_unwrapped || win.__driver_evaluate ||
-    win.__selenium_unwrapped || win.__fxdriver_unwrapped);
+  // More strict webdriver detection
+  const hasWebdriver = !!(nav.webdriver === true || 
+    win.document.$cdc_asdjflasutopfhvcZLmcfl_ || 
+    win.__webdriver_evaluate || win.__selenium_evaluate ||
+    win.__webdriver_script_function);
   
-  const hasPhantom = !!(win.callPhantom || win._phantom || win.phantom);
+  // Phantom detection - be more specific
+  const hasPhantom = !!(win.callPhantom || win._phantom);
   
-  const hasSelenium = !!(win.__nightmare || win.emit || win.spawn || 
+  // Selenium - only check specific attributes
+  const hasSelenium = !!(
     document.documentElement.getAttribute("selenium") ||
     document.documentElement.getAttribute("webdriver") ||
-    document.documentElement.getAttribute("driver"));
+    win.__nightmare);
   
-  const hasPuppeteer = !!(win.__puppeteer_evaluation_script__ || 
-    win.puppeteer || nav.webdriver);
+  // Puppeteer - be more specific
+  const hasPuppeteer = !!(win.__puppeteer_evaluation_script__);
   
-  const isHeadless = /HeadlessChrome/.test(nav.userAgent) || 
-    nav.plugins?.length === 0 ||
-    !win.chrome ||
-    !win.chrome.runtime;
+  // Headless detection - more accurate
+  const userAgent = nav.userAgent || "";
+  const isHeadlessUA = /HeadlessChrome|PhantomJS/i.test(userAgent);
+  const hasNoPlugins = nav.plugins?.length === 0 && !/mobile|android|iphone/i.test(userAgent);
   
-  const isAutomated = hasWebdriver || hasPhantom || hasSelenium || hasPuppeteer || isHeadless;
+  // Check for real Chrome - don't flag if chrome object exists with loadTimes
+  const hasRealChrome = win.chrome && (win.chrome.loadTimes || win.chrome.csi || win.chrome.app);
+  
+  const isHeadless = isHeadlessUA || (hasNoPlugins && !hasRealChrome);
+  
+  // Only mark as automated if strong signals are present
+  const isAutomated = hasWebdriver || hasPhantom || hasSelenium || hasPuppeteer;
   
   return { hasWebdriver, hasPhantom, hasSelenium, hasPuppeteer, isHeadless, isAutomated };
 }
