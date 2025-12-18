@@ -21,8 +21,8 @@ export const DashboardWrapper = ({ children }: DashboardWrapperProps) => {
     { name: 'Análises', url: '/analises', icon: BarChart3 },
     { name: 'Lucro', url: '/lucratividade', icon: Calculator },
     { name: 'Financeiro', url: '/financeiro', icon: Wallet },
-    { name: 'Envios', url: '/envios', icon: Truck },
     { name: 'Cloaker', url: '/cloaker', icon: Shield },
+    { name: 'Envios', url: '/envios', icon: Truck },
     { name: 'Config', url: '/configuracoes', icon: Settings }
   ];
 
