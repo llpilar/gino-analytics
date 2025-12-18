@@ -849,6 +849,7 @@ function generateFingerprintPage(slug: string, supabaseUrl: string): string {
 
 Deno.serve(async (req) => {
   console.log(`[Cloaker] Request: ${req.method}`);
+  
   // Handle CORS
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -858,7 +859,7 @@ Deno.serve(async (req) => {
   const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-  // Handle GET requests - serve fingerprinting page
+  // Handle GET requests - instant redirect based on headers
   if (req.method === "GET") {
     const url = new URL(req.url);
     const slug = url.searchParams.get("s") || url.searchParams.get("slug");
@@ -869,10 +870,10 @@ Deno.serve(async (req) => {
     
     console.log(`[Cloaker] GET request for slug: ${slug}`);
     
-    // Check if link exists
+    // Get link with all settings
     const { data: link, error } = await supabase
       .from("cloaked_links")
-      .select("id, is_active, safe_url")
+      .select("*")
       .eq("slug", slug)
       .single();
     
@@ -882,18 +883,73 @@ Deno.serve(async (req) => {
     }
     
     if (!link.is_active) {
-      console.log("[Cloaker] Link inactive, redirecting to safe URL");
+      console.log("[Cloaker] Link inactive");
       return Response.redirect(link.safe_url, 302);
     }
+
+    // Get request info from headers
+    const userAgent = req.headers.get("user-agent") || "";
+    const cfCountry = req.headers.get("cf-ipcountry") || req.headers.get("x-vercel-ip-country") || "";
+    const cfIp = req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "";
     
-    // Serve fingerprinting page
-    const html = generateFingerprintPage(slug, supabaseUrl);
-    return new Response(html, {
-      headers: { 
-        "Content-Type": "text/html; charset=utf-8",
-        "Cache-Control": "no-store, no-cache, must-revalidate",
+    // Determine device type
+    const deviceType = getDeviceType(userAgent);
+    
+    // Check if it's a bot based on User-Agent
+    const isBot = BOT_UA_PATTERNS.some(p => p.test(userAgent));
+    
+    let decision: "allow" | "block" = "allow";
+    let blockReason = "";
+
+    // Check device filter
+    if (link.allowed_devices?.length > 0 && !link.allowed_devices.includes(deviceType)) {
+      decision = "block";
+      blockReason = `Device ${deviceType} not in allowed list [${link.allowed_devices.join(",")}]`;
+    }
+    // Check country filter - allowed
+    else if (link.allowed_countries?.length > 0 && cfCountry && !link.allowed_countries.includes(cfCountry)) {
+      decision = "block";
+      blockReason = `Country ${cfCountry} not in allowed list`;
+    }
+    // Check country filter - blocked
+    else if (link.blocked_countries?.length > 0 && cfCountry && link.blocked_countries.includes(cfCountry)) {
+      decision = "block";
+      blockReason = `Country ${cfCountry} in blocked list`;
+    }
+    // Check bot detection
+    else if (link.block_bots && isBot) {
+      decision = "block";
+      blockReason = "Bot detected";
+    }
+
+    const redirectUrl = decision === "allow" ? link.target_url : link.safe_url;
+    
+    console.log(`[Cloaker] Decision: ${decision}${blockReason ? ` (${blockReason})` : ""}`);
+    console.log(`[Cloaker] Device: ${deviceType}, Country: ${cfCountry || "unknown"}, Bot: ${isBot}`);
+    console.log(`[Cloaker] Redirecting to: ${redirectUrl.substring(0, 50)}...`);
+
+    // Log visitor async
+    (async () => {
+      try {
+        await supabase.from("cloaker_visitors").insert({
+          link_id: link.id,
+          fingerprint_hash: hashString(userAgent + cfIp),
+          score: decision === "allow" ? 100 : 0,
+          decision,
+          user_agent: userAgent,
+          ip_address: cfIp,
+          country_code: cfCountry,
+          platform: deviceType,
+          is_bot: isBot,
+        });
+        await supabase.from("cloaked_links").update({ clicks_count: link.clicks_count + 1 }).eq("id", link.id);
+      } catch (e) {
+        console.error("[Cloaker] Log error:", e);
       }
-    });
+    })();
+
+    // Instant redirect
+    return Response.redirect(redirectUrl, 302);
   }
 
   // Handle POST requests - process fingerprint
