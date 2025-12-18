@@ -35,3 +35,6 @@ verify_jwt = true
 
 [functions.ga4-realtime]
 verify_jwt = true
+
+[functions.cloaker-redirect]
+verify_jwt = false
