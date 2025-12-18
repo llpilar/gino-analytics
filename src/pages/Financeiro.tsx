@@ -227,6 +227,14 @@ export default function Financeiro() {
   const partner2Withdrawals = withdrawals?.filter(w => w.partner_name === partner2).reduce((sum, w) => sum + Number(w.amount), 0) || 0;
   const totalWithdrawals = partner1Withdrawals + partner2Withdrawals;
 
+  // Calculate open balance (what each partner still needs to withdraw to reimburse their expenses)
+  const partner1OpenBalance = partner1Total - partner1Withdrawals;
+  const partner2OpenBalance = partner2Total - partner2Withdrawals;
+  
+  // Determine who should withdraw next
+  const nextToWithdraw = partner1OpenBalance > partner2OpenBalance ? partner1 : partner2;
+  const nextWithdrawAmount = Math.max(partner1OpenBalance, partner2OpenBalance);
+
   if (expensesLoading || configLoading || fixedLoading || withdrawalsLoading) {
     return (
       <DashboardWrapper>
@@ -348,6 +356,56 @@ export default function Financeiro() {
               color={stat.color}
             />
           ))}
+        </div>
+
+        {/* Saldo em Aberto - Open Balance Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
+          <div className="bg-card/60 border border-border rounded-xl p-4 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-1 h-full bg-purple-500"></div>
+            <div className="ml-2">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Saldo em Aberto - {partner1}</p>
+              <p className={`text-2xl font-black ${partner1OpenBalance > 0 ? 'text-purple-400' : 'text-chart-2'}`}>
+                {formatBRL(partner1OpenBalance)}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Gastou {formatBRL(partner1Total)} • Sacou {formatBRL(partner1Withdrawals)}
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-card/60 border border-border rounded-xl p-4 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-1 h-full bg-orange-500"></div>
+            <div className="ml-2">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Saldo em Aberto - {partner2}</p>
+              <p className={`text-2xl font-black ${partner2OpenBalance > 0 ? 'text-orange-400' : 'text-chart-2'}`}>
+                {formatBRL(partner2OpenBalance)}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Gastou {formatBRL(partner2Total)} • Sacou {formatBRL(partner2Withdrawals)}
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-card/60 border-2 border-primary/30 rounded-xl p-4 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-1 h-full bg-primary"></div>
+            <div className="ml-2">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Próximo Saque</p>
+              {nextWithdrawAmount > 0 ? (
+                <>
+                  <p className="text-2xl font-black text-primary">{nextToWithdraw}</p>
+                  <p className="text-xs text-chart-2 mt-1 font-semibold">
+                    <ArrowDownCircle className="inline h-3 w-3 mr-1" />
+                    {formatBRL(nextWithdrawAmount)} a receber
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-2xl font-black text-chart-2">Equilibrado!</p>
+                  <p className="text-xs text-muted-foreground mt-1">Ambos já receberam o que gastaram</p>
+                </>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Tabs for different sections */}
