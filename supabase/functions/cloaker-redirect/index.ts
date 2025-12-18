@@ -206,14 +206,10 @@ function calculateScore(fp: FingerprintData, link: any, headers: Headers): Score
 
   // === AUTOMATION DETECTION ===
   
+  // Strong signals - definitive automation
   if (fp.hasWebdriver) {
     automationScore -= 25;
     flags.push("webdriver_detected");
-  }
-
-  if (fp.hasPhantom) {
-    automationScore -= 25;
-    flags.push("phantom_detected");
   }
 
   if (fp.hasSelenium) {
@@ -226,17 +222,23 @@ function calculateScore(fp: FingerprintData, link: any, headers: Headers): Score
     flags.push("puppeteer_detected");
   }
 
-  if (fp.isHeadless) {
+  // Weaker signals - reduce penalty
+  if (fp.hasPhantom) {
+    automationScore -= 15;
+    flags.push("phantom_detected");
+  }
+
+  if (fp.isHeadless && fp.isAutomated) {
+    // Only penalize if BOTH headless AND automated
     automationScore -= 20;
+    flags.push("headless_automated");
+  } else if (fp.isHeadless) {
+    // Just headless without automation signals - minor penalty
+    automationScore -= 5;
     flags.push("headless_detected");
   }
 
-  if (fp.isAutomated) {
-    automationScore -= 15;
-    flags.push("automation_flag");
-  }
-
-  // Check for bot user agents
+  // Check for bot user agents - this is a strong signal
   for (const pattern of BOT_UA_PATTERNS) {
     if (pattern.test(fp.userAgent)) {
       automationScore -= 30;
@@ -245,16 +247,10 @@ function calculateScore(fp: FingerprintData, link: any, headers: Headers): Score
     }
   }
 
-  // Storage API consistency check
-  if (!fp.cookiesEnabled || !fp.localStorage || !fp.sessionStorage) {
+  // Storage API consistency check - minor signal
+  if (!fp.cookiesEnabled && !fp.localStorage) {
     automationScore -= 5;
     flags.push("storage_disabled");
-  }
-
-  // Performance entries (bots often have unusual patterns)
-  if (fp.performanceEntries === 0) {
-    automationScore -= 5;
-    flags.push("no_perf_entries");
   }
 
   // === NETWORK ANALYSIS ===
@@ -331,27 +327,32 @@ function calculateScore(fp: FingerprintData, link: any, headers: Headers): Score
     }
   }
 
-  // Device type check
+  // Device type check - only apply if configured
   const deviceType = getDeviceType(fp.userAgent);
   if (link.allowed_devices && link.allowed_devices.length > 0) {
     if (!link.allowed_devices.includes(deviceType)) {
-      networkScore -= 20;
-      flags.push("device_blocked");
+      networkScore -= 15;
+      flags.push("device_filtered");
     }
   }
 
   // === COMBINED SIGNALS - Google Ads Bot Profile ===
   // Google Ads reviewers typically: no behavior, headless, fast, no fingerprint diversity
-  const isLikelyGoogleAdsBot = (
-    fp.mouseMovements === 0 &&
-    fp.scrollEvents === 0 &&
-    fp.timeOnPage < 1500 &&
-    (fp.isHeadless || !fp.webglRenderer || fp.pluginsCount === 0)
-  );
+  // Only flag if MULTIPLE strong signals present
+  const botSignals = [
+    fp.mouseMovements === 0 && !fp.touchSupport,
+    fp.scrollEvents === 0,
+    fp.timeOnPage < 1000,
+    !fp.webglRenderer,
+    fp.isHeadless && fp.isAutomated,
+  ].filter(Boolean).length;
   
-  if (isLikelyGoogleAdsBot) {
+  if (botSignals >= 4) {
     automationScore -= 15;
-    flags.push("google_ads_bot_profile");
+    flags.push("bot_profile");
+  } else if (botSignals >= 3) {
+    automationScore -= 8;
+    flags.push("suspicious_profile");
   }
 
   // Normalize scores (0-25 each, total 0-100)
