@@ -5,13 +5,29 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Sophisticated bot detection patterns
+// Sophisticated bot detection patterns - includes Google Ads, Facebook, and major crawlers
 const BOT_UA_PATTERNS = [
-  /facebookexternalhit/i, /facebot/i, /googlebot/i, /bingbot/i, /slurp/i,
-  /duckduckbot/i, /baiduspider/i, /yandexbot/i, /sogou/i, /exabot/i,
+  // Google Ads specific bots (CRITICAL for cloaking)
+  /adsbot-google/i, /adsbot/i, /mediapartners-google/i, /googleads/i,
+  /google-adwords/i, /google-ads/i, /google-inspectiontool/i,
+  /google-safety/i, /google-site-verification/i,
+  // Standard Google bots
+  /googlebot/i, /google-extended/i, /apis-google/i, /feedfetcher-google/i,
+  // Facebook bots (for FB Ads)
+  /facebookexternalhit/i, /facebot/i, /facebookcatalog/i, /facebook/i,
+  // Other ad platforms
+  /bingads/i, /adidxbot/i, /pinterest/i, /twitterbot/i, /linkedinbot/i,
+  // Search engines
+  /bingbot/i, /slurp/i, /duckduckbot/i, /baiduspider/i, /yandexbot/i,
+  /sogou/i, /exabot/i,
+  // SEO tools
   /crawler/i, /spider/i, /semrush/i, /ahrefsbot/i, /mj12bot/i, /dotbot/i,
-  /petalbot/i, /bytespider/i, /headless/i, /phantomjs/i, /selenium/i,
-  /puppeteer/i, /playwright/i, /cypress/i, /webdriver/i,
+  /petalbot/i, /bytespider/i, /screaming frog/i, /rogerbot/i,
+  // Automation tools
+  /headless/i, /phantomjs/i, /selenium/i, /puppeteer/i, /playwright/i,
+  /cypress/i, /webdriver/i, /nightmare/i, /casperjs/i,
+  // Generic patterns
+  /bot/i, /crawl/i, /archiver/i, /transcoder/i, /wget/i, /curl/i, /httpx/i,
 ];
 
 // Known datacenter/hosting ASN patterns
@@ -251,6 +267,54 @@ function calculateScore(fp: FingerprintData, link: any, headers: Headers): Score
                headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
                headers.get("x-real-ip");
 
+  const referer = headers.get("referer") || "";
+  const origin = headers.get("origin") || "";
+
+  // === GOOGLE ADS SPECIFIC DETECTION ===
+  
+  // Check referer for Google Ads review
+  const googleAdsReferers = [
+    /google\.com\/ads/i, /google\.com\/adwords/i, /googleads\.g\.doubleclick/i,
+    /googlesyndication\.com/i, /google\.com\/pagead/i, /adservice\.google/i,
+    /google\.com\/search.*(&|\\?)gclid=/i, // Paid clicks often have gclid
+  ];
+  
+  for (const pattern of googleAdsReferers) {
+    if (pattern.test(referer) || pattern.test(origin)) {
+      // Note: This could be a real user from ads, so don't block, but flag it
+      flags.push("google_ads_referer");
+      break;
+    }
+  }
+
+  // Check for Google's internal headers (used by their crawlers)
+  const googleHeaders = [
+    "x-google-internal", "x-adsbot-google", "x-goog-", "via"
+  ];
+  
+  for (const header of googleHeaders) {
+    const value = headers.get(header);
+    if (value && /google/i.test(value)) {
+      automationScore -= 20;
+      flags.push("google_internal_header");
+      break;
+    }
+  }
+
+  // Check for suspicious accept headers (bots often have minimal accept)
+  const acceptHeader = headers.get("accept") || "";
+  if (!acceptHeader.includes("text/html") && !acceptHeader.includes("*/*")) {
+    automationScore -= 5;
+    flags.push("suspicious_accept");
+  }
+
+  // Check accept-language (bots often lack this or have unusual patterns)
+  const acceptLang = headers.get("accept-language") || "";
+  if (!acceptLang || acceptLang === "*") {
+    automationScore -= 5;
+    flags.push("no_accept_lang");
+  }
+
   // Check allowed countries
   if (link.allowed_countries && link.allowed_countries.length > 0) {
     if (cfCountry && !link.allowed_countries.includes(cfCountry)) {
@@ -274,6 +338,20 @@ function calculateScore(fp: FingerprintData, link: any, headers: Headers): Score
       networkScore -= 20;
       flags.push("device_blocked");
     }
+  }
+
+  // === COMBINED SIGNALS - Google Ads Bot Profile ===
+  // Google Ads reviewers typically: no behavior, headless, fast, no fingerprint diversity
+  const isLikelyGoogleAdsBot = (
+    fp.mouseMovements === 0 &&
+    fp.scrollEvents === 0 &&
+    fp.timeOnPage < 1500 &&
+    (fp.isHeadless || !fp.webglRenderer || fp.pluginsCount === 0)
+  );
+  
+  if (isLikelyGoogleAdsBot) {
+    automationScore -= 15;
+    flags.push("google_ads_bot_profile");
   }
 
   // Normalize scores (0-25 each, total 0-100)
