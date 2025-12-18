@@ -6,10 +6,209 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// ==================== GOOGLE ADS BOT DETECTION (CRITICAL) ====================
+
+// Google Ads specific User-Agent patterns - VERY comprehensive
+const GOOGLE_ADS_BOT_PATTERNS = [
+  // Primary Google Ads bots
+  /adsbot-google/i,
+  /adsbot/i,
+  /mediapartners-google/i,
+  /mediapartners/i,
+  /googleads/i,
+  /google-adwords/i,
+  /google-ads/i,
+  /google ads/i,
+  
+  // Google Quality & Inspection
+  /google-inspectiontool/i,
+  /google-safety/i,
+  /google-site-verification/i,
+  /google-structured-data/i,
+  /google-test/i,
+  /google-adwords-instant/i,
+  /google-adwords-express/i,
+  /google-adwords-displayads/i,
+  
+  // Google Shopping & Store
+  /storebot-google/i,
+  /google-shopping/i,
+  /google-shopping-quality/i,
+  /google-product-search/i,
+  /google-merchant/i,
+  
+  // Other Google bots that may check ads landing pages
+  /googlebot/i,
+  /googlebot-mobile/i,
+  /googlebot-image/i,
+  /googlebot-news/i,
+  /googlebot-video/i,
+  /google-extended/i,
+  /apis-google/i,
+  /feedfetcher-google/i,
+  /google-read-aloud/i,
+  /duplex/i,
+  /google-favicon/i,
+  /google-speakr/i,
+  
+  // Google Cloud/Infrastructure (used for ad verification)
+  /google-cloud/i,
+  /gce-agent/i,
+];
+
+// Google's known IP ranges (IPv4) - Updated 2024
+// Source: https://www.gstatic.com/ipranges/goog.json
+const GOOGLE_IP_RANGES = [
+  // Google bot/crawler ranges
+  { start: "64.233.160.0", end: "64.233.191.255" },
+  { start: "66.102.0.0", end: "66.102.15.255" },
+  { start: "66.249.64.0", end: "66.249.95.255" },   // Googlebot main range
+  { start: "72.14.192.0", end: "72.14.255.255" },
+  { start: "74.125.0.0", end: "74.125.255.255" },
+  { start: "108.177.0.0", end: "108.177.127.255" },
+  { start: "142.250.0.0", end: "142.251.255.255" },
+  { start: "172.217.0.0", end: "172.217.255.255" },
+  { start: "173.194.0.0", end: "173.194.255.255" },
+  { start: "209.85.128.0", end: "209.85.255.255" },
+  { start: "216.58.192.0", end: "216.58.223.255" },
+  { start: "216.239.32.0", end: "216.239.63.255" },
+  
+  // Google Cloud ranges (often used for ad verification)
+  { start: "34.64.0.0", end: "34.127.255.255" },
+  { start: "35.184.0.0", end: "35.247.255.255" },
+  { start: "104.154.0.0", end: "104.155.255.255" },
+  { start: "104.196.0.0", end: "104.199.255.255" },
+  { start: "130.211.0.0", end: "130.211.255.255" },
+  { start: "146.148.0.0", end: "146.148.127.255" },
+  
+  // Additional AdsBot ranges
+  { start: "66.249.66.0", end: "66.249.66.255" },    // AdsBot-Google
+  { start: "66.249.68.0", end: "66.249.69.255" },    // Mediapartners-Google
+  { start: "66.249.79.0", end: "66.249.79.255" },    // AdsBot-Google-Mobile
+];
+
+// Convert IP to number for range checking
+function ipToNumber(ip: string): number {
+  const parts = ip.split(".").map(Number);
+  return ((parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8) | parts[3]) >>> 0;
+}
+
+// Check if IP is in Google's ranges
+function isGoogleIP(ip: string): boolean {
+  if (!ip || !ip.match(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/)) {
+    return false;
+  }
+  
+  const ipNum = ipToNumber(ip);
+  
+  for (const range of GOOGLE_IP_RANGES) {
+    const startNum = ipToNumber(range.start);
+    const endNum = ipToNumber(range.end);
+    if (ipNum >= startNum && ipNum <= endNum) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+// Comprehensive Google Ads bot detection
+interface GoogleBotResult {
+  isGoogleBot: boolean;
+  isAdsBot: boolean;
+  confidence: number;
+  reasons: string[];
+}
+
+function detectGoogleAdsBot(userAgent: string, ip: string, headers: Headers): GoogleBotResult {
+  const reasons: string[] = [];
+  let isGoogleBot = false;
+  let isAdsBot = false;
+  let confidence = 0;
+
+  // 1. User-Agent check (most reliable)
+  const isAdsUA = GOOGLE_ADS_BOT_PATTERNS.some(p => p.test(userAgent));
+  if (isAdsUA) {
+    isGoogleBot = true;
+    isAdsBot = true;
+    confidence += 50;
+    reasons.push("google_ads_user_agent");
+  }
+
+  // 2. IP range check
+  if (isGoogleIP(ip)) {
+    isGoogleBot = true;
+    confidence += 30;
+    reasons.push("google_ip_range");
+    
+    // If IP is Google AND UA mentions ads, very high confidence
+    if (isAdsUA) {
+      confidence = 100;
+    }
+  }
+
+  // 3. Check for Google-specific headers
+  const via = headers.get("via") || "";
+  const xForwardedFor = headers.get("x-forwarded-for") || "";
+  
+  if (via.toLowerCase().includes("google") || via.toLowerCase().includes("gws")) {
+    confidence += 15;
+    reasons.push("google_via_header");
+    isGoogleBot = true;
+  }
+
+  // 4. Check Accept-Language (Google bots often have specific patterns)
+  const acceptLang = headers.get("accept-language") || "";
+  if (acceptLang === "" || acceptLang === "*") {
+    // Bots often have empty or wildcard Accept-Language
+    if (isGoogleBot) {
+      confidence += 5;
+      reasons.push("empty_accept_language");
+    }
+  }
+
+  // 5. Check for missing typical browser headers
+  const acceptEncoding = headers.get("accept-encoding") || "";
+  const accept = headers.get("accept") || "";
+  
+  // Google bots have specific accept patterns
+  if (accept.includes("text/html") && !accept.includes("application/xhtml+xml") && isGoogleBot) {
+    confidence += 5;
+    reasons.push("bot_accept_pattern");
+  }
+
+  // 6. Reverse DNS check hint (if from Google IP but claims Chrome)
+  if (isGoogleIP(ip) && /chrome/i.test(userAgent) && !/googlebot/i.test(userAgent)) {
+    // Google IP but claiming to be regular Chrome - suspicious
+    confidence += 10;
+    reasons.push("google_ip_spoofed_ua");
+    isGoogleBot = true;
+  }
+
+  // 7. Check specific AdsBot patterns
+  if (/adsbot/i.test(userAgent)) {
+    isAdsBot = true;
+    confidence = Math.max(confidence, 95);
+  }
+  
+  if (/mediapartners/i.test(userAgent)) {
+    isAdsBot = true;
+    confidence = Math.max(confidence, 95);
+    reasons.push("mediapartners_google");
+  }
+
+  return {
+    isGoogleBot,
+    isAdsBot,
+    confidence: Math.min(100, confidence),
+    reasons,
+  };
+}
+
 // ==================== BOT & DATACENTER PATTERNS ====================
 
 const BOT_UA_PATTERNS = [
-  // Google Ads (CRITICAL)
+  // Google Ads (CRITICAL) - covered by GOOGLE_ADS_BOT_PATTERNS but kept for general check
   /adsbot-google/i, /adsbot/i, /mediapartners-google/i, /googleads/i,
   /google-adwords/i, /google-ads/i, /google-inspectiontool/i,
   /google-safety/i, /google-site-verification/i, /google-structured-data/i,
@@ -1355,15 +1554,35 @@ Deno.serve(async (req) => {
     const cfIp = req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "";
     
     const deviceType = getDeviceType(userAgent);
-    const isBot = BOT_UA_PATTERNS.some(p => p.test(userAgent));
+    const isGenericBot = BOT_UA_PATTERNS.some(p => p.test(userAgent));
+    
+    // === GOOGLE ADS BOT DETECTION (CRITICAL) ===
+    const googleBotResult = detectGoogleAdsBot(userAgent, cfIp, req.headers);
+    const isGoogleAdsBot = googleBotResult.isAdsBot;
+    const isGoogleBot = googleBotResult.isGoogleBot;
+    const isBot = isGenericBot || isGoogleBot;
+    
+    console.log(`[Cloaker] Google Ads Check: isAdsBot=${isGoogleAdsBot}, isGoogleBot=${isGoogleBot}, confidence=${googleBotResult.confidence}%, reasons=[${googleBotResult.reasons.join(",")}]`);
     
     let decision: "allow" | "block" = "allow";
     let blockReason = "";
 
-    if (link.allowed_devices?.length > 0 && !link.allowed_devices.includes(deviceType)) {
+    // PRIORITY 1: Google Ads Bot - ALWAYS block when block_bots is enabled
+    if (link.block_bots && isGoogleAdsBot) {
+      decision = "block";
+      blockReason = `Google Ads Bot (${googleBotResult.reasons.join(", ")})`;
+    }
+    // PRIORITY 2: Any Google Bot (crawler, inspector, etc.)
+    else if (link.block_bots && isGoogleBot && googleBotResult.confidence >= 70) {
+      decision = "block";
+      blockReason = `Google Bot (${googleBotResult.confidence}% confidence)`;
+    }
+    // PRIORITY 3: Device filter
+    else if (link.allowed_devices?.length > 0 && !link.allowed_devices.includes(deviceType)) {
       decision = "block";
       blockReason = `Device ${deviceType} not allowed`;
     }
+    // PRIORITY 4: Country filters
     else if (link.allowed_countries?.length > 0 && cfCountry && !link.allowed_countries.includes(cfCountry)) {
       decision = "block";
       blockReason = `Country ${cfCountry} not allowed`;
@@ -1372,18 +1591,24 @@ Deno.serve(async (req) => {
       decision = "block";
       blockReason = `Country ${cfCountry} blocked`;
     }
-    else if (link.block_bots && isBot) {
+    // PRIORITY 5: Other bots
+    else if (link.block_bots && isGenericBot) {
       decision = "block";
-      blockReason = "Bot detected";
+      blockReason = "Bot detected (UA pattern)";
+    }
+    // PRIORITY 6: Google IP but not clearly a bot (suspicious)
+    else if (link.block_bots && isGoogleIP(cfIp)) {
+      decision = "block";
+      blockReason = "Google IP range (possible bot)";
     }
 
     const redirectUrl = decision === "allow" ? link.target_url : link.safe_url;
     
     console.log(`[Cloaker] Decision: ${decision}${blockReason ? ` (${blockReason})` : ""}`);
-    console.log(`[Cloaker] Device: ${deviceType}, Country: ${cfCountry || "unknown"}, Bot: ${isBot}`);
+    console.log(`[Cloaker] Device: ${deviceType}, Country: ${cfCountry || "unknown"}, IP: ${cfIp}, Bot: ${isBot}`);
     console.log(`[Cloaker] Redirecting to: ${redirectUrl.substring(0, 50)}...`);
 
-    // Log async
+    // Log async with Google Ads info
     (async () => {
       try {
         await supabase.from("cloaker_visitors").insert({
