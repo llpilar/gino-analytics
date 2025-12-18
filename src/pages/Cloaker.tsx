@@ -107,7 +107,9 @@ export default function Cloaker() {
   };
 
   const handleCopyLink = (slug: string) => {
-    const url = `${window.location.origin}/go/${slug}`;
+    // Use edge function URL directly - hides lovable domain
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const url = `${supabaseUrl}/functions/v1/cloaker-redirect?s=${slug}`;
     navigator.clipboard.writeText(url);
     toast.success("Link copiado!");
   };
