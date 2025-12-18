@@ -948,37 +948,66 @@ Deno.serve(async (req) => {
     const cfCity = req.headers.get("cf-city") || "";
 
     // Decision logic
-    const minScore = link.min_score || 35; // Lowered default
+    const minScore = link.min_score || 35;
     let decision: "allow" | "block" | "safe";
     let redirectUrl: string;
 
-    // Check for DEFINITIVE bot flags only - clear automation tools
-    const hasDefinitiveBotFlags = scoreResult.flags.some(f => 
-      f === "WEBDRIVER" || f === "BOT_UA" || f === "HEADLESS_AUTOMATED" || f === "DEFINITIVE_BOT"
-    );
+    // Get device type for filtering
+    const deviceType = getDeviceType(fingerprint.userAgent);
+    const cfCountryForFilter = req.headers.get("cf-ipcountry") || req.headers.get("x-vercel-ip-country") || "";
 
-    if (hasDefinitiveBotFlags) {
+    // CRITICAL: Check hard filters FIRST - these always block regardless of score
+    
+    // Device filter - if allowed_devices is set, ONLY those devices can pass
+    if (link.allowed_devices?.length > 0 && !link.allowed_devices.includes(deviceType)) {
       decision = "safe";
       redirectUrl = link.safe_url;
-      console.log("[Cloaker] BLOCKED: Definitive bot detected");
-    } else if (scoreResult.riskLevel === "critical" && scoreResult.confidence >= 95) {
-      // Only block critical if high confidence
+      console.log(`[Cloaker] BLOCKED: Device ${deviceType} not in allowed list [${link.allowed_devices.join(",")}]`);
+    }
+    // Country filter - allowed countries
+    else if (link.allowed_countries?.length > 0 && cfCountryForFilter && !link.allowed_countries.includes(cfCountryForFilter)) {
       decision = "safe";
       redirectUrl = link.safe_url;
-      console.log("[Cloaker] BLOCKED: Critical risk with high confidence");
-    } else if (scoreResult.total >= minScore) {
-      decision = "allow";
-      redirectUrl = link.target_url;
-      console.log(`[Cloaker] ALLOWED: Score ${scoreResult.total} >= ${minScore}`);
-    } else if (scoreResult.total >= minScore - 10 && scoreResult.riskLevel === "low") {
-      // Borderline case with low risk - allow
-      decision = "allow";
-      redirectUrl = link.target_url;
-      console.log(`[Cloaker] ALLOWED: Borderline but low risk`);
-    } else {
-      decision = "block";
+      console.log(`[Cloaker] BLOCKED: Country ${cfCountryForFilter} not in allowed list`);
+    }
+    // Country filter - blocked countries
+    else if (link.blocked_countries?.length > 0 && cfCountryForFilter && link.blocked_countries.includes(cfCountryForFilter)) {
+      decision = "safe";
       redirectUrl = link.safe_url;
-      console.log(`[Cloaker] BLOCKED: Score ${scoreResult.total} < ${minScore}`);
+      console.log(`[Cloaker] BLOCKED: Country ${cfCountryForFilter} in blocked list`);
+    }
+    // Bot detection - check for definitive bot flags
+    else {
+      const hasDefinitiveBotFlags = scoreResult.flags.some(f => 
+        f === "WEBDRIVER" || f === "BOT_UA" || f === "HEADLESS_AUTOMATED" || f === "DEFINITIVE_BOT"
+      );
+
+      // Block bots if enabled
+      if (link.block_bots && hasDefinitiveBotFlags) {
+        decision = "safe";
+        redirectUrl = link.safe_url;
+        console.log("[Cloaker] BLOCKED: Bot detected (block_bots enabled)");
+      } else if (hasDefinitiveBotFlags) {
+        decision = "safe";
+        redirectUrl = link.safe_url;
+        console.log("[Cloaker] BLOCKED: Definitive bot detected");
+      } else if (scoreResult.riskLevel === "critical" && scoreResult.confidence >= 95) {
+        decision = "safe";
+        redirectUrl = link.safe_url;
+        console.log("[Cloaker] BLOCKED: Critical risk with high confidence");
+      } else if (scoreResult.total >= minScore) {
+        decision = "allow";
+        redirectUrl = link.target_url;
+        console.log(`[Cloaker] ALLOWED: Score ${scoreResult.total} >= ${minScore}`);
+      } else if (scoreResult.total >= minScore - 10 && scoreResult.riskLevel === "low") {
+        decision = "allow";
+        redirectUrl = link.target_url;
+        console.log(`[Cloaker] ALLOWED: Borderline but low risk`);
+      } else {
+        decision = "block";
+        redirectUrl = link.safe_url;
+        console.log(`[Cloaker] BLOCKED: Score ${scoreResult.total} < ${minScore}`);
+      }
     }
 
     // Log visitor (async)
