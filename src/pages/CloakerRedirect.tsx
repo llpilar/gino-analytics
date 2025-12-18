@@ -773,13 +773,11 @@ function detectAutomation(): {
   ];
   const hasWebdriver = webdriverChecks.some(Boolean);
   
-  // Phantom detection
+  // Phantom detection - more strict, only check for definitive PhantomJS signatures
   const hasPhantom = !!(
-    win.callPhantom || 
-    win._phantom || 
-    win.phantom ||
-    win.__phantomas ||
-    /phantom/i.test(nav.userAgent)
+    typeof win.callPhantom === 'function' || // Only function, not just property
+    win._phantom?.version || // Only if it has version property
+    /PhantomJS/i.test(nav.userAgent) // Exact match in UA
   );
   
   // Selenium detection
@@ -816,25 +814,21 @@ function detectAutomation(): {
   // Nightmare detection
   const hasNightmare = !!(win.__nightmare);
   
-  // Headless detection
+  // Headless detection - require more signals for certainty
   const ua = nav.userAgent || "";
   const headlessChecks = [
     /HeadlessChrome/i.test(ua),
     /PhantomJS/i.test(ua),
     /Headless/i.test(ua),
-    nav.plugins?.length === 0 && !/mobile|android|iphone/i.test(ua),
-    !nav.languages || nav.languages.length === 0,
-    !win.chrome && /chrome/i.test(ua),
-    win.chrome && !win.chrome.runtime && !win.chrome.loadTimes && !win.chrome.csi,
     nav.webdriver === true,
-    !nav.mimeTypes || nav.mimeTypes.length === 0,
     typeof win.outerWidth === "undefined" || win.outerWidth === 0,
     typeof win.outerHeight === "undefined" || win.outerHeight === 0,
   ];
+  // Require at least 2 definitive signals, not soft signals like plugins
   const isHeadless = headlessChecks.filter(Boolean).length >= 2;
   
-  const isAutomated = hasWebdriver || hasPhantom || hasSelenium || 
-                      hasPuppeteer || hasPlaywright || hasCypress || hasNightmare;
+  // Only mark as automated if we have definitive webdriver or explicit automation tool
+  const isAutomated = hasWebdriver || hasPuppeteer || hasPlaywright || hasCypress;
   
   return { 
     hasWebdriver, hasPhantom, hasSelenium, 
