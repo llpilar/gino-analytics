@@ -18,13 +18,17 @@ export type Database = {
         Row: {
           allowed_countries: string[] | null
           allowed_devices: string[] | null
+          behavior_time_ms: number | null
           block_bots: boolean
           blocked_countries: string[] | null
           clicks_count: number
+          collect_fingerprint: boolean | null
           created_at: string
           id: string
           is_active: boolean
+          min_score: number | null
           name: string
+          require_behavior: boolean | null
           safe_url: string
           slug: string
           target_url: string
@@ -34,13 +38,17 @@ export type Database = {
         Insert: {
           allowed_countries?: string[] | null
           allowed_devices?: string[] | null
+          behavior_time_ms?: number | null
           block_bots?: boolean
           blocked_countries?: string[] | null
           clicks_count?: number
+          collect_fingerprint?: boolean | null
           created_at?: string
           id?: string
           is_active?: boolean
+          min_score?: number | null
           name: string
+          require_behavior?: boolean | null
           safe_url: string
           slug: string
           target_url: string
@@ -50,13 +58,17 @@ export type Database = {
         Update: {
           allowed_countries?: string[] | null
           allowed_devices?: string[] | null
+          behavior_time_ms?: number | null
           block_bots?: boolean
           blocked_countries?: string[] | null
           clicks_count?: number
+          collect_fingerprint?: boolean | null
           created_at?: string
           id?: string
           is_active?: boolean
+          min_score?: number | null
           name?: string
+          require_behavior?: boolean | null
           safe_url?: string
           slug?: string
           target_url?: string
@@ -64,6 +76,158 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      cloaker_visitors: {
+        Row: {
+          audio_hash: string | null
+          canvas_hash: string | null
+          city: string | null
+          color_depth: number | null
+          country_code: string | null
+          created_at: string
+          decision: string
+          device_memory: number | null
+          fingerprint_hash: string
+          focus_changes: number | null
+          fonts_hash: string | null
+          hardware_concurrency: number | null
+          has_phantom: boolean | null
+          has_puppeteer: boolean | null
+          has_selenium: boolean | null
+          has_webdriver: boolean | null
+          id: string
+          ip_address: string | null
+          is_automated: boolean | null
+          is_bot: boolean | null
+          is_datacenter: boolean | null
+          is_headless: boolean | null
+          is_proxy: boolean | null
+          is_tor: boolean | null
+          is_vpn: boolean | null
+          isp: string | null
+          keypress_events: number | null
+          language: string | null
+          link_id: string | null
+          mouse_movements: number | null
+          platform: string | null
+          plugins_count: number | null
+          score: number
+          score_automation: number | null
+          score_behavior: number | null
+          score_fingerprint: number | null
+          score_network: number | null
+          screen_resolution: string | null
+          scroll_events: number | null
+          time_on_page: number | null
+          timezone: string | null
+          touch_support: boolean | null
+          user_agent: string | null
+          webgl_renderer: string | null
+          webgl_vendor: string | null
+        }
+        Insert: {
+          audio_hash?: string | null
+          canvas_hash?: string | null
+          city?: string | null
+          color_depth?: number | null
+          country_code?: string | null
+          created_at?: string
+          decision: string
+          device_memory?: number | null
+          fingerprint_hash: string
+          focus_changes?: number | null
+          fonts_hash?: string | null
+          hardware_concurrency?: number | null
+          has_phantom?: boolean | null
+          has_puppeteer?: boolean | null
+          has_selenium?: boolean | null
+          has_webdriver?: boolean | null
+          id?: string
+          ip_address?: string | null
+          is_automated?: boolean | null
+          is_bot?: boolean | null
+          is_datacenter?: boolean | null
+          is_headless?: boolean | null
+          is_proxy?: boolean | null
+          is_tor?: boolean | null
+          is_vpn?: boolean | null
+          isp?: string | null
+          keypress_events?: number | null
+          language?: string | null
+          link_id?: string | null
+          mouse_movements?: number | null
+          platform?: string | null
+          plugins_count?: number | null
+          score?: number
+          score_automation?: number | null
+          score_behavior?: number | null
+          score_fingerprint?: number | null
+          score_network?: number | null
+          screen_resolution?: string | null
+          scroll_events?: number | null
+          time_on_page?: number | null
+          timezone?: string | null
+          touch_support?: boolean | null
+          user_agent?: string | null
+          webgl_renderer?: string | null
+          webgl_vendor?: string | null
+        }
+        Update: {
+          audio_hash?: string | null
+          canvas_hash?: string | null
+          city?: string | null
+          color_depth?: number | null
+          country_code?: string | null
+          created_at?: string
+          decision?: string
+          device_memory?: number | null
+          fingerprint_hash?: string
+          focus_changes?: number | null
+          fonts_hash?: string | null
+          hardware_concurrency?: number | null
+          has_phantom?: boolean | null
+          has_puppeteer?: boolean | null
+          has_selenium?: boolean | null
+          has_webdriver?: boolean | null
+          id?: string
+          ip_address?: string | null
+          is_automated?: boolean | null
+          is_bot?: boolean | null
+          is_datacenter?: boolean | null
+          is_headless?: boolean | null
+          is_proxy?: boolean | null
+          is_tor?: boolean | null
+          is_vpn?: boolean | null
+          isp?: string | null
+          keypress_events?: number | null
+          language?: string | null
+          link_id?: string | null
+          mouse_movements?: number | null
+          platform?: string | null
+          plugins_count?: number | null
+          score?: number
+          score_automation?: number | null
+          score_behavior?: number | null
+          score_fingerprint?: number | null
+          score_network?: number | null
+          screen_resolution?: string | null
+          scroll_events?: number | null
+          time_on_page?: number | null
+          timezone?: string | null
+          touch_support?: boolean | null
+          user_agent?: string | null
+          webgl_renderer?: string | null
+          webgl_vendor?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloaker_visitors_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "cloaked_links"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       expenses: {
         Row: {
