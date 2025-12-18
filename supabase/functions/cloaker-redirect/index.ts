@@ -8,17 +8,107 @@ const corsHeaders = {
 
 // ==================== GOOGLE ADS BOT DETECTION (CRITICAL) ====================
 
-// Google Ads specific User-Agent patterns - VERY comprehensive
-const GOOGLE_ADS_BOT_PATTERNS = [
-  // Primary Google Ads bots
-  /adsbot-google/i,
+// === GOOGLE CRAWLERS BY PURPOSE (Official Documentation - October 2025) ===
+
+// 1. INDEXING (Core Search) - Main crawlers
+const GOOGLE_INDEXING_PATTERNS = [
+  // Googlebot Desktop - exact UA
+  /Mozilla\/5\.0 \(compatible; Googlebot\/2\.1/i,
+  /Googlebot\/2\.1/i,
+  /googlebot/i,
+  
+  // Googlebot Smartphone - exact UA
+  /Nexus 5X.*Googlebot/i,
+  /Mobile.*Googlebot/i,
+  /Googlebot.*Mobile/i,
+];
+
+// 2. DISCOVERY (Link & Sitemap Crawling)
+const GOOGLE_DISCOVERY_PATTERNS = [
+  // Googlebot-Image
+  /Googlebot-Image\/1\.0/i,
+  /Googlebot-Image/i,
+  
+  // Storebot-Google (Shopping)
+  /Storebot-Google\/1\./i,
+  /Storebot-Google/i,
+];
+
+// 3. RENDERING (JavaScript & Visual)
+const GOOGLE_RENDERING_PATTERNS = [
+  // Googlebot Chrome-Lighthouse
+  /Chrome\/.*Googlebot/i,
+  /Googlebot.*Chrome/i,
+  
+  // Mediapartners-Google (AdSense)
+  /Mediapartners-Google/i,
+  /Mediapartners/i,
+];
+
+// 4. SPECIALIZED (Ads Testing & Services) - CRITICAL FOR CLOAKING
+const GOOGLE_ADS_SPECIALIZED_PATTERNS = [
+  // AdsBot-Google - Desktop (CRITICAL)
+  /Mozilla\/5\.0 \(compatible; AdsBot-Google/i,
+  /AdsBot-Google/i,
   /adsbot/i,
-  /mediapartners-google/i,
-  /mediapartners/i,
-  /googleads/i,
-  /google-adwords/i,
-  /google-ads/i,
-  /google ads/i,
+  
+  // AdsBot-Google-Mobile (CRITICAL)
+  /AdsBot-Google-Mobile/i,
+  /iPhone.*AdsBot-Google/i,
+  
+  // Google-Extended
+  /Google-Extended\/1\.0/i,
+  /Google-Extended/i,
+  
+  // AMP Cache
+  /google-amp-cache/i,
+  /googleusercontent\.com/i,
+];
+
+// Combined Google Ads specific patterns (all that should be blocked for ad cloaking)
+const GOOGLE_ADS_BOT_PATTERNS = [
+  // === EXACT USER-AGENT MATCHES (from official docs) ===
+  
+  // AdsBot - Desktop
+  /Mozilla\/5\.0 \(compatible; AdsBot-Google \(\+http:\/\/www\.google\.com\/adsbot\.html\)\)/i,
+  /Mozilla\/5\.0 \(compatible; AdsBot-Google/i,
+  /AdsBot-Google/i,
+  /adsbot/i,
+  
+  // AdsBot - Mobile
+  /Mozilla\/5\.0 \(iPhone; CPU iPhone OS.*AdsBot-Google-Mobile/i,
+  /AdsBot-Google-Mobile/i,
+  
+  // Mediapartners (AdSense content crawler)
+  /Mediapartners-Google/i,
+  /Mediapartners/i,
+  
+  // Storebot (Google Shopping)
+  /Mozilla\/5\.0 \(compatible; Storebot-Google\/1\./i,
+  /Storebot-Google/i,
+  
+  // Google-Extended (Analysis crawling)
+  /Mozilla\/5\.0 \(compatible; Google-Extended\/1\.0/i,
+  /Google-Extended/i,
+  
+  // === GOOGLEBOT VARIANTS ===
+  
+  // Googlebot Desktop
+  /Mozilla\/5\.0 \(compatible; Googlebot\/2\.1; \+http:\/\/www\.google\.com\/bot\.html\)/i,
+  
+  // Googlebot Smartphone
+  /Mozilla\/5\.0 \(Linux; Android.*Nexus 5X.*Googlebot\/2\.1/i,
+  
+  // Googlebot Image
+  /Googlebot-Image\/1\.0/i,
+  /Googlebot-Image/i,
+  
+  // Generic Googlebot
+  /Googlebot\/2\.1/i,
+  /Googlebot/i,
+  /googlebot/i,
+  
+  // === OTHER GOOGLE SERVICES ===
   
   // Google Quality & Inspection
   /google-inspectiontool/i,
@@ -30,34 +120,31 @@ const GOOGLE_ADS_BOT_PATTERNS = [
   /google-adwords-express/i,
   /google-adwords-displayads/i,
   
-  // Google Shopping & Store
-  /storebot-google/i,
+  // Google Shopping & Merchant
   /google-shopping/i,
   /google-shopping-quality/i,
   /google-product-search/i,
   /google-merchant/i,
   
-  // Other Google bots that may check ads landing pages
-  /googlebot/i,
-  /googlebot-mobile/i,
-  /googlebot-image/i,
-  /googlebot-news/i,
-  /googlebot-video/i,
-  /google-extended/i,
+  // Other Google bots
   /apis-google/i,
   /feedfetcher-google/i,
   /google-read-aloud/i,
   /duplex/i,
   /google-favicon/i,
   /google-speakr/i,
-  
-  // Google Cloud/Infrastructure (used for ad verification)
   /google-cloud/i,
   /gce-agent/i,
+  
+  // AMP Cache
+  /google-amp-cache-request/i,
+  /googleusercontent\.com/i,
 ];
 
-// Google's known IP ranges (IPv4) - Updated 2024
+// Google's known IP ranges (IPv4) - Updated December 2024
 // Source: https://www.gstatic.com/ipranges/goog.json
+// Verification domains: googlebot.com, google.com, storebot.google.com, 
+//                       mediapartners.google.com, adsbot.google.com
 const GOOGLE_IP_RANGES = [
   // Google bot/crawler ranges
   { start: "64.233.160.0", end: "64.233.191.255" },
