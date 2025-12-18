@@ -677,43 +677,40 @@ function calculateScore(fp: FingerprintData, link: any, headers: Headers): Score
   // ==================== COMBINED ANALYSIS ====================
   
   // Count DEFINITIVE critical flags (real automation tools only)
+  // Critical flags - only definitive automation tools
   const criticalFlags = flags.filter(f => 
-    f === "WEBDRIVER" || f === "SELENIUM" || f === "PUPPETEER" || 
-    f === "PLAYWRIGHT" || f === "BOT_UA" || f === "HEADLESS_AUTOMATED" ||
-    f === "CYPRESS" || f === "PHANTOM"
+    f === "WEBDRIVER" || f === "BOT_UA" || f === "HEADLESS_AUTOMATED"
   ).length;
 
-  // Strong bot indicators (need multiple to trigger)
+  // Strong bot indicators - now require webdriver or explicit tools
   const strongBotSignals = [
     fp.hasWebdriver === true,
-    fp.hasSelenium === true,
     fp.hasPuppeteer === true,
     fp.hasPlaywright === true,
     fp.hasCypress === true,
-    fp.hasPhantom === true,
-    fp.isHeadless === true && fp.isAutomated === true,
+    fp.isHeadless === true && fp.isAutomated === true && fp.hasWebdriver === true,
     isBotUA,
   ].filter(Boolean).length;
 
   // Moderate suspicious signals (privacy users may trigger some)
   const suspiciousSignals = [
-    fp.mouseMovements === 0 && !fp.touchSupport && fp.timeOnPage > 2000,
-    fp.timeOnPage < 500,
-    fp.isHeadless === true,
-    fp.isAutomated === true,
+    fp.mouseMovements === 0 && !fp.touchSupport && fp.timeOnPage > 3000,
+    fp.timeOnPage < 300, // Only instant access
+    fp.isHeadless === true && fp.isAutomated === true,
     flags.includes("DATACENTER_IP"),
   ].filter(Boolean).length;
 
-  // Bot profile detection - require multiple strong signals
-  if (strongBotSignals >= 1) {
-    // Definitive bot
+  // Bot profile detection - require at least 2 strong signals for definitive bot
+  if (strongBotSignals >= 2) {
+    // Definitive bot - multiple strong signals
     automationScore = 0;
     flags.push("DEFINITIVE_BOT");
-  } else if (suspiciousSignals >= 4) {
-    automationScore = Math.max(0, automationScore - 12);
+  } else if (strongBotSignals >= 1 && suspiciousSignals >= 2) {
+    // Strong signal + suspicious behavior
+    automationScore = Math.max(5, automationScore - 15);
     flags.push("HIGH_BOT_SCORE");
   } else if (suspiciousSignals >= 3) {
-    automationScore = Math.max(0, automationScore - 6);
+    automationScore = Math.max(10, automationScore - 8);
     flags.push("MEDIUM_BOT_SCORE");
   }
 
@@ -729,17 +726,20 @@ function calculateScore(fp: FingerprintData, link: any, headers: Headers): Score
   let confidence: number;
   let riskLevel: "low" | "medium" | "high" | "critical";
   
-  if (criticalFlags > 0 || strongBotSignals >= 1) {
+  if (criticalFlags > 0 || strongBotSignals >= 2) {
     confidence = 99;
     riskLevel = "critical";
-  } else if (suspiciousSignals >= 4) {
-    confidence = 85;
+  } else if (strongBotSignals >= 1 && suspiciousSignals >= 2) {
+    confidence = 90;
     riskLevel = "high";
-  } else if (suspiciousSignals >= 2 || total < 35) {
-    confidence = 65;
+  } else if (suspiciousSignals >= 3) {
+    confidence = 70;
+    riskLevel = "high";
+  } else if (suspiciousSignals >= 2 || total < 30) {
+    confidence = 55;
     riskLevel = "medium";
   } else {
-    confidence = 40;
+    confidence = 35;
     riskLevel = "low";
   }
 
@@ -851,21 +851,20 @@ Deno.serve(async (req) => {
     let decision: "allow" | "block" | "safe";
     let redirectUrl: string;
 
-    // Check for DEFINITIVE bot flags only - automation tools
+    // Check for DEFINITIVE bot flags only - clear automation tools
     const hasDefinitiveBotFlags = scoreResult.flags.some(f => 
-      f === "WEBDRIVER" || f === "SELENIUM" || f === "PUPPETEER" || 
-      f === "PLAYWRIGHT" || f === "BOT_UA" || f === "HEADLESS_AUTOMATED" ||
-      f === "CYPRESS" || f === "PHANTOM" || f === "DEFINITIVE_BOT"
+      f === "WEBDRIVER" || f === "BOT_UA" || f === "HEADLESS_AUTOMATED" || f === "DEFINITIVE_BOT"
     );
 
     if (hasDefinitiveBotFlags) {
       decision = "safe";
       redirectUrl = link.safe_url;
       console.log("[Cloaker] BLOCKED: Definitive bot detected");
-    } else if (scoreResult.riskLevel === "critical") {
+    } else if (scoreResult.riskLevel === "critical" && scoreResult.confidence >= 95) {
+      // Only block critical if high confidence
       decision = "safe";
       redirectUrl = link.safe_url;
-      console.log("[Cloaker] BLOCKED: Critical risk");
+      console.log("[Cloaker] BLOCKED: Critical risk with high confidence");
     } else if (scoreResult.total >= minScore) {
       decision = "allow";
       redirectUrl = link.target_url;
