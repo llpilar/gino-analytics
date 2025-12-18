@@ -19,11 +19,11 @@ export const DashboardWrapper = ({ children }: DashboardWrapperProps) => {
   const navItems = [
     { name: 'Dashboard', url: '/', icon: LayoutDashboard },
     { name: 'Análises', url: '/analises', icon: BarChart3 },
-    { name: 'Envios', url: '/envios', icon: Truck },
     { name: 'Lucro', url: '/lucratividade', icon: Calculator },
-    { name: 'Cloaker', url: '/cloaker', icon: Shield },
     { name: 'Financeiro', url: '/financeiro', icon: Wallet },
-    { name: 'Configurações', url: '/configuracoes', icon: Settings }
+    { name: 'Envios', url: '/envios', icon: Truck },
+    { name: 'Cloaker', url: '/cloaker', icon: Shield },
+    { name: 'Config', url: '/configuracoes', icon: Settings }
   ];
 
   return (
