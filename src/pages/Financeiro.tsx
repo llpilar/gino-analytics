@@ -275,13 +275,11 @@ export default function Financeiro() {
       color: "purple",
     },
     {
-      title: "Acerto",
-      value: partner1Balance === 0 ? "Tudo certo!" : partner1Balance > 0 
-        ? `${partner2} → ${partner1}` 
-        : `${partner1} → ${partner2}`,
-      subtitle: partner1Balance !== 0 ? formatBRL(Math.abs(partner1Balance)) : undefined,
-      subtitleColor: 'text-chart-2',
-      icon: partner1Balance >= 0 ? TrendingUp : TrendingDown,
+      title: partner2,
+      value: formatBRL(partner2Total),
+      subtitle: partner2Balance > 0 ? `Receber ${formatBRL(partner2Balance)}` : partner2Balance < 0 ? `Deve ${formatBRL(Math.abs(partner2Balance))}` : 'Equilibrado',
+      subtitleColor: partner2Balance > 0 ? 'text-chart-2' : partner2Balance < 0 ? 'text-destructive' : 'text-muted-foreground',
+      icon: Users,
       color: "green",
     }
   ];
