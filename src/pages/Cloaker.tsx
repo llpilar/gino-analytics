@@ -150,32 +150,32 @@ export default function Cloaker() {
 
   const getDecisionColor = (decision: string) => {
     switch (decision) {
-      case "allow": return "text-emerald-400";
-      case "block": return "text-red-400";
-      case "safe": return "text-amber-400";
+      case "allow": return "text-chart-4";
+      case "block": return "text-destructive";
+      case "safe": return "text-[hsl(var(--neon-orange))]";
       default: return "text-muted-foreground";
     }
   };
 
   const getDecisionIcon = (decision: string) => {
     switch (decision) {
-      case "allow": return <CheckCircle className="h-4 w-4 text-emerald-400" />;
-      case "block": return <XCircle className="h-4 w-4 text-red-400" />;
-      case "safe": return <AlertTriangle className="h-4 w-4 text-amber-400" />;
+      case "allow": return <CheckCircle className="h-4 w-4 text-chart-4" />;
+      case "block": return <XCircle className="h-4 w-4 text-destructive" />;
+      case "safe": return <AlertTriangle className="h-4 w-4 text-[hsl(var(--neon-orange))]" />;
       default: return null;
     }
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 70) return "text-emerald-400";
-    if (score >= 40) return "text-amber-400";
-    return "text-red-400";
+    if (score >= 70) return "text-chart-4";
+    if (score >= 40) return "text-[hsl(var(--neon-orange))]";
+    return "text-destructive";
   };
 
   const getScoreBg = (score: number) => {
-    if (score >= 70) return "bg-emerald-500/20";
-    if (score >= 40) return "bg-amber-500/20";
-    return "bg-red-500/20";
+    if (score >= 70) return "bg-chart-4/20";
+    if (score >= 40) return "bg-[hsl(var(--neon-orange))]/20";
+    return "bg-destructive/20";
   };
 
   const selectedLink = links.find(l => l.id === selectedLinkId);
@@ -417,16 +417,16 @@ export default function Cloaker() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <Card className="bg-gradient-to-br from-cyan-500/10 via-card to-card border-cyan-500/20 overflow-hidden relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent" />
+            <Card className="bg-gradient-to-br from-[hsl(var(--neon-cyan))]/10 via-card to-card border-[hsl(var(--neon-cyan))]/20 overflow-hidden relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--neon-cyan))]/5 to-transparent" />
               <CardContent className="p-4 relative">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Links</p>
                     <p className="text-2xl md:text-3xl font-bold text-foreground mt-1">{totalLinks}</p>
                   </div>
-                  <div className="p-3 rounded-xl bg-cyan-500/20">
-                    <Link2 className="h-5 w-5 text-cyan-400" />
+                  <div className="p-3 rounded-xl bg-[hsl(var(--neon-cyan))]/20">
+                    <Link2 className="h-5 w-5 text-[hsl(var(--neon-cyan))]" />
                   </div>
                 </div>
               </CardContent>
@@ -438,16 +438,16 @@ export default function Cloaker() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <Card className="bg-gradient-to-br from-emerald-500/10 via-card to-card border-emerald-500/20 overflow-hidden relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent" />
+            <Card className="bg-gradient-to-br from-[hsl(var(--neon-green))]/10 via-card to-card border-[hsl(var(--neon-green))]/20 overflow-hidden relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--neon-green))]/5 to-transparent" />
               <CardContent className="p-4 relative">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Ativos</p>
-                    <p className="text-2xl md:text-3xl font-bold text-emerald-400 mt-1">{activeLinks}</p>
+                    <p className="text-2xl md:text-3xl font-bold text-[hsl(var(--neon-green))] mt-1">{activeLinks}</p>
                   </div>
-                  <div className="p-3 rounded-xl bg-emerald-500/20">
-                    <Zap className="h-5 w-5 text-emerald-400" />
+                  <div className="p-3 rounded-xl bg-[hsl(var(--neon-green))]/20">
+                    <Zap className="h-5 w-5 text-[hsl(var(--neon-green))]" />
                   </div>
                 </div>
               </CardContent>
@@ -459,16 +459,16 @@ export default function Cloaker() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
-            <Card className="bg-gradient-to-br from-purple-500/10 via-card to-card border-purple-500/20 overflow-hidden relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent" />
+            <Card className="bg-gradient-to-br from-[hsl(var(--neon-purple))]/10 via-card to-card border-[hsl(var(--neon-purple))]/20 overflow-hidden relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--neon-purple))]/5 to-transparent" />
               <CardContent className="p-4 relative">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Cliques</p>
                     <p className="text-2xl md:text-3xl font-bold text-foreground mt-1">{totalClicks.toLocaleString('pt-BR')}</p>
                   </div>
-                  <div className="p-3 rounded-xl bg-purple-500/20">
-                    <MousePointerClick className="h-5 w-5 text-purple-400" />
+                  <div className="p-3 rounded-xl bg-[hsl(var(--neon-purple))]/20">
+                    <MousePointerClick className="h-5 w-5 text-[hsl(var(--neon-purple))]" />
                   </div>
                 </div>
               </CardContent>
@@ -480,16 +480,16 @@ export default function Cloaker() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <Card className="bg-gradient-to-br from-orange-500/10 via-card to-card border-orange-500/20 overflow-hidden relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent" />
+            <Card className="bg-gradient-to-br from-[hsl(var(--neon-orange))]/10 via-card to-card border-[hsl(var(--neon-orange))]/20 overflow-hidden relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--neon-orange))]/5 to-transparent" />
               <CardContent className="p-4 relative">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Proteção</p>
                     <p className="text-2xl md:text-3xl font-bold text-foreground mt-1">{linksWithBotBlock}</p>
                   </div>
-                  <div className="p-3 rounded-xl bg-orange-500/20">
-                    <Shield className="h-5 w-5 text-orange-400" />
+                  <div className="p-3 rounded-xl bg-[hsl(var(--neon-orange))]/20">
+                    <Shield className="h-5 w-5 text-[hsl(var(--neon-orange))]" />
                   </div>
                 </div>
               </CardContent>
@@ -551,13 +551,13 @@ export default function Cloaker() {
                           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                             <div className="space-y-3 flex-1 min-w-0">
                               <div className="flex items-center gap-3 flex-wrap">
-                                <div className={`p-2 rounded-lg ${link.is_active ? 'bg-emerald-500/20' : 'bg-muted'}`}>
-                                  <Shield className={`h-4 w-4 ${link.is_active ? 'text-emerald-400' : 'text-muted-foreground'}`} />
+                                <div className={`p-2 rounded-lg ${link.is_active ? 'bg-[hsl(var(--neon-green))]/20' : 'bg-muted'}`}>
+                                  <Shield className={`h-4 w-4 ${link.is_active ? 'text-[hsl(var(--neon-green))]' : 'text-muted-foreground'}`} />
                                 </div>
                                 <h3 className="font-semibold text-foreground truncate">{link.name}</h3>
                                 <Badge 
                                   variant={link.is_active ? "default" : "secondary"} 
-                                  className={`shrink-0 ${link.is_active ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : ''}`}
+                                  className={`shrink-0 ${link.is_active ? 'bg-[hsl(var(--neon-green))]/20 text-[hsl(var(--neon-green))] border-[hsl(var(--neon-green))]/30' : ''}`}
                                 >
                                   {link.is_active ? "Ativo" : "Inativo"}
                                 </Badge>
@@ -584,28 +584,28 @@ export default function Cloaker() {
                               </div>
 
                               <div className="flex flex-wrap gap-2">
-                                <Badge variant="outline" className="gap-1.5 text-xs bg-purple-500/10 border-purple-500/30 text-purple-300">
+                                <Badge variant="outline" className="gap-1.5 text-xs bg-[hsl(var(--neon-purple))]/10 border-[hsl(var(--neon-purple))]/30 text-[hsl(var(--neon-purple-light))]">
                                   <Target className="h-3 w-3" />
                                   Score ≥ {link.min_score}
                                 </Badge>
                                 {link.block_bots && (
-                                  <Badge variant="outline" className="gap-1.5 text-xs bg-red-500/10 border-red-500/30 text-red-300">
+                                  <Badge variant="outline" className="gap-1.5 text-xs bg-destructive/10 border-destructive/30 text-destructive">
                                     <Bot className="h-3 w-3" />
                                     Anti-Bot
                                   </Badge>
                                 )}
                                 {link.collect_fingerprint && (
-                                  <Badge variant="outline" className="gap-1.5 text-xs bg-cyan-500/10 border-cyan-500/30 text-cyan-300">
+                                  <Badge variant="outline" className="gap-1.5 text-xs bg-[hsl(var(--neon-cyan))]/10 border-[hsl(var(--neon-cyan))]/30 text-[hsl(var(--neon-cyan-light))]">
                                     <Fingerprint className="h-3 w-3" />
                                   </Badge>
                                 )}
                                 {link.allowed_countries && link.allowed_countries.length > 0 && (
-                                  <Badge variant="outline" className="gap-1.5 text-xs bg-blue-500/10 border-blue-500/30 text-blue-300">
+                                  <Badge variant="outline" className="gap-1.5 text-xs bg-[hsl(var(--neon-blue))]/10 border-[hsl(var(--neon-blue))]/30 text-[hsl(var(--neon-blue-light))]">
                                     <Globe className="h-3 w-3" />
                                     {link.allowed_countries.length} países
                                   </Badge>
                                 )}
-                                <Badge variant="outline" className="gap-1.5 text-xs bg-emerald-500/10 border-emerald-500/30 text-emerald-300">
+                                <Badge variant="outline" className="gap-1.5 text-xs bg-[hsl(var(--neon-green))]/10 border-[hsl(var(--neon-green))]/30 text-[hsl(var(--neon-green-light))]">
                                   <MousePointerClick className="h-3 w-3" />
                                   {link.clicks_count.toLocaleString('pt-BR')} cliques
                                 </Badge>
@@ -660,7 +660,7 @@ export default function Cloaker() {
             <Card className="border-border/50 bg-card/50 backdrop-blur-sm h-full">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
-                  <Users className="h-5 w-5 text-cyan-400" />
+                  <Users className="h-5 w-5 text-[hsl(var(--neon-cyan))]" />
                   Visitantes
                   {selectedLink && (
                     <Badge variant="secondary" className="ml-auto text-xs">{selectedLink.name}</Badge>
@@ -689,26 +689,26 @@ export default function Cloaker() {
                           </div>
                           <div className="text-xl font-bold text-foreground mt-1">{stats.total}</div>
                         </div>
-                        <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 border border-emerald-500/20">
+                        <div className="p-3 rounded-xl bg-gradient-to-br from-chart-4/10 to-chart-4/5 border border-chart-4/20">
                           <div className="flex items-center gap-2">
-                            <CheckCircle className="h-4 w-4 text-emerald-400" />
-                            <span className="text-xs text-emerald-400/80">Permitidos</span>
+                            <CheckCircle className="h-4 w-4 text-chart-4" />
+                            <span className="text-xs text-chart-4/80">Permitidos</span>
                           </div>
-                          <div className="text-xl font-bold text-emerald-400 mt-1">{stats.allowed}</div>
+                          <div className="text-xl font-bold text-chart-4 mt-1">{stats.allowed}</div>
                         </div>
-                        <div className="p-3 rounded-xl bg-gradient-to-br from-red-500/10 to-red-500/5 border border-red-500/20">
+                        <div className="p-3 rounded-xl bg-gradient-to-br from-destructive/10 to-destructive/5 border border-destructive/20">
                           <div className="flex items-center gap-2">
-                            <XCircle className="h-4 w-4 text-red-400" />
-                            <span className="text-xs text-red-400/80">Bloqueados</span>
+                            <XCircle className="h-4 w-4 text-destructive" />
+                            <span className="text-xs text-destructive/80">Bloqueados</span>
                           </div>
-                          <div className="text-xl font-bold text-red-400 mt-1">{stats.blocked}</div>
+                          <div className="text-xl font-bold text-destructive mt-1">{stats.blocked}</div>
                         </div>
-                        <div className="p-3 rounded-xl bg-gradient-to-br from-amber-500/10 to-amber-500/5 border border-amber-500/20">
+                        <div className="p-3 rounded-xl bg-gradient-to-br from-[hsl(var(--neon-orange))]/10 to-[hsl(var(--neon-orange))]/5 border border-[hsl(var(--neon-orange))]/20">
                           <div className="flex items-center gap-2">
-                            <Bot className="h-4 w-4 text-amber-400" />
-                            <span className="text-xs text-amber-400/80">Bots</span>
+                            <Bot className="h-4 w-4 text-[hsl(var(--neon-orange))]" />
+                            <span className="text-xs text-[hsl(var(--neon-orange))]/80">Bots</span>
                           </div>
-                          <div className="text-xl font-bold text-amber-400 mt-1">{stats.bots}</div>
+                          <div className="text-xl font-bold text-[hsl(var(--neon-orange))] mt-1">{stats.bots}</div>
                         </div>
                       </div>
                     )}
@@ -732,10 +732,10 @@ export default function Cloaker() {
                                 transition={{ delay: index * 0.03 }}
                                 className={`p-3 rounded-xl border transition-all ${
                                   visitor.decision === 'allow' 
-                                    ? 'bg-emerald-500/5 border-emerald-500/20' 
+                                    ? 'bg-chart-4/5 border-chart-4/20' 
                                     : visitor.decision === 'safe'
-                                    ? 'bg-amber-500/5 border-amber-500/20'
-                                    : 'bg-red-500/5 border-red-500/20'
+                                    ? 'bg-[hsl(var(--neon-orange))]/5 border-[hsl(var(--neon-orange))]/20'
+                                    : 'bg-destructive/5 border-destructive/20'
                                 }`}
                               >
                                 <div className="flex items-center justify-between mb-2">
@@ -757,7 +757,7 @@ export default function Cloaker() {
                                     </span>
                                   )}
                                   {visitor.is_bot && (
-                                    <Badge className="text-[10px] h-5 bg-red-500/20 text-red-400 border-red-500/30">
+                                    <Badge className="text-[10px] h-5 bg-destructive/20 text-destructive border-destructive/30">
                                       Bot
                                     </Badge>
                                   )}
