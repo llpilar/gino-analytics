@@ -22,7 +22,7 @@ const menuItems = [
   { icon: Truck, label: "Envios", path: "/envios" },
   { icon: Calculator, label: "Lucro", path: "/lucratividade" },
   { icon: Shield, label: "Cloaker", path: "/cloaker" },
-  { icon: Wallet, label: "Contas", path: "/contas" },
+  { icon: Wallet, label: "Financeiro", path: "/financeiro" },
   { icon: Settings, label: "Configurações", path: "/configuracoes" },
 ];
 

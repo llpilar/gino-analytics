@@ -409,6 +409,36 @@ export type Database = {
         }
         Relationships: []
       }
+      withdrawals: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          partner_name: string
+          updated_at: string
+          withdrawal_date: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          partner_name: string
+          updated_at?: string
+          withdrawal_date?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          partner_name?: string
+          updated_at?: string
+          withdrawal_date?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
