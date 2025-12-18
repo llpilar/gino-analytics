@@ -18,6 +18,8 @@ import LiveView from "./pages/LiveView";
 import Contas from "./pages/Contas";
 import Envios from "./pages/Envios";
 import Lucratividade from "./pages/Lucratividade";
+import Cloaker from "./pages/Cloaker";
+import CloakerRedirect from "./pages/CloakerRedirect";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +44,8 @@ const App = () => (
                       <Route path="/contas" element={<ProtectedRoute><Contas /></ProtectedRoute>} />
                       <Route path="/envios" element={<ProtectedRoute><Envios /></ProtectedRoute>} />
                       <Route path="/lucratividade" element={<ProtectedRoute><Lucratividade /></ProtectedRoute>} />
+                      <Route path="/cloaker" element={<ProtectedRoute><Cloaker /></ProtectedRoute>} />
+                      <Route path="/go/:slug" element={<CloakerRedirect />} />
                       <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
                       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                       <Route path="*" element={<NotFound />} />

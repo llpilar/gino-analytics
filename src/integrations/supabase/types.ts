@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      cloaked_links: {
+        Row: {
+          allowed_countries: string[] | null
+          allowed_devices: string[] | null
+          block_bots: boolean
+          blocked_countries: string[] | null
+          clicks_count: number
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          safe_url: string
+          slug: string
+          target_url: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          allowed_countries?: string[] | null
+          allowed_devices?: string[] | null
+          block_bots?: boolean
+          blocked_countries?: string[] | null
+          clicks_count?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          safe_url: string
+          slug: string
+          target_url: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          allowed_countries?: string[] | null
+          allowed_devices?: string[] | null
+          block_bots?: boolean
+          blocked_countries?: string[] | null
+          clicks_count?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          safe_url?: string
+          slug?: string
+          target_url?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       expenses: {
         Row: {
           amount: number
