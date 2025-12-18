@@ -783,203 +783,63 @@ function generateFingerprintHash(fp: FingerprintData): string {
   return hashString(components);
 }
 
-// Generate the fingerprinting HTML page
+// Generate ultra-fast fingerprinting HTML page
 function generateFingerprintPage(slug: string, supabaseUrl: string): string {
   return `<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Redirecting...</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { 
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-    }
-    .container {
-      text-align: center;
-      padding: 2rem;
-    }
-    .spinner {
-      width: 50px;
-      height: 50px;
-      border: 3px solid rgba(255,255,255,0.1);
-      border-top-color: #00d4ff;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 1.5rem;
-    }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    .text {
-      font-size: 1.1rem;
-      opacity: 0.8;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="spinner"></div>
-    <p class="text">Verificando segurança...</p>
-  </div>
-  <script>
-    (async function() {
-      const startTime = Date.now();
-      const mousePath = [];
-      const mouseVelocities = [];
-      let mouseMovements = 0;
-      let scrollEvents = 0;
-      let clickEvents = 0;
-      let focusChanges = 0;
-      let lastMouse = null;
-      
-      document.addEventListener('mousemove', (e) => {
-        mouseMovements++;
-        const now = Date.now();
-        if (lastMouse) {
-          const dx = e.clientX - lastMouse.x;
-          const dy = e.clientY - lastMouse.y;
-          const dt = now - lastMouse.t;
-          if (dt > 0) mouseVelocities.push(Math.sqrt(dx*dx + dy*dy) / dt);
-        }
-        lastMouse = { x: e.clientX, y: e.clientY, t: now };
-        if (mousePath.length < 50) mousePath.push({ x: e.clientX, y: e.clientY, t: now });
-      });
-      
-      document.addEventListener('scroll', () => scrollEvents++);
-      document.addEventListener('click', () => clickEvents++);
-      window.addEventListener('focus', () => focusChanges++);
-      window.addEventListener('blur', () => focusChanges++);
-      
-      function hashCanvas() {
-        try {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          if (!ctx) return '0';
-          canvas.width = 200; canvas.height = 50;
-          ctx.fillStyle = '#f60';
-          ctx.fillRect(0, 0, 100, 50);
-          ctx.fillStyle = '#069';
-          ctx.font = '14px Arial';
-          ctx.fillText('Canvas FP 😃', 2, 15);
-          let hash = 0;
-          const data = canvas.toDataURL();
-          for (let i = 0; i < data.length; i++) {
-            hash = ((hash << 5) - hash) + data.charCodeAt(i);
-            hash = hash & hash;
-          }
-          return Math.abs(hash).toString(16);
-        } catch { return '0'; }
-      }
-      
-      function getWebGL() {
-        try {
-          const canvas = document.createElement('canvas');
-          const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-          if (!gl) return { vendor: '', renderer: '' };
-          const ext = gl.getExtension('WEBGL_debug_renderer_info');
-          return {
-            vendor: ext ? gl.getParameter(ext.UNMASKED_VENDOR_WEBGL) : gl.getParameter(gl.VENDOR),
-            renderer: ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER)
-          };
-        } catch { return { vendor: '', renderer: '' }; }
-      }
-      
-      async function proofOfWork() {
-        const start = Date.now();
-        let nonce = 0;
-        while (nonce < 100000) {
-          const data = 'lovable-' + nonce + '-' + start;
-          let hash = 0;
-          for (let i = 0; i < data.length; i++) {
-            hash = ((hash << 5) - hash) + data.charCodeAt(i);
-            hash = hash & hash;
-          }
-          const hex = Math.abs(hash).toString(16).padStart(8, '0');
-          if (hex.startsWith('000')) return nonce + ':' + hex + ':' + (Date.now() - start) + 'ms';
-          nonce++;
-        }
-        return 'failed:' + (Date.now() - start) + 'ms';
-      }
-      
-      // Wait minimum time for behavior collection
-      await new Promise(r => setTimeout(r, 1500));
-      
-      const webgl = getWebGL();
-      const pow = await proofOfWork();
-      
-      const fingerprint = {
-        userAgent: navigator.userAgent,
-        language: navigator.language,
-        languages: navigator.languages ? [...navigator.languages] : [navigator.language],
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        timezoneOffset: new Date().getTimezoneOffset(),
-        screenResolution: screen.width + 'x' + screen.height,
-        availableScreenResolution: screen.availWidth + 'x' + screen.availHeight,
-        colorDepth: screen.colorDepth,
-        deviceMemory: navigator.deviceMemory || 0,
-        hardwareConcurrency: navigator.hardwareConcurrency || 0,
-        platform: navigator.platform,
-        webglVendor: webgl.vendor,
-        webglRenderer: webgl.renderer,
-        canvasHash: hashCanvas(),
-        audioHash: '0',
-        fontsHash: '0',
-        pluginsCount: navigator.plugins ? navigator.plugins.length : 0,
-        touchSupport: 'ontouchstart' in window || navigator.maxTouchPoints > 0,
-        maxTouchPoints: navigator.maxTouchPoints || 0,
-        mouseMovements: mouseMovements,
-        mouseVelocities: mouseVelocities.slice(0, 20),
-        mousePath: mousePath,
-        scrollEvents: scrollEvents,
-        clickEvents: clickEvents,
-        keypressEvents: 0,
-        timeOnPage: Date.now() - startTime,
-        focusChanges: focusChanges,
-        hasWebdriver: !!navigator.webdriver,
-        hasPhantom: !!window.callPhantom || !!window._phantom,
-        hasSelenium: !!window.document.__selenium_unwrapped || !!window.document.__webdriver_evaluate,
-        hasPuppeteer: !!window.__puppeteer_evaluation_script__,
-        isHeadless: /headless/i.test(navigator.userAgent),
-        isAutomated: !!navigator.webdriver,
-        doNotTrack: navigator.doNotTrack === '1',
-        cookiesEnabled: navigator.cookieEnabled,
-        localStorage: !!window.localStorage,
-        sessionStorage: !!window.sessionStorage,
-        indexedDB: !!window.indexedDB,
-        cpuClass: navigator.cpuClass || '',
-        navigatorPlatform: navigator.platform,
-        performanceEntries: performance.getEntries ? performance.getEntries().length : 0,
-        devicePixelRatio: window.devicePixelRatio || 1,
-        proofOfWork: pow,
-      };
-      
-      try {
-        const res = await fetch('${supabaseUrl}/functions/v1/cloaker-redirect', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ slug: '${slug}', fingerprint })
-        });
-        const data = await res.json();
-        if (data.redirectUrl) {
-          window.location.href = data.redirectUrl;
-        } else {
-          console.error('No redirect URL');
-        }
-      } catch (e) {
-        console.error('Error:', e);
-      }
-    })();
-  </script>
-</body>
-</html>`;
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>body{margin:0;background:#fff}</style></head><body>
+<script>
+(function(){
+  var s=Date.now();
+  function h(t){for(var i=0,r=0;i<t.length;i++)r=((r<<5)-r)+t.charCodeAt(i),r&=r;return Math.abs(r).toString(16)}
+  function c(){try{var cv=document.createElement('canvas'),x=cv.getContext('2d');if(!x)return'0';cv.width=200;cv.height=50;x.fillStyle='#f60';x.fillRect(0,0,100,50);x.fillStyle='#069';x.font='14px Arial';x.fillText('FP',2,15);return h(cv.toDataURL())}catch(e){return'0'}}
+  function g(){try{var cv=document.createElement('canvas'),gl=cv.getContext('webgl')||cv.getContext('experimental-webgl');if(!gl)return{v:'',r:''};var e=gl.getExtension('WEBGL_debug_renderer_info');return{v:e?gl.getParameter(e.UNMASKED_VENDOR_WEBGL):gl.getParameter(gl.VENDOR),r:e?gl.getParameter(e.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER)}}catch(e){return{v:'',r:''}}}
+  var w=g(),fp={
+    userAgent:navigator.userAgent,
+    language:navigator.language,
+    languages:navigator.languages?[].slice.call(navigator.languages):[navigator.language],
+    timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,
+    screenResolution:screen.width+'x'+screen.height,
+    colorDepth:screen.colorDepth,
+    deviceMemory:navigator.deviceMemory||0,
+    hardwareConcurrency:navigator.hardwareConcurrency||0,
+    platform:navigator.platform,
+    webglVendor:w.v,
+    webglRenderer:w.r,
+    canvasHash:c(),
+    audioHash:'0',
+    fontsHash:'0',
+    pluginsCount:navigator.plugins?navigator.plugins.length:0,
+    touchSupport:'ontouchstart'in window||navigator.maxTouchPoints>0,
+    maxTouchPoints:navigator.maxTouchPoints||0,
+    mouseMovements:0,
+    scrollEvents:0,
+    keypressEvents:0,
+    timeOnPage:Date.now()-s,
+    focusChanges:0,
+    hasWebdriver:!!navigator.webdriver,
+    hasPhantom:!!window.callPhantom||!!window._phantom,
+    hasSelenium:!!document.__selenium_unwrapped||!!document.__webdriver_evaluate,
+    hasPuppeteer:!!window.__puppeteer_evaluation_script__,
+    isHeadless:/headless/i.test(navigator.userAgent),
+    isAutomated:!!navigator.webdriver,
+    doNotTrack:navigator.doNotTrack==='1',
+    cookiesEnabled:navigator.cookieEnabled,
+    localStorage:!!window.localStorage,
+    sessionStorage:!!window.sessionStorage,
+    indexedDB:!!window.indexedDB,
+    cpuClass:navigator.cpuClass||'',
+    navigatorPlatform:navigator.platform,
+    performanceEntries:performance.getEntries?performance.getEntries().length:0,
+    devicePixelRatio:window.devicePixelRatio||1
+  };
+  var x=new XMLHttpRequest();
+  x.open('POST','${supabaseUrl}/functions/v1/cloaker-redirect',true);
+  x.setRequestHeader('Content-Type','application/json');
+  x.onload=function(){try{var d=JSON.parse(x.responseText);if(d.redirectUrl)location.replace(d.redirectUrl)}catch(e){}};
+  x.send(JSON.stringify({slug:'${slug}',fingerprint:fp}));
+})();
+</script></body></html>`;
 }
 
 Deno.serve(async (req) => {
