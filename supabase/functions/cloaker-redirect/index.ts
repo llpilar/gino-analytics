@@ -2,6 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
@@ -836,7 +837,13 @@ function generateFingerprintPage(slug: string, supabaseUrl: string): string {
   var x=new XMLHttpRequest();
   x.open('POST','${supabaseUrl}/functions/v1/cloaker-redirect',true);
   x.setRequestHeader('Content-Type','application/json');
-  x.onload=function(){try{var d=JSON.parse(x.responseText);if(d.redirectUrl)location.replace(d.redirectUrl)}catch(e){}};
+  x.onload=function(){
+    try{
+      var d=JSON.parse(x.responseText);
+      if(d.redirectUrl)location.replace(d.redirectUrl);
+    }catch(e){console.error('Parse error:',e)}
+  };
+  x.onerror=function(){console.error('XHR error')};
   x.send(JSON.stringify({slug:'${slug}',fingerprint:fp}));
 })();
 </script></body></html>`;
