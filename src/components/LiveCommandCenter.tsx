@@ -103,7 +103,7 @@ export const LiveCommandCenter = () => {
     { name: 'Análises', url: '/analises', icon: BarChart3 },
     { name: 'Envios', url: '/envios', icon: Truck },
     { name: 'Lucro', url: '/lucratividade', icon: Calculator },
-    { name: 'Contas', url: '/contas', icon: Wallet },
+    { name: 'Financeiro', url: '/financeiro', icon: Wallet },
     { name: 'Configurações', url: '/configuracoes', icon: Settings }
   ];
 
