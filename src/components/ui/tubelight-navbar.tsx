@@ -64,7 +64,7 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
       className={cn(
         "fixed z-50",
         // Desktop: top centered
-        "md:top-4 md:left-1/2 md:-translate-x-1/2 md:w-[calc(100%-2rem)] md:max-w-fit",
+        "md:top-4 md:left-1/2 md:-translate-x-1/2",
         // Mobile: bottom full width
         "bottom-0 left-0 right-0 md:bottom-auto md:right-auto",
         className,
@@ -72,7 +72,7 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
       role="navigation"
       aria-label="Navegação principal"
     >
-      <div className="flex items-center justify-around md:justify-start gap-1 bg-card border-t md:border border-border backdrop-blur-xl py-2 md:py-1.5 px-2 md:px-1.5 md:rounded-full">
+      <div className="flex items-center justify-around md:justify-center gap-0.5 md:gap-1 bg-card border-t md:border border-border backdrop-blur-xl py-2 md:py-2 px-2 md:px-3 md:rounded-full">
         {items.map((item) => {
           const Icon = item.icon
           const isActive = activeTab === item.name
@@ -83,7 +83,7 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
               to={item.url}
               onClick={() => setActiveTab(item.name)}
               className={cn(
-                "relative cursor-pointer text-xs md:text-sm font-bold px-3 md:px-6 py-2 rounded-full transition-all duration-300",
+                "relative cursor-pointer text-xs md:text-sm font-semibold px-3 md:px-4 py-2 md:py-1.5 rounded-full transition-all duration-300",
                 "text-muted-foreground hover:text-primary",
                 isActive && "text-primary",
               )}
@@ -106,10 +106,9 @@ export function NavBar({ items, className, showCurrencyToggle = true }: NavBarPr
                   }}
                 >
                   {/* Tubelight glow effect */}
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-primary rounded-t-full shadow-lg shadow-primary/50">
-                    <div className="absolute w-16 h-8 bg-primary/30 rounded-full blur-xl -top-3 -left-2" />
-                    <div className="absolute w-12 h-6 bg-primary/40 rounded-full blur-lg -top-2" />
-                    <div className="absolute w-6 h-4 bg-primary/50 rounded-full blur-md -top-1 left-3" />
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-10 h-1 bg-primary rounded-t-full shadow-lg shadow-primary/50">
+                    <div className="absolute w-14 h-6 bg-primary/30 rounded-full blur-xl -top-2 -left-2" />
+                    <div className="absolute w-10 h-5 bg-primary/40 rounded-full blur-lg -top-1.5" />
                   </div>
                 </motion.div>
               )}
