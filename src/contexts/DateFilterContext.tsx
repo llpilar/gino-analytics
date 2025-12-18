@@ -14,9 +14,10 @@ interface DateFilterContextType {
 const DateFilterContext = createContext<DateFilterContextType | undefined>(undefined);
 
 export const DateFilterProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  // Start with no filter to show all data by default
   const [dateRange, setDateRange] = useState<DateRange>({
-    from: startOfDay(new Date()),
-    to: endOfDay(new Date())
+    from: undefined,
+    to: undefined
   });
 
   const setCustomRange = (from: Date | undefined, to: Date | undefined) => {
