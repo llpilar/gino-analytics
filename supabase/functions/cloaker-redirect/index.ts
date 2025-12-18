@@ -6,7 +6,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Comprehensive bot patterns
+// ==================== BOT & DATACENTER PATTERNS ====================
+
 const BOT_UA_PATTERNS = [
   // Google Ads (CRITICAL)
   /adsbot-google/i, /adsbot/i, /mediapartners-google/i, /googleads/i,
@@ -46,7 +47,6 @@ const BOT_UA_PATTERNS = [
   /fetch\//i, /http-client/i, /okhttp/i, /retrofit/i,
 ];
 
-// Datacenter keywords
 const DATACENTER_KEYWORDS = [
   "amazon", "aws", "google cloud", "gcp", "microsoft azure", "azure",
   "digitalocean", "linode", "vultr", "ovh", "hetzner", "cloudflare",
@@ -54,6 +54,8 @@ const DATACENTER_KEYWORDS = [
   "upcloud", "kamatera", "contabo", "hostinger", "godaddy", "rackspace",
   "quadranet", "choopa", "m247", "leaseweb", "datacamp",
 ];
+
+// ==================== TYPE DEFINITIONS ====================
 
 interface FingerprintData {
   userAgent: string;
@@ -160,10 +162,33 @@ interface ScoreResult {
   behavior: number;
   network: number;
   automation: number;
+  crossLayer: number;
+  entropy: number;
   flags: string[];
   confidence: number;
   riskLevel: "low" | "medium" | "high" | "critical";
+  crossLayerIssues: string[];
+  entropyAnalysis: EntropyAnalysis;
 }
+
+interface EntropyAnalysis {
+  overNormalized: boolean;
+  lowEntropy: boolean;
+  suspiciousPatterns: string[];
+  distributionScore: number;
+}
+
+interface SessionData {
+  fingerprintHash: string;
+  firstSeen: Date;
+  lastSeen: Date;
+  visitCount: number;
+  ipHistory: string[];
+  decisionHistory: string[];
+  scoreHistory: number[];
+}
+
+// ==================== UTILITY FUNCTIONS ====================
 
 function hashString(str: string): string {
   let hash = 0;
@@ -174,7 +199,654 @@ function hashString(str: string): string {
   return Math.abs(hash).toString(16);
 }
 
-// Analyze mouse movement patterns for bot detection
+function getDeviceType(userAgent: string): string {
+  const ua = userAgent.toLowerCase();
+  if (/tablet|ipad|playbook|silk/i.test(ua)) return "tablet";
+  if (/mobile|iphone|ipod|android|blackberry|opera mini|iemobile/i.test(ua)) return "mobile";
+  return "desktop";
+}
+
+function generateFingerprintHash(fp: FingerprintData): string {
+  const components = [
+    fp.userAgent,
+    fp.language,
+    fp.timezone,
+    fp.screenResolution,
+    fp.colorDepth,
+    fp.deviceMemory,
+    fp.hardwareConcurrency,
+    fp.platform,
+    fp.webglVendor,
+    fp.webglRenderer,
+    fp.canvasHash,
+    fp.fontsHash,
+    fp.pluginsHash,
+    fp.webglHash,
+  ].filter(Boolean).join("|");
+  
+  return hashString(components);
+}
+
+// ==================== CROSS-LAYER CONSISTENCY (CRITICAL) ====================
+
+interface CrossLayerResult {
+  score: number;
+  issues: string[];
+  coherenceScore: number;
+}
+
+function analyzeCrossLayerConsistency(fp: FingerprintData, headers: Headers): CrossLayerResult {
+  const issues: string[] = [];
+  let score = 25; // Start with full score
+  
+  const ua = fp.userAgent || "";
+  const uaLower = ua.toLowerCase();
+  
+  // Parse UA for expected characteristics
+  const isMobileUA = /mobile|android|iphone|ipad/i.test(ua);
+  const isIOSUA = /iphone|ipad|ipod/i.test(ua);
+  const isAndroidUA = /android/i.test(ua);
+  const isChromeUA = /chrome/i.test(ua) && !/edge|edg|opr/i.test(ua);
+  const isFirefoxUA = /firefox/i.test(ua);
+  const isSafariUA = /safari/i.test(ua) && !/chrome|chromium/i.test(ua);
+  const isEdgeUA = /edge|edg/i.test(ua);
+  const isWindowsUA = /windows/i.test(ua);
+  const isMacUA = /mac os|macintosh/i.test(ua);
+  const isLinuxUA = /linux/i.test(ua) && !/android/i.test(ua);
+  
+  // === 1. UA vs Platform consistency ===
+  const platform = (fp.platform || "").toLowerCase();
+  const navPlatform = (fp.navigatorPlatform || "").toLowerCase();
+  
+  if (isWindowsUA && !platform.includes("win") && platform !== "") {
+    issues.push("ua_platform_mismatch_windows");
+    score -= 8;
+  }
+  if (isMacUA && !platform.includes("mac") && platform !== "") {
+    issues.push("ua_platform_mismatch_mac");
+    score -= 8;
+  }
+  if (isIOSUA && !platform.includes("iphone") && !platform.includes("ipad") && platform !== "") {
+    issues.push("ua_platform_mismatch_ios");
+    score -= 8;
+  }
+  if (isAndroidUA && !platform.includes("linux") && !platform.includes("android") && platform !== "") {
+    issues.push("ua_platform_mismatch_android");
+    score -= 5;
+  }
+  
+  // === 2. UA vs Touch support consistency ===
+  if (isMobileUA) {
+    if (!fp.touchSupport) {
+      issues.push("mobile_ua_no_touch");
+      score -= 10;
+    }
+    if (fp.maxTouchPoints === 0) {
+      issues.push("mobile_ua_zero_touch_points");
+      score -= 8;
+    }
+  } else {
+    // Desktop with touchscreen is valid, but touch with 0 points is weird
+    if (fp.touchSupport && fp.maxTouchPoints === 0) {
+      issues.push("touch_enabled_zero_points");
+      score -= 5;
+    }
+  }
+  
+  // === 3. UA vs WebGL renderer consistency ===
+  const webglRenderer = (fp.webglRenderer || "").toLowerCase();
+  const webglVendor = (fp.webglVendor || "").toLowerCase();
+  
+  // iOS should have Apple GPU
+  if (isIOSUA) {
+    if (webglVendor && !webglVendor.includes("apple") && !webglVendor.includes("imagination")) {
+      issues.push("ios_non_apple_gpu");
+      score -= 12;
+    }
+  }
+  
+  // Android should NOT have Apple GPU
+  if (isAndroidUA && webglVendor.includes("apple")) {
+    issues.push("android_apple_gpu");
+    score -= 15;
+  }
+  
+  // Windows should have Intel/AMD/NVIDIA, not Apple
+  if (isWindowsUA && webglVendor.includes("apple")) {
+    issues.push("windows_apple_gpu");
+    score -= 12;
+  }
+  
+  // Mac should have Apple/Intel/AMD
+  if (isMacUA && !isIOSUA) {
+    if (webglVendor && !webglVendor.includes("apple") && !webglVendor.includes("intel") && 
+        !webglVendor.includes("amd") && !webglVendor.includes("nvidia")) {
+      // Could be legitimate VM or software renderer
+      if (!webglRenderer.includes("swiftshader") && !webglRenderer.includes("llvmpipe")) {
+        issues.push("mac_unexpected_gpu_vendor");
+        score -= 5;
+      }
+    }
+  }
+  
+  // === 4. UA version vs WebGL capabilities ===
+  // Modern browsers should have WebGL
+  const chromeMatch = ua.match(/chrome\/(\d+)/i);
+  const firefoxMatch = ua.match(/firefox\/(\d+)/i);
+  
+  if (chromeMatch) {
+    const chromeVersion = parseInt(chromeMatch[1]);
+    if (chromeVersion >= 60 && !fp.webglRenderer && !fp.webglVendor) {
+      issues.push("modern_chrome_no_webgl");
+      score -= 8;
+    }
+  }
+  
+  if (firefoxMatch) {
+    const ffVersion = parseInt(firefoxMatch[1]);
+    if (ffVersion >= 60 && !fp.webglRenderer && !fp.webglVendor) {
+      issues.push("modern_firefox_no_webgl");
+      score -= 8;
+    }
+  }
+  
+  // === 5. Screen resolution vs Device type consistency ===
+  if (fp.screenResolution) {
+    const [width, height] = fp.screenResolution.split("x").map(Number);
+    
+    // Mobile with desktop resolution
+    if (isMobileUA && width > 2000 && height > 1200) {
+      issues.push("mobile_desktop_resolution");
+      score -= 8;
+    }
+    
+    // Desktop with tiny resolution (common headless default)
+    if (!isMobileUA && (width < 500 || height < 400)) {
+      issues.push("desktop_tiny_resolution");
+      score -= 10;
+    }
+    
+    // Exact headless defaults
+    if (width === 800 && height === 600) {
+      issues.push("headless_default_resolution");
+      score -= 12;
+    }
+  }
+  
+  // === 6. Device memory vs Device type ===
+  if (fp.deviceMemory) {
+    // High-end desktop claiming very low memory
+    if (!isMobileUA && isWindowsUA && fp.deviceMemory < 2 && fp.hardwareConcurrency > 4) {
+      issues.push("desktop_low_memory_high_cpu");
+      score -= 6;
+    }
+  }
+  
+  // === 7. Hardware concurrency consistency ===
+  if (fp.hardwareConcurrency) {
+    // Unusual values
+    if (fp.hardwareConcurrency === 1 && !isMobileUA) {
+      issues.push("single_core_desktop");
+      score -= 5;
+    }
+    // More than 128 cores is suspicious
+    if (fp.hardwareConcurrency > 128) {
+      issues.push("excessive_cores");
+      score -= 8;
+    }
+  }
+  
+  // === 8. Language vs Timezone consistency ===
+  if (fp.timezone && fp.language) {
+    const tz = fp.timezone.toLowerCase();
+    const lang = fp.language.toLowerCase();
+    
+    // Chinese timezone with English-only language
+    if (tz.includes("asia/shanghai") || tz.includes("asia/beijing")) {
+      if (lang.startsWith("en") && !lang.includes("cn") && !lang.includes("zh")) {
+        issues.push("china_tz_english_only");
+        score -= 3; // Minor - could be expat
+      }
+    }
+    
+    // Japan timezone with non-Japanese browser
+    if (tz.includes("asia/tokyo")) {
+      if (lang.startsWith("en") && !lang.includes("ja")) {
+        // Common for expats, minor flag
+      }
+    }
+  }
+  
+  // === 9. Plugins vs Browser type ===
+  if (isChromeUA && !isMobileUA && fp.pluginsCount === 0) {
+    issues.push("chrome_desktop_no_plugins");
+    score -= 5;
+  }
+  
+  // Safari should NOT have plugins
+  if (isSafariUA && fp.pluginsCount > 0) {
+    // Actually Safari can have plugins in some cases
+  }
+  
+  // === 10. CSS Media Query vs Device type ===
+  if (fp.cssMediaFingerprint) {
+    const cssMedia = fp.cssMediaFingerprint;
+    // Format: "1100000010101" - each bit is a media query result
+    // (hover: hover) should be 1 on desktop with mouse
+    // (pointer: coarse) should be 1 on touch devices
+    
+    if (cssMedia.length >= 8) {
+      const hoverHover = cssMedia[5] === "1";
+      const pointerFine = cssMedia[6] === "1";
+      const pointerCoarse = cssMedia[7] === "1";
+      
+      if (isMobileUA && pointerFine && !pointerCoarse) {
+        issues.push("mobile_fine_pointer");
+        score -= 6;
+      }
+      
+      if (!isMobileUA && !hoverHover && !fp.touchSupport) {
+        issues.push("desktop_no_hover_no_touch");
+        score -= 5;
+      }
+    }
+  }
+  
+  // Calculate coherence score (0-100)
+  const coherenceScore = Math.max(0, Math.min(100, score * 4));
+  
+  return {
+    score: Math.max(0, Math.min(25, score)),
+    issues,
+    coherenceScore,
+  };
+}
+
+// ==================== ENTROPY & STATISTICAL ANALYSIS ====================
+
+function analyzeEntropy(fp: FingerprintData, supabase: any, linkId: string): EntropyAnalysis {
+  const suspiciousPatterns: string[] = [];
+  let distributionScore = 100;
+  let overNormalized = false;
+  let lowEntropy = false;
+  
+  // === 1. Detect over-normalization (too perfect) ===
+  
+  // Perfect round numbers are suspicious
+  if (fp.deviceMemory && fp.deviceMemory === Math.floor(fp.deviceMemory)) {
+    // deviceMemory is always rounded, so this is fine
+  }
+  
+  // Screen resolution - check for common "fake" values
+  if (fp.screenResolution) {
+    const commonFakes = ["1920x1080", "1366x768", "1280x720"];
+    const [w, h] = fp.screenResolution.split("x").map(Number);
+    
+    // Perfectly standard resolution is fine, but check other factors
+    if (fp.devicePixelRatio === 1 && w === 1920 && h === 1080) {
+      // Very common, but combined with other perfect values = suspicious
+    }
+  }
+  
+  // === 2. Behavioral entropy ===
+  
+  // Mouse movement entropy
+  if (fp.mousePath && fp.mousePath.length > 5) {
+    const path = fp.mousePath;
+    
+    // Calculate direction changes
+    let directionChanges = 0;
+    for (let i = 2; i < path.length; i++) {
+      const dx1 = path[i-1].x - path[i-2].x;
+      const dy1 = path[i-1].y - path[i-2].y;
+      const dx2 = path[i].x - path[i-1].x;
+      const dy2 = path[i].y - path[i-1].y;
+      
+      const angle1 = Math.atan2(dy1, dx1);
+      const angle2 = Math.atan2(dy2, dx2);
+      
+      if (Math.abs(angle1 - angle2) > 0.1) {
+        directionChanges++;
+      }
+    }
+    
+    const changeRatio = directionChanges / (path.length - 2);
+    
+    // Too linear (robot)
+    if (changeRatio < 0.1) {
+      suspiciousPatterns.push("linear_mouse_path");
+      distributionScore -= 15;
+      lowEntropy = true;
+    }
+    
+    // Too chaotic (random noise injection)
+    if (changeRatio > 0.9) {
+      suspiciousPatterns.push("chaotic_mouse_path");
+      distributionScore -= 10;
+      overNormalized = true;
+    }
+    
+    // Check timing regularity
+    const timeDiffs: number[] = [];
+    for (let i = 1; i < path.length; i++) {
+      timeDiffs.push(path[i].t - path[i-1].t);
+    }
+    
+    if (timeDiffs.length > 3) {
+      const avgTime = timeDiffs.reduce((a, b) => a + b, 0) / timeDiffs.length;
+      const variance = timeDiffs.reduce((a, b) => a + Math.pow(b - avgTime, 2), 0) / timeDiffs.length;
+      const stdDev = Math.sqrt(variance);
+      const cv = stdDev / avgTime; // Coefficient of variation
+      
+      // Too consistent timing (robotic)
+      if (cv < 0.1 && avgTime > 0) {
+        suspiciousPatterns.push("robotic_mouse_timing");
+        distributionScore -= 12;
+        lowEntropy = true;
+      }
+      
+      // Perfectly random timing (artificial noise)
+      if (cv > 2.0) {
+        suspiciousPatterns.push("artificial_mouse_timing");
+        distributionScore -= 8;
+        overNormalized = true;
+      }
+    }
+  }
+  
+  // === 3. Velocity distribution ===
+  if (fp.mouseVelocities && fp.mouseVelocities.length > 5) {
+    const velocities = fp.mouseVelocities;
+    const avg = velocities.reduce((a, b) => a + b, 0) / velocities.length;
+    const variance = velocities.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / velocities.length;
+    
+    // Constant velocity (robot)
+    if (variance < 0.001 && avg > 0) {
+      suspiciousPatterns.push("constant_velocity");
+      distributionScore -= 12;
+      lowEntropy = true;
+    }
+    
+    // Check for bimodal distribution (stop-go pattern)
+    const lowVelocities = velocities.filter(v => v < avg * 0.3).length;
+    const highVelocities = velocities.filter(v => v > avg * 1.7).length;
+    
+    if (lowVelocities > velocities.length * 0.4 && highVelocities > velocities.length * 0.3) {
+      suspiciousPatterns.push("bimodal_velocity");
+      distributionScore -= 5;
+    }
+  }
+  
+  // === 4. Timing variance analysis ===
+  if (fp.jsChallenge !== undefined) {
+    // Too low variance = emulated environment
+    if (fp.jsChallenge < 0.00001) {
+      suspiciousPatterns.push("zero_timing_variance");
+      distributionScore -= 15;
+      lowEntropy = true;
+    }
+    
+    // Too high variance = artificial noise
+    if (fp.jsChallenge > 100) {
+      suspiciousPatterns.push("excessive_timing_variance");
+      distributionScore -= 10;
+      overNormalized = true;
+    }
+  }
+  
+  // === 5. Canvas/Audio noise detection ===
+  if (fp.canvasNoise) {
+    suspiciousPatterns.push("canvas_noise_detected");
+    distributionScore -= 8;
+    overNormalized = true;
+  }
+  
+  if (fp.audioNoise) {
+    suspiciousPatterns.push("audio_noise_detected");
+    distributionScore -= 8;
+    overNormalized = true;
+  }
+  
+  // === 6. DOM manipulation timing ===
+  if (fp.domManipulationTime !== undefined) {
+    // Instant DOM manipulation (headless)
+    if (fp.domManipulationTime < 0.5) {
+      suspiciousPatterns.push("instant_dom_manipulation");
+      distributionScore -= 10;
+      lowEntropy = true;
+    }
+    
+    // Very slow (debugging or throttled)
+    if (fp.domManipulationTime > 500) {
+      suspiciousPatterns.push("slow_dom_manipulation");
+      distributionScore -= 5;
+    }
+  }
+  
+  // === 7. Proof of work analysis ===
+  if (fp.proofOfWork) {
+    const parts = fp.proofOfWork.split(":");
+    if (parts[0] === "failed") {
+      suspiciousPatterns.push("pow_failed");
+      distributionScore -= 5;
+    } else {
+      const time = parseInt(parts[2]) || 0;
+      // Too fast (pre-computed or powerful datacenter)
+      if (time < 20) {
+        suspiciousPatterns.push("pow_too_fast");
+        distributionScore -= 8;
+        lowEntropy = true;
+      }
+      // Very slow (weak device or throttled)
+      if (time > 10000) {
+        suspiciousPatterns.push("pow_very_slow");
+        distributionScore -= 3;
+      }
+    }
+  }
+  
+  // === 8. Overall pattern detection ===
+  
+  // Everything is "perfect" = spoofed
+  if (fp.consistencyScore && fp.consistencyScore === 100) {
+    // Perfect consistency score is actually suspicious
+    suspiciousPatterns.push("perfect_consistency");
+    distributionScore -= 5;
+    overNormalized = true;
+  }
+  
+  return {
+    overNormalized,
+    lowEntropy,
+    suspiciousPatterns,
+    distributionScore: Math.max(0, Math.min(100, distributionScore)),
+  };
+}
+
+// ==================== SESSION & TEMPORAL ANALYSIS ====================
+
+async function analyzeSessionHistory(
+  supabase: any, 
+  linkId: string, 
+  fingerprintHash: string,
+  currentIp: string
+): Promise<{ score: number; flags: string[]; sessionData: SessionData | null }> {
+  const flags: string[] = [];
+  let score = 0;
+  
+  try {
+    const { data: previousVisits } = await supabase
+      .from("cloaker_visitors")
+      .select("created_at, ip_address, decision, score")
+      .eq("fingerprint_hash", fingerprintHash)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    
+    if (!previousVisits || previousVisits.length === 0) {
+      return { score: 0, flags: ["first_visit"], sessionData: null };
+    }
+    
+    const visits = previousVisits as Array<{ created_at: string; ip_address: string; decision: string; score: number }>;
+    const visitCount = visits.length;
+    
+    if (visitCount > 10) {
+      const firstVisit = new Date(visits[visits.length - 1].created_at);
+      const lastVisit = new Date(visits[0].created_at);
+      const daysDiff = (lastVisit.getTime() - firstVisit.getTime()) / (1000 * 60 * 60 * 24);
+      
+      if (visitCount > 20 && daysDiff < 1) {
+        flags.push("high_frequency_visits");
+        score -= 10;
+      }
+      
+      if (daysDiff > 7 && visitCount > 5) {
+        flags.push("returning_visitor");
+        score += 5;
+      }
+    }
+    
+    const uniqueIps = [...new Set(visits.map((v) => v.ip_address).filter(Boolean))] as string[];
+    
+    if (uniqueIps.length > 10 && visitCount < 50) {
+      flags.push("many_ips_same_fingerprint");
+      score -= 8;
+    }
+    
+    if (currentIp && uniqueIps.length > 0 && !uniqueIps.includes(currentIp)) {
+      flags.push("new_ip_for_fingerprint");
+    }
+    
+    const allowedCount = visits.filter((v) => v.decision === "allow").length;
+    const blockedCount = visits.filter((v) => v.decision !== "allow").length;
+    
+    if (blockedCount > allowedCount && blockedCount > 3) {
+      flags.push("previously_blocked_returning");
+      score -= 5;
+    }
+    
+    if (allowedCount > 5 && blockedCount === 0) {
+      flags.push("consistently_allowed");
+      score += 3;
+    }
+    
+    const scores = visits.map((v) => v.score).filter((s): s is number => s != null);
+    if (scores.length > 3) {
+      const recentAvg = scores.slice(0, 3).reduce((a: number, b: number) => a + b, 0) / 3;
+      const historicalAvg = scores.reduce((a: number, b: number) => a + b, 0) / scores.length;
+      
+      if (recentAvg > historicalAvg + 20) {
+        flags.push("sudden_score_improvement");
+        score -= 5;
+      }
+    }
+    
+    const sessionData: SessionData = {
+      fingerprintHash,
+      firstSeen: new Date(visits[visits.length - 1].created_at),
+      lastSeen: new Date(visits[0].created_at),
+      visitCount,
+      ipHistory: uniqueIps,
+      decisionHistory: visits.map((v) => v.decision),
+      scoreHistory: scores,
+    };
+    
+    return { score, flags, sessionData };
+    
+  } catch (e) {
+    console.error("[Cloaker] Session analysis error:", e);
+    return { score: 0, flags: ["session_analysis_error"], sessionData: null };
+  }
+}
+
+// ==================== CROWD COLLISION DETECTION ====================
+
+async function detectCrowdCollision(
+  supabase: any,
+  linkId: string,
+  fingerprintHash: string,
+  currentIp: string
+): Promise<{ score: number; flags: string[] }> {
+  const flags: string[] = [];
+  let score = 0;
+  
+  try {
+    // Get recent visits to this link
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    
+    const { data: recentVisits } = await supabase
+      .from("cloaker_visitors")
+      .select("fingerprint_hash, ip_address")
+      .eq("link_id", linkId)
+      .gte("created_at", oneDayAgo)
+      .limit(1000);
+    
+    if (!recentVisits || recentVisits.length < 10) {
+      return { score: 0, flags: [] };
+    }
+    
+    // Count fingerprint occurrences
+    const fingerprintCounts: Record<string, number> = {};
+    for (const visit of recentVisits) {
+      fingerprintCounts[visit.fingerprint_hash] = (fingerprintCounts[visit.fingerprint_hash] || 0) + 1;
+    }
+    
+    // Check if current fingerprint is too common
+    const currentFpCount = fingerprintCounts[fingerprintHash] || 0;
+    const avgCount = Object.values(fingerprintCounts).reduce((a, b) => a + b, 0) / Object.keys(fingerprintCounts).length;
+    
+    // Same fingerprint appearing much more than average
+    if (currentFpCount > avgCount * 5 && currentFpCount > 10) {
+      flags.push("fingerprint_crowd_collision");
+      score -= 10;
+    }
+    
+    // === Cluster detection ===
+    // Count unique fingerprints per IP
+    const ipToFingerprints: Record<string, Set<string>> = {};
+    for (const visit of recentVisits) {
+      if (visit.ip_address) {
+        if (!ipToFingerprints[visit.ip_address]) {
+          ipToFingerprints[visit.ip_address] = new Set();
+        }
+        ipToFingerprints[visit.ip_address].add(visit.fingerprint_hash);
+      }
+    }
+    
+    // Check current IP
+    if (currentIp && ipToFingerprints[currentIp]) {
+      const fingerprintsFromIp = ipToFingerprints[currentIp].size;
+      
+      // Many different fingerprints from same IP = bot farm or proxy
+      if (fingerprintsFromIp > 20) {
+        flags.push("ip_fingerprint_cluster");
+        score -= 15;
+      } else if (fingerprintsFromIp > 10) {
+        flags.push("ip_moderate_cluster");
+        score -= 8;
+      }
+    }
+    
+    // === Detect artificial similarity ===
+    // If too many fingerprints are exactly the same, it's suspicious
+    const uniqueFingerprints = Object.keys(fingerprintCounts).length;
+    const totalVisits = recentVisits.length;
+    
+    // Very few unique fingerprints for many visits = bot traffic
+    if (uniqueFingerprints < totalVisits * 0.1 && totalVisits > 50) {
+      flags.push("low_fingerprint_diversity");
+      score -= 8;
+    }
+    
+    return { score, flags };
+    
+  } catch (e) {
+    console.error("[Cloaker] Crowd collision error:", e);
+    return { score: 0, flags: ["crowd_analysis_error"] };
+  }
+}
+
+// ==================== BEHAVIORAL ANALYSIS ====================
+
 function analyzeMouseBehavior(fp: FingerprintData): { score: number; flags: string[] } {
   const flags: string[] = [];
   let score = 0;
@@ -218,24 +890,6 @@ function analyzeMouseBehavior(fp: FingerprintData): { score: number; flags: stri
         score -= 8;
       }
     }
-    
-    // Check timing consistency
-    const timeDiffs: number[] = [];
-    for (let i = 1; i < path.length; i++) {
-      timeDiffs.push(path[i].t - path[i - 1].t);
-    }
-    
-    if (timeDiffs.length > 3) {
-      const avgTime = timeDiffs.reduce((a, b) => a + b, 0) / timeDiffs.length;
-      const variance = timeDiffs.reduce((a, b) => a + Math.pow(b - avgTime, 2), 0) / timeDiffs.length;
-      const stdDev = Math.sqrt(variance);
-      
-      // Very consistent timing is robotic
-      if (stdDev < 3 && avgTime > 0) {
-        flags.push("robotic_timing");
-        score -= 12;
-      }
-    }
   }
   
   // Velocity analysis
@@ -243,13 +897,11 @@ function analyzeMouseBehavior(fp: FingerprintData): { score: number; flags: stri
     const avg = velocities.reduce((a, b) => a + b, 0) / velocities.length;
     const variance = velocities.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / velocities.length;
     
-    // Very low variance = constant speed = robot
     if (variance < 0.0005 && avg > 0) {
       flags.push("constant_velocity");
       score -= 12;
     }
     
-    // Sustained high speeds are suspicious
     const highSpeedRatio = velocities.filter(v => v > 15).length / velocities.length;
     if (highSpeedRatio > 0.6) {
       flags.push("inhuman_speed");
@@ -257,70 +909,22 @@ function analyzeMouseBehavior(fp: FingerprintData): { score: number; flags: stri
     }
   }
   
-  // Acceleration analysis
-  if (accelerations && accelerations.length >= 5) {
-    // Human movements have variable acceleration
-    const hasVariableAccel = accelerations.some((a, i, arr) => 
-      i > 0 && Math.abs(a - arr[i-1]) > 0.1
-    );
-    
-    if (!hasVariableAccel) {
-      flags.push("constant_acceleration");
-      score -= 8;
-    }
-  }
-  
   // Positive signals
   if (fp.mouseMovements > 20 && path && path.length > 15) {
-    score += 10; // Good amount of natural movement
+    score += 10;
   }
   
   return { score, flags };
 }
 
-// Validate proof of work
-function validateProofOfWork(pow: string | undefined): { valid: boolean; time: number } {
-  if (!pow) return { valid: false, time: -1 };
-  
-  const parts = pow.split(":");
-  if (parts[0] === "failed") {
-    return { valid: false, time: parseInt(parts[1]) || -1 };
-  }
-  
-  const nonce = parseInt(parts[0]);
-  const hash = parts[1];
-  const time = parseInt(parts[2]) || 0;
-  
-  // Valid proof should take some time (bots might complete instantly or fail)
-  const valid = hash?.startsWith("000") && time > 50 && time < 10000;
-  
-  return { valid, time };
-}
+// ==================== MAIN SCORE CALCULATION ====================
 
-// Validate JS challenge
-function validateJsChallenge(variance: number | undefined): { valid: boolean; flags: string[] } {
-  const flags: string[] = [];
-  
-  if (variance === undefined) {
-    flags.push("no_js_challenge");
-    return { valid: false, flags };
-  }
-  
-  // Bots often have very low or very high variance
-  if (variance < 0.00001) {
-    flags.push("suspicious_timing_variance");
-    return { valid: false, flags };
-  }
-  
-  if (variance > 100) {
-    flags.push("abnormal_timing_variance");
-    return { valid: false, flags };
-  }
-  
-  return { valid: true, flags };
-}
-
-function calculateScore(fp: FingerprintData, link: any, headers: Headers): ScoreResult {
+async function calculateScore(
+  fp: FingerprintData, 
+  link: any, 
+  headers: Headers,
+  supabase: any
+): Promise<ScoreResult> {
   const flags: string[] = [];
   let fingerprintScore = 25;
   let behaviorScore = 25;
@@ -329,48 +933,63 @@ function calculateScore(fp: FingerprintData, link: any, headers: Headers): Score
 
   const isMobileUA = /mobile|android|iphone|ipad/i.test(fp.userAgent);
 
-  // ==================== FINGERPRINT ANALYSIS (0-25) ====================
+  // ==================== CROSS-LAYER ANALYSIS (NEW - CRITICAL) ====================
+  const crossLayerResult = analyzeCrossLayerConsistency(fp, headers);
+  const crossLayerScore = crossLayerResult.score;
+  flags.push(...crossLayerResult.issues);
   
-  // WebGL checks
+  // ==================== ENTROPY ANALYSIS (NEW) ====================
+  const entropyResult = analyzeEntropy(fp, supabase, link.id);
+  const entropyScore = Math.round(entropyResult.distributionScore / 4); // Convert to 0-25 scale
+  flags.push(...entropyResult.suspiciousPatterns);
+  
+  // ==================== SESSION ANALYSIS (NEW) ====================
+  const fingerprintHash = generateFingerprintHash(fp);
+  const cfIp = headers.get("cf-connecting-ip") || headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "";
+  const sessionResult = await analyzeSessionHistory(supabase, link.id, fingerprintHash, cfIp);
+  flags.push(...sessionResult.flags);
+  behaviorScore += sessionResult.score;
+  
+  // ==================== CROWD COLLISION (NEW) ====================
+  const crowdResult = await detectCrowdCollision(supabase, link.id, fingerprintHash, cfIp);
+  flags.push(...crowdResult.flags);
+  networkScore += crowdResult.score;
+
+  // ==================== FINGERPRINT ANALYSIS ====================
+  
   if (fp.webglRenderer && fp.webglVendor) {
     fingerprintScore += 3;
-    
-    // Software renderer - suspicious but not definitive (VMs, older hardware)
     if (/swiftshader|llvmpipe|mesa|software|virtualbox|vmware|virgl|lavapipe/i.test(fp.webglRenderer)) {
-      fingerprintScore -= 8; // Reduced from 15
+      fingerprintScore -= 8;
       flags.push("software_renderer");
     }
   } else {
-    fingerprintScore -= 8; // Reduced - some browsers disable WebGL
+    fingerprintScore -= 8;
     flags.push("no_webgl");
   }
 
-  // Hardware acceleration - less penalty, some users disable it
   if (fp.hardwareAcceleration === false) {
-    fingerprintScore -= 4; // Reduced from 8
+    fingerprintScore -= 4;
     flags.push("no_hw_accel");
   }
 
-  // Canvas fingerprint
   if (fp.canvasHash && fp.canvasHash !== "0" && fp.canvasHash.length > 6) {
     fingerprintScore += 3;
   } else {
-    fingerprintScore -= 5; // Reduced
+    fingerprintScore -= 5;
     flags.push("invalid_canvas");
   }
 
-  // Anti-fingerprinting detection - privacy extensions are common
   if (fp.canvasNoise) {
-    fingerprintScore -= 3; // Reduced from 8 - privacy extension
+    fingerprintScore -= 3;
     flags.push("canvas_spoofed");
   }
   
   if (fp.audioNoise) {
-    fingerprintScore -= 3; // Reduced from 8
+    fingerprintScore -= 3;
     flags.push("audio_spoofed");
   }
 
-  // Fonts
   if (fp.fontsList && fp.fontsList.length < 3) {
     fingerprintScore -= 4;
     flags.push("few_fonts");
@@ -378,14 +997,12 @@ function calculateScore(fp: FingerprintData, link: any, headers: Headers): Score
     fingerprintScore += 3;
   }
 
-  // Device memory
   if (fp.deviceMemory >= 2 && fp.deviceMemory <= 32) {
     fingerprintScore += 2;
   } else if (!fp.deviceMemory) {
-    fingerprintScore -= 2; // Some browsers hide this
+    fingerprintScore -= 2;
   }
 
-  // CPU cores
   if (fp.hardwareConcurrency >= 2 && fp.hardwareConcurrency <= 128) {
     fingerprintScore += 2;
   } else if (fp.hardwareConcurrency === 0 || fp.hardwareConcurrency === undefined) {
@@ -393,17 +1010,14 @@ function calculateScore(fp: FingerprintData, link: any, headers: Headers): Score
     flags.push("invalid_cpu");
   }
 
-  // Screen resolution
   if (fp.screenResolution) {
     const [w, h] = fp.screenResolution.split("x").map(Number);
-    // Common headless resolutions
     if ((w === 800 && h === 600) || w === 0 || h === 0) {
       fingerprintScore -= 6;
       flags.push("headless_resolution");
     }
   }
 
-  // Touch consistency
   if (isMobileUA && fp.touchSupport && fp.maxTouchPoints && fp.maxTouchPoints > 0) {
     fingerprintScore += 3;
   } else if (isMobileUA && !fp.touchSupport) {
@@ -411,34 +1025,25 @@ function calculateScore(fp: FingerprintData, link: any, headers: Headers): Score
     flags.push("mobile_no_touch");
   }
 
-  // Plugins on desktop Chrome - many users have extensions blocking
   if (!isMobileUA && /chrome/i.test(fp.userAgent) && fp.pluginsCount === 0) {
-    fingerprintScore -= 3; // Reduced
+    fingerprintScore -= 3;
     flags.push("chrome_no_plugins");
   }
 
-  // Languages
   if (!fp.languages || fp.languages.length === 0) {
     fingerprintScore -= 3;
     flags.push("no_languages");
   }
 
-  // Math constants (should be consistent)
-  if (!fp.mathConstants) {
-    fingerprintScore -= 1;
-  }
-
-  // Consistency score from client
   if (fp.consistencyScore !== undefined && fp.consistencyScore < 50) {
     fingerprintScore -= 5;
     flags.push("low_consistency");
   }
 
-  // ==================== BEHAVIORAL ANALYSIS (0-25) ====================
+  // ==================== BEHAVIORAL ANALYSIS ====================
   
-  const minTime = link.behavior_time_ms || 1500; // Reduced default
+  const minTime = link.behavior_time_ms || 1500;
   
-  // Time on page - be more forgiving
   if (fp.timeOnPage >= minTime + 500) {
     behaviorScore += 8;
   } else if (fp.timeOnPage >= minTime) {
@@ -454,19 +1059,16 @@ function calculateScore(fp: FingerprintData, link: any, headers: Headers): Score
     flags.push("fast_access");
   }
 
-  // Mouse behavior analysis - reduced impact
   const mouseAnalysis = analyzeMouseBehavior(fp);
-  behaviorScore += Math.max(-8, mouseAnalysis.score); // Cap the penalty
+  behaviorScore += Math.max(-8, mouseAnalysis.score);
   if (mouseAnalysis.flags.length > 0) {
-    flags.push(...mouseAnalysis.flags.slice(0, 2)); // Limit flags
+    flags.push(...mouseAnalysis.flags.slice(0, 2));
   }
 
-  // Click events - positive signal
   if (fp.clickEvents && fp.clickEvents > 0) {
     behaviorScore += 4;
   }
 
-  // Scroll - positive signal
   if (fp.scrollEvents > 0) {
     behaviorScore += 3;
   }
@@ -474,12 +1076,10 @@ function calculateScore(fp: FingerprintData, link: any, headers: Headers): Score
     behaviorScore += 2;
   }
 
-  // Focus changes
   if (fp.focusChanges !== undefined && fp.focusChanges >= 0 && fp.focusChanges < 20) {
     behaviorScore += 1;
   }
 
-  // DOM manipulation time - less strict
   if (fp.domManipulationTime !== undefined) {
     if (fp.domManipulationTime < 0.5 || fp.domManipulationTime > 1000) {
       behaviorScore -= 3;
@@ -487,31 +1087,8 @@ function calculateScore(fp: FingerprintData, link: any, headers: Headers): Score
     }
   }
 
-  // Proof of work validation - much less penalty
-  const powResult = validateProofOfWork(fp.proofOfWork);
-  if (!powResult.valid) {
-    behaviorScore -= 3; // Reduced from 8 - slow devices may fail
-    flags.push("pow_failed");
-  } else if (powResult.time > 50 && powResult.time < 8000) {
-    behaviorScore += 3; // Bonus for valid PoW
-  }
-
-  // JS challenge validation - lighter penalty
-  const jsResult = validateJsChallenge(fp.jsChallenge);
-  if (!jsResult.valid) {
-    behaviorScore -= 2;
-    if (jsResult.flags.length > 0) flags.push(jsResult.flags[0]);
-  }
-
-  // Timing variance - more forgiving threshold
-  if (fp.timingVariance !== undefined && fp.timingVariance < 0.000001) {
-    behaviorScore -= 5;
-    flags.push("robotic_timing");
-  }
-
-  // ==================== AUTOMATION DETECTION (0-25) ====================
+  // ==================== AUTOMATION DETECTION ====================
   
-  // Critical automation indicators - definitive bot signals
   if (fp.hasWebdriver === true) {
     automationScore = 0;
     flags.push("WEBDRIVER");
@@ -537,7 +1114,6 @@ function calculateScore(fp: FingerprintData, link: any, headers: Headers): Score
     flags.push("CYPRESS");
   }
 
-  // PhantomJS - only if explicitly detected
   if (fp.hasPhantom === true) {
     automationScore = 0;
     flags.push("PHANTOM");
@@ -548,7 +1124,6 @@ function calculateScore(fp: FingerprintData, link: any, headers: Headers): Score
     flags.push("NIGHTMARE");
   }
 
-  // Headless + Automated combination - only definitive signals
   if (fp.isHeadless === true && fp.isAutomated === true) {
     automationScore = 0;
     flags.push("HEADLESS_AUTOMATED");
@@ -560,13 +1135,11 @@ function calculateScore(fp: FingerprintData, link: any, headers: Headers): Score
     flags.push("automated");
   }
 
-  // Error stack pattern
   if (fp.errorStackPattern === "automation_detected") {
     automationScore -= 15;
     flags.push("automation_in_stack");
   }
 
-  // Bot UA patterns - definitive
   let isBotUA = false;
   for (const pattern of BOT_UA_PATTERNS) {
     if (pattern.test(fp.userAgent)) {
@@ -577,42 +1150,30 @@ function calculateScore(fp: FingerprintData, link: any, headers: Headers): Score
     }
   }
 
-  // Storage disabled - less penalty, privacy browsers do this
   if (!fp.cookiesEnabled && !fp.localStorage) {
     automationScore -= 5;
     flags.push("storage_disabled");
   }
 
-  // Performance entries
   if (fp.performanceEntries === 0) {
     automationScore -= 2;
   }
 
-  // Media devices - less strict
   if (fp.mediaDevices === 0 && !isMobileUA) {
     automationScore -= 2;
     flags.push("no_media_devices");
   }
 
-  // Missing browser APIs - minimal penalty
   if (fp.webWorkerSupport === false && fp.wasmSupport === false) {
     automationScore -= 3;
     flags.push("limited_apis");
   }
 
-  // ==================== NETWORK ANALYSIS (0-25) ====================
+  // ==================== NETWORK ANALYSIS ====================
   
-  const cfCountry = headers.get("cf-ipcountry") || 
-                    headers.get("x-vercel-ip-country") ||
-                    headers.get("x-country-code");
-  
-  const cfIp = headers.get("cf-connecting-ip") ||
-               headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-               headers.get("x-real-ip");
-
+  const cfCountry = headers.get("cf-ipcountry") || headers.get("x-vercel-ip-country") || headers.get("x-country-code");
   const cfOrg = headers.get("cf-isp") || headers.get("x-isp") || "";
 
-  // Datacenter detection
   for (const keyword of DATACENTER_KEYWORDS) {
     if (cfOrg.toLowerCase().includes(keyword)) {
       networkScore -= 18;
@@ -621,7 +1182,6 @@ function calculateScore(fp: FingerprintData, link: any, headers: Headers): Score
     }
   }
 
-  // Google internal headers
   const suspiciousHeaders = ["x-google-internal", "x-adsbot-google", "x-goog-", "x-fb-", "x-meta-"];
   for (const header of suspiciousHeaders) {
     if (headers.get(header)) {
@@ -631,28 +1191,24 @@ function calculateScore(fp: FingerprintData, link: any, headers: Headers): Score
     }
   }
 
-  // Via header
   const viaHeader = headers.get("via") || "";
   if (/google|facebook|meta|microsoft/i.test(viaHeader)) {
     networkScore -= 15;
     flags.push("via_bot");
   }
 
-  // Accept header
   const acceptHeader = headers.get("accept") || "";
   if (!acceptHeader.includes("text/html") && !acceptHeader.includes("*/*")) {
     networkScore -= 8;
     flags.push("no_html_accept");
   }
 
-  // Accept-Language
   const acceptLang = headers.get("accept-language") || "";
   if (!acceptLang || acceptLang === "*") {
     networkScore -= 8;
     flags.push("no_accept_lang");
   }
 
-  // Country filtering
   if (link.allowed_countries?.length > 0 && cfCountry && !link.allowed_countries.includes(cfCountry)) {
     networkScore -= 25;
     flags.push("country_blocked");
@@ -662,14 +1218,12 @@ function calculateScore(fp: FingerprintData, link: any, headers: Headers): Score
     flags.push("country_blocked");
   }
 
-  // Device filtering
   const deviceType = getDeviceType(fp.userAgent);
   if (link.allowed_devices?.length > 0 && !link.allowed_devices.includes(deviceType)) {
     networkScore -= 15;
     flags.push("device_filtered");
   }
 
-  // Connection RTT (very low can indicate datacenter)
   if (fp.connectionRtt !== undefined && fp.connectionRtt > 0 && fp.connectionRtt < 10) {
     networkScore -= 5;
     flags.push("low_rtt");
@@ -677,13 +1231,10 @@ function calculateScore(fp: FingerprintData, link: any, headers: Headers): Score
 
   // ==================== COMBINED ANALYSIS ====================
   
-  // Count DEFINITIVE critical flags (real automation tools only)
-  // Critical flags - only definitive automation tools
   const criticalFlags = flags.filter(f => 
-    f === "WEBDRIVER" || f === "BOT_UA" || f === "HEADLESS_AUTOMATED"
+    f === "WEBDRIVER" || f === "BOT_UA" || f === "HEADLESS_AUTOMATED" || f === "DEFINITIVE_BOT"
   ).length;
 
-  // Strong bot indicators - now require webdriver or explicit tools
   const strongBotSignals = [
     fp.hasWebdriver === true,
     fp.hasPuppeteer === true,
@@ -693,21 +1244,20 @@ function calculateScore(fp: FingerprintData, link: any, headers: Headers): Score
     isBotUA,
   ].filter(Boolean).length;
 
-  // Moderate suspicious signals (privacy users may trigger some)
   const suspiciousSignals = [
     fp.mouseMovements === 0 && !fp.touchSupport && fp.timeOnPage > 3000,
-    fp.timeOnPage < 300, // Only instant access
+    fp.timeOnPage < 300,
     fp.isHeadless === true && fp.isAutomated === true,
     flags.includes("DATACENTER_IP"),
+    crossLayerResult.coherenceScore < 50,
+    entropyResult.lowEntropy,
+    entropyResult.overNormalized,
   ].filter(Boolean).length;
 
-  // Bot profile detection - require at least 2 strong signals for definitive bot
   if (strongBotSignals >= 2) {
-    // Definitive bot - multiple strong signals
     automationScore = 0;
     flags.push("DEFINITIVE_BOT");
   } else if (strongBotSignals >= 1 && suspiciousSignals >= 2) {
-    // Strong signal + suspicious behavior
     automationScore = Math.max(5, automationScore - 15);
     flags.push("HIGH_BOT_SCORE");
   } else if (suspiciousSignals >= 3) {
@@ -723,7 +1273,7 @@ function calculateScore(fp: FingerprintData, link: any, headers: Headers): Score
 
   const total = fingerprintScore + behaviorScore + networkScore + automationScore;
   
-  // Calculate confidence and risk level - based on definitive signals
+  // Calculate confidence and risk level
   let confidence: number;
   let riskLevel: "low" | "medium" | "high" | "critical";
   
@@ -733,10 +1283,10 @@ function calculateScore(fp: FingerprintData, link: any, headers: Headers): Score
   } else if (strongBotSignals >= 1 && suspiciousSignals >= 2) {
     confidence = 90;
     riskLevel = "high";
-  } else if (suspiciousSignals >= 3) {
+  } else if (suspiciousSignals >= 3 || crossLayerResult.coherenceScore < 40) {
     confidence = 70;
     riskLevel = "high";
-  } else if (suspiciousSignals >= 2 || total < 30) {
+  } else if (suspiciousSignals >= 2 || total < 30 || crossLayerResult.coherenceScore < 60) {
     confidence = 55;
     riskLevel = "medium";
   } else {
@@ -750,107 +1300,21 @@ function calculateScore(fp: FingerprintData, link: any, headers: Headers): Score
     behavior: behaviorScore,
     network: networkScore,
     automation: automationScore,
-    flags,
+    crossLayer: crossLayerScore,
+    entropy: entropyScore,
+    flags: [...new Set(flags)], // Deduplicate
     confidence,
     riskLevel,
+    crossLayerIssues: crossLayerResult.issues,
+    entropyAnalysis: entropyResult,
   };
 }
 
-function getDeviceType(userAgent: string): string {
-  const ua = userAgent.toLowerCase();
-  if (/tablet|ipad|playbook|silk/i.test(ua)) return "tablet";
-  if (/mobile|iphone|ipod|android|blackberry|opera mini|iemobile/i.test(ua)) return "mobile";
-  return "desktop";
-}
-
-function generateFingerprintHash(fp: FingerprintData): string {
-  const components = [
-    fp.userAgent,
-    fp.language,
-    fp.timezone,
-    fp.screenResolution,
-    fp.colorDepth,
-    fp.deviceMemory,
-    fp.hardwareConcurrency,
-    fp.platform,
-    fp.webglVendor,
-    fp.webglRenderer,
-    fp.canvasHash,
-    fp.fontsHash,
-    fp.pluginsHash,
-    fp.webglHash,
-  ].filter(Boolean).join("|");
-  
-  return hashString(components);
-}
-
-// Generate ultra-fast fingerprinting HTML page
-function generateFingerprintPage(slug: string, supabaseUrl: string): string {
-  return `<!DOCTYPE html>
-<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<style>body{margin:0;background:#fff}</style></head><body>
-<script>
-(async function(){
-  try{
-    var s=Date.now();
-    function h(t){for(var i=0,r=0;i<t.length;i++)r=((r<<5)-r)+t.charCodeAt(i),r&=r;return Math.abs(r).toString(16)}
-    function c(){try{var cv=document.createElement('canvas'),x=cv.getContext('2d');if(!x)return'0';cv.width=200;cv.height=50;x.fillStyle='#f60';x.fillRect(0,0,100,50);x.fillStyle='#069';x.font='14px Arial';x.fillText('FP',2,15);return h(cv.toDataURL())}catch(e){return'0'}}
-    function g(){try{var cv=document.createElement('canvas'),gl=cv.getContext('webgl')||cv.getContext('experimental-webgl');if(!gl)return{v:'',r:''};var e=gl.getExtension('WEBGL_debug_renderer_info');return{v:e?gl.getParameter(e.UNMASKED_VENDOR_WEBGL):gl.getParameter(gl.VENDOR),r:e?gl.getParameter(e.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER)}}catch(e){return{v:'',r:''}}}
-    var w=g(),fp={
-      userAgent:navigator.userAgent,
-      language:navigator.language,
-      languages:navigator.languages?[].slice.call(navigator.languages):[navigator.language],
-      timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,
-      screenResolution:screen.width+'x'+screen.height,
-      colorDepth:screen.colorDepth,
-      deviceMemory:navigator.deviceMemory||0,
-      hardwareConcurrency:navigator.hardwareConcurrency||0,
-      platform:navigator.platform,
-      webglVendor:w.v,
-      webglRenderer:w.r,
-      canvasHash:c(),
-      audioHash:'0',
-      fontsHash:'0',
-      pluginsCount:navigator.plugins?navigator.plugins.length:0,
-      touchSupport:'ontouchstart'in window||navigator.maxTouchPoints>0,
-      maxTouchPoints:navigator.maxTouchPoints||0,
-      mouseMovements:0,
-      scrollEvents:0,
-      keypressEvents:0,
-      timeOnPage:Date.now()-s,
-      focusChanges:0,
-      hasWebdriver:!!navigator.webdriver,
-      hasPhantom:!!window.callPhantom||!!window._phantom,
-      hasSelenium:!!document.__selenium_unwrapped||!!document.__webdriver_evaluate,
-      hasPuppeteer:!!window.__puppeteer_evaluation_script__,
-      isHeadless:/headless/i.test(navigator.userAgent),
-      isAutomated:!!navigator.webdriver,
-      doNotTrack:navigator.doNotTrack==='1',
-      cookiesEnabled:navigator.cookieEnabled,
-      localStorage:!!window.localStorage,
-      sessionStorage:!!window.sessionStorage,
-      indexedDB:!!window.indexedDB,
-      cpuClass:navigator.cpuClass||'',
-      navigatorPlatform:navigator.platform,
-      performanceEntries:performance.getEntries?performance.getEntries().length:0,
-      devicePixelRatio:window.devicePixelRatio||1
-    };
-    var res=await fetch('${supabaseUrl}/functions/v1/cloaker-redirect',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({slug:'${slug}',fingerprint:fp})
-    });
-    var d=await res.json();
-    if(d.redirectUrl)location.replace(d.redirectUrl);
-  }catch(e){console.error('Error:',e)}
-})();
-</script></body></html>`;
-}
+// ==================== EDGE FUNCTION HANDLER ====================
 
 Deno.serve(async (req) => {
   console.log(`[Cloaker] Request: ${req.method}`);
   
-  // Handle CORS
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -859,7 +1323,7 @@ Deno.serve(async (req) => {
   const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-  // Handle GET requests - instant redirect based on headers
+  // === GET: Instant header-based redirect ===
   if (req.method === "GET") {
     const url = new URL(req.url);
     const slug = url.searchParams.get("s") || url.searchParams.get("slug");
@@ -870,7 +1334,6 @@ Deno.serve(async (req) => {
     
     console.log(`[Cloaker] GET request for slug: ${slug}`);
     
-    // Get link with all settings
     const { data: link, error } = await supabase
       .from("cloaked_links")
       .select("*")
@@ -887,36 +1350,28 @@ Deno.serve(async (req) => {
       return Response.redirect(link.safe_url, 302);
     }
 
-    // Get request info from headers
     const userAgent = req.headers.get("user-agent") || "";
     const cfCountry = req.headers.get("cf-ipcountry") || req.headers.get("x-vercel-ip-country") || "";
     const cfIp = req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "";
     
-    // Determine device type
     const deviceType = getDeviceType(userAgent);
-    
-    // Check if it's a bot based on User-Agent
     const isBot = BOT_UA_PATTERNS.some(p => p.test(userAgent));
     
     let decision: "allow" | "block" = "allow";
     let blockReason = "";
 
-    // Check device filter
     if (link.allowed_devices?.length > 0 && !link.allowed_devices.includes(deviceType)) {
       decision = "block";
-      blockReason = `Device ${deviceType} not in allowed list [${link.allowed_devices.join(",")}]`;
+      blockReason = `Device ${deviceType} not allowed`;
     }
-    // Check country filter - allowed
     else if (link.allowed_countries?.length > 0 && cfCountry && !link.allowed_countries.includes(cfCountry)) {
       decision = "block";
-      blockReason = `Country ${cfCountry} not in allowed list`;
+      blockReason = `Country ${cfCountry} not allowed`;
     }
-    // Check country filter - blocked
     else if (link.blocked_countries?.length > 0 && cfCountry && link.blocked_countries.includes(cfCountry)) {
       decision = "block";
-      blockReason = `Country ${cfCountry} in blocked list`;
+      blockReason = `Country ${cfCountry} blocked`;
     }
-    // Check bot detection
     else if (link.block_bots && isBot) {
       decision = "block";
       blockReason = "Bot detected";
@@ -928,7 +1383,7 @@ Deno.serve(async (req) => {
     console.log(`[Cloaker] Device: ${deviceType}, Country: ${cfCountry || "unknown"}, Bot: ${isBot}`);
     console.log(`[Cloaker] Redirecting to: ${redirectUrl.substring(0, 50)}...`);
 
-    // Log visitor async
+    // Log async
     (async () => {
       try {
         await supabase.from("cloaker_visitors").insert({
@@ -948,18 +1403,15 @@ Deno.serve(async (req) => {
       }
     })();
 
-    // Instant redirect
     return Response.redirect(redirectUrl, 302);
   }
 
-  // Handle POST requests - process fingerprint
+  // === POST: Full fingerprint analysis ===
   try {
     const body = await req.json();
     const { slug, fingerprint } = body;
     
-    console.log(`[Cloaker] Processing: ${slug}`);
-
-    // supabase client already created above
+    console.log(`[Cloaker] POST Processing: ${slug}`);
 
     const { data: link, error } = await supabase
       .from("cloaked_links")
@@ -976,10 +1428,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    // No fingerprint - strict mode
     if (!fingerprint) {
       console.log("[Cloaker] No fingerprint - blocking");
-      
       const ua = req.headers.get("user-agent") || "";
       const isBot = BOT_UA_PATTERNS.some(p => p.test(ua));
       
@@ -997,71 +1447,76 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Calculate comprehensive score
-    const scoreResult = calculateScore(fingerprint as FingerprintData, link, req.headers);
+    // Calculate comprehensive score with all new analysis
+    const scoreResult = await calculateScore(fingerprint as FingerprintData, link, req.headers, supabase);
     const fingerprintHash = generateFingerprintHash(fingerprint);
     
     console.log(`[Cloaker] Score: ${scoreResult.total}, Risk: ${scoreResult.riskLevel}, Confidence: ${scoreResult.confidence}%`);
-    console.log(`[Cloaker] Breakdown: FP=${scoreResult.fingerprint}, B=${scoreResult.behavior}, N=${scoreResult.network}, A=${scoreResult.automation}`);
+    console.log(`[Cloaker] Breakdown: FP=${scoreResult.fingerprint}, B=${scoreResult.behavior}, N=${scoreResult.network}, A=${scoreResult.automation}, CL=${scoreResult.crossLayer}, E=${scoreResult.entropy}`);
+    console.log(`[Cloaker] CrossLayer Issues: ${scoreResult.crossLayerIssues.slice(0, 5).join(", ") || "none"}`);
+    console.log(`[Cloaker] Entropy: overNorm=${scoreResult.entropyAnalysis.overNormalized}, lowEnt=${scoreResult.entropyAnalysis.lowEntropy}`);
     console.log(`[Cloaker] Flags: ${scoreResult.flags.slice(0, 10).join(", ") || "none"}`);
 
     const cfCountry = req.headers.get("cf-ipcountry") || req.headers.get("x-vercel-ip-country");
     const cfIp = req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
     const cfCity = req.headers.get("cf-city") || "";
 
-    // Decision logic
+    // Decision logic with probabilistic approach
     const minScore = link.min_score || 35;
     let decision: "allow" | "block" | "safe";
     let redirectUrl: string;
 
-    // Get device type for filtering
     const deviceType = getDeviceType(fingerprint.userAgent);
     const cfCountryForFilter = req.headers.get("cf-ipcountry") || req.headers.get("x-vercel-ip-country") || "";
 
-    // CRITICAL: Check hard filters FIRST - these always block regardless of score
-    
-    // Device filter - if allowed_devices is set, ONLY those devices can pass
+    // Hard filters FIRST
     if (link.allowed_devices?.length > 0 && !link.allowed_devices.includes(deviceType)) {
       decision = "safe";
       redirectUrl = link.safe_url;
-      console.log(`[Cloaker] BLOCKED: Device ${deviceType} not in allowed list [${link.allowed_devices.join(",")}]`);
+      console.log(`[Cloaker] BLOCKED: Device ${deviceType} not allowed`);
     }
-    // Country filter - allowed countries
     else if (link.allowed_countries?.length > 0 && cfCountryForFilter && !link.allowed_countries.includes(cfCountryForFilter)) {
       decision = "safe";
       redirectUrl = link.safe_url;
-      console.log(`[Cloaker] BLOCKED: Country ${cfCountryForFilter} not in allowed list`);
+      console.log(`[Cloaker] BLOCKED: Country ${cfCountryForFilter} not allowed`);
     }
-    // Country filter - blocked countries
     else if (link.blocked_countries?.length > 0 && cfCountryForFilter && link.blocked_countries.includes(cfCountryForFilter)) {
       decision = "safe";
       redirectUrl = link.safe_url;
-      console.log(`[Cloaker] BLOCKED: Country ${cfCountryForFilter} in blocked list`);
+      console.log(`[Cloaker] BLOCKED: Country ${cfCountryForFilter} blocked`);
     }
-    // Bot detection - check for definitive bot flags
     else {
+      // Bot detection with new signals
       const hasDefinitiveBotFlags = scoreResult.flags.some(f => 
         f === "WEBDRIVER" || f === "BOT_UA" || f === "HEADLESS_AUTOMATED" || f === "DEFINITIVE_BOT"
       );
 
-      // Block bots if enabled
+      const hasCrossLayerIssues = scoreResult.crossLayerIssues.length >= 3;
+      const hasEntropyIssues = scoreResult.entropyAnalysis.lowEntropy || scoreResult.entropyAnalysis.overNormalized;
+
       if (link.block_bots && hasDefinitiveBotFlags) {
         decision = "safe";
         redirectUrl = link.safe_url;
-        console.log("[Cloaker] BLOCKED: Bot detected (block_bots enabled)");
+        console.log("[Cloaker] BLOCKED: Bot detected");
       } else if (hasDefinitiveBotFlags) {
         decision = "safe";
         redirectUrl = link.safe_url;
-        console.log("[Cloaker] BLOCKED: Definitive bot detected");
+        console.log("[Cloaker] BLOCKED: Definitive bot");
       } else if (scoreResult.riskLevel === "critical" && scoreResult.confidence >= 95) {
         decision = "safe";
         redirectUrl = link.safe_url;
-        console.log("[Cloaker] BLOCKED: Critical risk with high confidence");
+        console.log("[Cloaker] BLOCKED: Critical risk");
+      } else if (hasCrossLayerIssues && hasEntropyIssues && scoreResult.total < minScore + 15) {
+        // NEW: Cross-layer + entropy issues = likely spoofed
+        decision = "safe";
+        redirectUrl = link.safe_url;
+        console.log("[Cloaker] BLOCKED: Cross-layer + entropy anomalies");
       } else if (scoreResult.total >= minScore) {
         decision = "allow";
         redirectUrl = link.target_url;
         console.log(`[Cloaker] ALLOWED: Score ${scoreResult.total} >= ${minScore}`);
       } else if (scoreResult.total >= minScore - 10 && scoreResult.riskLevel === "low") {
+        // Probabilistic: borderline but low risk
         decision = "allow";
         redirectUrl = link.target_url;
         console.log(`[Cloaker] ALLOWED: Borderline but low risk`);
@@ -1072,7 +1527,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Log visitor (async)
+    // Log visitor
     (async () => {
       try {
         await supabase.from("cloaker_visitors").insert({
@@ -1132,6 +1587,8 @@ Deno.serve(async (req) => {
         minScore,
         confidence: scoreResult.confidence,
         riskLevel: scoreResult.riskLevel,
+        crossLayerCoherence: scoreResult.crossLayer * 4, // Convert to 0-100
+        entropyScore: scoreResult.entropy * 4,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
