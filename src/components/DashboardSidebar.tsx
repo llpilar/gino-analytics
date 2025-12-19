@@ -1,4 +1,4 @@
-import { Home, BarChart3, Activity, Settings, LogOut, Wallet, Truck, Calculator, Shield } from "lucide-react";
+import { Home, BarChart3, Activity, Settings, LogOut, Wallet, Truck, Calculator, Shield, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation, Link } from "react-router-dom";
 import {
@@ -13,7 +13,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "./ui/sidebar";
-import { Button } from "./ui/button";
 
 const menuItems = [
   { icon: Home, label: "Dashboard", path: "/" },
@@ -27,9 +26,14 @@ const menuItems = [
 ];
 
 export const DashboardSidebar = () => {
-  const { signOut } = useAuth();
+  const { signOut, isAdmin } = useAuth();
   const location = useLocation();
   const { open } = useSidebar();
+
+  // Adiciona Admin ao menu se usuário for admin
+  const allMenuItems = isAdmin 
+    ? [...menuItems, { icon: ShieldCheck, label: "Admin", path: "/admin" }]
+    : menuItems;
 
   return (
     <Sidebar collapsible="icon" className="bg-sidebar/50 backdrop-blur-xl border-r border-sidebar-border">
@@ -45,7 +49,7 @@ export const DashboardSidebar = () => {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => {
+              {allMenuItems.map((item) => {
                 const isActive = location.pathname === item.path;
                 return (
                   <SidebarMenuItem key={item.label}>
