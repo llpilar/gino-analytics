@@ -2,19 +2,29 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
+type AppRole = 'admin' | 'user';
+type UserStatus = 'pending' | 'approved' | 'rejected' | 'suspended';
+
 interface Profile {
   id: string;
   name: string | null;
   avatar_url: string | null;
+  status: UserStatus;
+  approved_at: string | null;
 }
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
+  roles: AppRole[];
+  isAdmin: boolean;
+  isApproved: boolean;
+  isPending: boolean;
   loading: boolean;
   signOut: () => Promise<void>;
   updateProfile: (name: string, avatarUrl?: string) => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,10 +33,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [roles, setRoles] = useState<AppRole[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const isAdmin = roles.includes('admin');
+  const isApproved = profile?.status === 'approved';
+  const isPending = profile?.status === 'pending';
+
   useEffect(() => {
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
@@ -34,21 +48,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (session?.user) {
           setTimeout(() => {
-            fetchProfile(session.user.id);
+            fetchUserData(session.user.id);
           }, 0);
         } else {
           setProfile(null);
+          setRoles([]);
+          setLoading(false);
         }
       }
     );
 
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        fetchProfile(session.user.id);
+        fetchUserData(session.user.id);
       } else {
         setLoading(false);
       }
@@ -57,20 +72,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchUserData = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
+      // Buscar profile e roles em paralelo
+      const [profileResult, rolesResult] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("id, name, avatar_url, status, approved_at")
+          .eq("id", userId)
+          .single(),
+        supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", userId)
+      ]);
 
-      if (error) throw error;
-      setProfile(data);
+      if (profileResult.error) {
+        console.error("Error fetching profile:", profileResult.error);
+      } else {
+        setProfile(profileResult.data as Profile);
+      }
+
+      if (rolesResult.error) {
+        console.error("Error fetching roles:", rolesResult.error);
+        setRoles([]);
+      } else {
+        const userRoles = rolesResult.data?.map(r => r.role as AppRole) || [];
+        setRoles(userRoles);
+      }
     } catch (error) {
-      console.error("Error fetching profile:", error);
+      console.error("Error fetching user data:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const refreshProfile = async () => {
+    if (user) {
+      await fetchUserData(user.id);
     }
   };
 
@@ -87,7 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (error) throw error;
     
-    await fetchProfile(user.id);
+    await fetchUserData(user.id);
   };
 
   const signOut = async () => {
@@ -100,9 +139,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         session,
         profile,
+        roles,
+        isAdmin,
+        isApproved,
+        isPending,
         loading,
         signOut,
         updateProfile,
+        refreshProfile,
       }}
     >
       {children}

@@ -20,6 +20,9 @@ import Envios from "./pages/Envios";
 import Lucratividade from "./pages/Lucratividade";
 import Cloaker from "./pages/Cloaker";
 import CloakerRedirect from "./pages/CloakerRedirect";
+import Admin from "./pages/Admin";
+import AguardandoAprovacao from "./pages/AguardandoAprovacao";
+import ContaBloqueada from "./pages/ContaBloqueada";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +41,8 @@ const App = () => (
                   <DashboardSettingsProvider>
                     <Routes>
                       <Route path="/auth" element={<Auth />} />
+                      <Route path="/aguardando-aprovacao" element={<AguardandoAprovacao />} />
+                      <Route path="/conta-bloqueada" element={<ContaBloqueada />} />
                       <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
                       <Route path="/analises" element={<ProtectedRoute><Analises /></ProtectedRoute>} />
                       <Route path="/live-view" element={<ProtectedRoute><LiveView /></ProtectedRoute>} />
@@ -47,6 +52,7 @@ const App = () => (
                       <Route path="/cloaker" element={<ProtectedRoute><Cloaker /></ProtectedRoute>} />
                       <Route path="/go/:slug" element={<CloakerRedirect />} />
                       <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
+                      <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
                       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                       <Route path="*" element={<NotFound />} />
                     </Routes>
