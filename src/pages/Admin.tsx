@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useImpersonate } from "@/contexts/ImpersonateContext";
 import { DashboardWrapper } from "@/components/DashboardWrapper";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,12 +22,13 @@ import {
   Users, CheckCircle, XCircle, Clock, ShieldCheck, Settings, 
   Eye, Ban, UserCheck, Trash2, Plus, Save, RefreshCw, Search,
   Mail, Calendar, Activity, Zap, Store, BarChart3, Globe, 
-  ExternalLink, Copy, MoreVertical, Sparkles
+  ExternalLink, Copy, MoreVertical, Sparkles, LogIn
 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -68,11 +71,19 @@ const statusConfig = {
 
 export default function Admin() {
   const { user } = useAuth();
+  const { startImpersonating } = useImpersonate();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [integrationDialogOpen, setIntegrationDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [newIntegration, setNewIntegration] = useState({ type: '', config: {} as Record<string, string> });
+
+  const handleViewAsUser = (userProfile: UserProfile) => {
+    startImpersonating({ id: userProfile.id, name: userProfile.name });
+    toast.success(`Visualizando como ${userProfile.name || 'usuário'}`);
+    navigate('/');
+  };
 
   // Buscar todos os usuários com email
   const { data: users, isLoading: loadingUsers, refetch: refetchUsers } = useQuery({
@@ -501,6 +512,17 @@ export default function Admin() {
                   </CardHeader>
                   
                   <CardContent className="space-y-6">
+                    {/* View as User Button */}
+                    {selectedUser.status === 'approved' && (
+                      <Button
+                        className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                        onClick={() => handleViewAsUser(selectedUser)}
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        Ver Dashboard como {selectedUser.name?.split(' ')[0] || 'Usuário'}
+                      </Button>
+                    )}
+
                     {/* Status Actions */}
                     <div>
                       <Label className="text-sm font-semibold mb-3 block">Ações Rápidas</Label>
