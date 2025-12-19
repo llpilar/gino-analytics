@@ -1,9 +1,10 @@
 import { ReactNode } from "react";
 import { NavBar } from "./ui/tubelight-navbar";
 import { ShootingStars } from "./ui/shooting-stars";
-import { LayoutDashboard, BarChart3, Settings, Wallet, Truck, Calculator, Shield } from "lucide-react";
+import { LayoutDashboard, BarChart3, Settings, Wallet, Truck, Calculator, Shield, ShieldCheck } from "lucide-react";
 import { useVisualEffects } from "@/contexts/VisualEffectsContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface DashboardWrapperProps {
   children: ReactNode;
@@ -12,11 +13,12 @@ interface DashboardWrapperProps {
 export const DashboardWrapper = ({ children }: DashboardWrapperProps) => {
   const { premiumEffects } = useVisualEffects();
   const { theme, isDarkMode } = useTheme();
+  const { isAdmin } = useAuth();
 
   // Check if current theme is dark (cyber-neon is always dark, other themes depend on isDarkMode)
   const isCurrentlyDark = theme === 'cyber-neon' || (['clean-blue', 'royal-blue', 'netflix-red'].includes(theme) && isDarkMode);
 
-  const navItems = [
+  const baseNavItems = [
     { name: 'Dashboard', url: '/', icon: LayoutDashboard },
     { name: 'Análises', url: '/analises', icon: BarChart3 },
     { name: 'Lucro', url: '/lucratividade', icon: Calculator },
@@ -25,6 +27,11 @@ export const DashboardWrapper = ({ children }: DashboardWrapperProps) => {
     { name: 'Cloaker', url: '/cloaker', icon: Shield },
     { name: 'Config', url: '/configuracoes', icon: Settings }
   ];
+
+  // Adiciona Admin apenas para admins
+  const navItems = isAdmin 
+    ? [...baseNavItems, { name: 'Admin', url: '/admin', icon: ShieldCheck }]
+    : baseNavItems;
 
   return (
     <div className="min-h-screen w-full relative bg-background overflow-x-hidden">
