@@ -22,7 +22,8 @@ import {
   Users, CheckCircle, XCircle, Clock, ShieldCheck, Settings, 
   Eye, Ban, UserCheck, Trash2, Plus, Save, RefreshCw, Search,
   Mail, Calendar, Activity, Zap, Store, BarChart3, Globe, 
-  ExternalLink, Copy, MoreVertical, Sparkles, LogIn
+  ExternalLink, Copy, MoreVertical, Sparkles, LogIn, History,
+  TrendingUp
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -42,6 +43,9 @@ interface UserProfile {
   created_at: string;
   approved_at: string | null;
   email?: string;
+  last_login_at?: string | null;
+  login_count?: number | null;
+  last_active_at?: string | null;
 }
 
 interface UserIntegration {
@@ -52,6 +56,15 @@ interface UserIntegration {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+}
+
+interface ActivityLog {
+  id: string;
+  admin_id: string;
+  action: string;
+  target_user_id: string | null;
+  details: Record<string, any>;
+  created_at: string;
 }
 
 const INTEGRATION_TYPES = [
@@ -100,6 +113,21 @@ export default function Admin() {
     }
   });
 
+  // Buscar logs de atividade
+  const { data: activityLogs } = useQuery({
+    queryKey: ['admin-activity-logs'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('admin_activity_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      
+      if (error) throw error;
+      return data as ActivityLog[];
+    }
+  });
+
   // Buscar integrações do usuário selecionado
   const { data: userIntegrations, isLoading: loadingIntegrations } = useQuery({
     queryKey: ['admin-user-integrations', selectedUser?.id],
@@ -116,9 +144,23 @@ export default function Admin() {
     enabled: !!selectedUser
   });
 
+  // Função para registrar atividade
+  const logActivity = async (action: string, targetUserId: string | null, details: Record<string, any> = {}) => {
+    if (!user) return;
+    await supabase
+      .from('admin_activity_logs')
+      .insert({
+        admin_id: user.id,
+        action,
+        target_user_id: targetUserId,
+        details
+      });
+    queryClient.invalidateQueries({ queryKey: ['admin-activity-logs'] });
+  };
+
   // Mutations
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ userId, status }: { userId: string; status: UserStatus }) => {
+    mutationFn: async ({ userId, status, userName }: { userId: string; status: UserStatus; userName?: string }) => {
       const updateData: any = { status };
       if (status === 'approved') {
         updateData.approved_at = new Date().toISOString();
@@ -131,6 +173,9 @@ export default function Admin() {
         .eq('id', userId);
       
       if (error) throw error;
+      
+      // Registrar log de atividade
+      await logActivity(`user_${status}`, userId, { user_name: userName });
     },
     onSuccess: (_, { status }) => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
@@ -495,19 +540,42 @@ export default function Admin() {
                     </div>
                     
                     {/* User Info */}
-                    <div className="grid grid-cols-2 gap-4 mt-4 p-4 rounded-xl bg-muted/30">
-                      <div className="flex items-center gap-2 text-sm">
-                        <Calendar className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">Cadastro:</span>
-                        <span>{new Date(selectedUser.created_at).toLocaleDateString('pt-BR')}</span>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 p-4 rounded-xl bg-muted/30">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          Cadastro
+                        </span>
+                        <span className="text-sm font-medium">{new Date(selectedUser.created_at).toLocaleDateString('pt-BR')}</span>
                       </div>
                       {selectedUser.approved_at && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <CheckCircle className="w-4 h-4 text-green-500" />
-                          <span className="text-muted-foreground">Aprovado:</span>
-                          <span>{new Date(selectedUser.approved_at).toLocaleDateString('pt-BR')}</span>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                            <CheckCircle className="w-3 h-3" />
+                            Aprovado
+                          </span>
+                          <span className="text-sm font-medium">{new Date(selectedUser.approved_at).toLocaleDateString('pt-BR')}</span>
                         </div>
                       )}
+                      <div className="flex flex-col gap-1">
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <LogIn className="w-3 h-3" />
+                          Último login
+                        </span>
+                        <span className="text-sm font-medium">
+                          {selectedUser.last_login_at 
+                            ? new Date(selectedUser.last_login_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+                            : 'Nunca'
+                          }
+                        </span>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <TrendingUp className="w-3 h-3" />
+                          Total logins
+                        </span>
+                        <span className="text-sm font-medium">{selectedUser.login_count || 0}</span>
+                      </div>
                     </div>
                   </CardHeader>
                   
@@ -531,7 +599,7 @@ export default function Admin() {
                           size="sm"
                           variant={selectedUser.status === 'approved' ? 'default' : 'outline'}
                           className={selectedUser.status === 'approved' ? 'bg-green-600 hover:bg-green-700' : ''}
-                          onClick={() => updateStatusMutation.mutate({ userId: selectedUser.id, status: 'approved' })}
+                          onClick={() => updateStatusMutation.mutate({ userId: selectedUser.id, status: 'approved', userName: selectedUser.name || undefined })}
                           disabled={updateStatusMutation.isPending}
                         >
                           <UserCheck className="w-4 h-4 mr-2" />
@@ -540,7 +608,7 @@ export default function Admin() {
                         <Button
                           size="sm"
                           variant={selectedUser.status === 'suspended' ? 'destructive' : 'outline'}
-                          onClick={() => updateStatusMutation.mutate({ userId: selectedUser.id, status: 'suspended' })}
+                          onClick={() => updateStatusMutation.mutate({ userId: selectedUser.id, status: 'suspended', userName: selectedUser.name || undefined })}
                           disabled={updateStatusMutation.isPending}
                         >
                           <Ban className="w-4 h-4 mr-2" />
@@ -549,7 +617,7 @@ export default function Admin() {
                         <Button
                           size="sm"
                           variant={selectedUser.status === 'rejected' ? 'destructive' : 'outline'}
-                          onClick={() => updateStatusMutation.mutate({ userId: selectedUser.id, status: 'rejected' })}
+                          onClick={() => updateStatusMutation.mutate({ userId: selectedUser.id, status: 'rejected', userName: selectedUser.name || undefined })}
                           disabled={updateStatusMutation.isPending}
                         >
                           <XCircle className="w-4 h-4 mr-2" />
@@ -675,6 +743,71 @@ export default function Admin() {
             </AnimatePresence>
           </Card>
         </div>
+
+        {/* Activity Logs */}
+        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <History className="w-5 h-5 text-primary" />
+                Logs de Atividade
+              </CardTitle>
+              <Badge variant="secondary" className="text-xs">
+                Últimos {activityLogs?.length || 0}
+              </Badge>
+            </div>
+            <CardDescription>Histórico de ações administrativas</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {!activityLogs || activityLogs.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                <History className="w-10 h-10 mb-3 opacity-30" />
+                <p className="text-sm">Nenhuma atividade registrada</p>
+              </div>
+            ) : (
+              <ScrollArea className="h-[250px] pr-4">
+                <div className="space-y-3">
+                  {activityLogs.map((log) => {
+                    const targetUser = users?.find(u => u.id === log.target_user_id);
+                    const actionLabels: Record<string, { label: string; color: string }> = {
+                      user_approved: { label: 'Aprovou usuário', color: 'text-green-500' },
+                      user_suspended: { label: 'Suspendeu usuário', color: 'text-orange-500' },
+                      user_rejected: { label: 'Rejeitou usuário', color: 'text-red-500' },
+                      user_pending: { label: 'Pendenciou usuário', color: 'text-amber-500' },
+                      integration_added: { label: 'Adicionou integração', color: 'text-blue-500' },
+                      integration_removed: { label: 'Removeu integração', color: 'text-red-500' },
+                    };
+                    const actionInfo = actionLabels[log.action] || { label: log.action, color: 'text-muted-foreground' };
+                    
+                    return (
+                      <div key={log.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                        <div className={`p-2 rounded-lg bg-background ${actionInfo.color}`}>
+                          <Activity className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm">
+                            <span className={`font-medium ${actionInfo.color}`}>{actionInfo.label}</span>
+                            {targetUser && (
+                              <span className="text-muted-foreground"> • {targetUser.name || 'Usuário'}</span>
+                            )}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(log.created_at).toLocaleDateString('pt-BR', { 
+                              day: '2-digit', 
+                              month: 'short', 
+                              hour: '2-digit', 
+                              minute: '2-digit' 
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </DashboardWrapper>
   );

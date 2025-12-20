@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_activity_logs: {
+        Row: {
+          action: string
+          admin_id: string
+          created_at: string
+          details: Json | null
+          id: string
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          admin_id: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          admin_id?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
       cloaked_links: {
         Row: {
           allowed_countries: string[] | null
@@ -362,6 +389,9 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           id: string
+          last_active_at: string | null
+          last_login_at: string | null
+          login_count: number | null
           name: string | null
           status: Database["public"]["Enums"]["user_status"]
           updated_at: string
@@ -372,6 +402,9 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           id: string
+          last_active_at?: string | null
+          last_login_at?: string | null
+          login_count?: number | null
           name?: string | null
           status?: Database["public"]["Enums"]["user_status"]
           updated_at?: string
@@ -382,6 +415,9 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           id?: string
+          last_active_at?: string | null
+          last_login_at?: string | null
+          login_count?: number | null
           name?: string | null
           status?: Database["public"]["Enums"]["user_status"]
           updated_at?: string
@@ -514,6 +550,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_login_count: { Args: { user_id: string }; Returns: undefined }
       is_user_approved: { Args: { _user_id: string }; Returns: boolean }
       make_user_admin: { Args: { _user_id: string }; Returns: undefined }
     }
