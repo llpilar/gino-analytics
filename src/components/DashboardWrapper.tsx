@@ -1,10 +1,10 @@
 import { ReactNode } from "react";
-import { NavBar } from "./ui/tubelight-navbar";
 import { ShootingStars } from "./ui/shooting-stars";
-import { LayoutDashboard, BarChart3, Settings, Wallet, Truck, Calculator, Shield, ShieldCheck } from "lucide-react";
 import { useVisualEffects } from "@/contexts/VisualEffectsContext";
 import { useTheme } from "@/contexts/ThemeContext";
-import { useAuth } from "@/contexts/AuthContext";
+import { useSidebarState } from "@/contexts/SidebarContext";
+import { AppSidebar } from "./AppSidebar";
+import { MobileBottomNav } from "./MobileBottomNav";
 
 interface DashboardWrapperProps {
   children: ReactNode;
@@ -13,30 +13,18 @@ interface DashboardWrapperProps {
 export const DashboardWrapper = ({ children }: DashboardWrapperProps) => {
   const { premiumEffects } = useVisualEffects();
   const { theme, isDarkMode } = useTheme();
-  const { isAdmin } = useAuth();
+  const { isCollapsed } = useSidebarState();
 
   // Check if current theme is dark (cyber-neon is always dark, other themes depend on isDarkMode)
   const isCurrentlyDark = theme === 'cyber-neon' || (['clean-blue', 'royal-blue', 'netflix-red'].includes(theme) && isDarkMode);
 
-  const baseNavItems = [
-    { name: 'Dashboard', url: '/', icon: LayoutDashboard },
-    { name: 'Análises', url: '/analises', icon: BarChart3 },
-    { name: 'Lucro', url: '/lucratividade', icon: Calculator },
-    { name: 'Financeiro', url: '/financeiro', icon: Wallet },
-    { name: 'Envios', url: '/envios', icon: Truck },
-    { name: 'Cloaker', url: '/cloaker', icon: Shield },
-    { name: 'Config', url: '/configuracoes', icon: Settings }
-  ];
-
-  // Adiciona Admin apenas para admins
-  const navItems = isAdmin 
-    ? [...baseNavItems, { name: 'Admin', url: '/admin', icon: ShieldCheck }]
-    : baseNavItems;
-
   return (
     <div className="min-h-screen w-full relative bg-background overflow-x-hidden">
-      {/* Navigation Bar */}
-      <NavBar items={navItems} />
+      {/* Sidebar - Desktop */}
+      <AppSidebar />
+      
+      {/* Mobile Bottom Nav */}
+      <MobileBottomNav />
       
       {/* Background with shooting stars and static stars - fixed position */}
       <div className="fixed inset-0 bg-background pointer-events-none z-0" aria-hidden="true">
@@ -61,9 +49,12 @@ export const DashboardWrapper = ({ children }: DashboardWrapperProps) => {
         )}
       </div>
 
-
       {/* Content */}
-      <div className="relative z-10 pt-14 md:pt-20 min-h-screen w-full">
+      <div 
+        className={`relative z-10 min-h-screen w-full pb-20 md:pb-0 transition-all duration-300 ${
+          isCollapsed ? 'md:pl-[72px]' : 'md:pl-[260px]'
+        }`}
+      >
         <div className="w-full h-full">
           {children}
         </div>

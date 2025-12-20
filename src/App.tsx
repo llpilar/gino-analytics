@@ -10,6 +10,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { VisualEffectsProvider } from "@/contexts/VisualEffectsContext";
 import { DashboardSettingsProvider } from "@/contexts/DashboardSettingsContext";
 import { ImpersonateProvider } from "@/contexts/ImpersonateContext";
+import { SidebarProvider } from "@/contexts/SidebarContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ImpersonateBanner } from "@/components/ImpersonateBanner";
 import Index from "./pages/Index";
@@ -42,24 +43,26 @@ const App = () => (
                 <CurrencyProvider>
                   <VisualEffectsProvider>
                     <DashboardSettingsProvider>
-                      <ImpersonateBanner />
-                      <Routes>
-                        <Route path="/auth" element={<Auth />} />
-                        <Route path="/aguardando-aprovacao" element={<AguardandoAprovacao />} />
-                        <Route path="/conta-bloqueada" element={<ContaBloqueada />} />
-                        <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-                        <Route path="/analises" element={<ProtectedRoute><Analises /></ProtectedRoute>} />
-                        <Route path="/live-view" element={<ProtectedRoute><LiveView /></ProtectedRoute>} />
-                        <Route path="/financeiro" element={<ProtectedRoute><Financeiro /></ProtectedRoute>} />
-                        <Route path="/envios" element={<ProtectedRoute><Envios /></ProtectedRoute>} />
-                        <Route path="/lucratividade" element={<ProtectedRoute><Lucratividade /></ProtectedRoute>} />
-                        <Route path="/cloaker" element={<ProtectedRoute><Cloaker /></ProtectedRoute>} />
-                        <Route path="/go/:slug" element={<CloakerRedirect />} />
-                        <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
-                        <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
-                        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
+                      <SidebarProvider>
+                        <ImpersonateBanner />
+                        <Routes>
+                          <Route path="/auth" element={<Auth />} />
+                          <Route path="/aguardando-aprovacao" element={<AguardandoAprovacao />} />
+                          <Route path="/conta-bloqueada" element={<ContaBloqueada />} />
+                          <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+                          <Route path="/analises" element={<ProtectedRoute><Analises /></ProtectedRoute>} />
+                          <Route path="/live-view" element={<ProtectedRoute><LiveView /></ProtectedRoute>} />
+                          <Route path="/financeiro" element={<ProtectedRoute><Financeiro /></ProtectedRoute>} />
+                          <Route path="/envios" element={<ProtectedRoute><Envios /></ProtectedRoute>} />
+                          <Route path="/lucratividade" element={<ProtectedRoute><Lucratividade /></ProtectedRoute>} />
+                          <Route path="/cloaker" element={<ProtectedRoute><Cloaker /></ProtectedRoute>} />
+                          <Route path="/go/:slug" element={<CloakerRedirect />} />
+                          <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
+                          <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
+                          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                          <Route path="*" element={<NotFound />} />
+                        </Routes>
+                      </SidebarProvider>
                     </DashboardSettingsProvider>
                   </VisualEffectsProvider>
                 </CurrencyProvider>
