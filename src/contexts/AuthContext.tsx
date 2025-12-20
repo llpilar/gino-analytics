@@ -49,6 +49,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session?.user) {
           setTimeout(() => {
             fetchUserData(session.user.id);
+            // Atualizar estatísticas de login quando faz login
+            if (event === 'SIGNED_IN') {
+              updateLoginStats(session.user.id);
+            }
           }, 0);
         } else {
           setProfile(null);
@@ -71,6 +75,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const updateLoginStats = async (userId: string) => {
+    try {
+      // Incrementar login_count e atualizar last_login_at usando update direto
+      await supabase
+        .from('profiles')
+        .update({ 
+          last_login_at: new Date().toISOString(),
+          last_active_at: new Date().toISOString()
+        })
+        .eq('id', userId);
+      
+      // Incrementar login_count separadamente
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('login_count')
+        .eq('id', userId)
+        .single();
+      
+      if (profile) {
+        await supabase
+          .from('profiles')
+          .update({ login_count: (profile.login_count || 0) + 1 })
+          .eq('id', userId);
+      }
+    } catch (e) {
+      console.error('Error updating login stats:', e);
+    }
+  };
 
   const fetchUserData = async (userId: string) => {
     try {
