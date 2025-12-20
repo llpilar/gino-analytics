@@ -8,7 +8,6 @@ import { PageHeader } from "@/components/PageHeader";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { ThemeSelector } from "@/components/ThemeSelector";
-import { FacebookConnection } from "@/components/FacebookConnection";
 import { VisualEffectsToggle } from "@/components/VisualEffectsToggle";
 import { DashboardSettingsToggle } from "@/components/DashboardSettingsToggle";
 
@@ -43,9 +42,6 @@ export default function Configuracoes() {
 
           {/* Dashboard Settings */}
           <DashboardSettingsToggle />
-
-          {/* Facebook Connection */}
-          <FacebookConnection />
 
           <Card className="bg-card/60 border-2 border-primary/30 backdrop-blur-xl">
             <CardHeader className="p-4 md:p-6">
