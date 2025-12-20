@@ -17,7 +17,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Analises from "./pages/Analises";
 import Configuracoes from "./pages/Configuracoes";
-import LiveView from "./pages/LiveView";
+
 import Financeiro from "./pages/Financeiro";
 import Envios from "./pages/Envios";
 import Lucratividade from "./pages/Lucratividade";
@@ -51,7 +51,7 @@ const App = () => (
                           <Route path="/conta-bloqueada" element={<ContaBloqueada />} />
                           <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
                           <Route path="/analises" element={<ProtectedRoute><Analises /></ProtectedRoute>} />
-                          <Route path="/live-view" element={<ProtectedRoute><LiveView /></ProtectedRoute>} />
+                          
                           <Route path="/financeiro" element={<ProtectedRoute><Financeiro /></ProtectedRoute>} />
                           <Route path="/envios" element={<ProtectedRoute><Envios /></ProtectedRoute>} />
                           <Route path="/lucratividade" element={<ProtectedRoute><Lucratividade /></ProtectedRoute>} />

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   LayoutDashboard, BarChart3, Settings, Wallet, Truck, Calculator, 
   Shield, ShieldCheck, ChevronLeft, LogOut, Sparkles,
-  RefreshCw, Activity
+  RefreshCw
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
@@ -20,7 +20,6 @@ import { useState } from "react";
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
   { icon: BarChart3, label: "Análises", path: "/analises" },
-  { icon: Activity, label: "Ao Vivo", path: "/live-view" },
   { icon: Calculator, label: "Lucro", path: "/lucratividade" },
   { icon: Wallet, label: "Financeiro", path: "/financeiro" },
   { icon: Truck, label: "Envios", path: "/envios" },
