@@ -40,14 +40,25 @@ serve(async (req) => {
         shopifyAccessToken = integration.config.access_token;
         shopDomain = integration.config.store_domain;
         console.log(`Using Shopify credentials for user ${userId}`);
+      } else {
+        // User specified but no integration found - return empty data
+        console.log(`No Shopify integration found for user ${userId}, returning empty data`);
+        return new Response(
+          JSON.stringify({
+            data: {
+              orders: { edges: [] },
+              products: { edges: [] },
+              customers: { edges: [] }
+            }
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
-    }
-    
-    // Fallback to environment variables if no user credentials found
-    if (!shopifyAccessToken) {
+    } else {
+      // No userId provided - use environment variables (legacy behavior)
       shopifyAccessToken = Deno.env.get('SHOPIFY_ACCESS_TOKEN');
       shopDomain = 'g1n0hi-gx.myshopify.com';
-      console.log('Using default Shopify credentials from environment');
+      console.log('Using default Shopify credentials from environment (no userId provided)');
     }
 
     if (!shopifyAccessToken || !shopDomain) {
