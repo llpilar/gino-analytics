@@ -13,7 +13,7 @@ import { useDailyComparison, useWeeklyComparison } from "@/hooks/useComparisonMe
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { LucideIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useVturbOverview, parseVturbData } from "@/hooks/useVturbAnalytics";
+import { useVturbOverview, useVturbListPlayers, parseVturbData } from "@/hooks/useVturbAnalytics";
 import { useGA4Visitors } from "@/hooks/useGA4Visitors";
 import { useFacebookAdsToday } from "@/hooks/useFacebookAdsToday";
 import { ConversionFunnel } from "@/components/ConversionFunnel";
@@ -24,6 +24,7 @@ import { useDashboardSettings } from "@/contexts/DashboardSettingsContext";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
+import { VslPlayerSelector } from "@/components/VslPlayerSelector";
 
 type ExpandedPanel = "funnel" | "chart" | "map" | null;
 
@@ -112,6 +113,7 @@ export const CombinedDashboard = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [expandedPanel, setExpandedPanel] = useState<ExpandedPanel>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | undefined>(undefined);
   const { data: analyticsData, isLoading: analyticsLoading } = useShopifyAnalytics();
   const { data: revenueData, isLoading: revenueLoading } = useShopifyRevenueToday();
   const { data: dailyComparison } = useDailyComparison();
@@ -121,6 +123,11 @@ export const CombinedDashboard = () => {
   const { visitorCount } = useGA4Visitors();
   const { data: facebookAdsData } = useFacebookAdsToday();
   const { viewMode, setViewMode } = useDashboardSettings();
+
+  // VTurb data
+  const { data: vturbPlayersList, isLoading: vturbPlayersLoading } = useVturbListPlayers();
+  const { data: vturbData } = useVturbOverview(selectedPlayerId);
+  const vturbMetrics = useMemo(() => parseVturbData(vturbData), [vturbData]);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1280);
@@ -133,9 +140,6 @@ export const CombinedDashboard = () => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
-  
-  const { data: vturbData } = useVturbOverview("685ac2f3f4d418e9eca55125");
-  const vturbMetrics = useMemo(() => parseVturbData(vturbData), [vturbData]);
 
   const totalRevenue = revenueData?.data?.orders?.edges?.reduce((acc: number, edge: any) => {
     const amount = parseFloat(
@@ -302,11 +306,19 @@ export const CombinedDashboard = () => {
           className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 md:gap-3 lg:gap-4 xl:gap-5 mb-4"
         >
           <div className="rounded-xl bg-gradient-to-br from-card/90 to-card/50 border border-border/40 p-2 sm:p-3 lg:p-4 xl:p-5">
-            <div className="flex items-center gap-2 mb-2 sm:mb-3 lg:mb-4">
-              <div className="p-1 sm:p-1.5 lg:p-2 rounded-lg bg-red-500/10">
-                <Video className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5 text-red-400" />
+            <div className="flex items-center justify-between gap-2 mb-2 sm:mb-3 lg:mb-4">
+              <div className="flex items-center gap-2">
+                <div className="p-1 sm:p-1.5 lg:p-2 rounded-lg bg-red-500/10">
+                  <Video className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5 text-red-400" />
+                </div>
+                <span className="text-[10px] sm:text-xs lg:text-sm xl:text-base font-bold text-foreground uppercase tracking-wide">VTurb</span>
               </div>
-              <span className="text-[10px] sm:text-xs lg:text-sm xl:text-base font-bold text-foreground uppercase tracking-wide">VTurb Analytics</span>
+              <VslPlayerSelector
+                players={vturbPlayersList || []}
+                selectedPlayerId={selectedPlayerId}
+                onPlayerChange={setSelectedPlayerId}
+                isLoading={vturbPlayersLoading}
+              />
             </div>
             <div className="grid grid-cols-5 gap-1 sm:gap-2 lg:gap-3">
               {[
