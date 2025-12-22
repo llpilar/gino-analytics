@@ -1,15 +1,24 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useUserIntegrations } from "@/hooks/useUserIntegrations";
 
 export const useGA4Visitors = () => {
   const [visitorCount, setVisitorCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { effectiveUserId } = useUserIntegrations();
 
   useEffect(() => {
+    if (!effectiveUserId) {
+      setIsLoading(false);
+      return;
+    }
+
     const fetchVisitorCount = async () => {
       try {
-        const { data, error: fnError } = await supabase.functions.invoke('ga4-realtime');
+        const { data, error: fnError } = await supabase.functions.invoke('ga4-realtime', {
+          body: { userId: effectiveUserId }
+        });
         
         if (fnError) {
           throw new Error(fnError.message);
@@ -36,7 +45,7 @@ export const useGA4Visitors = () => {
     const interval = setInterval(fetchVisitorCount, 30000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [effectiveUserId]);
 
   return { visitorCount, isLoading, error };
 };

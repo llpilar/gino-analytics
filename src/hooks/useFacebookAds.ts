@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useUserIntegrations } from "@/hooks/useUserIntegrations";
 
 export interface AdAccount {
   id: string;
@@ -37,11 +38,13 @@ export interface Campaign {
 }
 
 export function useFacebookAdAccounts() {
+  const { effectiveUserId } = useUserIntegrations();
+  
   return useQuery({
-    queryKey: ['facebook-ad-accounts'],
+    queryKey: ['facebook-ad-accounts', effectiveUserId],
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke('facebook-user-ads', {
-        body: { endpoint: 'accounts' }
+        body: { endpoint: 'accounts', userId: effectiveUserId }
       });
 
       if (error) throw error;
@@ -54,15 +57,18 @@ export function useFacebookAdAccounts() {
       return { needsConnection: false, accounts: data.data as AdAccount[] };
     },
     retry: false,
+    enabled: !!effectiveUserId,
   });
 }
 
 export function useFacebookBusinessManagers() {
+  const { effectiveUserId } = useUserIntegrations();
+  
   return useQuery({
-    queryKey: ['facebook-business-managers'],
+    queryKey: ['facebook-business-managers', effectiveUserId],
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke('facebook-user-ads', {
-        body: { endpoint: 'business_managers' }
+        body: { endpoint: 'business_managers', userId: effectiveUserId }
       });
 
       if (error) throw error;
@@ -74,18 +80,22 @@ export function useFacebookBusinessManagers() {
       return { needsConnection: false, businessManagers: data.data as BusinessManager[] };
     },
     retry: false,
+    enabled: !!effectiveUserId,
   });
 }
 
 export function useFacebookAdInsights(accountId: string | null, startDate?: string, endDate?: string) {
+  const { effectiveUserId } = useUserIntegrations();
+  
   return useQuery({
-    queryKey: ['facebook-ad-insights', accountId, startDate, endDate],
+    queryKey: ['facebook-ad-insights', accountId, startDate, endDate, effectiveUserId],
     queryFn: async () => {
       if (!accountId) return null;
 
       const { data, error } = await supabase.functions.invoke('facebook-user-ads', {
         body: { 
           endpoint: 'insights',
+          userId: effectiveUserId,
           accountId,
           startDate,
           endDate
@@ -100,20 +110,23 @@ export function useFacebookAdInsights(accountId: string | null, startDate?: stri
 
       return { needsConnection: false, insights: data.data?.[0] as AdInsights | null };
     },
-    enabled: !!accountId,
+    enabled: !!accountId && !!effectiveUserId,
     retry: false,
   });
 }
 
 export function useFacebookCampaigns(accountId: string | null) {
+  const { effectiveUserId } = useUserIntegrations();
+  
   return useQuery({
-    queryKey: ['facebook-campaigns', accountId],
+    queryKey: ['facebook-campaigns', accountId, effectiveUserId],
     queryFn: async () => {
       if (!accountId) return null;
 
       const { data, error } = await supabase.functions.invoke('facebook-user-ads', {
         body: { 
           endpoint: 'campaigns',
+          userId: effectiveUserId,
           accountId
         }
       });
@@ -126,7 +139,7 @@ export function useFacebookCampaigns(accountId: string | null) {
 
       return { needsConnection: false, campaigns: data.data as Campaign[] };
     },
-    enabled: !!accountId,
+    enabled: !!accountId && !!effectiveUserId,
     retry: false,
   });
 }

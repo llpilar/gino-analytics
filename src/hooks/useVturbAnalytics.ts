@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useDateFilter } from "@/contexts/DateFilterContext";
 import { format } from "date-fns";
+import { useUserIntegrations } from "@/hooks/useUserIntegrations";
 
 // New interface for sessions/stats response (matches VTurb dashboard)
 interface VturbSessionStats {
@@ -46,9 +47,9 @@ interface VturbPlayerEvent {
   total_uniq_device: number;
 }
 
-const fetchVturbData = async (endpoint: string, startDate?: string, endDate?: string, playerId?: string) => {
+const fetchVturbData = async (endpoint: string, userId?: string, startDate?: string, endDate?: string, playerId?: string) => {
   const { data, error } = await supabase.functions.invoke('vturb-analytics', {
-    body: { endpoint, startDate, endDate, playerId },
+    body: { endpoint, userId, startDate, endDate, playerId },
   });
 
   if (error) throw error;
@@ -57,55 +58,63 @@ const fetchVturbData = async (endpoint: string, startDate?: string, endDate?: st
 
 export const useVturbOverview = (playerId?: string) => {
   const { dateRange } = useDateFilter();
+  const { effectiveUserId } = useUserIntegrations();
   
   const startDate = dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
   const endDate = dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
   
   return useQuery({
-    queryKey: ['vturb-overview', startDate, endDate, playerId],
-    queryFn: () => fetchVturbData('overview', startDate, endDate, playerId),
+    queryKey: ['vturb-overview', startDate, endDate, playerId, effectiveUserId],
+    queryFn: () => fetchVturbData('overview', effectiveUserId, startDate, endDate, playerId),
     refetchInterval: 60000, // 1 minute
     retry: 2,
     staleTime: 30000,
+    enabled: !!effectiveUserId,
   });
 };
 
 export const useVturbPlayers = () => {
   const { dateRange } = useDateFilter();
+  const { effectiveUserId } = useUserIntegrations();
   
   const startDate = dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
   const endDate = dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
   
   return useQuery({
-    queryKey: ['vturb-players', startDate, endDate],
-    queryFn: () => fetchVturbData('players', startDate, endDate),
+    queryKey: ['vturb-players', startDate, endDate, effectiveUserId],
+    queryFn: () => fetchVturbData('players', effectiveUserId, startDate, endDate),
     refetchInterval: 60000,
     retry: 2,
     staleTime: 30000,
+    enabled: !!effectiveUserId,
   });
 };
 
 export const useVturbListPlayers = () => {
+  const { effectiveUserId } = useUserIntegrations();
+  
   return useQuery({
-    queryKey: ['vturb-list-players'],
-    queryFn: () => fetchVturbData('list_players'),
+    queryKey: ['vturb-list-players', effectiveUserId],
+    queryFn: () => fetchVturbData('list_players', effectiveUserId),
     staleTime: 300000, // 5 minutes
+    enabled: !!effectiveUserId,
   });
 };
 
 export const useVturbRetention = (playerId?: string) => {
   const { dateRange } = useDateFilter();
+  const { effectiveUserId } = useUserIntegrations();
   
   const startDate = dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
   const endDate = dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
   
   return useQuery({
-    queryKey: ['vturb-retention', startDate, endDate, playerId],
-    queryFn: () => fetchVturbData('retention', startDate, endDate, playerId),
+    queryKey: ['vturb-retention', startDate, endDate, playerId, effectiveUserId],
+    queryFn: () => fetchVturbData('retention', effectiveUserId, startDate, endDate, playerId),
     refetchInterval: 60000,
     retry: 2,
     staleTime: 30000,
-    enabled: !!playerId, // Only fetch if playerId is provided
+    enabled: !!playerId && !!effectiveUserId,
   });
 };
 

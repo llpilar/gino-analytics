@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,7 +15,35 @@ serve(async (req) => {
   }
 
   try {
-    const vturbApiKey = Deno.env.get('VTURB_API_KEY');
+    const { endpoint, playerId, startDate, endDate, userId } = await req.json();
+    
+    let vturbApiKey: string | undefined;
+    
+    // If userId is provided, fetch credentials from user_integrations
+    if (userId) {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const supabase = createClient(supabaseUrl, supabaseServiceKey);
+      
+      const { data: integration, error } = await supabase
+        .from('user_integrations')
+        .select('config')
+        .eq('user_id', userId)
+        .eq('integration_type', 'vturb')
+        .eq('is_active', true)
+        .maybeSingle();
+      
+      if (!error && integration?.config?.api_key) {
+        vturbApiKey = integration.config.api_key;
+        console.log(`Using VTurb credentials for user ${userId}`);
+      }
+    }
+    
+    // Fallback to environment variable
+    if (!vturbApiKey) {
+      vturbApiKey = Deno.env.get('VTURB_API_KEY');
+      console.log('Using default VTurb credentials from environment');
+    }
     
     if (!vturbApiKey) {
       console.error('VTURB_API_KEY not configured');
@@ -23,8 +52,6 @@ serve(async (req) => {
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    const { endpoint, playerId, startDate, endDate } = await req.json();
     
     console.log(`VTurb API request - endpoint: ${endpoint}, playerId: ${playerId || 'all'}, dates: ${startDate} to ${endDate}`);
 
