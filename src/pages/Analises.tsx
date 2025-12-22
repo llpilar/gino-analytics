@@ -160,7 +160,7 @@ export default function Analises() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas as VSLs</SelectItem>
-                {vturbPlayersList?.map((player: { id: string; name: string }) => (
+                {Array.isArray(vturbPlayersList) && vturbPlayersList.map((player: { id: string; name: string }) => (
                   <SelectItem key={player.id} value={player.id}>
                     {player.name || player.id}
                   </SelectItem>
