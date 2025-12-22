@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useDateFilter } from "@/contexts/DateFilterContext";
+import { useUserIntegrations } from "@/hooks/useUserIntegrations";
 import { format } from "date-fns";
 
 export interface Expense {
@@ -12,6 +13,7 @@ export interface Expense {
   category: string | null;
   expense_date: string;
   receipt_url: string | null;
+  user_id: string;
   created_at: string;
   updated_at: string;
 }
@@ -20,17 +22,22 @@ export interface PartnersConfig {
   id: string;
   partner1_name: string;
   partner2_name: string;
+  user_id: string;
 }
 
 export const useExpenses = () => {
   const { dateRange } = useDateFilter();
+  const { effectiveUserId } = useUserIntegrations();
   
   return useQuery({
-    queryKey: ['expenses', dateRange.from, dateRange.to],
+    queryKey: ['expenses', dateRange.from, dateRange.to, effectiveUserId],
     queryFn: async () => {
+      if (!effectiveUserId) return [];
+      
       let query = supabase
         .from('expenses')
         .select('*')
+        .eq('user_id', effectiveUserId)
         .order('expense_date', { ascending: false });
       
       if (dateRange.from) {
@@ -45,32 +52,43 @@ export const useExpenses = () => {
       if (error) throw error;
       return data as Expense[];
     },
+    enabled: !!effectiveUserId,
   });
 };
 
 export const usePartnersConfig = () => {
+  const { effectiveUserId } = useUserIntegrations();
+  
   return useQuery({
-    queryKey: ['partners-config'],
+    queryKey: ['partners-config', effectiveUserId],
     queryFn: async () => {
+      if (!effectiveUserId) return null;
+      
       const { data, error } = await supabase
         .from('partners_config')
         .select('*')
+        .eq('user_id', effectiveUserId)
         .maybeSingle();
       
       if (error) throw error;
       return data as PartnersConfig | null;
     },
+    enabled: !!effectiveUserId,
   });
 };
 
 export const useAddExpense = () => {
   const queryClient = useQueryClient();
+  const { effectiveUserId, isImpersonating } = useUserIntegrations();
   
   return useMutation({
-    mutationFn: async (expense: Omit<Expense, 'id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (expense: Omit<Expense, 'id' | 'created_at' | 'updated_at' | 'user_id'>) => {
+      if (!effectiveUserId) throw new Error('User not authenticated');
+      if (isImpersonating) throw new Error('Não é possível adicionar despesas enquanto visualiza outro usuário');
+      
       const { data, error } = await supabase
         .from('expenses')
-        .insert(expense)
+        .insert({ ...expense, user_id: effectiveUserId })
         .select()
         .single();
       
@@ -89,9 +107,12 @@ export const useAddExpense = () => {
 
 export const useDeleteExpense = () => {
   const queryClient = useQueryClient();
+  const { isImpersonating } = useUserIntegrations();
   
   return useMutation({
     mutationFn: async (id: string) => {
+      if (isImpersonating) throw new Error('Não é possível remover despesas enquanto visualiza outro usuário');
+      
       const { error } = await supabase
         .from('expenses')
         .delete()
@@ -111,12 +132,17 @@ export const useDeleteExpense = () => {
 
 export const useUpdatePartnersConfig = () => {
   const queryClient = useQueryClient();
+  const { effectiveUserId, isImpersonating } = useUserIntegrations();
   
   return useMutation({
     mutationFn: async (config: { partner1_name: string; partner2_name: string }) => {
+      if (!effectiveUserId) throw new Error('User not authenticated');
+      if (isImpersonating) throw new Error('Não é possível atualizar configurações enquanto visualiza outro usuário');
+      
       const { data: existing } = await supabase
         .from('partners_config')
         .select('id')
+        .eq('user_id', effectiveUserId)
         .maybeSingle();
       
       if (existing) {
@@ -128,7 +154,7 @@ export const useUpdatePartnersConfig = () => {
       } else {
         const { error } = await supabase
           .from('partners_config')
-          .insert(config);
+          .insert({ ...config, user_id: effectiveUserId });
         if (error) throw error;
       }
     },
@@ -193,33 +219,44 @@ export interface FixedExpense {
   paid_by: string;
   category: string | null;
   is_active: boolean;
+  user_id: string;
   created_at: string;
   updated_at: string;
 }
 
 export const useFixedExpenses = () => {
+  const { effectiveUserId } = useUserIntegrations();
+  
   return useQuery({
-    queryKey: ['fixed-expenses'],
+    queryKey: ['fixed-expenses', effectiveUserId],
     queryFn: async () => {
+      if (!effectiveUserId) return [];
+      
       const { data, error } = await supabase
         .from('fixed_expenses')
         .select('*')
+        .eq('user_id', effectiveUserId)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
       return data as FixedExpense[];
     },
+    enabled: !!effectiveUserId,
   });
 };
 
 export const useAddFixedExpense = () => {
   const queryClient = useQueryClient();
+  const { effectiveUserId, isImpersonating } = useUserIntegrations();
   
   return useMutation({
-    mutationFn: async (expense: Omit<FixedExpense, 'id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (expense: Omit<FixedExpense, 'id' | 'created_at' | 'updated_at' | 'user_id'>) => {
+      if (!effectiveUserId) throw new Error('User not authenticated');
+      if (isImpersonating) throw new Error('Não é possível adicionar gastos fixos enquanto visualiza outro usuário');
+      
       const { data, error } = await supabase
         .from('fixed_expenses')
-        .insert(expense)
+        .insert({ ...expense, user_id: effectiveUserId })
         .select()
         .single();
       
@@ -238,9 +275,12 @@ export const useAddFixedExpense = () => {
 
 export const useDeleteFixedExpense = () => {
   const queryClient = useQueryClient();
+  const { isImpersonating } = useUserIntegrations();
   
   return useMutation({
     mutationFn: async (id: string) => {
+      if (isImpersonating) throw new Error('Não é possível remover gastos fixos enquanto visualiza outro usuário');
+      
       const { error } = await supabase
         .from('fixed_expenses')
         .delete()
@@ -260,9 +300,12 @@ export const useDeleteFixedExpense = () => {
 
 export const useToggleFixedExpense = () => {
   const queryClient = useQueryClient();
+  const { isImpersonating } = useUserIntegrations();
   
   return useMutation({
     mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
+      if (isImpersonating) throw new Error('Não é possível atualizar gastos fixos enquanto visualiza outro usuário');
+      
       const { error } = await supabase
         .from('fixed_expenses')
         .update({ is_active })
@@ -286,19 +329,24 @@ export interface Withdrawal {
   amount: number;
   description: string | null;
   withdrawal_date: string;
+  user_id: string;
   created_at: string;
   updated_at: string;
 }
 
 export const useWithdrawals = () => {
   const { dateRange } = useDateFilter();
+  const { effectiveUserId } = useUserIntegrations();
   
   return useQuery({
-    queryKey: ['withdrawals', dateRange.from, dateRange.to],
+    queryKey: ['withdrawals', dateRange.from, dateRange.to, effectiveUserId],
     queryFn: async () => {
+      if (!effectiveUserId) return [];
+      
       let query = supabase
         .from('withdrawals')
         .select('*')
+        .eq('user_id', effectiveUserId)
         .order('withdrawal_date', { ascending: false });
       
       if (dateRange.from) {
@@ -313,17 +361,22 @@ export const useWithdrawals = () => {
       if (error) throw error;
       return data as Withdrawal[];
     },
+    enabled: !!effectiveUserId,
   });
 };
 
 export const useAddWithdrawal = () => {
   const queryClient = useQueryClient();
+  const { effectiveUserId, isImpersonating } = useUserIntegrations();
   
   return useMutation({
-    mutationFn: async (withdrawal: Omit<Withdrawal, 'id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (withdrawal: Omit<Withdrawal, 'id' | 'created_at' | 'updated_at' | 'user_id'>) => {
+      if (!effectiveUserId) throw new Error('User not authenticated');
+      if (isImpersonating) throw new Error('Não é possível adicionar saques enquanto visualiza outro usuário');
+      
       const { data, error } = await supabase
         .from('withdrawals')
-        .insert(withdrawal)
+        .insert({ ...withdrawal, user_id: effectiveUserId })
         .select()
         .single();
       
@@ -342,9 +395,12 @@ export const useAddWithdrawal = () => {
 
 export const useDeleteWithdrawal = () => {
   const queryClient = useQueryClient();
+  const { isImpersonating } = useUserIntegrations();
   
   return useMutation({
     mutationFn: async (id: string) => {
+      if (isImpersonating) throw new Error('Não é possível remover saques enquanto visualiza outro usuário');
+      
       const { error } = await supabase
         .from('withdrawals')
         .delete()
