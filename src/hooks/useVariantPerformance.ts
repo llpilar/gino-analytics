@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useDateFilter } from "@/contexts/DateFilterContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useImpersonate } from "@/contexts/ImpersonateContext";
 
 interface VariantPerformance {
   variantId: string;
@@ -12,14 +14,20 @@ interface VariantPerformance {
   sku?: string;
 }
 
-const fetchVariantPerformance = async (dateRange: { from: Date; to: Date }): Promise<VariantPerformance[]> => {
+const fetchVariantPerformance = async (
+  dateRange: { from: Date; to: Date },
+  userId?: string,
+  isImpersonating?: boolean
+): Promise<VariantPerformance[]> => {
   const { data, error } = await supabase.functions.invoke('shopify-data', {
     body: { 
       endpoint: 'products-sales',
       customDates: {
         from: dateRange.from.toISOString(),
         to: dateRange.to.toISOString()
-      }
+      },
+      userId,
+      isImpersonating
     },
   });
 
@@ -65,14 +73,18 @@ const fetchVariantPerformance = async (dateRange: { from: Date; to: Date }): Pro
 
 export const useVariantPerformance = () => {
   const { dateRange } = useDateFilter();
+  const { user } = useAuth();
+  const { getEffectiveUserId, isImpersonating } = useImpersonate();
+  
+  const effectiveUserId = getEffectiveUserId(user?.id);
   
   // Garantir que as datas existem antes de fazer a query
   const from = dateRange.from || new Date();
   const to = dateRange.to || new Date();
   
   return useQuery({
-    queryKey: ['variant-performance', from.toISOString(), to.toISOString()],
-    queryFn: () => fetchVariantPerformance({ from, to }),
+    queryKey: ['variant-performance', from.toISOString(), to.toISOString(), effectiveUserId],
+    queryFn: () => fetchVariantPerformance({ from, to }, effectiveUserId, isImpersonating),
     refetchInterval: 300000, // 5 minutos
     retry: 3,
     staleTime: 60000,
