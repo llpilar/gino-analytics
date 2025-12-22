@@ -18,6 +18,7 @@ serve(async (req) => {
     const { endpoint, playerId, startDate, endDate, userId } = await req.json();
     
     let vturbApiKey: string | undefined;
+    let userHasIntegration = false;
     
     // If userId is provided, fetch credentials from user_integrations
     if (userId) {
@@ -35,14 +36,33 @@ serve(async (req) => {
       
       if (!error && integration?.config?.api_key) {
         vturbApiKey = integration.config.api_key;
+        userHasIntegration = true;
         console.log(`Using VTurb credentials for user ${userId}`);
+      } else {
+        // User specified but no integration found - return empty data
+        console.log(`No VTurb integration found for user ${userId}, returning empty data`);
+        return new Response(
+          JSON.stringify({
+            total_viewed: 0,
+            total_viewed_device_uniq: 0,
+            total_started: 0,
+            total_started_device_uniq: 0,
+            total_finished: 0,
+            total_finished_device_uniq: 0,
+            engagement_rate: 0,
+            play_rate: 0,
+            total_clicked: 0,
+            total_clicked_device_uniq: 0,
+            over_pitch_rate: 0,
+            overall_conversion_rate: 0,
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
-    }
-    
-    // Fallback to environment variable
-    if (!vturbApiKey) {
+    } else {
+      // No userId provided - use environment variable (legacy behavior)
       vturbApiKey = Deno.env.get('VTURB_API_KEY');
-      console.log('Using default VTurb credentials from environment');
+      console.log('Using default VTurb credentials from environment (no userId provided)');
     }
     
     if (!vturbApiKey) {

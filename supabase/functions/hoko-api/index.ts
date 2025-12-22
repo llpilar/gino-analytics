@@ -44,7 +44,7 @@ async function getHokoCredentials(userId?: string): Promise<{ email: string; pas
   }
 }
 
-async function getAuthToken(userId?: string): Promise<string> {
+async function getAuthToken(userId?: string): Promise<string | null> {
   const cacheKey = userId || 'default';
   const cached = tokenCache.get(cacheKey);
   
@@ -63,14 +63,16 @@ async function getAuthToken(userId?: string): Promise<string> {
       email = userCreds.email;
       password = userCreds.password;
       console.log('Using user-specific Hoko credentials for user:', userId);
+    } else {
+      // User specified but no credentials found - return null to indicate no integration
+      console.log('No Hoko integration found for user:', userId);
+      return null;
     }
-  }
-  
-  // Fallback to environment variables
-  if (!email || !password) {
+  } else {
+    // No userId provided - use environment variables (legacy behavior)
     email = Deno.env.get('HOKO_EMAIL');
     password = Deno.env.get('HOKO_PASSWORD');
-    console.log('Using default Hoko credentials from environment');
+    console.log('Using default Hoko credentials from environment (no userId provided)');
   }
 
   if (!email || !password) {
@@ -113,6 +115,11 @@ async function getAuthToken(userId?: string): Promise<string> {
 
 async function hokoRequest(endpoint: string, userId?: string, method: string = 'GET', body?: any): Promise<any> {
   const token = await getAuthToken(userId);
+  
+  // If token is null, user doesn't have Hoko integration
+  if (token === null) {
+    return { noIntegration: true, data: [] };
+  }
   
   const headers: Record<string, string> = {
     'Authorization': `Bearer ${token}`,

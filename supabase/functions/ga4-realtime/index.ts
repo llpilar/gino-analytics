@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -83,8 +84,48 @@ serve(async (req) => {
   }
 
   try {
-    const serviceAccountJson = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_JSON');
-    const propertyId = Deno.env.get('GA4_PROPERTY_ID');
+    const { userId } = await req.json();
+    
+    let serviceAccountJson: string | undefined;
+    let propertyId: string | undefined;
+    
+    // If userId is provided, fetch credentials from user_integrations
+    if (userId) {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const supabase = createClient(supabaseUrl, supabaseServiceKey);
+      
+      const { data: integration, error } = await supabase
+        .from('user_integrations')
+        .select('config')
+        .eq('user_id', userId)
+        .eq('integration_type', 'ga4')
+        .eq('is_active', true)
+        .maybeSingle();
+      
+      if (!error && integration?.config) {
+        serviceAccountJson = integration.config.service_account_json;
+        propertyId = integration.config.property_id;
+        console.log(`Using GA4 credentials for user ${userId}`);
+      } else {
+        // User specified but no integration found - return zero
+        console.log(`No GA4 integration found for user ${userId}, returning zero`);
+        return new Response(
+          JSON.stringify({ 
+            count: 0,
+            period: 'last5Minutes',
+            timestamp: new Date().toISOString(),
+            noIntegration: true
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    } else {
+      // No userId provided - use environment variables (legacy behavior)
+      serviceAccountJson = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_JSON');
+      propertyId = Deno.env.get('GA4_PROPERTY_ID');
+      console.log('Using default GA4 credentials from environment (no userId provided)');
+    }
 
     if (!serviceAccountJson) {
       console.error('Missing GOOGLE_SERVICE_ACCOUNT_JSON');
