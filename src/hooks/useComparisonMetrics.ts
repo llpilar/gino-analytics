@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { startOfDay, subDays, startOfWeek, subWeeks, startOfMonth, subMonths } from 'date-fns';
+import { useAuth } from "@/contexts/AuthContext";
+import { useImpersonate } from "@/contexts/ImpersonateContext";
 
 interface ComparisonData {
   current: number;
@@ -10,14 +12,21 @@ interface ComparisonData {
   isPositive: boolean;
 }
 
-const fetchOrdersForPeriod = async (startDate: Date, endDate: Date) => {
+const fetchOrdersForPeriod = async (
+  startDate: Date, 
+  endDate: Date,
+  userId?: string,
+  isImpersonating?: boolean
+) => {
   const { data } = await supabase.functions.invoke('shopify-data', {
     body: {
       endpoint: 'revenue-today',
       customDates: {
         from: startDate.toISOString(),
         to: endDate.toISOString()
-      }
+      },
+      userId,
+      isImpersonating
     }
   });
 
@@ -47,15 +56,19 @@ const calculateComparison = (current: number, previous: number): ComparisonData 
 };
 
 export const useDailyComparison = () => {
+  const { user } = useAuth();
+  const { getEffectiveUserId, isImpersonating } = useImpersonate();
+  const effectiveUserId = getEffectiveUserId(user?.id);
+
   return useQuery({
-    queryKey: ['daily-comparison'],
+    queryKey: ['daily-comparison', effectiveUserId],
     queryFn: async () => {
       const today = startOfDay(new Date());
       const yesterday = startOfDay(subDays(new Date(), 1));
 
       const [todayData, yesterdayData] = await Promise.all([
-        fetchOrdersForPeriod(today, new Date()),
-        fetchOrdersForPeriod(yesterday, today)
+        fetchOrdersForPeriod(today, new Date(), effectiveUserId, isImpersonating),
+        fetchOrdersForPeriod(yesterday, today, effectiveUserId, isImpersonating)
       ]);
 
       return {
@@ -68,16 +81,20 @@ export const useDailyComparison = () => {
 };
 
 export const useWeeklyComparison = () => {
+  const { user } = useAuth();
+  const { getEffectiveUserId, isImpersonating } = useImpersonate();
+  const effectiveUserId = getEffectiveUserId(user?.id);
+
   return useQuery({
-    queryKey: ['weekly-comparison'],
+    queryKey: ['weekly-comparison', effectiveUserId],
     queryFn: async () => {
       const thisWeekStart = startOfWeek(new Date());
       const lastWeekStart = startOfWeek(subWeeks(new Date(), 1));
       const lastWeekEnd = startOfWeek(new Date());
 
       const [thisWeekData, lastWeekData] = await Promise.all([
-        fetchOrdersForPeriod(thisWeekStart, new Date()),
-        fetchOrdersForPeriod(lastWeekStart, lastWeekEnd)
+        fetchOrdersForPeriod(thisWeekStart, new Date(), effectiveUserId, isImpersonating),
+        fetchOrdersForPeriod(lastWeekStart, lastWeekEnd, effectiveUserId, isImpersonating)
       ]);
 
       return {
@@ -90,16 +107,20 @@ export const useWeeklyComparison = () => {
 };
 
 export const useMonthlyComparison = () => {
+  const { user } = useAuth();
+  const { getEffectiveUserId, isImpersonating } = useImpersonate();
+  const effectiveUserId = getEffectiveUserId(user?.id);
+
   return useQuery({
-    queryKey: ['monthly-comparison'],
+    queryKey: ['monthly-comparison', effectiveUserId],
     queryFn: async () => {
       const thisMonthStart = startOfMonth(new Date());
       const lastMonthStart = startOfMonth(subMonths(new Date(), 1));
       const lastMonthEnd = startOfMonth(new Date());
 
       const [thisMonthData, lastMonthData] = await Promise.all([
-        fetchOrdersForPeriod(thisMonthStart, new Date()),
-        fetchOrdersForPeriod(lastMonthStart, lastMonthEnd)
+        fetchOrdersForPeriod(thisMonthStart, new Date(), effectiveUserId, isImpersonating),
+        fetchOrdersForPeriod(lastMonthStart, lastMonthEnd, effectiveUserId, isImpersonating)
       ]);
 
       return {

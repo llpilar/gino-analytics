@@ -1,19 +1,29 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboardSettings } from "@/contexts/DashboardSettingsContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useImpersonate } from "@/contexts/ImpersonateContext";
 
 export const useLiveShopify = () => {
   const { refreshInterval } = useDashboardSettings();
+  const { user } = useAuth();
+  const { getEffectiveUserId, isImpersonating } = useImpersonate();
+  
+  const effectiveUserId = getEffectiveUserId(user?.id);
   
   return useQuery({
-    queryKey: ["live-shopify"],
+    queryKey: ["live-shopify", effectiveUserId],
     queryFn: async () => {
       const today = new Date();
       const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
       
       // Buscar pedidos
       const { data: ordersResponse, error: ordersError } = await supabase.functions.invoke('shopify-data', {
-        body: { endpoint: 'orders' }
+        body: { 
+          endpoint: 'orders',
+          userId: effectiveUserId,
+          isImpersonating
+        }
       });
 
       if (ordersError) {
@@ -43,7 +53,11 @@ export const useLiveShopify = () => {
 
       // Buscar produtos
       const { data: productsResponse } = await supabase.functions.invoke('shopify-data', {
-        body: { endpoint: 'products' }
+        body: { 
+          endpoint: 'products',
+          userId: effectiveUserId,
+          isImpersonating
+        }
       });
 
       const productsData = productsResponse?.data?.products?.edges || [];

@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useDateFilter } from "@/contexts/DateFilterContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useImpersonate } from "@/contexts/ImpersonateContext";
 
 interface SaleLocation {
   orderId: string;
@@ -91,21 +93,27 @@ const getCoordinates = (city?: string, country?: string, countryCode?: string): 
   return undefined;
 };
 
-const fetchSalesLocation = async (dateRange: { from: Date; to: Date }): Promise<{
+const fetchSalesLocation = async (
+  dateRange: { from: Date; to: Date },
+  userId?: string,
+  isImpersonating?: boolean
+): Promise<{
   sales: SaleLocation[];
   metrics: LocationMetrics[];
   topCities?: any[];
 }> => {
-      // Buscar dados de vendas para análise
-      const { data: salesData, error } = await supabase.functions.invoke('shopify-data', {
-        body: { 
-          endpoint: 'revenue-30days',
-          customDates: {
-            from: dateRange.from.toISOString(),
-            to: dateRange.to.toISOString()
-          }
-        }
-      });
+  // Buscar dados de vendas para análise
+  const { data: salesData, error } = await supabase.functions.invoke('shopify-data', {
+    body: { 
+      endpoint: 'revenue-30days',
+      customDates: {
+        from: dateRange.from.toISOString(),
+        to: dateRange.to.toISOString()
+      },
+      userId,
+      isImpersonating
+    }
+  });
 
   if (error) throw error;
 
@@ -199,10 +207,14 @@ const fetchSalesLocation = async (dateRange: { from: Date; to: Date }): Promise<
 
 export const useSalesLocation = () => {
   const { dateRange } = useDateFilter();
+  const { user } = useAuth();
+  const { getEffectiveUserId, isImpersonating } = useImpersonate();
+  
+  const effectiveUserId = getEffectiveUserId(user?.id);
   
   return useQuery({
-    queryKey: ['sales-location', dateRange.from, dateRange.to],
-    queryFn: () => fetchSalesLocation(dateRange),
+    queryKey: ['sales-location', dateRange.from, dateRange.to, effectiveUserId],
+    queryFn: () => fetchSalesLocation(dateRange, effectiveUserId, isImpersonating),
     refetchInterval: 300000, // 5 minutos
     retry: 3,
     staleTime: 60000,
