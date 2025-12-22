@@ -13,7 +13,7 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { StatsCard, SectionCard, CardColorVariant } from "@/components/ui/stats-card";
 import { LucideIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useVturbOverview, useVturbPlayers, parseVturbData, parseVturbPlayers } from "@/hooks/useVturbAnalytics";
+import { useVturbOverview, useVturbListPlayers, parseVturbData } from "@/hooks/useVturbAnalytics";
 import { useGA4Visitors } from "@/hooks/useGA4Visitors";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ConversionFunnel } from "@/components/ConversionFunnel";
@@ -21,8 +21,7 @@ import { RealTimeAnalytics } from "@/components/ui/real-time-analytics";
 import { DateFilterDropdown } from "@/components/DateFilterDropdown";
 
 export default function Analises() {
-  // Default to the VSL ESPANHOL Colômbia.mp4 video
-  const [selectedPlayerId, setSelectedPlayerId] = useState<string | undefined>("685ac2f3f4d418e9eca55125");
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | undefined>(undefined);
   
   const { data: analyticsData, isLoading: analyticsLoading } = useShopifyAnalytics();
   const { data: revenueData } = useShopifyRevenueToday();
@@ -31,14 +30,11 @@ export default function Analises() {
   const { data: monthlyComparison } = useMonthlyComparison();
   const { formatCurrency } = useCurrency();
 
-  // VTurb data
-  const { data: vturbPlayersData, isLoading: vturbPlayersLoading } = useVturbPlayers();
+  // VTurb data - fetch list of players
+  const { data: vturbPlayersList, isLoading: vturbPlayersLoading } = useVturbListPlayers();
   const { data: vturbData, isLoading: vturbLoading, error: vturbError } = useVturbOverview(selectedPlayerId);
   const vturbMetrics = useMemo(() => parseVturbData(vturbData), [vturbData]);
   const { visitorCount } = useGA4Visitors();
-
-  // Parse players list from VTurb response
-  const vturbPlayers = useMemo(() => parseVturbPlayers(vturbPlayersData), [vturbPlayersData]);
 
 
   // Calculate metrics
@@ -149,7 +145,30 @@ export default function Analises() {
         </div>
 
         {/* VTurb Analytics Section */}
-        <SectionCard title="Métricas do Vídeo (VTurb)" icon={Video} color="red" className="mb-6 md:mb-8">
+        <SectionCard 
+          title="Métricas do Vídeo (VTurb)" 
+          icon={Video} 
+          color="red" 
+          className="mb-6 md:mb-8"
+          headerAction={
+            <Select 
+              value={selectedPlayerId || "all"} 
+              onValueChange={(value) => setSelectedPlayerId(value === "all" ? undefined : value)}
+            >
+              <SelectTrigger className="w-[200px] md:w-[280px] h-8 text-xs md:text-sm bg-background/50">
+                <SelectValue placeholder={vturbPlayersLoading ? "Carregando..." : "Selecione a VSL"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as VSLs</SelectItem>
+                {vturbPlayersList?.map((player: { id: string; name: string }) => (
+                  <SelectItem key={player.id} value={player.id}>
+                    {player.name || player.id}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          }
+        >
           {vturbLoading ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
               {[...Array(10)].map((_, i) => (
