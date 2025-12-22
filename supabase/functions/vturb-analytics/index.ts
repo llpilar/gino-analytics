@@ -41,6 +41,15 @@ serve(async (req) => {
       } else {
         // User specified but no integration found - return empty data
         console.log(`No VTurb integration found for user ${userId}, returning empty data`);
+        
+        // Return appropriate empty response based on endpoint
+        if (endpoint === 'list_players') {
+          return new Response(
+            JSON.stringify([]),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        
         return new Response(
           JSON.stringify({
             total_viewed: 0,

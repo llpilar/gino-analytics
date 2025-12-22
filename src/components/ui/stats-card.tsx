@@ -191,6 +191,7 @@ interface SectionCardProps {
   color?: CardColorVariant;
   className?: string;
   children: React.ReactNode;
+  headerAction?: React.ReactNode;
 }
 
 export const SectionCard = ({
@@ -199,6 +200,7 @@ export const SectionCard = ({
   color = "cyan",
   className,
   children,
+  headerAction,
 }: SectionCardProps) => {
   const colors = colorClasses[color];
 
@@ -216,16 +218,21 @@ export const SectionCard = ({
       <div className={cn("absolute inset-0 bg-gradient-to-br opacity-30", colors.gradient)} />
       
       <div className="relative z-10">
-        {title && (
-          <header className="flex items-center gap-3 mb-5 md:mb-6">
-            {Icon && (
-              <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center", colors.bg)}>
-                <Icon className={cn("w-5 h-5", colors.text)} aria-hidden="true" />
-              </div>
-            )}
-            <h2 className="text-lg md:text-xl font-black text-foreground tracking-tight">
-              {title}
-            </h2>
+        {(title || headerAction) && (
+          <header className="flex items-center justify-between gap-3 mb-5 md:mb-6">
+            <div className="flex items-center gap-3">
+              {Icon && (
+                <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center", colors.bg)}>
+                  <Icon className={cn("w-5 h-5", colors.text)} aria-hidden="true" />
+                </div>
+              )}
+              {title && (
+                <h2 className="text-lg md:text-xl font-black text-foreground tracking-tight">
+                  {title}
+                </h2>
+              )}
+            </div>
+            {headerAction}
           </header>
         )}
         {children}
