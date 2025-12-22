@@ -3,9 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   LayoutDashboard, BarChart3, Settings, Wallet, Truck, Calculator, 
   Shield, ShieldCheck, ChevronLeft, LogOut, Sparkles,
-  RefreshCw
+  RefreshCw, Eye, X
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useImpersonate } from "@/contexts/ImpersonateContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useSidebarState } from "@/contexts/SidebarContext";
 import { DateFilterDropdown } from "@/components/DateFilterDropdown";
@@ -29,6 +30,7 @@ const menuItems = [
 
 export function AppSidebar() {
   const { signOut, isAdmin, profile } = useAuth();
+  const { impersonatedUser, isImpersonating, stopImpersonating } = useImpersonate();
   const { currency, setCurrency } = useCurrency();
   const { isCollapsed, setIsCollapsed } = useSidebarState();
   const location = useLocation();
@@ -46,10 +48,20 @@ export function AppSidebar() {
     setIsRefreshing(false);
   };
 
+  const handleStopImpersonating = () => {
+    stopImpersonating();
+    queryClient.invalidateQueries();
+    toast.success("Voltou ao seu perfil");
+  };
+
   const getInitials = (name: string | null) => {
     if (!name) return "?";
     return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
   };
+
+  // Determina qual perfil mostrar
+  const displayName = isImpersonating ? impersonatedUser?.name : profile?.name;
+  const displayRole = isImpersonating ? "Visualizando como" : (isAdmin ? "Administrador" : "Usuário");
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -233,48 +245,100 @@ export function AppSidebar() {
         {/* User Profile */}
         <div className="p-2 border-t border-sidebar-border/50">
           <div className={cn(
-            "flex items-center gap-3 p-2 rounded-xl hover:bg-sidebar-accent/50 transition-colors cursor-pointer",
-            isCollapsed && "justify-center"
+            "flex items-center gap-3 p-2 rounded-xl transition-colors",
+            isCollapsed && "justify-center",
+            isImpersonating 
+              ? "bg-amber-500/10 border border-amber-500/30" 
+              : "hover:bg-sidebar-accent/50 cursor-pointer"
           )}>
-            <Avatar className="h-9 w-9 border-2 border-primary/20">
-              <AvatarImage src={profile?.avatar_url || undefined} />
-              <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/5 text-primary font-semibold text-sm">
-                {getInitials(profile?.name)}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative">
+              <Avatar className={cn(
+                "h-9 w-9 border-2",
+                isImpersonating ? "border-amber-500" : "border-primary/20"
+              )}>
+                <AvatarFallback className={cn(
+                  "font-semibold text-sm",
+                  isImpersonating 
+                    ? "bg-gradient-to-br from-amber-500/20 to-amber-500/5 text-amber-600" 
+                    : "bg-gradient-to-br from-primary/20 to-primary/5 text-primary"
+                )}>
+                  {getInitials(displayName)}
+                </AvatarFallback>
+              </Avatar>
+              {isImpersonating && (
+                <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center">
+                  <Eye className="w-2.5 h-2.5 text-white" />
+                </div>
+              )}
+            </div>
             
             {!isCollapsed && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{profile?.name || 'Usuário'}</p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {isAdmin ? 'Administrador' : 'Usuário'}
+                <p className={cn(
+                  "text-sm font-medium truncate",
+                  isImpersonating && "text-amber-600"
+                )}>
+                  {displayName || 'Usuário'}
+                </p>
+                <p className={cn(
+                  "text-xs truncate",
+                  isImpersonating ? "text-amber-500" : "text-muted-foreground"
+                )}>
+                  {displayRole}
                 </p>
               </div>
             )}
             
-            {isCollapsed ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={signOut}
-                    className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive absolute bottom-16 left-1/2 -translate-x-1/2"
-                  >
-                    <LogOut className="w-4 h-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="right">Sair</TooltipContent>
-              </Tooltip>
+            {isImpersonating ? (
+              isCollapsed ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleStopImpersonating}
+                      className="h-8 w-8 hover:bg-amber-500/20 hover:text-amber-600 absolute bottom-16 left-1/2 -translate-x-1/2"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">Voltar ao meu perfil</TooltipContent>
+                </Tooltip>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleStopImpersonating}
+                  className="h-8 w-8 hover:bg-amber-500/20 hover:text-amber-600"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              )
             ) : (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={signOut}
-                className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
-              >
-                <LogOut className="w-4 h-4" />
-              </Button>
+              isCollapsed ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={signOut}
+                      className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive absolute bottom-16 left-1/2 -translate-x-1/2"
+                    >
+                      <LogOut className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">Sair</TooltipContent>
+                </Tooltip>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={signOut}
+                  className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <LogOut className="w-4 h-4" />
+                </Button>
+              )
             )}
           </div>
         </div>
