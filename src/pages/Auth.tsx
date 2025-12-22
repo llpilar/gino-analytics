@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Lock, Mail, ArrowRight } from "lucide-react";
+import { Lock, Mail, ArrowRight, UserPlus } from "lucide-react";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -13,6 +13,7 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isSignUp, setIsSignUp] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -28,23 +29,44 @@ export default function Auth() {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-      if (error) throw error;
-      toast({
-        title: "Login realizado!",
-        description: "Bem-vindo de volta."
-      });
+      if (isSignUp) {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`
+          }
+        });
+        if (error) throw error;
+        toast({
+          title: "Conta criada!",
+          description: "Verifique seu email para confirmar o cadastro."
+        });
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+        if (error) throw error;
+        toast({
+          title: "Login realizado!",
+          description: "Bem-vindo de volta."
+        });
+      }
     } catch (error: any) {
+      let message = error.message;
+      if (error.message === "Invalid login credentials") {
+        message = "Email ou senha incorretos";
+      } else if (error.message === "User already registered") {
+        message = "Este email já está cadastrado";
+      }
       toast({
-        title: "Erro ao entrar",
-        description: error.message,
+        title: isSignUp ? "Erro ao criar conta" : "Erro ao entrar",
+        description: message,
         variant: "destructive"
       });
     } finally {
@@ -78,18 +100,18 @@ export default function Auth() {
             {/* Header */}
             <div className="text-center mb-8">
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20 mb-4">
-                <Lock className="w-5 h-5 text-primary" />
+                {isSignUp ? <UserPlus className="w-5 h-5 text-primary" /> : <Lock className="w-5 h-5 text-primary" />}
               </div>
               <h1 className="text-xl font-semibold text-foreground tracking-tight">
-                Entrar na conta
+                {isSignUp ? "Criar conta" : "Entrar na conta"}
               </h1>
               <p className="text-muted-foreground text-sm mt-1">
-                Acesso restrito
+                {isSignUp ? "Preencha os dados abaixo" : "Acesso restrito"}
               </p>
             </div>
 
             {/* Form */}
-            <form onSubmit={handleLogin} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-muted-foreground text-xs font-medium uppercase tracking-wider">
                   Email
@@ -135,22 +157,30 @@ export default function Auth() {
                 {loading ? (
                   <span className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                    Entrando...
+                    {isSignUp ? "Criando..." : "Entrando..."}
                   </span>
                 ) : (
                   <span className="flex items-center justify-center gap-2">
-                    Entrar
+                    {isSignUp ? "Criar conta" : "Entrar"}
                     <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
                   </span>
                 )}
               </Button>
             </form>
 
-            {/* Footer info */}
+            {/* Toggle */}
             <div className="mt-6 pt-6 border-t border-border/50">
-              <p className="text-muted-foreground/70 text-xs text-center">
-                Acesso apenas para usuários autorizados
-              </p>
+              <button
+                type="button"
+                onClick={() => setIsSignUp(!isSignUp)}
+                className="w-full text-muted-foreground text-sm hover:text-foreground transition-colors"
+              >
+                {isSignUp ? (
+                  <>Já tem conta? <span className="text-primary font-medium">Entrar</span></>
+                ) : (
+                  <>Não tem conta? <span className="text-primary font-medium">Criar conta</span></>
+                )}
+              </button>
             </div>
           </div>
         </div>
