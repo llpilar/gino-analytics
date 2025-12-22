@@ -1,19 +1,68 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Upload } from 'lucide-react';
+import { User, Upload, Camera, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const ProfileDialog = () => {
-  const { profile, updateProfile } = useAuth();
+  const { user, profile, updateProfile } = useAuth();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(profile?.name || '');
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || '');
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Por favor, selecione uma imagem');
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('A imagem deve ter no máximo 2MB');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/avatar.${fileExt}`;
+
+      // Delete old avatar if exists
+      await supabase.storage.from('avatars').remove([`${user.id}/avatar.jpg`, `${user.id}/avatar.png`, `${user.id}/avatar.webp`]);
+
+      // Upload new avatar
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      setAvatarUrl(publicUrl + '?t=' + Date.now());
+      toast.success('Foto enviada com sucesso!');
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast.error('Erro ao enviar foto: ' + error.message);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!name.trim()) {
@@ -34,8 +83,16 @@ export const ProfileDialog = () => {
     }
   };
 
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    if (isOpen) {
+      setName(profile?.name || '');
+      setAvatarUrl(profile?.avatar_url || '');
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon" className="rounded-full">
           <Avatar className="h-8 w-8">
@@ -52,26 +109,34 @@ export const ProfileDialog = () => {
         </DialogHeader>
         <div className="space-y-6 py-4">
           <div className="flex flex-col items-center gap-4">
-            <Avatar className="h-24 w-24">
-              <AvatarImage src={avatarUrl || profile?.avatar_url || ''} alt={name || 'User'} />
-              <AvatarFallback className="bg-primary/20 text-primary text-2xl">
-                <User className="h-12 w-12" />
-              </AvatarFallback>
-            </Avatar>
-            <div className="w-full space-y-2">
-              <Label htmlFor="avatar" className="text-card-foreground flex items-center gap-2">
-                <Upload className="h-4 w-4" />
-                URL da Foto
-              </Label>
-              <Input
-                id="avatar"
-                type="text"
-                placeholder="https://exemplo.com/foto.jpg"
-                value={avatarUrl}
-                onChange={(e) => setAvatarUrl(e.target.value)}
-                className="bg-input border-border text-foreground"
+            <div className="relative group">
+              <Avatar className="h-24 w-24">
+                <AvatarImage src={avatarUrl || profile?.avatar_url || ''} alt={name || 'User'} />
+                <AvatarFallback className="bg-primary/20 text-primary text-2xl">
+                  <User className="h-12 w-12" />
+                </AvatarFallback>
+              </Avatar>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+              >
+                {uploading ? (
+                  <Loader2 className="h-6 w-6 text-white animate-spin" />
+                ) : (
+                  <Camera className="h-6 w-6 text-white" />
+                )}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileUpload}
+                className="hidden"
               />
             </div>
+            <p className="text-xs text-muted-foreground">Clique na foto para alterar</p>
           </div>
 
           <div className="space-y-2">
@@ -91,7 +156,7 @@ export const ProfileDialog = () => {
           <Button 
             onClick={handleSave} 
             className="w-full"
-            disabled={loading}
+            disabled={loading || uploading}
           >
             {loading ? 'Salvando...' : 'Salvar Alterações'}
           </Button>
