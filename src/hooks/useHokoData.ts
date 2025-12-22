@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useUserIntegrations } from "@/hooks/useUserIntegrations";
 
 interface HokoStore {
   id: number;
@@ -75,9 +76,9 @@ interface HokoResponse<T> {
   total?: number;
 }
 
-const fetchHokoData = async <T>(endpoint: string, params?: Record<string, any>): Promise<any> => {
+const fetchHokoData = async <T>(endpoint: string, userId?: string, params?: Record<string, any>): Promise<any> => {
   const { data, error } = await supabase.functions.invoke('hoko-api', {
-    body: { endpoint, params },
+    body: { endpoint, userId, params },
   });
 
   if (error) throw error;
@@ -85,17 +86,22 @@ const fetchHokoData = async <T>(endpoint: string, params?: Record<string, any>):
 };
 
 export const useHokoStore = () => {
+  const { effectiveUserId } = useUserIntegrations();
+  
   return useQuery({
-    queryKey: ['hoko-store'],
-    queryFn: () => fetchHokoData<HokoStore>('store'),
+    queryKey: ['hoko-store', effectiveUserId],
+    queryFn: () => fetchHokoData<HokoStore>('store', effectiveUserId),
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 2,
+    enabled: !!effectiveUserId,
   });
 };
 
 export const useHokoOrders = (page: number = 1, dateFilter?: { from: Date; to: Date }) => {
+  const { effectiveUserId } = useUserIntegrations();
+  
   return useQuery({
-    queryKey: ['hoko-orders', page, dateFilter?.from, dateFilter?.to],
+    queryKey: ['hoko-orders', page, dateFilter?.from, dateFilter?.to, effectiveUserId],
     queryFn: async () => {
       const params: Record<string, any> = { page };
       if (dateFilter?.from) {
@@ -105,7 +111,7 @@ export const useHokoOrders = (page: number = 1, dateFilter?: { from: Date; to: D
         params.end_date = dateFilter.to.toISOString().split('T')[0];
       }
       
-      const response = await fetchHokoData<any>('orders', params);
+      const response = await fetchHokoData<any>('orders', effectiveUserId, params);
       // Hoko returns paginated data with 'data' array
       return {
         status: 'success',
@@ -119,52 +125,65 @@ export const useHokoOrders = (page: number = 1, dateFilter?: { from: Date; to: D
     },
     staleTime: 30 * 1000, // 30 seconds
     retry: 2,
+    enabled: !!effectiveUserId,
   });
 };
 
 export const useHokoOrderDetail = (orderId: number | null) => {
+  const { effectiveUserId } = useUserIntegrations();
+  
   return useQuery({
-    queryKey: ['hoko-order', orderId],
-    queryFn: () => fetchHokoData<HokoOrder>('order-detail', { orderId }),
-    enabled: !!orderId,
+    queryKey: ['hoko-order', orderId, effectiveUserId],
+    queryFn: () => fetchHokoData<HokoOrder>('order-detail', effectiveUserId, { orderId }),
+    enabled: !!orderId && !!effectiveUserId,
     staleTime: 60 * 1000, // 1 minute
     retry: 2,
   });
 };
 
 export const useHokoProducts = () => {
+  const { effectiveUserId } = useUserIntegrations();
+  
   return useQuery({
-    queryKey: ['hoko-products'],
-    queryFn: () => fetchHokoData<HokoProduct[]>('products'),
+    queryKey: ['hoko-products', effectiveUserId],
+    queryFn: () => fetchHokoData<HokoProduct[]>('products', effectiveUserId),
     staleTime: 60 * 1000, // 1 minute
     retry: 2,
+    enabled: !!effectiveUserId,
   });
 };
 
 export const useHokoProductsWithStock = () => {
+  const { effectiveUserId } = useUserIntegrations();
+  
   return useQuery({
-    queryKey: ['hoko-products-with-stock'],
-    queryFn: () => fetchHokoData<any>('products-with-stock'),
+    queryKey: ['hoko-products-with-stock', effectiveUserId],
+    queryFn: () => fetchHokoData<any>('products-with-stock', effectiveUserId),
     staleTime: 60 * 1000, // 1 minute
     retry: 2,
+    enabled: !!effectiveUserId,
   });
 };
 
 export const useHokoProductDetail = (productId: number | null) => {
+  const { effectiveUserId } = useUserIntegrations();
+  
   return useQuery({
-    queryKey: ['hoko-product', productId],
-    queryFn: () => fetchHokoData<HokoProduct>('product-detail', { productId }),
-    enabled: !!productId,
+    queryKey: ['hoko-product', productId, effectiveUserId],
+    queryFn: () => fetchHokoData<HokoProduct>('product-detail', effectiveUserId, { productId }),
+    enabled: !!productId && !!effectiveUserId,
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 2,
   });
 };
 
 export const useHokoGuides = (page: number = 1) => {
+  const { effectiveUserId } = useUserIntegrations();
+  
   return useQuery({
-    queryKey: ['hoko-guides', page],
+    queryKey: ['hoko-guides', page, effectiveUserId],
     queryFn: async () => {
-      const response = await fetchHokoData<any>('guides', { page });
+      const response = await fetchHokoData<any>('guides', effectiveUserId, { page });
       return {
         status: 'success',
         data: response.data || response,
@@ -177,15 +196,19 @@ export const useHokoGuides = (page: number = 1) => {
     },
     staleTime: 30 * 1000, // 30 seconds
     retry: 2,
+    enabled: !!effectiveUserId,
   });
 };
 
 export const useHokoSharedStock = (params?: { search?: string; category?: number; sortBy?: number }) => {
+  const { effectiveUserId } = useUserIntegrations();
+  
   return useQuery({
-    queryKey: ['hoko-shared-stock', params],
-    queryFn: () => fetchHokoData<any>('shared-stock', params),
+    queryKey: ['hoko-shared-stock', params, effectiveUserId],
+    queryFn: () => fetchHokoData<any>('shared-stock', effectiveUserId, params),
     staleTime: 60 * 1000, // 1 minute
     retry: 2,
+    enabled: !!effectiveUserId,
   });
 };
 
@@ -204,8 +227,10 @@ export interface HokoLiquidacion {
 }
 
 export const useHokoLiquidaciones = (page: number = 1, dateFilter?: { from: Date; to: Date }) => {
+  const { effectiveUserId } = useUserIntegrations();
+  
   return useQuery({
-    queryKey: ['hoko-liquidaciones', page, dateFilter?.from, dateFilter?.to],
+    queryKey: ['hoko-liquidaciones', page, dateFilter?.from, dateFilter?.to, effectiveUserId],
     queryFn: async () => {
       const params: Record<string, any> = { page };
       if (dateFilter?.from) {
@@ -215,7 +240,7 @@ export const useHokoLiquidaciones = (page: number = 1, dateFilter?: { from: Date
         params.end_date = dateFilter.to.toISOString().split('T')[0];
       }
       
-      const response = await fetchHokoData<any>('liquidaciones', params);
+      const response = await fetchHokoData<any>('liquidaciones', effectiveUserId, params);
       return {
         status: 'success',
         data: response.data || response,
@@ -228,5 +253,6 @@ export const useHokoLiquidaciones = (page: number = 1, dateFilter?: { from: Date
     },
     staleTime: 30 * 1000, // 30 seconds
     retry: 2,
+    enabled: !!effectiveUserId,
   });
 };

@@ -31,14 +31,43 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
-    // Get user's Facebook connection
-    const { data: connection, error: connError } = await supabase
-      .from('facebook_connections')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
+    const { endpoint, accountId, startDate, endDate, userId: targetUserId } = await req.json();
+    
+    // Use targetUserId if provided (for admin impersonation), otherwise use authenticated user
+    const effectiveUserId = targetUserId || user.id;
+    console.log('Facebook User Ads request:', { endpoint, accountId, effectiveUserId, isImpersonating: !!targetUserId });
 
-    if (connError || !connection) {
+    // Get Facebook connection for the effective user
+    // If impersonating, we need to use service role to access other user's connection
+    let connection;
+    if (targetUserId && targetUserId !== user.id) {
+      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
+      
+      const { data, error } = await serviceClient
+        .from('facebook_connections')
+        .select('*')
+        .eq('user_id', effectiveUserId)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error fetching connection:', error);
+      }
+      connection = data;
+    } else {
+      const { data, error } = await supabase
+        .from('facebook_connections')
+        .select('*')
+        .eq('user_id', effectiveUserId)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error fetching connection:', error);
+      }
+      connection = data;
+    }
+
+    if (!connection) {
       return new Response(
         JSON.stringify({ error: 'No Facebook connection found', needsConnection: true }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -54,9 +83,6 @@ serve(async (req) => {
     }
 
     const accessToken = connection.access_token;
-    const { endpoint, accountId, startDate, endDate } = await req.json();
-
-    console.log('Facebook User Ads request:', { endpoint, accountId, userId: user.id });
 
     let apiUrl: string;
 

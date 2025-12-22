@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,14 +13,46 @@ serve(async (req) => {
   }
 
   try {
-    const shopifyAccessToken = Deno.env.get('SHOPIFY_ACCESS_TOKEN');
-    const shopDomain = 'g1n0hi-gx.myshopify.com';
-
+    const { endpoint, customDates, userId } = await req.json();
+    
+    let shopifyAccessToken: string | undefined;
+    let shopDomain: string | undefined;
+    
+    // If userId is provided, fetch credentials from user_integrations
+    if (userId) {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const supabase = createClient(supabaseUrl, supabaseServiceKey);
+      
+      const { data: integration, error } = await supabase
+        .from('user_integrations')
+        .select('config')
+        .eq('user_id', userId)
+        .eq('integration_type', 'shopify')
+        .eq('is_active', true)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error fetching user integration:', error);
+      }
+      
+      if (integration?.config) {
+        shopifyAccessToken = integration.config.access_token;
+        shopDomain = integration.config.store_domain;
+        console.log(`Using Shopify credentials for user ${userId}`);
+      }
+    }
+    
+    // Fallback to environment variables if no user credentials found
     if (!shopifyAccessToken) {
-      throw new Error('SHOPIFY_ACCESS_TOKEN não configurado');
+      shopifyAccessToken = Deno.env.get('SHOPIFY_ACCESS_TOKEN');
+      shopDomain = 'g1n0hi-gx.myshopify.com';
+      console.log('Using default Shopify credentials from environment');
     }
 
-    const { endpoint, customDates } = await req.json();
+    if (!shopifyAccessToken || !shopDomain) {
+      throw new Error('SHOPIFY_ACCESS_TOKEN não configurado');
+    }
     
     let graphqlQuery = '';
     const today = new Date().toISOString().split('T')[0];
