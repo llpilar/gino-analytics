@@ -23,7 +23,7 @@ import {
   Eye, Ban, UserCheck, Trash2, Plus, Save, RefreshCw, Search,
   Mail, Calendar, Activity, Zap, Store, BarChart3, Globe, 
   ExternalLink, Copy, MoreVertical, Sparkles, LogIn, History,
-  TrendingUp
+  TrendingUp, Pencil, X
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -91,6 +91,8 @@ export default function Admin() {
   const [integrationDialogOpen, setIntegrationDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [newIntegration, setNewIntegration] = useState({ type: '', config: {} as Record<string, string> });
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState("");
 
   const handleViewAsUser = (userProfile: UserProfile) => {
     startImpersonating({ id: userProfile.id, name: userProfile.name });
@@ -228,6 +230,30 @@ export default function Admin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-user-integrations'] });
       toast.success('Integração removida!');
+    }
+  });
+
+  const updateNameMutation = useMutation({
+    mutationFn: async ({ userId, name }: { userId: string; name: string }) => {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ name })
+        .eq('id', userId);
+      
+      if (error) throw error;
+      
+      await logActivity('user_name_updated', userId, { new_name: name });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      if (selectedUser) {
+        setSelectedUser({ ...selectedUser, name: editedName });
+      }
+      setIsEditingName(false);
+      toast.success('Nome atualizado com sucesso!');
+    },
+    onError: (error) => {
+      toast.error('Erro ao atualizar nome: ' + error.message);
     }
   });
 
@@ -519,8 +545,53 @@ export default function Admin() {
                             {getInitials(selectedUser.name)}
                           </AvatarFallback>
                         </Avatar>
-                        <div>
-                          <CardTitle className="text-xl">{selectedUser.name || 'Sem nome'}</CardTitle>
+                        <div className="flex-1">
+                          {isEditingName ? (
+                            <div className="flex items-center gap-2">
+                              <Input
+                                value={editedName}
+                                onChange={(e) => setEditedName(e.target.value)}
+                                placeholder="Nome do usuário"
+                                className="h-9 text-lg font-semibold"
+                                autoFocus
+                              />
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-9 w-9 text-green-500 hover:text-green-600 hover:bg-green-500/10"
+                                onClick={() => updateNameMutation.mutate({ userId: selectedUser.id, name: editedName })}
+                                disabled={updateNameMutation.isPending || !editedName.trim()}
+                              >
+                                <Save className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-9 w-9 text-muted-foreground hover:text-foreground"
+                                onClick={() => {
+                                  setIsEditingName(false);
+                                  setEditedName(selectedUser.name || '');
+                                }}
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 group/name">
+                              <CardTitle className="text-xl">{selectedUser.name || 'Sem nome'}</CardTitle>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-7 w-7 opacity-0 group-hover/name:opacity-100 transition-opacity"
+                                onClick={() => {
+                                  setEditedName(selectedUser.name || '');
+                                  setIsEditingName(true);
+                                }}
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
+                          )}
                           <div className="flex items-center gap-2 mt-1">
                             <Badge variant="outline" className={statusConfig[selectedUser.status].color}>
                               {statusConfig[selectedUser.status].label}
