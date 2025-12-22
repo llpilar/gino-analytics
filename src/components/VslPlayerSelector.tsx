@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
-import { Check, ChevronDown, Pencil, X } from "lucide-react";
+import { Check, Pencil, X } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserIntegrations } from "@/hooks/useUserIntegrations";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 
 interface VslPlayer {
   id: string;
@@ -29,8 +29,8 @@ export function VslPlayerSelector({
 }: VslPlayerSelectorProps) {
   const { effectiveUserId, integrations } = useUserIntegrations();
   const queryClient = useQueryClient();
-  const [open, setOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingPlayer, setEditingPlayer] = useState<VslPlayer | null>(null);
   const [editName, setEditName] = useState("");
   const [playerNames, setPlayerNames] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
@@ -54,20 +54,14 @@ export function VslPlayerSelector({
     return getPlayerDisplayName(player);
   };
 
-  const handleStartEdit = (e: React.MouseEvent, player: VslPlayer) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setEditingId(player.id);
+  const handleOpenEditDialog = (player: VslPlayer) => {
+    setEditingPlayer(player);
     setEditName(playerNames[player.id] || player.name || player.id);
+    setEditDialogOpen(true);
   };
 
-  const handleCancelEdit = () => {
-    setEditingId(null);
-    setEditName("");
-  };
-
-  const handleSaveName = async (playerId: string) => {
-    if (!effectiveUserId || !editName.trim()) return;
+  const handleSaveName = async () => {
+    if (!effectiveUserId || !editName.trim() || !editingPlayer) return;
     
     setIsSaving(true);
     try {
@@ -79,7 +73,7 @@ export function VslPlayerSelector({
 
       const updatedPlayerNames = {
         ...playerNames,
-        [playerId]: editName.trim(),
+        [editingPlayer.id]: editName.trim(),
       };
 
       const updatedConfig = {
@@ -95,10 +89,10 @@ export function VslPlayerSelector({
       if (error) throw error;
 
       setPlayerNames(updatedPlayerNames);
-      setEditingId(null);
+      setEditDialogOpen(false);
+      setEditingPlayer(null);
       setEditName("");
       
-      // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['user-integrations'] });
       
       toast.success("Nome atualizado!");
@@ -110,114 +104,94 @@ export function VslPlayerSelector({
     }
   };
 
-  const handleSelectPlayer = (playerId: string | undefined) => {
-    if (editingId) return; // Don't select while editing
-    onPlayerChange(playerId);
-    setOpen(false);
+  const handleValueChange = (value: string) => {
+    console.log("VslPlayerSelector: value changed to", value);
+    console.log("VslPlayerSelector: players available", players);
+    onPlayerChange(value === "all" ? undefined : value);
   };
 
+  // Debug log
+  useEffect(() => {
+    console.log("VslPlayerSelector: players prop received", players);
+  }, [players]);
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-[200px] md:w-[280px] h-8 text-xs md:text-sm bg-background/50 justify-between"
-          disabled={isLoading}
+    <>
+      <div className="flex items-center gap-2">
+        <Select 
+          value={selectedPlayerId || "all"} 
+          onValueChange={handleValueChange}
         >
-          <span className="truncate">
-            {isLoading ? "Carregando..." : getSelectedDisplayName()}
-          </span>
-          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[280px] md:w-[320px] p-0 bg-popover border border-border shadow-lg z-50" align="end">
-        <div className="max-h-[300px] overflow-y-auto">
-          {/* All VSLs option */}
-          <div
-            className={cn(
-              "flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-accent transition-colors",
-              !selectedPlayerId && "bg-accent"
-            )}
-            onClick={() => handleSelectPlayer(undefined)}
+          <SelectTrigger className="w-[180px] md:w-[240px] h-8 text-xs md:text-sm bg-background/80 border-border">
+            <SelectValue placeholder={isLoading ? "Carregando..." : "Selecione a VSL"}>
+              {isLoading ? "Carregando..." : getSelectedDisplayName()}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent className="bg-popover border border-border shadow-xl z-[100]">
+            <SelectItem value="all">Todas as VSLs</SelectItem>
+            {Array.isArray(players) && players.length > 0 && players.map((player) => (
+              <SelectItem key={player.id} value={player.id}>
+                {getPlayerDisplayName(player)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        
+        {/* Edit button - only show when a specific player is selected */}
+        {selectedPlayerId && players.find(p => p.id === selectedPlayerId) && (
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8"
+            onClick={() => {
+              const player = players.find(p => p.id === selectedPlayerId);
+              if (player) handleOpenEditDialog(player);
+            }}
+            title="Renomear VSL"
           >
-            <Check className={cn("h-4 w-4", !selectedPlayerId ? "opacity-100" : "opacity-0")} />
-            <span className="text-sm">Todas as VSLs</span>
+            <Pencil className="h-4 w-4 text-muted-foreground" />
+          </Button>
+        )}
+      </div>
+
+      {/* Edit Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Renomear VSL</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-4">
+            <div className="text-sm text-muted-foreground">
+              ID: {editingPlayer?.id}
+            </div>
+            <Input
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              placeholder="Nome da VSL"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleSaveName();
+                }
+              }}
+            />
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setEditDialogOpen(false)}
+                disabled={isSaving}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleSaveName}
+                disabled={isSaving || !editName.trim()}
+              >
+                {isSaving ? "Salvando..." : "Salvar"}
+              </Button>
+            </div>
           </div>
-          
-          {/* Separator */}
-          <div className="h-px bg-border mx-2" />
-          
-          {/* Player list */}
-          {Array.isArray(players) && players.map((player) => (
-            <div
-              key={player.id}
-              className={cn(
-                "flex items-center gap-2 px-3 py-2 group",
-                editingId !== player.id && "cursor-pointer hover:bg-accent transition-colors",
-                selectedPlayerId === player.id && "bg-accent"
-              )}
-              onClick={() => editingId !== player.id && handleSelectPlayer(player.id)}
-            >
-              {editingId === player.id ? (
-                <div className="flex items-center gap-2 w-full" onClick={(e) => e.stopPropagation()}>
-                  <Input
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    className="h-7 text-sm flex-1"
-                    autoFocus
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        handleSaveName(player.id);
-                      } else if (e.key === 'Escape') {
-                        handleCancelEdit();
-                      }
-                    }}
-                  />
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-7 w-7 shrink-0"
-                    onClick={() => handleSaveName(player.id)}
-                    disabled={isSaving}
-                  >
-                    <Check className="h-4 w-4 text-green-500" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-7 w-7 shrink-0"
-                    onClick={handleCancelEdit}
-                    disabled={isSaving}
-                  >
-                    <X className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  <Check className={cn("h-4 w-4 shrink-0", selectedPlayerId === player.id ? "opacity-100" : "opacity-0")} />
-                  <span className="text-sm flex-1 truncate">{getPlayerDisplayName(player)}</span>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => handleStartEdit(e, player)}
-                  >
-                    <Pencil className="h-3 w-3 text-muted-foreground" />
-                  </Button>
-                </>
-              )}
-            </div>
-          ))}
-          
-          {(!players || players.length === 0) && !isLoading && (
-            <div className="px-3 py-4 text-center text-sm text-muted-foreground">
-              Nenhuma VSL encontrada
-            </div>
-          )}
-        </div>
-      </PopoverContent>
-    </Popover>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

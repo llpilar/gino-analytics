@@ -96,7 +96,10 @@ export const useVturbListPlayers = () => {
   return useQuery({
     queryKey: ['vturb-list-players', effectiveUserId],
     queryFn: async () => {
+      console.log('useVturbListPlayers: fetching players for user', effectiveUserId);
       const data = await fetchVturbData('list_players', effectiveUserId);
+      console.log('useVturbListPlayers: raw data received', data);
+      
       // The endpoint returns array of player events, extract unique players
       if (Array.isArray(data)) {
         const playerMap = new Map<string, { id: string; name: string }>();
@@ -108,11 +111,14 @@ export const useVturbListPlayers = () => {
             });
           }
         });
-        return Array.from(playerMap.values());
+        const players = Array.from(playerMap.values());
+        console.log('useVturbListPlayers: parsed players', players);
+        return players;
       }
+      console.log('useVturbListPlayers: data is not array, returning empty');
       return [];
     },
-    staleTime: 300000, // 5 minutes
+    staleTime: 60000, // 1 minute (reduced for debugging)
     enabled: !!effectiveUserId,
   });
 };
