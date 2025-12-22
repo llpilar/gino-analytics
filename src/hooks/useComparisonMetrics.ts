@@ -1,8 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { startOfDay, subDays, startOfWeek, subWeeks, startOfMonth, subMonths } from 'date-fns';
-import { useAuth } from "@/contexts/AuthContext";
-import { useImpersonate } from "@/contexts/ImpersonateContext";
+import { useUserIntegrations } from "@/hooks/useUserIntegrations";
 
 interface ComparisonData {
   current: number;
@@ -56,9 +55,7 @@ const calculateComparison = (current: number, previous: number): ComparisonData 
 };
 
 export const useDailyComparison = () => {
-  const { user } = useAuth();
-  const { getEffectiveUserId, isImpersonating } = useImpersonate();
-  const effectiveUserId = getEffectiveUserId(user?.id);
+  const { effectiveUserId, isImpersonating } = useUserIntegrations();
 
   return useQuery({
     queryKey: ['daily-comparison', effectiveUserId],
@@ -76,14 +73,13 @@ export const useDailyComparison = () => {
         orders: calculateComparison(todayData.orderCount, yesterdayData.orderCount)
       };
     },
-    refetchInterval: 60000 // Refetch every minute
+    refetchInterval: 60000, // Refetch every minute
+    enabled: !!effectiveUserId,
   });
 };
 
 export const useWeeklyComparison = () => {
-  const { user } = useAuth();
-  const { getEffectiveUserId, isImpersonating } = useImpersonate();
-  const effectiveUserId = getEffectiveUserId(user?.id);
+  const { effectiveUserId, isImpersonating } = useUserIntegrations();
 
   return useQuery({
     queryKey: ['weekly-comparison', effectiveUserId],
@@ -102,14 +98,13 @@ export const useWeeklyComparison = () => {
         orders: calculateComparison(thisWeekData.orderCount, lastWeekData.orderCount)
       };
     },
-    refetchInterval: 300000 // Refetch every 5 minutes
+    refetchInterval: 300000, // Refetch every 5 minutes
+    enabled: !!effectiveUserId,
   });
 };
 
 export const useMonthlyComparison = () => {
-  const { user } = useAuth();
-  const { getEffectiveUserId, isImpersonating } = useImpersonate();
-  const effectiveUserId = getEffectiveUserId(user?.id);
+  const { effectiveUserId, isImpersonating } = useUserIntegrations();
 
   return useQuery({
     queryKey: ['monthly-comparison', effectiveUserId],
@@ -128,6 +123,7 @@ export const useMonthlyComparison = () => {
         orders: calculateComparison(thisMonthData.orderCount, lastMonthData.orderCount)
       };
     },
-    refetchInterval: 600000 // Refetch every 10 minutes
+    refetchInterval: 600000, // Refetch every 10 minutes
+    enabled: !!effectiveUserId,
   });
 };

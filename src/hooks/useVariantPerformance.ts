@@ -1,8 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useDateFilter } from "@/contexts/DateFilterContext";
-import { useAuth } from "@/contexts/AuthContext";
-import { useImpersonate } from "@/contexts/ImpersonateContext";
+import { useUserIntegrations } from "@/hooks/useUserIntegrations";
 
 interface VariantPerformance {
   variantId: string;
@@ -73,10 +72,7 @@ const fetchVariantPerformance = async (
 
 export const useVariantPerformance = () => {
   const { dateRange } = useDateFilter();
-  const { user } = useAuth();
-  const { getEffectiveUserId, isImpersonating } = useImpersonate();
-  
-  const effectiveUserId = getEffectiveUserId(user?.id);
+  const { effectiveUserId, isImpersonating } = useUserIntegrations();
   
   // Garantir que as datas existem antes de fazer a query
   const from = dateRange.from || new Date();
@@ -88,6 +84,6 @@ export const useVariantPerformance = () => {
     refetchInterval: 300000, // 5 minutos
     retry: 3,
     staleTime: 60000,
-    enabled: !!dateRange.from && !!dateRange.to,
+    enabled: !!dateRange.from && !!dateRange.to && !!effectiveUserId,
   });
 };
