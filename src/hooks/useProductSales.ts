@@ -1,8 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useDateFilter } from "@/contexts/DateFilterContext";
-import { useAuth } from "@/contexts/AuthContext";
-import { useImpersonate } from "@/contexts/ImpersonateContext";
+import { useUserIntegrations } from "@/hooks/useUserIntegrations";
 
 interface ProductSale {
   productId: string;
@@ -57,10 +56,7 @@ const fetchProductSales = async (
 
 export const useProductSales = () => {
   const { dateRange } = useDateFilter();
-  const { user } = useAuth();
-  const { getEffectiveUserId, isImpersonating } = useImpersonate();
-  
-  const effectiveUserId = getEffectiveUserId(user?.id);
+  const { effectiveUserId, isImpersonating } = useUserIntegrations();
   
   return useQuery({
     queryKey: ['product-sales', dateRange.from, dateRange.to, effectiveUserId],
@@ -72,5 +68,6 @@ export const useProductSales = () => {
     refetchInterval: 300000, // 5 minutos
     retry: 3,
     staleTime: 60000,
+    enabled: !!effectiveUserId,
   });
 };

@@ -1,15 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboardSettings } from "@/contexts/DashboardSettingsContext";
-import { useAuth } from "@/contexts/AuthContext";
-import { useImpersonate } from "@/contexts/ImpersonateContext";
+import { useUserIntegrations } from "@/hooks/useUserIntegrations";
 
 export const useLiveShopify = () => {
   const { refreshInterval } = useDashboardSettings();
-  const { user } = useAuth();
-  const { getEffectiveUserId, isImpersonating } = useImpersonate();
-  
-  const effectiveUserId = getEffectiveUserId(user?.id);
+  const { effectiveUserId, isImpersonating } = useUserIntegrations();
   
   return useQuery({
     queryKey: ["live-shopify", effectiveUserId],
@@ -71,5 +67,6 @@ export const useLiveShopify = () => {
       };
     },
     refetchInterval: refreshInterval,
+    enabled: !!effectiveUserId,
   });
 };
