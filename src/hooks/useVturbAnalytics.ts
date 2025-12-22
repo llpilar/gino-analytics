@@ -95,7 +95,23 @@ export const useVturbListPlayers = () => {
   
   return useQuery({
     queryKey: ['vturb-list-players', effectiveUserId],
-    queryFn: () => fetchVturbData('list_players', effectiveUserId),
+    queryFn: async () => {
+      const data = await fetchVturbData('list_players', effectiveUserId);
+      // The endpoint returns array of player events, extract unique players
+      if (Array.isArray(data)) {
+        const playerMap = new Map<string, { id: string; name: string }>();
+        data.forEach((item: { player_id?: string; player_name?: string }) => {
+          if (item.player_id && !playerMap.has(item.player_id)) {
+            playerMap.set(item.player_id, {
+              id: item.player_id,
+              name: item.player_name || item.player_id,
+            });
+          }
+        });
+        return Array.from(playerMap.values());
+      }
+      return [];
+    },
     staleTime: 300000, // 5 minutes
     enabled: !!effectiveUserId,
   });

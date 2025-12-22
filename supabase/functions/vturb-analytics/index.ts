@@ -133,8 +133,14 @@ serve(async (req) => {
         body.events = ['started', 'viewed', 'finished'];
         break;
       case 'list_players':
-        // Get list of active players
-        apiUrl = `${VTURB_API_BASE}/players/list_company_players`;
+        // Get list of players using total_by_company_players (list_company_players returns 404)
+        apiUrl = `${VTURB_API_BASE}/events/total_by_company_players`;
+        body.events = ['started'];
+        // Need to provide a date range for this endpoint
+        const today = new Date();
+        const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+        body.start_date = thirtyDaysAgo.toISOString().split('T')[0];
+        body.end_date = today.toISOString().split('T')[0];
         break;
       case 'stats_by_day':
         // Get daily stats
