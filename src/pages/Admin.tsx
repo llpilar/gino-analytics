@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,7 +23,7 @@ import {
   Eye, Ban, UserCheck, Trash2, Plus, Save, RefreshCw, Search,
   Mail, Calendar, Activity, Zap, Store, BarChart3, Globe, 
   ExternalLink, Copy, MoreVertical, Sparkles, LogIn, History,
-  TrendingUp, Pencil, X
+  TrendingUp, Pencil, X, Camera, Loader2
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -93,6 +93,8 @@ export default function Admin() {
   const [newIntegration, setNewIntegration] = useState({ type: '', config: {} as Record<string, string> });
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState("");
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const handleViewAsUser = (userProfile: UserProfile) => {
     startImpersonating({ id: userProfile.id, name: userProfile.name });
@@ -256,6 +258,68 @@ export default function Admin() {
       toast.error('Erro ao atualizar nome: ' + error.message);
     }
   });
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedUser) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Por favor, selecione uma imagem');
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('A imagem deve ter no máximo 2MB');
+      return;
+    }
+
+    setUploadingAvatar(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${selectedUser.id}/avatar.${fileExt}`;
+
+      // Delete old avatar if exists
+      await supabase.storage.from('avatars').remove([
+        `${selectedUser.id}/avatar.jpg`, 
+        `${selectedUser.id}/avatar.png`, 
+        `${selectedUser.id}/avatar.webp`
+      ]);
+
+      // Upload new avatar
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      const newAvatarUrl = publicUrl + '?t=' + Date.now();
+
+      // Update profile with new avatar
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: newAvatarUrl })
+        .eq('id', selectedUser.id);
+
+      if (updateError) throw updateError;
+
+      // Update local state
+      setSelectedUser({ ...selectedUser, avatar_url: newAvatarUrl });
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      
+      await logActivity('user_avatar_updated', selectedUser.id, { user_name: selectedUser.name });
+      toast.success('Foto atualizada com sucesso!');
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast.error('Erro ao enviar foto: ' + error.message);
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   // Filtros
   const filteredUsers = users?.filter(u => 
@@ -539,12 +603,33 @@ export default function Admin() {
                   <CardHeader className="pb-4">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-4">
-                        <Avatar className="h-16 w-16 border-4 border-background shadow-xl">
-                          <AvatarImage src={selectedUser.avatar_url || undefined} />
-                          <AvatarFallback className="bg-gradient-to-br from-primary to-primary/50 text-primary-foreground text-xl font-bold">
-                            {getInitials(selectedUser.name)}
-                          </AvatarFallback>
-                        </Avatar>
+                        <div className="relative group/avatar">
+                          <Avatar className="h-16 w-16 border-4 border-background shadow-xl">
+                            <AvatarImage src={selectedUser.avatar_url || undefined} />
+                            <AvatarFallback className="bg-gradient-to-br from-primary to-primary/50 text-primary-foreground text-xl font-bold">
+                              {getInitials(selectedUser.name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <button
+                            type="button"
+                            onClick={() => avatarInputRef.current?.click()}
+                            disabled={uploadingAvatar}
+                            className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover/avatar:opacity-100 transition-opacity cursor-pointer"
+                          >
+                            {uploadingAvatar ? (
+                              <Loader2 className="h-5 w-5 text-white animate-spin" />
+                            ) : (
+                              <Camera className="h-5 w-5 text-white" />
+                            )}
+                          </button>
+                          <input
+                            ref={avatarInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleAvatarUpload}
+                            className="hidden"
+                          />
+                        </div>
                         <div className="flex-1">
                           {isEditingName ? (
                             <div className="flex items-center gap-2">
