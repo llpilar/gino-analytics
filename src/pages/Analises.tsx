@@ -15,7 +15,7 @@ import { LucideIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useVturbOverview, useVturbListPlayers, parseVturbData } from "@/hooks/useVturbAnalytics";
 import { useGA4Visitors } from "@/hooks/useGA4Visitors";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { VslPlayerSelector } from "@/components/VslPlayerSelector";
 import { ConversionFunnel } from "@/components/ConversionFunnel";
 import { RealTimeAnalytics } from "@/components/ui/real-time-analytics";
 import { DateFilterDropdown } from "@/components/DateFilterDropdown";
@@ -151,22 +151,12 @@ export default function Analises() {
           color="red" 
           className="mb-6 md:mb-8"
           headerAction={
-            <Select 
-              value={selectedPlayerId || "all"} 
-              onValueChange={(value) => setSelectedPlayerId(value === "all" ? undefined : value)}
-            >
-              <SelectTrigger className="w-[200px] md:w-[280px] h-8 text-xs md:text-sm bg-background/50">
-                <SelectValue placeholder={vturbPlayersLoading ? "Carregando..." : "Selecione a VSL"} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as VSLs</SelectItem>
-                {Array.isArray(vturbPlayersList) && vturbPlayersList.map((player: { id: string; name: string }) => (
-                  <SelectItem key={player.id} value={player.id}>
-                    {player.name || player.id}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <VslPlayerSelector
+              players={vturbPlayersList || []}
+              selectedPlayerId={selectedPlayerId}
+              onPlayerChange={setSelectedPlayerId}
+              isLoading={vturbPlayersLoading}
+            />
           }
         >
           {vturbLoading ? (
