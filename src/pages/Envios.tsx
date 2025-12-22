@@ -253,7 +253,15 @@ const OrdersTable = () => {
           <Package className="h-10 w-10 text-muted-foreground" />
         </div>
         <p className="text-lg font-semibold text-foreground mb-1">Não há pedidos neste período</p>
-        <p className="text-sm text-muted-foreground">Selecione outro período no filtro de data</p>
+        <p className="text-sm text-muted-foreground mb-4">Dados de {allOrders.length} pedidos no total. Selecione "Todo período" no filtro de data</p>
+        <Button 
+          onClick={() => refetch()} 
+          variant="outline" 
+          className="gap-2 rounded-xl"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Atualizar dados
+        </Button>
       </div>
     );
   }

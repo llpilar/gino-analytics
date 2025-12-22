@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   startOfDay, 
   endOfDay, 
@@ -111,7 +111,7 @@ const presets: DatePreset[] = [
 
 export const DateFilterDropdown = () => {
   const { dateRange, setCustomRange } = useDateFilter();
-  const [selectedPreset, setSelectedPreset] = useState<PresetKey>("today");
+  const [selectedPreset, setSelectedPreset] = useState<PresetKey>("7days");
   const [isOpen, setIsOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [customRange, setCustomRangeLocal] = useState<{
@@ -121,6 +121,17 @@ export const DateFilterDropdown = () => {
     from: undefined,
     to: undefined,
   });
+
+  // Initialize date range on mount if not set
+  useEffect(() => {
+    if (!dateRange.from || !dateRange.to) {
+      const preset = presets.find(p => p.key === "7days");
+      if (preset) {
+        const range = preset.getRange();
+        setCustomRange(range.from, range.to);
+      }
+    }
+  }, []);
 
   const handlePresetSelect = (preset: DatePreset) => {
     const range = preset.getRange();

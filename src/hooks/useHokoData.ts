@@ -103,6 +103,7 @@ export const useHokoOrders = (page: number = 1, dateFilter?: { from: Date; to: D
   return useQuery({
     queryKey: ['hoko-orders', page, dateFilter?.from, dateFilter?.to, effectiveUserId],
     queryFn: async () => {
+      console.log('useHokoOrders: fetching for user', effectiveUserId);
       const params: Record<string, any> = { page };
       if (dateFilter?.from) {
         params.start_date = dateFilter.from.toISOString().split('T')[0];
@@ -112,8 +113,9 @@ export const useHokoOrders = (page: number = 1, dateFilter?: { from: Date; to: D
       }
       
       const response = await fetchHokoData<any>('orders', effectiveUserId, params);
-      // Hoko returns paginated data with 'data' array
-      return {
+      console.log('useHokoOrders: raw response', response);
+      
+      const result = {
         status: 'success',
         data: response.data || response,
         pagination: {
@@ -122,6 +124,8 @@ export const useHokoOrders = (page: number = 1, dateFilter?: { from: Date; to: D
           total_items: response.total || 0,
         }
       };
+      console.log('useHokoOrders: processed result with', result.data?.length || 0, 'orders');
+      return result;
     },
     staleTime: 30 * 1000, // 30 seconds
     retry: 2,
