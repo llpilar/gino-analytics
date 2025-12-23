@@ -18,7 +18,6 @@ import { useGA4Visitors } from "@/hooks/useGA4Visitors";
 import { VslPlayerSelector } from "@/components/VslPlayerSelector";
 import { ConversionFunnel } from "@/components/ConversionFunnel";
 import { RealTimeAnalytics } from "@/components/ui/real-time-analytics";
-import { DateFilterDropdown } from "@/components/DateFilterDropdown";
 
 export default function Analises() {
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | undefined>(undefined);
@@ -113,12 +112,11 @@ export default function Analises() {
     <DashboardWrapper>
       <div className="w-full max-w-[2400px] mx-auto px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 2xl:px-12 py-4 md:py-6 lg:py-8 min-h-screen pb-24 md:pb-12">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 md:mb-8">
+        <div className="mb-4 md:mb-8">
           <PageHeader 
             title="Central de Análises"
             subtitle="Monitoramento de desempenho em tempo real"
           />
-          <DateFilterDropdown />
         </div>
 
         {/* Stats Grid */}
