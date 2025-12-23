@@ -151,6 +151,9 @@ serve(async (req) => {
       case 'retention':
         // Get video timed retention data
         apiUrl = `${VTURB_API_BASE}/conversions/video_timed`;
+        // retention endpoint requires datetime format
+        if (startDate) body.start_date = formatDateWithTime(startDate, false);
+        if (endDate) body.end_date = formatDateWithTime(endDate, true);
         break;
       default:
         apiUrl = `${VTURB_API_BASE}/sessions/stats`;
