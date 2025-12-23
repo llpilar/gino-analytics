@@ -19,6 +19,7 @@ import { VslPlayerSelector } from "@/components/VslPlayerSelector";
 import { ConversionFunnel } from "@/components/ConversionFunnel";
 import { RealTimeAnalytics } from "@/components/ui/real-time-analytics";
 import { DateFilterDropdown } from "@/components/DateFilterDropdown";
+import { VslComparison } from "@/components/VslComparison";
 
 export default function Analises() {
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | undefined>(undefined);
@@ -298,6 +299,11 @@ export default function Analises() {
           <SectionCard title="Mapa de Vendas" icon={MapPin} color="cyan">
             <SalesMap />
           </SectionCard>
+        </div>
+
+        {/* VSL Comparison Section */}
+        <div className="mb-6 md:mb-8">
+          <VslComparison />
         </div>
 
         {/* Variant Performance Section */}
