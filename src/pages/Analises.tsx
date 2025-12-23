@@ -20,6 +20,7 @@ import { ConversionFunnel } from "@/components/ConversionFunnel";
 import { RealTimeAnalytics } from "@/components/ui/real-time-analytics";
 import { DateFilterDropdown } from "@/components/DateFilterDropdown";
 import { VslComparison } from "@/components/VslComparison";
+import RetentionChart from "@/components/RetentionChart";
 
 export default function Analises() {
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | undefined>(undefined);
@@ -304,6 +305,11 @@ export default function Analises() {
         {/* VSL Comparison Section */}
         <div className="mb-6 md:mb-8">
           <VslComparison />
+        </div>
+
+        {/* Retention Chart Section */}
+        <div className="mb-6 md:mb-8">
+          <RetentionChart />
         </div>
 
         {/* Variant Performance Section */}
