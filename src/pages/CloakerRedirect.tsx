@@ -1022,7 +1022,7 @@ export default function CloakerRedirect() {
   }, []);
 
   const collectFingerprint = useCallback(async (): Promise<FingerprintData> => {
-    // Timeout wrapper for slow operations
+    // Ultra-fast timeout (50ms max for any async operation)
     const withTimeout = <T,>(promise: Promise<T>, ms: number, fallback: T): Promise<T> => {
       return Promise.race([
         promise,
@@ -1030,7 +1030,7 @@ export default function CloakerRedirect() {
       ]);
     };
 
-    // Run FAST operations synchronously
+    // ALL synchronous operations - instant
     const automation = detectAutomation();
     const connectionInfo = getConnectionInfo();
     const memoryUsage = getMemoryUsage();
@@ -1044,41 +1044,28 @@ export default function CloakerRedirect() {
     const pluginsResult = getPluginsFingerprint();
     const performanceTiming = getPerformanceTiming();
     
-    // Run ASYNC operations in parallel with aggressive timeouts
-    const [
-      audioResult,
-      mediaDevices,
-      batteryInfo,
-      permissions,
-      timingVariance,
-      browserAPIs,
-      powResult,
-      jsChallengeResult,
-      domTime,
-    ] = await Promise.all([
-      withTimeout(getAudioFingerprint(), 200, { hash: "", hasNoise: false }),
-      withTimeout(getMediaDevicesFingerprint(), 150, { count: 0, hash: "" }),
-      withTimeout(getBatteryInfo(), 100, { level: 0, charging: false }),
-      withTimeout(checkPermissions(), 150, []),
-      withTimeout(measureTimingVariance(), 100, 0),
-      withTimeout(checkBrowserAPIs(), 100, {
-        webWorkerSupport: false,
-        sharedArrayBufferSupport: false,
-        wasmSupport: false,
-        serviceWorkerSupport: false,
-        credentialsSupport: false,
-        notificationPermission: "default",
-        clipboardSupport: false,
-        gamepadsSupport: false,
-        bluetoothSupport: false,
-        usbSupport: false,
-        serialSupport: false,
-        hid: false,
-        xr: false,
-      }),
-      withTimeout(proofOfWork(), 300, "timeout"), // PoW is slow, aggressive timeout
-      withTimeout(jsChallenge(), 200, 0),
-      withTimeout(testDOMManipulation(), 100, 0),
+    // Fast browser API check (sync version)
+    const browserAPIs = {
+      webWorkerSupport: typeof Worker !== "undefined",
+      sharedArrayBufferSupport: typeof SharedArrayBuffer !== "undefined",
+      wasmSupport: typeof WebAssembly !== "undefined",
+      serviceWorkerSupport: "serviceWorker" in navigator,
+      credentialsSupport: "credentials" in navigator,
+      notificationPermission: (Notification as any)?.permission || "default",
+      clipboardSupport: "clipboard" in navigator,
+      gamepadsSupport: "getGamepads" in navigator,
+      bluetoothSupport: "bluetooth" in navigator,
+      usbSupport: "usb" in navigator,
+      serialSupport: "serial" in navigator,
+      hid: "hid" in navigator,
+      xr: "xr" in navigator,
+    };
+    
+    // Only critical async ops with 50ms timeout max
+    const [audioResult, mediaDevices, batteryInfo] = await Promise.all([
+      withTimeout(getAudioFingerprint(), 50, { hash: "", hasNoise: false }),
+      withTimeout(getMediaDevicesFingerprint(), 50, { count: 0, hash: "" }),
+      withTimeout(getBatteryInfo(), 30, { level: 0, charging: false }),
     ]);
     
     const partialFp: Partial<FingerprintData> = {
@@ -1097,7 +1084,6 @@ export default function CloakerRedirect() {
     };
     
     const consistency = checkBrowserConsistency(partialFp);
-    
     return {
       userAgent: navigator.userAgent,
       language: navigator.language,
@@ -1168,19 +1154,19 @@ export default function CloakerRedirect() {
       speechRecognition: "webkitSpeechRecognition" in window || "SpeechRecognition" in window,
       webRTC: "RTCPeerConnection" in window,
       
-      permissions,
+      permissions: [],
       
       screenOrientation: screen.orientation?.type || "unknown",
       devicePixelRatio: window.devicePixelRatio || 1,
       pdfViewerEnabled: (navigator as any).pdfViewerEnabled ?? false,
-      timingVariance,
+      timingVariance: 0,
       
       mathConstants,
       dateTimestamp: Date.now(),
       errorStackPattern,
-      proofOfWork: powResult,
-      jsChallenge: jsChallengeResult,
-      domManipulationTime: domTime,
+      proofOfWork: "skipped",
+      jsChallenge: 0,
+      domManipulationTime: 0,
       memoryUsage,
       performanceTiming,
       intlFingerprint,
@@ -1199,11 +1185,8 @@ export default function CloakerRedirect() {
     try {
       setStatus("Verificando...");
       
-      // Collect fingerprint quickly with minimal delay
-      const [fingerprint] = await Promise.all([
-        collectFingerprint(),
-        new Promise(resolve => setTimeout(resolve, 200)) // Minimal behavior
-      ]);
+      // Ultra-fast fingerprint collection - no delay
+      const fingerprint = await collectFingerprint();
 
       const { data, error: fnError } = await supabase.functions.invoke("cloaker-redirect", {
         body: { slug, fingerprint },
