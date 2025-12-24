@@ -9,11 +9,7 @@ const corsHeaders = {
 // ==================== IN-MEMORY CACHES ====================
 const linkCache = new Map<string, { link: any; timestamp: number }>();
 const CACHE_TTL = 60000;
-
-// Rate limiting cache: IP -> { count, windowStart }
 const rateLimitCache = new Map<string, { count: number; windowStart: number }>();
-
-// Session cache for behavioral analysis
 const sessionCache = new Map<string, { firstSeen: number; visits: number; scores: number[] }>();
 
 function getCachedLink(slug: string): any | null {
@@ -33,13 +29,10 @@ function setCachedLink(slug: string, link: any): void {
   linkCache.set(slug, { link, timestamp: Date.now() });
 }
 
-// Clean up old rate limit entries every 5 minutes
 setInterval(() => {
   const now = Date.now();
   for (const [key, value] of rateLimitCache.entries()) {
-    if (now - value.windowStart > 3600000) { // 1 hour
-      rateLimitCache.delete(key);
-    }
+    if (now - value.windowStart > 3600000) rateLimitCache.delete(key);
   }
 }, 300000);
 
@@ -47,50 +40,32 @@ setInterval(() => {
 function checkRateLimit(ip: string, limit: number, windowMinutes: number): { allowed: boolean; remaining: number } {
   const now = Date.now();
   const windowMs = windowMinutes * 60 * 1000;
-  const key = ip;
-  
-  const entry = rateLimitCache.get(key);
+  const entry = rateLimitCache.get(ip);
   
   if (!entry || (now - entry.windowStart) > windowMs) {
-    rateLimitCache.set(key, { count: 1, windowStart: now });
+    rateLimitCache.set(ip, { count: 1, windowStart: now });
     return { allowed: true, remaining: limit - 1 };
   }
   
-  if (entry.count >= limit) {
-    return { allowed: false, remaining: 0 };
-  }
+  if (entry.count >= limit) return { allowed: false, remaining: 0 };
   
   entry.count++;
-  rateLimitCache.set(key, entry);
+  rateLimitCache.set(ip, entry);
   return { allowed: true, remaining: limit - entry.count };
 }
 
 // ==================== CLICK LIMITS ====================
-interface ClickLimitResult {
-  allowed: boolean;
-  reason?: string;
-}
-
-async function checkClickLimits(link: any, supabase: any): Promise<ClickLimitResult> {
-  // Check total clicks limit
+async function checkClickLimits(link: any, supabase: any): Promise<{ allowed: boolean; reason?: string }> {
   if (link.max_clicks_total && link.clicks_count >= link.max_clicks_total) {
     return { allowed: false, reason: "total_clicks_exceeded" };
   }
   
-  // Check daily clicks limit
   if (link.max_clicks_daily) {
     const today = new Date().toISOString().split('T')[0];
-    const lastReset = link.last_click_reset;
-    
-    if (lastReset !== today) {
-      // Reset daily counter
-      await supabase
-        .from("cloaked_links")
-        .update({ clicks_today: 0, last_click_reset: today })
-        .eq("id", link.id);
+    if (link.last_click_reset !== today) {
+      await supabase.from("cloaked_links").update({ clicks_today: 0, last_click_reset: today }).eq("id", link.id);
       link.clicks_today = 0;
     }
-    
     if ((link.clicks_today || 0) >= link.max_clicks_daily) {
       return { allowed: false, reason: "daily_clicks_exceeded" };
     }
@@ -99,29 +74,18 @@ async function checkClickLimits(link: any, supabase: any): Promise<ClickLimitRes
   return { allowed: true };
 }
 
-// ==================== TIME-BASED RULES ====================
+// ==================== TIME RULES ====================
 function checkTimeRules(link: any): { allowed: boolean; reason?: string } {
-  if (link.allowed_hours_start === null || link.allowed_hours_end === null) {
-    return { allowed: true };
-  }
+  if (link.allowed_hours_start === null || link.allowed_hours_end === null) return { allowed: true };
   
-  const now = new Date();
-  const currentHour = now.getUTCHours(); // Use UTC for consistency
-  
+  const currentHour = new Date().getUTCHours();
   const start = link.allowed_hours_start;
   const end = link.allowed_hours_end;
   
-  // Handle overnight ranges (e.g., 22:00 to 06:00)
   if (start <= end) {
-    // Normal range (e.g., 09:00 to 18:00)
-    if (currentHour < start || currentHour >= end) {
-      return { allowed: false, reason: "outside_allowed_hours" };
-    }
+    if (currentHour < start || currentHour >= end) return { allowed: false, reason: "outside_allowed_hours" };
   } else {
-    // Overnight range (e.g., 22:00 to 06:00)
-    if (currentHour < start && currentHour >= end) {
-      return { allowed: false, reason: "outside_allowed_hours" };
-    }
+    if (currentHour < start && currentHour >= end) return { allowed: false, reason: "outside_allowed_hours" };
   }
   
   return { allowed: true };
@@ -129,8 +93,7 @@ function checkTimeRules(link: any): { allowed: boolean; reason?: string } {
 
 // ==================== IP WHITELIST/BLACKLIST ====================
 function checkIPLists(ip: string, link: any): { allowed: boolean; reason?: string } {
-  // Whitelist takes priority - if set, only whitelisted IPs allowed
-  if (link.whitelist_ips && link.whitelist_ips.length > 0) {
+  if (link.whitelist_ips?.length > 0) {
     const isWhitelisted = link.whitelist_ips.some((pattern: string) => {
       if (pattern.includes("*")) {
         const regex = new RegExp("^" + pattern.replace(/\./g, "\\.").replace(/\*/g, "\\d+") + "$");
@@ -138,14 +101,10 @@ function checkIPLists(ip: string, link: any): { allowed: boolean; reason?: strin
       }
       return pattern === ip;
     });
-    
-    if (!isWhitelisted) {
-      return { allowed: false, reason: "ip_not_whitelisted" };
-    }
+    if (!isWhitelisted) return { allowed: false, reason: "ip_not_whitelisted" };
   }
   
-  // Check blacklist
-  if (link.blacklist_ips && link.blacklist_ips.length > 0) {
+  if (link.blacklist_ips?.length > 0) {
     const isBlacklisted = link.blacklist_ips.some((pattern: string) => {
       if (pattern.includes("*")) {
         const regex = new RegExp("^" + pattern.replace(/\./g, "\\.").replace(/\*/g, "\\d+") + "$");
@@ -153,10 +112,7 @@ function checkIPLists(ip: string, link: any): { allowed: boolean; reason?: strin
       }
       return pattern === ip;
     });
-    
-    if (isBlacklisted) {
-      return { allowed: false, reason: "ip_blacklisted" };
-    }
+    if (isBlacklisted) return { allowed: false, reason: "ip_blacklisted" };
   }
   
   return { allowed: true };
@@ -168,16 +124,13 @@ function selectTargetUrl(link: any): string {
     return link.target_url;
   }
   
-  // target_urls format: [{ url: string, weight: number }, ...]
   const urls = link.target_urls as { url: string; weight: number }[];
   const totalWeight = urls.reduce((sum, u) => sum + (u.weight || 1), 0);
   let random = Math.random() * totalWeight;
   
   for (const urlObj of urls) {
     random -= urlObj.weight || 1;
-    if (random <= 0) {
-      return urlObj.url;
-    }
+    if (random <= 0) return urlObj.url;
   }
   
   return urls[urls.length - 1]?.url || link.target_url;
@@ -188,7 +141,7 @@ function applyUtmPassthrough(targetUrl: string, request: Request): string {
   const incomingUrl = new URL(request.url);
   const targetUrlObj = new URL(targetUrl);
   
-  const utmParams = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "gclid", "fbclid", "ttclid", "msclkid"];
+  const utmParams = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "gclid", "fbclid", "ttclid", "msclkid", "gbraid", "wbraid", "dclid"];
   
   for (const param of utmParams) {
     const value = incomingUrl.searchParams.get(param);
@@ -200,7 +153,6 @@ function applyUtmPassthrough(targetUrl: string, request: Request): string {
   return targetUrlObj.toString();
 }
 
-// ==================== EXTRACT UTM PARAMS ====================
 function extractUtmParams(request: Request): Record<string, string> {
   const url = new URL(request.url);
   return {
@@ -212,32 +164,123 @@ function extractUtmParams(request: Request): Record<string, string> {
   };
 }
 
-// ==================== INSTANT BOT DETECTION ====================
-const INSTANT_BOT_KEYWORDS = new Set([
-  "googlebot", "adsbot", "mediapartners", "storebot", "bingbot", "yandexbot",
-  "baiduspider", "facebookexternalhit", "facebot", "twitterbot", "linkedinbot",
-  "slackbot", "telegrambot", "whatsapp", "discordbot", "applebot", "duckduckbot",
-  "semrush", "ahrefs", "mj12bot", "dotbot", "petalbot", "bytespider",
-  "crawler", "spider", "bot", "crawl", "headless", "phantomjs", "selenium", 
-  "puppeteer", "playwright", "webdriver", "lighthouse", "pagespeed",
-  "curl", "wget", "python", "java/", "axios", "node-fetch", "scrapy",
-  "gptbot", "chatgpt", "claude", "anthropic", "perplexity", "bytedance",
-  "tiktok", "pinterest", "snapchat", "meta-external",
-]);
+// ==================== GOOGLE ADS - ULTRA COMPREHENSIVE DETECTION ====================
 
-function instantBotCheck(ua: string): boolean {
-  const uaLower = ua.toLowerCase();
-  for (const keyword of INSTANT_BOT_KEYWORDS) {
-    if (uaLower.includes(keyword)) return true;
-  }
-  return false;
-}
+// Google's Official Bot User-Agents (December 2024 - Updated)
+const GOOGLE_BOT_UA_PATTERNS = [
+  // === ADSBOT (CRITICAL - Primary Ad Verification) ===
+  /AdsBot-Google/i,
+  /AdsBot-Google-Mobile/i,
+  /AdsBot-Google-Mobile-Apps/i,
+  /Mozilla\/5\.0.*AdsBot-Google/i,
+  /Mozilla\/5\.0 \(compatible; AdsBot-Google/i,
+  /Mozilla\/5\.0 \(iPhone.*AdsBot-Google-Mobile/i,
+  /Mozilla\/5\.0 \(Linux; Android.*AdsBot-Google-Mobile/i,
+  
+  // === GOOGLEBOT (Search & Display Network) ===
+  /Googlebot\/2\.1/i,
+  /Googlebot-Image/i,
+  /Googlebot-Video/i,
+  /Googlebot-News/i,
+  /Googlebot-Mobile/i,
+  /Mozilla\/5\.0.*compatible.*Googlebot/i,
+  /Mozilla\/5\.0 \(Linux; Android.*Nexus.*Googlebot/i,
+  /Mozilla\/5\.0 \(compatible; Googlebot\/2\.1/i,
+  
+  // === MEDIAPARTNERS (AdSense Content Matching) ===
+  /Mediapartners-Google/i,
+  /Mediapartners/i,
+  /Mediapartners-Google\/2\.1/i,
+  
+  // === STOREBOT (Google Shopping) ===
+  /Storebot-Google/i,
+  /Mozilla\/5\.0.*Storebot-Google/i,
+  
+  // === GOOGLE-EXTENDED (AI/ML Training Crawling) ===
+  /Google-Extended/i,
+  /Mozilla\/5\.0.*Google-Extended/i,
+  
+  // === GOOGLE ADS SPECIFIC TOOLS ===
+  /Google-Adwords/i,
+  /Google-Adwords-Instant/i,
+  /Google-Adwords-Express/i,
+  /Google-Adwords-DisplayAds/i,
+  /Google-Shopping/i,
+  /Google-Shopping-Quality/i,
+  /Google-Product-Search/i,
+  /Google-Merchant/i,
+  /Google-Merchant-Center/i,
+  /Google-InspectionTool/i,
+  /Google-Safety/i,
+  /Google-Site-Verification/i,
+  /Google-Structured-Data/i,
+  /Google-StructuredDataTestingTool/i,
+  
+  // === LIGHTHOUSE/PAGESPEED (Landing Page Quality) ===
+  /Lighthouse/i,
+  /Chrome-Lighthouse/i,
+  /PageSpeed/i,
+  /PageSpeed Insights/i,
+  /Google PageSpeed/i,
+  /PSTS\/\d/i,
+  /Google Page Speed/i,
+  
+  // === GOOGLE QUALITY RATERS & INTERNAL TOOLS ===
+  /Google-Read-Aloud/i,
+  /Google-Speakr/i,
+  /Google-Duplex/i,
+  /DuplexWeb-Google/i,
+  /Google-Favicon/i,
+  /Google-YouTube-Links/i,
+  /GoogleProducer/i,
+  /GoogleAssociationService/i,
+  /Google-PhysicalWeb/i,
+  /Google-Certificates-Bridge/i,
+  /Google-Test/i,
+  /Google-Testing/i,
+  /GoogleSecurityScanner/i,
+  /Google-Transparency-Report/i,
+  /Google-Apps-Script/i,
+  /Google-HTTP-Java-Client/i,
+  /Google-AMPHTML/i,
+  /Google-AMP-Cache/i,
+  /Google-AMP-Prefetch/i,
+  /Google-Web-Preview/i,
+  /Google-WebPreview/i,
+  /Google-PageRenderer/i,
+  /Google-Cloud-Scheduler/i,
+  /Google-Cloud/i,
+  /GCE-Agent/i,
+  
+  // === FEEDFETCHER (RSS/News) ===
+  /FeedFetcher-Google/i,
+  /Feedfetcher-Google-CoOp/i,
+  /Google-Podcast/i,
+  /Google-Podcasts/i,
+  
+  // === GOOGLE APIS ===
+  /APIs-Google/i,
+  /googleweblight/i,
+  /google\.com\/bot/i,
+  
+  // === STEALTH PATTERNS (Google tools that try to look like browsers) ===
+  /Chrome\/\d+\.0\.\d+\.\d+.*\+https:\/\/developers\.google\.com/i,
+  /compatible.*Google/i,
+  /Google\+/i,
+];
 
-// ==================== GOOGLE DETECTION ====================
+// Google's Complete IP Ranges (Updated December 2024)
+// Source: https://www.gstatic.com/ipranges/goog.json + cloud.json + special-crawlers.json
 const GOOGLE_IP_RANGES = [
+  // === GOOGLEBOT MAIN RANGES (crawl-*.googlebot.com) ===
+  { start: "66.249.64.0", end: "66.249.95.255" },   // Primary Googlebot range
+  { start: "66.249.66.0", end: "66.249.66.255" },   // AdsBot-Google
+  { start: "66.249.68.0", end: "66.249.69.255" },   // Mediapartners-Google
+  { start: "66.249.79.0", end: "66.249.79.255" },   // AdsBot-Google-Mobile
+  
+  // === GOOGLE SERVICES IPs ===
   { start: "64.233.160.0", end: "64.233.191.255" },
   { start: "66.102.0.0", end: "66.102.15.255" },
-  { start: "66.249.64.0", end: "66.249.95.255" },
   { start: "72.14.192.0", end: "72.14.255.255" },
   { start: "74.125.0.0", end: "74.125.255.255" },
   { start: "108.177.0.0", end: "108.177.127.255" },
@@ -247,27 +290,110 @@ const GOOGLE_IP_RANGES = [
   { start: "209.85.128.0", end: "209.85.255.255" },
   { start: "216.58.192.0", end: "216.58.223.255" },
   { start: "216.239.32.0", end: "216.239.63.255" },
+  
+  // === GOOGLE CLOUD PLATFORM (Used for Ad Verification) ===
   { start: "34.64.0.0", end: "34.127.255.255" },
+  { start: "34.128.0.0", end: "34.159.255.255" },
   { start: "35.184.0.0", end: "35.247.255.255" },
+  { start: "35.186.0.0", end: "35.186.127.255" },
   { start: "104.154.0.0", end: "104.155.255.255" },
   { start: "104.196.0.0", end: "104.199.255.255" },
   { start: "130.211.0.0", end: "130.211.255.255" },
   { start: "146.148.0.0", end: "146.148.127.255" },
-  { start: "66.249.66.0", end: "66.249.66.255" },
-  { start: "66.249.68.0", end: "66.249.69.255" },
-  { start: "66.249.79.0", end: "66.249.79.255" },
+  
+  // === GOOGLE SPECIAL CRAWLERS ===
   { start: "192.178.0.0", end: "192.178.255.255" },
   { start: "199.36.153.0", end: "199.36.155.255" },
   { start: "74.114.24.0", end: "74.114.31.255" },
+  
+  // === GOOGLE GLOBAL CACHE ===
   { start: "23.236.48.0", end: "23.236.63.255" },
   { start: "23.251.128.0", end: "23.251.191.255" },
   { start: "107.167.160.0", end: "107.167.191.255" },
   { start: "107.178.192.0", end: "107.178.255.255" },
   { start: "162.216.148.0", end: "162.216.151.255" },
   { start: "162.222.176.0", end: "162.222.183.255" },
+  
+  // === GOOGLE FIBER (Sometimes used for testing) ===
   { start: "136.22.0.0", end: "136.23.255.255" },
-  { start: "34.128.0.0", end: "34.159.255.255" },
-  { start: "35.186.0.0", end: "35.186.127.255" },
+  
+  // === ADDITIONAL GOOGLE RANGES (2024) ===
+  { start: "8.8.4.0", end: "8.8.8.255" },           // Google DNS (sometimes crawlers)
+  { start: "8.34.208.0", end: "8.35.207.255" },
+  { start: "8.35.192.0", end: "8.35.207.255" },
+  { start: "23.228.128.0", end: "23.228.191.255" },
+  { start: "34.0.0.0", end: "34.63.255.255" },
+  { start: "35.0.0.0", end: "35.183.255.255" },
+  { start: "35.248.0.0", end: "35.255.255.255" },
+  { start: "64.15.112.0", end: "64.15.127.255" },
+  { start: "64.233.64.0", end: "64.233.127.255" },
+  { start: "70.32.128.0", end: "70.32.159.255" },
+  { start: "72.14.192.0", end: "72.14.255.255" },
+  { start: "74.114.24.0", end: "74.114.31.255" },
+  { start: "104.132.0.0", end: "104.135.255.255" },
+  { start: "104.237.160.0", end: "104.237.191.255" },
+  { start: "108.170.192.0", end: "108.170.255.255" },
+  { start: "108.177.0.0", end: "108.177.127.255" },
+  { start: "142.250.0.0", end: "142.251.255.255" },
+  { start: "146.148.0.0", end: "146.148.127.255" },
+  { start: "162.216.148.0", end: "162.216.151.255" },
+  { start: "172.110.32.0", end: "172.110.39.255" },
+  { start: "172.217.0.0", end: "172.217.255.255" },
+  { start: "172.253.0.0", end: "172.253.255.255" },
+  { start: "173.194.0.0", end: "173.194.255.255" },
+  { start: "173.255.112.0", end: "173.255.127.255" },
+  { start: "192.104.160.0", end: "192.104.161.255" },
+  { start: "192.158.28.0", end: "192.158.31.255" },
+  { start: "192.178.0.0", end: "192.179.255.255" },
+  { start: "193.186.4.0", end: "193.186.7.255" },
+  { start: "199.36.153.0", end: "199.36.159.255" },
+  { start: "199.192.112.0", end: "199.192.127.255" },
+  { start: "199.223.232.0", end: "199.223.239.255" },
+  { start: "207.223.160.0", end: "207.223.175.255" },
+  { start: "208.65.152.0", end: "208.65.155.255" },
+  { start: "208.68.108.0", end: "208.68.111.255" },
+  { start: "208.81.188.0", end: "208.81.191.255" },
+  { start: "208.117.224.0", end: "208.117.255.255" },
+  { start: "209.85.128.0", end: "209.85.255.255" },
+  { start: "216.58.192.0", end: "216.58.223.255" },
+  { start: "216.73.80.0", end: "216.73.95.255" },
+  { start: "216.239.32.0", end: "216.239.63.255" },
+  { start: "216.252.220.0", end: "216.252.223.255" },
+];
+
+// Google ASN Numbers
+const GOOGLE_ASNS = [
+  "AS15169",  // Google LLC
+  "AS396982", // Google Cloud
+  "AS36492",  // Google Fiber
+  "AS139070", // Google Asia
+  "AS139190", // Google Cloud Asia
+  "AS36040",  // YouTube
+  "AS43515",  // Google Switzerland
+  "AS41264",  // Google Ireland
+  "AS19527",  // Google (legacy)
+  "AS22577",  // Google Cloud (legacy)
+  "AS22859",  // Google Cloud (legacy)
+  "AS26910",  // Google Cloud
+  "AS36039",  // Google
+  "AS36384",  // Google
+  "AS36385",  // Google
+  "AS36411",  // Google
+  "AS394507", // Google Cloud
+  "AS394639", // Google Cloud
+  "AS395973", // Google Cloud
+];
+
+// Headers that indicate Google traffic
+const GOOGLE_HEADER_PATTERNS = [
+  "x-google-",
+  "x-goog-",
+  "x-gfe-",
+  "x-cloud-trace-context",
+  "x-appengine-",
+  "x-forwarded-for-google",
+  "via: 1.1 google",
+  "via: google",
 ];
 
 // Facebook/Meta IP ranges
@@ -296,29 +422,43 @@ const TIKTOK_IP_RANGES = [
   { start: "152.32.128.0", end: "152.32.255.255" },
 ];
 
-// Datacenter/Cloud IP ranges
+// Datacenter/Cloud IP ranges (expanded)
 const DATACENTER_IP_RANGES = [
   // AWS
   { start: "3.0.0.0", end: "3.255.255.255" },
   { start: "52.0.0.0", end: "52.255.255.255" },
   { start: "54.0.0.0", end: "54.255.255.255" },
+  { start: "18.0.0.0", end: "18.255.255.255" },
+  { start: "13.0.0.0", end: "13.255.255.255" },
+  // Azure
+  { start: "20.0.0.0", end: "20.255.255.255" },
+  { start: "40.74.0.0", end: "40.125.255.255" },
+  { start: "104.40.0.0", end: "104.47.255.255" },
   // DigitalOcean
   { start: "159.89.0.0", end: "159.89.255.255" },
   { start: "167.99.0.0", end: "167.99.255.255" },
   { start: "206.189.0.0", end: "206.189.255.255" },
+  { start: "64.225.0.0", end: "64.225.255.255" },
   // Vultr
   { start: "45.32.0.0", end: "45.32.255.255" },
   { start: "45.63.0.0", end: "45.63.255.255" },
   { start: "45.76.0.0", end: "45.76.255.255" },
+  { start: "149.28.0.0", end: "149.28.255.255" },
   // Linode
   { start: "45.33.0.0", end: "45.33.255.255" },
   { start: "50.116.0.0", end: "50.116.255.255" },
+  { start: "139.162.0.0", end: "139.162.255.255" },
   // Hetzner
   { start: "116.202.0.0", end: "116.203.255.255" },
   { start: "49.12.0.0", end: "49.13.255.255" },
+  { start: "95.216.0.0", end: "95.217.255.255" },
   // OVH
   { start: "51.38.0.0", end: "51.39.255.255" },
   { start: "51.75.0.0", end: "51.79.255.255" },
+  { start: "51.68.0.0", end: "51.68.255.255" },
+  // Cloudflare Workers
+  { start: "172.64.0.0", end: "172.71.255.255" },
+  { start: "104.16.0.0", end: "104.31.255.255" },
 ];
 
 function ipToNumber(ip: string): number {
@@ -353,24 +493,253 @@ function isDatacenterIP(ip: string): boolean {
   return isInIpRanges(ip, DATACENTER_IP_RANGES);
 }
 
-function instantGoogleCheck(ua: string, ip: string): { isGoogle: boolean; isDefinitive: boolean } {
-  const uaLower = ua.toLowerCase();
+// ==================== GOOGLE ADS DEEP DETECTION ====================
+interface GoogleDetectionResult {
+  isGoogle: boolean;
+  isAdsBot: boolean;
+  isDefinitive: boolean;
+  confidence: number;
+  reasons: string[];
+  botType: string | null;
+}
+
+function detectGoogleAds(userAgent: string, ip: string, headers: Headers): GoogleDetectionResult {
+  const reasons: string[] = [];
+  let confidence = 0;
+  let isGoogle = false;
+  let isAdsBot = false;
+  let isDefinitive = false;
+  let botType: string | null = null;
   
-  if (uaLower.includes("googlebot") || uaLower.includes("adsbot") || 
-      uaLower.includes("mediapartners") || uaLower.includes("storebot")) {
-    return { isGoogle: true, isDefinitive: true };
+  const ua = userAgent.toLowerCase();
+  
+  // === 1. DIRECT USER-AGENT MATCHING (Highest Priority) ===
+  for (const pattern of GOOGLE_BOT_UA_PATTERNS) {
+    if (pattern.test(userAgent)) {
+      isGoogle = true;
+      confidence = 100;
+      isDefinitive = true;
+      
+      // Determine specific bot type
+      if (/adsbot/i.test(userAgent)) {
+        isAdsBot = true;
+        botType = "AdsBot";
+        reasons.push("ADSBOT_UA_MATCH");
+      } else if (/mediapartners/i.test(userAgent)) {
+        isAdsBot = true;
+        botType = "Mediapartners";
+        reasons.push("MEDIAPARTNERS_UA_MATCH");
+      } else if (/storebot/i.test(userAgent)) {
+        isAdsBot = true;
+        botType = "Storebot";
+        reasons.push("STOREBOT_UA_MATCH");
+      } else if (/lighthouse|pagespeed/i.test(userAgent)) {
+        isAdsBot = true;
+        botType = "Lighthouse";
+        reasons.push("LIGHTHOUSE_UA_MATCH");
+      } else if (/googlebot/i.test(userAgent)) {
+        botType = "Googlebot";
+        reasons.push("GOOGLEBOT_UA_MATCH");
+      } else if (/google-shopping|merchant/i.test(userAgent)) {
+        isAdsBot = true;
+        botType = "Google Shopping";
+        reasons.push("GOOGLE_SHOPPING_UA_MATCH");
+      } else if (/google-adwords|google-ads/i.test(userAgent)) {
+        isAdsBot = true;
+        botType = "Google Ads";
+        reasons.push("GOOGLE_ADS_UA_MATCH");
+      } else {
+        botType = "Google Bot";
+        reasons.push("GOOGLE_UA_MATCH");
+      }
+      break;
+    }
   }
   
+  // === 2. IP RANGE CHECK ===
   if (isGoogleIP(ip)) {
-    return { isGoogle: true, isDefinitive: true };
+    isGoogle = true;
+    confidence = Math.max(confidence, 95);
+    reasons.push("GOOGLE_IP_RANGE");
+    
+    if (!isDefinitive) {
+      // IP is Google but UA doesn't look like a bot
+      // This could be Google Quality Rater or stealth verification
+      if (!botType) botType = "Google IP (Stealth)";
+      if (confidence >= 95) isDefinitive = true;
+    }
   }
   
-  if (uaLower.includes("lighthouse") || uaLower.includes("pagespeed") ||
-      uaLower.includes("google-") || uaLower.includes("apis-google")) {
-    return { isGoogle: true, isDefinitive: true };
+  // === 3. HEADER ANALYSIS (Critical for Stealth Detection) ===
+  const allHeaders: string[] = [];
+  headers.forEach((value, key) => {
+    allHeaders.push(`${key.toLowerCase()}: ${value.toLowerCase()}`);
+  });
+  
+  // Check for Google-specific headers
+  for (const pattern of GOOGLE_HEADER_PATTERNS) {
+    for (const header of allHeaders) {
+      if (header.includes(pattern.toLowerCase())) {
+        isGoogle = true;
+        confidence += 30;
+        reasons.push(`GOOGLE_HEADER_${pattern.split("-")[1]?.toUpperCase() || "DETECTED"}`);
+        break;
+      }
+    }
   }
   
-  return { isGoogle: false, isDefinitive: false };
+  // Via header check
+  const via = headers.get("via") || "";
+  if (/google|gws|gfe/i.test(via)) {
+    isGoogle = true;
+    confidence += 25;
+    reasons.push("GOOGLE_VIA_HEADER");
+  }
+  
+  // X-Forwarded-For patterns (Google often has specific patterns)
+  const xff = headers.get("x-forwarded-for") || "";
+  if (xff) {
+    const xffIps = xff.split(",").map(s => s.trim());
+    for (const xffIp of xffIps) {
+      if (isGoogleIP(xffIp)) {
+        isGoogle = true;
+        confidence += 20;
+        reasons.push("GOOGLE_XFF_IP");
+        break;
+      }
+    }
+  }
+  
+  // === 4. ACCEPT HEADER ANALYSIS ===
+  const accept = headers.get("accept") || "";
+  const acceptLang = headers.get("accept-language") || "";
+  const acceptEncoding = headers.get("accept-encoding") || "";
+  
+  // Bots often have minimal or specific Accept headers
+  if (accept === "*/*" || accept === "text/html" || accept === "") {
+    confidence += 8;
+    reasons.push("MINIMAL_ACCEPT");
+  }
+  
+  if (!acceptLang || acceptLang === "*" || acceptLang === "en-US,en;q=0.9") {
+    confidence += 8;
+    reasons.push("GENERIC_ACCEPT_LANG");
+  }
+  
+  // === 5. SEC-FETCH HEADERS (Modern browser fingerprint) ===
+  const secFetchDest = headers.get("sec-fetch-dest");
+  const secFetchMode = headers.get("sec-fetch-mode");
+  const secFetchSite = headers.get("sec-fetch-site");
+  const secFetchUser = headers.get("sec-fetch-user");
+  
+  // Missing all Sec-Fetch headers (bots often don't have these)
+  if (!secFetchDest && !secFetchMode && !secFetchSite && !secFetchUser) {
+    // Only flag if not mobile Safari (which sometimes lacks these)
+    if (!/safari/i.test(ua) || /chrome/i.test(ua)) {
+      confidence += 15;
+      reasons.push("NO_SEC_FETCH_HEADERS");
+    }
+  }
+  
+  // === 6. USER-AGENT ANOMALY DETECTION ===
+  
+  // Very short UA
+  if (userAgent.length < 50) {
+    confidence += 20;
+    reasons.push("SHORT_UA");
+  }
+  
+  // UA contains URL (common for bots)
+  if (/https?:\/\//i.test(userAgent)) {
+    confidence += 15;
+    reasons.push("URL_IN_UA");
+  }
+  
+  // Check for Google internal patterns in UA
+  if (/google\.com|googleapis|gstatic/i.test(userAgent)) {
+    isGoogle = true;
+    confidence += 25;
+    reasons.push("GOOGLE_INTERNAL_UA_REF");
+  }
+  
+  // Chrome version analysis (Google bots use specific Chrome versions)
+  const chromeMatch = userAgent.match(/Chrome\/(\d+)/);
+  if (chromeMatch) {
+    const version = parseInt(chromeMatch[1]);
+    // Google bots often use Chrome 119-122 (as of late 2024)
+    if (version >= 119 && version <= 122 && isGoogle) {
+      confidence += 5;
+      reasons.push("GOOGLE_CHROME_VERSION");
+    }
+  }
+  
+  // === 7. REFERER ANALYSIS ===
+  const referer = headers.get("referer") || "";
+  if (/google\.com|google\.[a-z]{2,3}(\.[a-z]{2})?$/i.test(referer)) {
+    // Referer from Google - could be legitimate click but also bot verification
+    if (isGoogle) {
+      confidence += 10;
+      reasons.push("GOOGLE_REFERER");
+    }
+  }
+  if (!referer && isGoogle) {
+    // No referer + Google IP = likely bot
+    confidence += 8;
+    reasons.push("NO_REFERER");
+  }
+  
+  // === 8. CONNECTION PATTERNS ===
+  const connection = headers.get("connection") || "";
+  if (connection.toLowerCase() === "close") {
+    // Bots often use Connection: close
+    confidence += 5;
+    reasons.push("CONNECTION_CLOSE");
+  }
+  
+  // === 9. STEALTH BOT DETECTION (Quality Raters) ===
+  // Google Quality Raters use real browsers but from Google IPs
+  if (isGoogleIP(ip) && !isDefinitive) {
+    // Check if it looks like a real browser but from Google IP
+    const looksLikeRealBrowser = 
+      /mozilla.*chrome.*safari/i.test(ua) &&
+      !GOOGLE_BOT_UA_PATTERNS.some(p => p.test(userAgent));
+    
+    if (looksLikeRealBrowser) {
+      isGoogle = true;
+      isAdsBot = true;
+      confidence = Math.max(confidence, 90);
+      botType = "Google Quality Rater";
+      reasons.push("GOOGLE_QUALITY_RATER_SUSPECTED");
+    }
+  }
+  
+  // === 10. ASN CHECK ===
+  const cfAsn = headers.get("cf-asn") || headers.get("x-asn") || "";
+  if (cfAsn && GOOGLE_ASNS.some(asn => cfAsn.toUpperCase().includes(asn))) {
+    isGoogle = true;
+    confidence = Math.max(confidence, 92);
+    reasons.push("GOOGLE_ASN");
+  }
+  
+  // ISP name check
+  const cfIsp = headers.get("cf-isp") || headers.get("x-isp") || "";
+  if (/google/i.test(cfIsp)) {
+    isGoogle = true;
+    confidence = Math.max(confidence, 93);
+    reasons.push("GOOGLE_ISP");
+  }
+  
+  // Finalize
+  if (confidence >= 90) isDefinitive = true;
+  
+  return {
+    isGoogle,
+    isAdsBot,
+    isDefinitive,
+    confidence: Math.min(100, confidence),
+    reasons,
+    botType,
+  };
 }
 
 // ==================== COMPREHENSIVE BOT DETECTION ====================
@@ -380,6 +749,7 @@ interface BotDetectionResult {
   confidence: number;
   reasons: string[];
   platform?: string;
+  isGoogleAds?: boolean;
 }
 
 function detectBot(userAgent: string, ip: string, headers: Headers): BotDetectionResult {
@@ -388,89 +758,105 @@ function detectBot(userAgent: string, ip: string, headers: Headers): BotDetectio
   let botType: string | null = null;
   const ua = userAgent.toLowerCase();
   
-  // === 1. GOOGLE/ADS ===
-  if (/googlebot|adsbot|mediapartners|storebot|google-extended|apis-google|feedfetcher-google/i.test(userAgent)) {
-    botType = "google";
-    confidence = 100;
-    reasons.push("google_ua_pattern");
-  } else if (isGoogleIP(ip)) {
-    botType = "google";
-    confidence = 95;
-    reasons.push("google_ip_range");
-  } else if (/lighthouse|pagespeed|chrome-lighthouse/i.test(userAgent)) {
-    botType = "google";
-    confidence = 90;
-    reasons.push("google_tool");
+  // === 1. GOOGLE ADS DETECTION (Priority) ===
+  const googleResult = detectGoogleAds(userAgent, ip, headers);
+  if (googleResult.isGoogle) {
+    return {
+      isBot: true,
+      botType: googleResult.botType || "Google",
+      confidence: googleResult.confidence,
+      reasons: googleResult.reasons,
+      platform: "google",
+      isGoogleAds: googleResult.isAdsBot,
+    };
   }
   
   // === 2. FACEBOOK/META ===
   if (/facebookexternalhit|facebot|facebook|meta-external|instagram/i.test(userAgent)) {
-    botType = "facebook";
-    confidence = 100;
-    reasons.push("facebook_ua_pattern");
-  } else if (isFacebookIP(ip)) {
-    botType = "facebook";
-    confidence = 95;
-    reasons.push("facebook_ip_range");
+    return {
+      isBot: true,
+      botType: "Facebook",
+      confidence: 100,
+      reasons: ["FACEBOOK_UA"],
+      platform: "facebook",
+    };
+  }
+  if (isFacebookIP(ip)) {
+    return {
+      isBot: true,
+      botType: "Facebook",
+      confidence: 95,
+      reasons: ["FACEBOOK_IP"],
+      platform: "facebook",
+    };
   }
   
   // === 3. TIKTOK/BYTEDANCE ===
   if (/tiktok|bytedance|bytespider/i.test(userAgent)) {
-    botType = "tiktok";
-    confidence = 100;
-    reasons.push("tiktok_ua_pattern");
-  } else if (isTikTokIP(ip)) {
-    botType = "tiktok";
-    confidence = 90;
-    reasons.push("tiktok_ip_range");
+    return {
+      isBot: true,
+      botType: "TikTok",
+      confidence: 100,
+      reasons: ["TIKTOK_UA"],
+      platform: "tiktok",
+    };
+  }
+  if (isTikTokIP(ip)) {
+    return {
+      isBot: true,
+      botType: "TikTok",
+      confidence: 90,
+      reasons: ["TIKTOK_IP"],
+      platform: "tiktok",
+    };
   }
   
   // === 4. OTHER AD PLATFORMS ===
   if (/bingads|adidxbot|pinterest|twitterbot|linkedinbot|snapchat|slackbot|discordbot|telegrambot|whatsapp|applebot/i.test(userAgent)) {
-    botType = "ad_platform";
+    botType = "Ad Platform";
     confidence = 95;
-    reasons.push("ad_platform_bot");
+    reasons.push("AD_PLATFORM_BOT");
   }
   
   // === 5. SEARCH ENGINES ===
   if (/bingbot|yandexbot|baiduspider|duckduckbot|sogou|exabot|ia_archiver/i.test(userAgent)) {
-    botType = "search_engine";
+    botType = "Search Engine";
     confidence = 95;
-    reasons.push("search_engine_bot");
+    reasons.push("SEARCH_ENGINE_BOT");
   }
   
   // === 6. SEO/ANALYTICS TOOLS ===
   if (/semrush|ahrefsbot|mj12bot|dotbot|petalbot|screaming.frog|rogerbot|seokicks|sistrix|blexbot|dataforseo/i.test(userAgent)) {
-    botType = "seo_tool";
+    botType = "SEO Tool";
     confidence = 95;
-    reasons.push("seo_tool_bot");
+    reasons.push("SEO_TOOL_BOT");
   }
   
   // === 7. AI CRAWLERS ===
   if (/gptbot|chatgpt|claude|anthropic|perplexity|cohere|ccbot|diffbot/i.test(userAgent)) {
-    botType = "ai_crawler";
+    botType = "AI Crawler";
     confidence = 95;
-    reasons.push("ai_crawler_bot");
+    reasons.push("AI_CRAWLER");
   }
   
   // === 8. AUTOMATION FRAMEWORKS ===
   if (/headless|phantomjs|selenium|puppeteer|playwright|cypress|webdriver|nightmare|casperjs/i.test(userAgent)) {
-    botType = "automation";
+    botType = "Automation";
     confidence = 100;
-    reasons.push("automation_framework");
+    reasons.push("AUTOMATION_FRAMEWORK");
   }
   
   // === 9. HTTP CLIENTS ===
   if (/curl|wget|python|java\/|axios|node-fetch|go-http|libwww|scrapy|httpx|okhttp|guzzle|urllib|aiohttp/i.test(userAgent)) {
-    botType = "http_client";
+    botType = "HTTP Client";
     confidence = 90;
-    reasons.push("http_client");
+    reasons.push("HTTP_CLIENT");
   }
   
   // === 10. DATACENTER IP ===
   if (!botType && isDatacenterIP(ip)) {
     confidence += 40;
-    reasons.push("datacenter_ip");
+    reasons.push("DATACENTER_IP");
   }
   
   // === 11. HEADER ANALYSIS ===
@@ -481,48 +867,46 @@ function detectBot(userAgent: string, ip: string, headers: Headers): BotDetectio
   
   if (!acceptLang || acceptLang === "*") {
     confidence += 15;
-    reasons.push("no_accept_language");
+    reasons.push("NO_ACCEPT_LANGUAGE");
   }
   
   if (accept === "*/*" || !accept.includes("text/html")) {
     confidence += 10;
-    reasons.push("minimal_accept_header");
+    reasons.push("MINIMAL_ACCEPT");
   }
   
   if (!secFetchDest && !secFetchMode && !ua.includes("safari")) {
     confidence += 15;
-    reasons.push("no_sec_fetch_headers");
+    reasons.push("NO_SEC_FETCH");
   }
   
-  // Via header with platform names
   const via = headers.get("via") || "";
   if (/google|facebook|meta|microsoft|amazon/i.test(via)) {
     confidence += 30;
-    reasons.push("platform_via_header");
+    reasons.push("PLATFORM_VIA");
   }
   
   // === 12. UA ANOMALIES ===
   if (userAgent.length < 50) {
     confidence += 25;
-    reasons.push("short_user_agent");
+    reasons.push("SHORT_UA");
   }
   
   if (/https?:\/\//i.test(userAgent)) {
     confidence += 20;
-    reasons.push("url_in_user_agent");
+    reasons.push("URL_IN_UA");
   }
   
-  // Generic "bot" in UA
   if (/bot(?!tle)/i.test(ua) && !/about|cubot/i.test(ua)) {
     confidence += 40;
-    reasons.push("contains_bot");
-    if (!botType) botType = "generic_bot";
+    reasons.push("CONTAINS_BOT");
+    if (!botType) botType = "Generic Bot";
   }
   
   if (/crawler|spider|scraper|fetch/i.test(ua)) {
     confidence += 35;
-    reasons.push("crawler_pattern");
-    if (!botType) botType = "crawler";
+    reasons.push("CRAWLER_PATTERN");
+    if (!botType) botType = "Crawler";
   }
   
   const isBot = botType !== null || confidence >= 60;
@@ -532,142 +916,21 @@ function detectBot(userAgent: string, ip: string, headers: Headers): BotDetectio
     botType,
     confidence: Math.min(100, confidence),
     reasons,
-    platform: botType || undefined,
+    platform: botType?.toLowerCase().replace(/\s+/g, "_") || undefined,
   };
 }
 
 // ==================== ISP/ASN BLOCKING ====================
 function checkIspBlock(isp: string, link: any): boolean {
-  if (!link.blocked_isps || !Array.isArray(link.blocked_isps) || link.blocked_isps.length === 0) {
-    return false;
-  }
-  
+  if (!link.blocked_isps?.length) return false;
   const ispLower = (isp || "").toLowerCase();
-  return link.blocked_isps.some((blocked: string) => 
-    ispLower.includes(blocked.toLowerCase())
-  );
+  return link.blocked_isps.some((blocked: string) => ispLower.includes(blocked.toLowerCase()));
 }
 
 function checkAsnBlock(asn: string, link: any): boolean {
-  if (!link.blocked_asns || !Array.isArray(link.blocked_asns) || link.blocked_asns.length === 0) {
-    return false;
-  }
-  
+  if (!link.blocked_asns?.length) return false;
   const asnUpper = (asn || "").toUpperCase();
-  return link.blocked_asns.some((blocked: string) => 
-    asnUpper.includes(blocked.toUpperCase())
-  );
-}
-
-// ==================== TYPE DEFINITIONS ====================
-interface FingerprintData {
-  userAgent: string;
-  language: string;
-  languages?: string[];
-  timezone: string;
-  timezoneOffset?: number;
-  screenResolution: string;
-  availableScreenResolution?: string;
-  colorDepth: number;
-  deviceMemory: number;
-  hardwareConcurrency: number;
-  platform: string;
-  webglVendor: string;
-  webglRenderer: string;
-  webglVersion?: string;
-  webglExtensions?: number;
-  webglParams?: Record<string, any>;
-  webglHash?: string;
-  canvasHash: string;
-  canvasNoise?: boolean;
-  audioHash: string;
-  audioNoise?: boolean;
-  fontsHash: string;
-  fontsList?: string[];
-  pluginsCount: number;
-  pluginsHash?: string;
-  touchSupport: boolean;
-  maxTouchPoints?: number;
-  mouseMovements: number;
-  mouseVelocities?: number[];
-  mouseAccelerations?: number[];
-  mousePath?: { x: number; y: number; t: number }[];
-  scrollEvents: number;
-  scrollDepth?: number;
-  keypressEvents: number;
-  clickEvents?: number;
-  timeOnPage: number;
-  focusChanges: number;
-  hasWebdriver: boolean;
-  hasPhantom: boolean;
-  hasSelenium: boolean;
-  hasPuppeteer: boolean;
-  hasPlaywright?: boolean;
-  hasCypress?: boolean;
-  hasNightmare?: boolean;
-  isHeadless: boolean;
-  isAutomated: boolean;
-  doNotTrack: boolean;
-  cookiesEnabled: boolean;
-  localStorage: boolean;
-  sessionStorage: boolean;
-  indexedDB: boolean;
-  openDatabase?: boolean;
-  cpuClass: string;
-  navigatorPlatform: string;
-  performanceEntries: number;
-  connectionType?: string;
-  connectionSpeed?: string;
-  connectionRtt?: number;
-  batteryLevel?: number;
-  batteryCharging?: boolean;
-  mediaDevices?: number;
-  mediaDevicesHash?: string;
-  speechSynthesis?: boolean;
-  speechRecognition?: boolean;
-  webRTC?: boolean;
-  permissions?: string[];
-  screenOrientation?: string;
-  devicePixelRatio?: number;
-  hardwareAcceleration?: boolean;
-  pdfViewerEnabled?: boolean;
-  timingVariance?: number;
-  mathConstants?: string;
-  dateTimestamp?: number;
-  errorStackPattern?: string;
-  proofOfWork?: string;
-  jsChallenge?: number;
-  domManipulationTime?: number;
-  memoryUsage?: number;
-  performanceTiming?: Record<string, number>;
-  intlFingerprint?: string;
-  cssMediaFingerprint?: string;
-  webWorkerSupport?: boolean;
-  sharedArrayBufferSupport?: boolean;
-  wasmSupport?: boolean;
-  serviceWorkerSupport?: boolean;
-  credentialsSupport?: boolean;
-  notificationPermission?: string;
-  clipboardSupport?: boolean;
-  gamepadsSupport?: boolean;
-  bluetoothSupport?: boolean;
-  usbSupport?: boolean;
-  serialSupport?: boolean;
-  hid?: boolean;
-  xr?: boolean;
-  consistencyScore?: number;
-  inconsistencies?: string[];
-}
-
-interface ScoreResult {
-  total: number;
-  fingerprint: number;
-  behavior: number;
-  network: number;
-  automation: number;
-  flags: string[];
-  confidence: number;
-  riskLevel: "low" | "medium" | "high" | "critical";
+  return link.blocked_asns.some((blocked: string) => asnUpper.includes(blocked.toUpperCase()));
 }
 
 // ==================== UTILITY FUNCTIONS ====================
@@ -687,364 +950,23 @@ function getDeviceType(userAgent: string): string {
   return "desktop";
 }
 
-function generateFingerprintHash(fp: FingerprintData): string {
+function generateFingerprintHash(fp: any): string {
   const components = [
-    fp.userAgent,
-    fp.language,
-    fp.timezone,
-    fp.screenResolution,
-    fp.colorDepth,
-    fp.deviceMemory,
-    fp.hardwareConcurrency,
-    fp.platform,
-    fp.webglVendor,
-    fp.webglRenderer,
-    fp.canvasHash,
-    fp.fontsHash,
-    fp.pluginsHash,
-    fp.webglHash,
+    fp.userAgent, fp.language, fp.timezone, fp.screenResolution,
+    fp.colorDepth, fp.deviceMemory, fp.hardwareConcurrency, fp.platform,
+    fp.webglVendor, fp.webglRenderer, fp.canvasHash, fp.fontsHash,
   ].filter(Boolean).join("|");
-  
   return hashString(components);
-}
-
-// ==================== COMPREHENSIVE SCORING ====================
-function calculateScore(fp: FingerprintData, link: any, headers: Headers, ip: string): ScoreResult {
-  const flags: string[] = [];
-  let fingerprintScore = 25;
-  let behaviorScore = 25;
-  let networkScore = 25;
-  let automationScore = 25;
-  
-  const ua = fp.userAgent || "";
-  const isMobileUA = /mobile|android|iphone|ipad/i.test(ua);
-  
-  // === FINGERPRINT ANALYSIS ===
-  
-  // Basic fingerprint validation
-  if (!fp.userAgent || fp.userAgent.length < 20) {
-    fingerprintScore -= 10;
-    flags.push("invalid_ua");
-  }
-  
-  if (!fp.language || fp.language.length < 2) {
-    fingerprintScore -= 3;
-    flags.push("no_language");
-  }
-  
-  if (!fp.timezone) {
-    fingerprintScore -= 3;
-    flags.push("no_timezone");
-  }
-  
-  if (!fp.screenResolution || !/^\d+x\d+$/.test(fp.screenResolution)) {
-    fingerprintScore -= 5;
-    flags.push("invalid_screen");
-  } else {
-    const [w, h] = fp.screenResolution.split("x").map(Number);
-    if (w === 800 && h === 600) {
-      fingerprintScore -= 8;
-      flags.push("headless_resolution");
-    }
-  }
-  
-  // WebGL validation
-  if (!fp.webglVendor && !fp.webglRenderer) {
-    fingerprintScore -= 5;
-    flags.push("no_webgl");
-  }
-  
-  // SwiftShader detection (common in headless)
-  if (/swiftshader|llvmpipe|software/i.test(fp.webglRenderer || "")) {
-    fingerprintScore -= 8;
-    flags.push("software_renderer");
-  }
-  
-  // Canvas hash validation
-  if (!fp.canvasHash || fp.canvasHash === "0" || fp.canvasHash === "") {
-    fingerprintScore -= 5;
-    flags.push("no_canvas");
-  }
-  
-  // Platform consistency
-  if (/windows/i.test(ua) && fp.platform && !/win/i.test(fp.platform)) {
-    fingerprintScore -= 8;
-    flags.push("platform_mismatch");
-  }
-  
-  if (/iphone|ipad/i.test(ua) && fp.webglVendor && !/apple/i.test(fp.webglVendor)) {
-    fingerprintScore -= 10;
-    flags.push("ios_non_apple_gpu");
-  }
-  
-  // Touch support consistency
-  if (isMobileUA && !fp.touchSupport) {
-    fingerprintScore -= 8;
-    flags.push("mobile_no_touch");
-  }
-  
-  // === BEHAVIOR ANALYSIS ===
-  
-  const minTime = link.behavior_time_ms || 2000;
-  
-  if (fp.timeOnPage < 200) {
-    behaviorScore -= 12;
-    flags.push("instant_access");
-  } else if (fp.timeOnPage < minTime) {
-    behaviorScore -= 5;
-    flags.push("fast_access");
-  }
-  
-  if (fp.mouseMovements === 0 && !fp.touchSupport) {
-    behaviorScore -= 8;
-    flags.push("no_mouse");
-  } else if (fp.mouseMovements > 0) {
-    behaviorScore += 3;
-  }
-  
-  if (fp.scrollEvents > 0) {
-    behaviorScore += 2;
-  }
-  
-  if (fp.clickEvents && fp.clickEvents > 0) {
-    behaviorScore += 3;
-  }
-  
-  // Mouse path analysis
-  if (fp.mousePath && fp.mousePath.length > 5) {
-    // Check for linear movement (robotic)
-    const path = fp.mousePath;
-    let directionChanges = 0;
-    for (let i = 2; i < path.length; i++) {
-      const dx1 = path[i-1].x - path[i-2].x;
-      const dy1 = path[i-1].y - path[i-2].y;
-      const dx2 = path[i].x - path[i-1].x;
-      const dy2 = path[i].y - path[i-1].y;
-      const angle1 = Math.atan2(dy1, dx1);
-      const angle2 = Math.atan2(dy2, dx2);
-      if (Math.abs(angle1 - angle2) > 0.1) directionChanges++;
-    }
-    const changeRatio = directionChanges / (path.length - 2);
-    if (changeRatio < 0.1) {
-      behaviorScore -= 10;
-      flags.push("linear_mouse");
-    }
-  }
-  
-  // Velocity analysis
-  if (fp.mouseVelocities && fp.mouseVelocities.length > 3) {
-    const avg = fp.mouseVelocities.reduce((a, b) => a + b, 0) / fp.mouseVelocities.length;
-    const variance = fp.mouseVelocities.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / fp.mouseVelocities.length;
-    if (variance < 0.001 && avg > 0) {
-      behaviorScore -= 8;
-      flags.push("constant_velocity");
-    }
-  }
-  
-  // === AUTOMATION DETECTION ===
-  
-  if (fp.hasWebdriver === true) {
-    automationScore = 0;
-    flags.push("WEBDRIVER");
-  }
-  
-  if (fp.hasSelenium === true) {
-    automationScore = 0;
-    flags.push("SELENIUM");
-  }
-  
-  if (fp.hasPuppeteer === true) {
-    automationScore = 0;
-    flags.push("PUPPETEER");
-  }
-  
-  if (fp.hasPlaywright === true) {
-    automationScore = 0;
-    flags.push("PLAYWRIGHT");
-  }
-  
-  if (fp.hasCypress === true) {
-    automationScore = 0;
-    flags.push("CYPRESS");
-  }
-  
-  if (fp.hasPhantom === true) {
-    automationScore = 0;
-    flags.push("PHANTOM");
-  }
-  
-  if (fp.isHeadless === true && fp.isAutomated === true) {
-    automationScore = 0;
-    flags.push("HEADLESS_AUTOMATED");
-  } else if (fp.isHeadless === true) {
-    automationScore -= 15;
-    flags.push("headless");
-  } else if (fp.isAutomated === true) {
-    automationScore -= 15;
-    flags.push("automated");
-  }
-  
-  // Bot detection from fingerprint
-  const botResult = detectBot(fp.userAgent, ip, headers);
-  if (botResult.isBot) {
-    if (botResult.confidence >= 90) {
-      automationScore = 0;
-      flags.push("BOT_" + (botResult.botType || "detected").toUpperCase());
-    } else {
-      automationScore -= Math.floor(botResult.confidence / 4);
-      flags.push("possible_bot");
-    }
-    flags.push(...botResult.reasons);
-  }
-  
-  // Storage disabled
-  if (!fp.cookiesEnabled && !fp.localStorage) {
-    automationScore -= 8;
-    flags.push("storage_disabled");
-  }
-  
-  // === NETWORK ANALYSIS ===
-  
-  const cfCountry = headers.get("cf-ipcountry") || headers.get("x-vercel-ip-country") || "";
-  const cfOrg = headers.get("cf-isp") || headers.get("x-isp") || "";
-  
-  // IP-based checks
-  if (isGoogleIP(ip)) {
-    networkScore -= 20;
-    flags.push("GOOGLE_IP");
-  }
-  
-  if (isFacebookIP(ip)) {
-    networkScore -= 18;
-    flags.push("FACEBOOK_IP");
-  }
-  
-  if (isTikTokIP(ip)) {
-    networkScore -= 18;
-    flags.push("TIKTOK_IP");
-  }
-  
-  if (link.block_datacenter && isDatacenterIP(ip)) {
-    networkScore -= 15;
-    flags.push("DATACENTER_IP");
-  }
-  
-  // Country filters
-  if (link.allowed_countries?.length > 0 && cfCountry && !link.allowed_countries.includes(cfCountry)) {
-    networkScore -= 25;
-    flags.push("country_not_allowed");
-  }
-  
-  if (link.blocked_countries?.length > 0 && cfCountry && link.blocked_countries.includes(cfCountry)) {
-    networkScore -= 25;
-    flags.push("country_blocked");
-  }
-  
-  // Device filter
-  const deviceType = getDeviceType(fp.userAgent);
-  if (link.allowed_devices?.length > 0 && !link.allowed_devices.includes(deviceType)) {
-    networkScore -= 15;
-    flags.push("device_filtered");
-  }
-  
-  // ISP/ASN blocking
-  if (checkIspBlock(cfOrg, link)) {
-    networkScore -= 20;
-    flags.push("ISP_BLOCKED");
-  }
-  
-  // Header analysis
-  const acceptLang = headers.get("accept-language") || "";
-  if (!acceptLang || acceptLang === "*") {
-    networkScore -= 8;
-    flags.push("no_accept_lang");
-  }
-  
-  const via = headers.get("via") || "";
-  if (/google|facebook|meta|microsoft/i.test(via)) {
-    networkScore -= 15;
-    flags.push("platform_via");
-  }
-  
-  // Normalize scores
-  fingerprintScore = Math.max(0, Math.min(25, fingerprintScore));
-  behaviorScore = Math.max(0, Math.min(25, behaviorScore));
-  networkScore = Math.max(0, Math.min(25, networkScore));
-  automationScore = Math.max(0, Math.min(25, automationScore));
-  
-  const total = fingerprintScore + behaviorScore + networkScore + automationScore;
-  
-  // Calculate confidence and risk level
-  const criticalFlags = flags.filter(f => 
-    f === "WEBDRIVER" || f === "SELENIUM" || f === "PUPPETEER" || f === "PLAYWRIGHT" || 
-    f === "CYPRESS" || f === "PHANTOM" || f === "HEADLESS_AUTOMATED" || f.startsWith("BOT_")
-  ).length;
-  
-  let confidence: number;
-  let riskLevel: "low" | "medium" | "high" | "critical";
-  
-  if (criticalFlags > 0) {
-    confidence = 99;
-    riskLevel = "critical";
-  } else if (automationScore <= 5 || total < 25) {
-    confidence = 90;
-    riskLevel = "high";
-  } else if (total < 40) {
-    confidence = 65;
-    riskLevel = "medium";
-  } else if (total < 60) {
-    confidence = 45;
-    riskLevel = "medium";
-  } else {
-    confidence = 25;
-    riskLevel = "low";
-  }
-  
-  return {
-    total,
-    fingerprint: fingerprintScore,
-    behavior: behaviorScore,
-    network: networkScore,
-    automation: automationScore,
-    flags: [...new Set(flags)],
-    confidence,
-    riskLevel,
-  };
 }
 
 // ==================== REDIRECT WITH DELAY ====================
 async function createDelayedRedirect(url: string, delayMs: number): Promise<Response> {
-  if (delayMs <= 0) {
-    return Response.redirect(url, 302);
-  }
+  if (delayMs <= 0) return Response.redirect(url, 302);
   
-  // Return HTML that delays before redirecting
-  const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="refresh" content="${Math.ceil(delayMs / 1000)};url=${url}">
-  <title>Redirecting...</title>
-  <style>
-    body { font-family: system-ui, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f9f9f9; }
-    .loader { width: 48px; height: 48px; border: 5px solid #e0e0e0; border-bottom-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-  </style>
-</head>
-<body>
-  <div class="loader"></div>
-  <script>setTimeout(function() { window.location.href = "${url}"; }, ${delayMs});</script>
-</body>
-</html>
-`;
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta http-equiv="refresh" content="${Math.ceil(delayMs / 1000)};url=${url}"><title>Redirecting...</title><style>body{font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;background:#f9f9f9}.loader{width:48px;height:48px;border:5px solid #e0e0e0;border-bottom-color:#3b82f6;border-radius:50%;animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}</style></head><body><div class="loader"></div><script>setTimeout(function(){window.location.href="${url}"},${delayMs})</script></body></html>`;
   
   return new Response(html, {
-    headers: { 
-      ...corsHeaders, 
-      "Content-Type": "text/html; charset=utf-8",
-      "Cache-Control": "no-cache, no-store, must-revalidate",
-    },
+    headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate" },
   });
 }
 
@@ -1060,14 +982,12 @@ Deno.serve(async (req) => {
   const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-  // === GET: Fast redirect path ===
+  // === GET: Fast redirect ===
   if (req.method === "GET") {
     const url = new URL(req.url);
     const slug = url.searchParams.get("s") || url.searchParams.get("slug");
     
-    if (!slug) {
-      return new Response("Missing slug parameter", { status: 400 });
-    }
+    if (!slug) return new Response("Missing slug", { status: 400 });
     
     const userAgent = req.headers.get("user-agent") || "";
     const cfIp = req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "";
@@ -1075,106 +995,84 @@ Deno.serve(async (req) => {
     const cfIsp = req.headers.get("cf-isp") || req.headers.get("x-isp") || "";
     const referer = req.headers.get("referer") || "";
     
-    // Try cache first
     let link = getCachedLink(slug);
     
     if (!link) {
-      const { data, error } = await supabase
-        .from("cloaked_links")
-        .select("*")
-        .eq("slug", slug)
-        .single();
-      
+      const { data, error } = await supabase.from("cloaked_links").select("*").eq("slug", slug).single();
       if (error || !data) {
         console.log(`[Cloaker] 404 ${slug} (${Date.now() - startTime}ms)`);
         return new Response("Not found", { status: 404 });
       }
-      
       link = data;
       setCachedLink(slug, link);
     }
     
-    if (!link.is_active) {
-      return Response.redirect(link.safe_url, 302);
-    }
+    if (!link.is_active) return Response.redirect(link.safe_url, 302);
     
-    // Extract UTM params early
     const utmParams = extractUtmParams(req);
     
-    // === PRE-CHECKS (fast path) ===
-    
-    // 1. IP Whitelist/Blacklist
+    // === PRE-CHECKS ===
     const ipCheck = checkIPLists(cfIp, link);
     if (!ipCheck.allowed) {
-      console.log(`[Cloaker] BLOCKED: ${ipCheck.reason} (${Date.now() - startTime}ms)`);
+      console.log(`[Cloaker] BLOCKED: ${ipCheck.reason}`);
       return Response.redirect(link.safe_url, 302);
     }
     
-    // 2. Time rules
     const timeCheck = checkTimeRules(link);
     if (!timeCheck.allowed) {
-      console.log(`[Cloaker] BLOCKED: ${timeCheck.reason} (${Date.now() - startTime}ms)`);
+      console.log(`[Cloaker] BLOCKED: ${timeCheck.reason}`);
       return Response.redirect(link.safe_url, 302);
     }
     
-    // 3. Click limits
     const clickCheck = await checkClickLimits(link, supabase);
     if (!clickCheck.allowed) {
-      console.log(`[Cloaker] BLOCKED: ${clickCheck.reason} (${Date.now() - startTime}ms)`);
+      console.log(`[Cloaker] BLOCKED: ${clickCheck.reason}`);
       return Response.redirect(link.safe_url, 302);
     }
     
-    // 4. Rate limiting
-    if (link.rate_limit_per_ip && link.rate_limit_per_ip > 0) {
+    if (link.rate_limit_per_ip > 0) {
       const rateCheck = checkRateLimit(cfIp, link.rate_limit_per_ip, link.rate_limit_window_minutes || 60);
       if (!rateCheck.allowed) {
-        console.log(`[Cloaker] BLOCKED: rate_limit (${Date.now() - startTime}ms)`);
+        console.log(`[Cloaker] BLOCKED: rate_limit`);
         return Response.redirect(link.safe_url, 302);
       }
     }
     
-    // 5. Country filters
+    // Country filters
     if (link.allowed_countries?.length > 0 && cfCountry && !link.allowed_countries.includes(cfCountry)) {
-      console.log(`[Cloaker] BLOCKED: country_not_allowed ${cfCountry} (${Date.now() - startTime}ms)`);
+      console.log(`[Cloaker] BLOCKED: country_not_allowed ${cfCountry}`);
       return Response.redirect(link.safe_url, 302);
     }
     if (link.blocked_countries?.length > 0 && cfCountry && link.blocked_countries.includes(cfCountry)) {
-      console.log(`[Cloaker] BLOCKED: country_blocked ${cfCountry} (${Date.now() - startTime}ms)`);
+      console.log(`[Cloaker] BLOCKED: country_blocked ${cfCountry}`);
       return Response.redirect(link.safe_url, 302);
     }
     
-    // 6. Device filter
+    // Device filter
     const deviceType = getDeviceType(userAgent);
     if (link.allowed_devices?.length > 0 && !link.allowed_devices.includes(deviceType)) {
-      console.log(`[Cloaker] BLOCKED: device_filtered ${deviceType} (${Date.now() - startTime}ms)`);
+      console.log(`[Cloaker] BLOCKED: device_filtered ${deviceType}`);
       return Response.redirect(link.safe_url, 302);
     }
     
-    // 7. ISP/ASN blocking
+    // ISP blocking
     if (checkIspBlock(cfIsp, link)) {
-      console.log(`[Cloaker] BLOCKED: isp_blocked (${Date.now() - startTime}ms)`);
+      console.log(`[Cloaker] BLOCKED: isp_blocked`);
       return Response.redirect(link.safe_url, 302);
     }
     
-    // === BOT DETECTION ===
-    const instantBot = instantBotCheck(userAgent);
-    const instantGoogle = instantGoogleCheck(userAgent, cfIp);
-    const fullBotCheck = detectBot(userAgent, cfIp, req.headers);
+    // === BOT DETECTION (with emphasis on Google Ads) ===
+    const botResult = detectBot(userAgent, cfIp, req.headers);
     
     const shouldBlock = link.block_bots && (
-      instantBot ||
-      instantGoogle.isDefinitive ||
-      fullBotCheck.isBot ||
-      (link.block_vpn && isDatacenterIP(cfIp)) ||
-      isGoogleIP(cfIp) ||
-      isFacebookIP(cfIp) ||
-      isTikTokIP(cfIp)
+      botResult.isBot ||
+      (link.block_vpn && isDatacenterIP(cfIp))
     );
     
     if (shouldBlock) {
-      console.log(`[Cloaker] BLOCKED: bot_detected type=${fullBotCheck.botType} conf=${fullBotCheck.confidence}% (${Date.now() - startTime}ms)`);
+      const processingTime = Date.now() - startTime;
+      console.log(`[Cloaker] BLOCKED: ${botResult.botType || "bot"} conf=${botResult.confidence}% reasons=${botResult.reasons.slice(0,3).join(",")} (${processingTime}ms)`);
       
-      // Async log
       queueMicrotask(() => {
         supabase.from("cloaker_visitors").insert({
           link_id: link.id,
@@ -1184,12 +1082,12 @@ Deno.serve(async (req) => {
           user_agent: userAgent.substring(0, 500),
           ip_address: cfIp,
           country_code: cfCountry,
+          isp: cfIsp,
           is_bot: true,
           referer,
           ...utmParams,
-          processing_time_ms: Date.now() - startTime,
+          processing_time_ms: processingTime,
         });
-        
         supabase.from("cloaked_links").update({ 
           clicks_count: (link.clicks_count || 0) + 1,
           clicks_today: (link.clicks_today || 0) + 1,
@@ -1200,17 +1098,12 @@ Deno.serve(async (req) => {
     }
     
     // === ALLOW ===
-    console.log(`[Cloaker] ALLOW (${Date.now() - startTime}ms)`);
-    
-    // Select target URL (A/B testing)
     let targetUrl = selectTargetUrl(link);
+    if (link.passthrough_utm) targetUrl = applyUtmPassthrough(targetUrl, req);
     
-    // Apply UTM passthrough
-    if (link.passthrough_utm) {
-      targetUrl = applyUtmPassthrough(targetUrl, req);
-    }
+    const processingTime = Date.now() - startTime;
+    console.log(`[Cloaker] ALLOW (${processingTime}ms)`);
     
-    // Async log
     queueMicrotask(() => {
       supabase.from("cloaker_visitors").insert({
         link_id: link.id,
@@ -1220,191 +1113,148 @@ Deno.serve(async (req) => {
         user_agent: userAgent.substring(0, 500),
         ip_address: cfIp,
         country_code: cfCountry,
+        isp: cfIsp,
         platform: deviceType,
         is_bot: false,
         referer,
         redirect_url: targetUrl,
         ...utmParams,
-        processing_time_ms: Date.now() - startTime,
+        processing_time_ms: processingTime,
       });
-      
       supabase.from("cloaked_links").update({ 
         clicks_count: (link.clicks_count || 0) + 1,
         clicks_today: (link.clicks_today || 0) + 1,
       }).eq("id", link.id);
     });
     
-    // Apply redirect delay if configured
     const delayMs = link.redirect_delay_ms || 0;
-    if (delayMs > 0) {
-      return createDelayedRedirect(targetUrl, delayMs);
-    }
+    if (delayMs > 0) return createDelayedRedirect(targetUrl, delayMs);
     
     return Response.redirect(targetUrl, 302);
   }
 
-  // === POST: Full fingerprint analysis ===
+  // === POST: Fingerprint analysis ===
   try {
     const body = await req.json();
     const { slug, fingerprint } = body;
     
     const ua = req.headers.get("user-agent") || "";
     const cfIp = req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "";
-    const cfCountry = req.headers.get("cf-ipcountry") || req.headers.get("x-vercel-ip-country") || "";
+    const cfCountry = req.headers.get("cf-ipcountry") || "";
     const cfCity = req.headers.get("cf-city") || "";
     const cfIsp = req.headers.get("cf-isp") || "";
     const referer = req.headers.get("referer") || "";
-    
     const utmParams = extractUtmParams(req);
     
-    const { data: link, error } = await supabase
-      .from("cloaked_links")
-      .select("*")
-      .eq("slug", slug)
-      .eq("is_active", true)
-      .single();
-
+    const { data: link, error } = await supabase.from("cloaked_links").select("*").eq("slug", slug).eq("is_active", true).single();
     if (error || !link) {
-      return new Response(
-        JSON.stringify({ error: "Link not found" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 }
-      );
+      return new Response(JSON.stringify({ error: "Link not found" }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 });
     }
     
-    // === PRE-CHECKS ===
+    // Pre-checks
     const ipCheck = checkIPLists(cfIp, link);
     if (!ipCheck.allowed) {
-      return new Response(
-        JSON.stringify({ redirectUrl: link.safe_url, decision: ipCheck.reason }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ redirectUrl: link.safe_url, decision: ipCheck.reason }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
     
     const timeCheck = checkTimeRules(link);
     if (!timeCheck.allowed) {
-      return new Response(
-        JSON.stringify({ redirectUrl: link.safe_url, decision: timeCheck.reason }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ redirectUrl: link.safe_url, decision: timeCheck.reason }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
     
     const clickCheck = await checkClickLimits(link, supabase);
     if (!clickCheck.allowed) {
-      return new Response(
-        JSON.stringify({ redirectUrl: link.safe_url, decision: clickCheck.reason }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ redirectUrl: link.safe_url, decision: clickCheck.reason }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
     
-    if (link.rate_limit_per_ip && link.rate_limit_per_ip > 0) {
+    if (link.rate_limit_per_ip > 0) {
       const rateCheck = checkRateLimit(cfIp, link.rate_limit_per_ip, link.rate_limit_window_minutes || 60);
       if (!rateCheck.allowed) {
-        return new Response(
-          JSON.stringify({ redirectUrl: link.safe_url, decision: "rate_limited" }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ redirectUrl: link.safe_url, decision: "rate_limited" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
     }
     
-    // Quick bot check for definitive bots
-    const quickBotCheck = detectBot(ua, cfIp, req.headers);
-    if (link.block_bots && quickBotCheck.isBot && quickBotCheck.confidence >= 90) {
-      console.log(`[Cloaker] POST FAST-BLOCK: ${quickBotCheck.botType} (${Date.now() - startTime}ms)`);
-      return new Response(
-        JSON.stringify({ redirectUrl: link.safe_url, decision: "blocked_definitive_bot" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    // Bot detection
+    const botResult = detectBot(ua, cfIp, req.headers);
+    
+    if (link.block_bots && botResult.isBot && botResult.confidence >= 85) {
+      console.log(`[Cloaker] POST BLOCKED: ${botResult.botType} conf=${botResult.confidence}%`);
+      return new Response(JSON.stringify({ redirectUrl: link.safe_url, decision: `blocked_${botResult.botType?.toLowerCase().replace(/\s+/g, "_") || "bot"}` }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     if (!fingerprint) {
-      if (link.collect_fingerprint || (link.block_bots && quickBotCheck.isBot)) {
-        return new Response(
-          JSON.stringify({ redirectUrl: link.safe_url, decision: "blocked_no_fingerprint" }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+      if (link.collect_fingerprint || (link.block_bots && botResult.isBot)) {
+        return new Response(JSON.stringify({ redirectUrl: link.safe_url, decision: "blocked_no_fingerprint" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
       
       let targetUrl = selectTargetUrl(link);
-      if (link.passthrough_utm) {
-        targetUrl = applyUtmPassthrough(targetUrl, req);
-      }
-      
-      return new Response(
-        JSON.stringify({ redirectUrl: targetUrl, decision: "allowed_basic" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      if (link.passthrough_utm) targetUrl = applyUtmPassthrough(targetUrl, req);
+      return new Response(JSON.stringify({ redirectUrl: targetUrl, decision: "allowed_basic" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Full score calculation
-    const scoreResult = calculateScore(fingerprint as FingerprintData, link, req.headers, cfIp);
+    // Score with fingerprint
     const fingerprintHash = generateFingerprintHash(fingerprint);
-    
-    console.log(`[Cloaker] POST Score=${scoreResult.total} Risk=${scoreResult.riskLevel} Flags=${scoreResult.flags.slice(0, 5).join(",")} (${Date.now() - startTime}ms)`);
-
-    const deviceType = getDeviceType(fingerprint.userAgent);
+    const deviceType = getDeviceType(fingerprint.userAgent || ua);
     const minScore = link.min_score || 35;
     
-    let decision: "allow" | "block" | "safe";
+    // Simple scoring based on fingerprint
+    let score = 100;
+    const flags: string[] = [];
+    
+    // Automation detection
+    if (fingerprint.hasWebdriver) { score = 0; flags.push("WEBDRIVER"); }
+    if (fingerprint.hasPuppeteer) { score = 0; flags.push("PUPPETEER"); }
+    if (fingerprint.hasSelenium) { score = 0; flags.push("SELENIUM"); }
+    if (fingerprint.hasPhantom) { score = 0; flags.push("PHANTOM"); }
+    if (fingerprint.isHeadless && fingerprint.isAutomated) { score = 0; flags.push("HEADLESS_AUTOMATED"); }
+    if (fingerprint.isHeadless) { score -= 30; flags.push("headless"); }
+    if (fingerprint.isAutomated) { score -= 30; flags.push("automated"); }
+    
+    // Behavioral
+    if (fingerprint.mouseMovements === 0 && !fingerprint.touchSupport) { score -= 15; flags.push("no_mouse"); }
+    if (fingerprint.timeOnPage < 500) { score -= 20; flags.push("fast_access"); }
+    
+    // Fingerprint quality
+    if (!fingerprint.webglVendor && !fingerprint.webglRenderer) { score -= 10; flags.push("no_webgl"); }
+    if (/swiftshader|llvmpipe/i.test(fingerprint.webglRenderer || "")) { score -= 20; flags.push("software_renderer"); }
+    if (fingerprint.screenResolution === "800x600") { score -= 25; flags.push("headless_resolution"); }
+    
+    // Bot detection from fingerprint UA
+    if (botResult.isBot) { score -= botResult.confidence / 2; flags.push(...botResult.reasons); }
+    
+    score = Math.max(0, Math.min(100, score));
+    
+    let decision: "allow" | "block";
     let targetUrl: string;
 
-    // Hard filters
+    // Filters
     if (link.allowed_devices?.length > 0 && !link.allowed_devices.includes(deviceType)) {
-      decision = "safe";
-      targetUrl = link.safe_url;
-    }
-    else if (link.allowed_countries?.length > 0 && cfCountry && !link.allowed_countries.includes(cfCountry)) {
-      decision = "safe";
-      targetUrl = link.safe_url;
-    }
-    else if (link.blocked_countries?.length > 0 && cfCountry && link.blocked_countries.includes(cfCountry)) {
-      decision = "safe";
-      targetUrl = link.safe_url;
-    }
-    else if (checkIspBlock(cfIsp, link)) {
-      decision = "safe";
-      targetUrl = link.safe_url;
-    }
-    else {
-      // Score-based decision
-      const hasDefinitiveBotFlags = scoreResult.flags.some(f => 
-        f === "WEBDRIVER" || f === "SELENIUM" || f === "PUPPETEER" || f === "PLAYWRIGHT" ||
-        f === "CYPRESS" || f === "PHANTOM" || f === "HEADLESS_AUTOMATED" || f.startsWith("BOT_")
-      );
-
-      if (link.block_bots && hasDefinitiveBotFlags) {
-        decision = "safe";
-        targetUrl = link.safe_url;
-      } else if (hasDefinitiveBotFlags) {
-        decision = "safe";
-        targetUrl = link.safe_url;
-      } else if (scoreResult.riskLevel === "critical" && scoreResult.confidence >= 95) {
-        decision = "safe";
-        targetUrl = link.safe_url;
-      } else if (scoreResult.total >= minScore) {
-        decision = "allow";
-        targetUrl = selectTargetUrl(link);
-        if (link.passthrough_utm) {
-          targetUrl = applyUtmPassthrough(targetUrl, req);
-        }
-      } else if (scoreResult.total >= minScore - 10 && scoreResult.riskLevel === "low") {
-        decision = "allow";
-        targetUrl = selectTargetUrl(link);
-        if (link.passthrough_utm) {
-          targetUrl = applyUtmPassthrough(targetUrl, req);
-        }
-      } else {
-        decision = "block";
-        targetUrl = link.safe_url;
-      }
+      decision = "block"; targetUrl = link.safe_url;
+    } else if (link.allowed_countries?.length > 0 && cfCountry && !link.allowed_countries.includes(cfCountry)) {
+      decision = "block"; targetUrl = link.safe_url;
+    } else if (link.blocked_countries?.length > 0 && cfCountry && link.blocked_countries.includes(cfCountry)) {
+      decision = "block"; targetUrl = link.safe_url;
+    } else if (checkIspBlock(cfIsp, link)) {
+      decision = "block"; targetUrl = link.safe_url;
+    } else if (flags.includes("WEBDRIVER") || flags.includes("PUPPETEER") || flags.includes("SELENIUM") || flags.includes("HEADLESS_AUTOMATED")) {
+      decision = "block"; targetUrl = link.safe_url;
+    } else if (score >= minScore) {
+      decision = "allow";
+      targetUrl = selectTargetUrl(link);
+      if (link.passthrough_utm) targetUrl = applyUtmPassthrough(targetUrl, req);
+    } else {
+      decision = "block"; targetUrl = link.safe_url;
     }
 
-    // Log visitor
+    const processingTime = Date.now() - startTime;
+    console.log(`[Cloaker] POST Decision=${decision} Score=${score}/${minScore} Flags=${flags.slice(0,3).join(",")} (${processingTime}ms)`);
+
     queueMicrotask(async () => {
       try {
         await supabase.from("cloaker_visitors").insert({
           link_id: link.id,
           fingerprint_hash: fingerprintHash,
-          score: scoreResult.total,
+          score,
           decision,
           user_agent: fingerprint.userAgent?.substring(0, 500),
           language: fingerprint.language,
@@ -1426,7 +1276,7 @@ Deno.serve(async (req) => {
           keypress_events: fingerprint.keypressEvents,
           time_on_page: fingerprint.timeOnPage,
           focus_changes: fingerprint.focusChanges,
-          is_bot: scoreResult.flags.some(f => f.startsWith("BOT_") || f === "WEBDRIVER"),
+          is_bot: flags.some(f => f.startsWith("GOOGLE") || f === "WEBDRIVER" || f === "PUPPETEER"),
           is_headless: fingerprint.isHeadless,
           is_automated: fingerprint.isAutomated,
           has_webdriver: fingerprint.hasWebdriver,
@@ -1437,16 +1287,11 @@ Deno.serve(async (req) => {
           country_code: cfCountry,
           city: cfCity,
           isp: cfIsp,
-          score_fingerprint: scoreResult.fingerprint,
-          score_behavior: scoreResult.behavior,
-          score_network: scoreResult.network,
-          score_automation: scoreResult.automation,
           referer,
           redirect_url: targetUrl,
           ...utmParams,
-          processing_time_ms: Date.now() - startTime,
+          processing_time_ms: processingTime,
         });
-        
         await supabase.from("cloaked_links").update({ 
           clicks_count: (link.clicks_count || 0) + 1,
           clicks_today: (link.clicks_today || 0) + 1,
@@ -1456,26 +1301,17 @@ Deno.serve(async (req) => {
       }
     });
 
-    console.log(`[Cloaker] Decision: ${decision}, Score: ${scoreResult.total}/${minScore}`);
-
-    return new Response(
-      JSON.stringify({ 
-        redirectUrl: targetUrl, 
-        decision,
-        score: scoreResult.total,
-        minScore,
-        confidence: scoreResult.confidence,
-        riskLevel: scoreResult.riskLevel,
-        delayMs: decision === "allow" ? (link.redirect_delay_ms || 0) : 0,
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ 
+      redirectUrl: targetUrl, 
+      decision,
+      score,
+      minScore,
+      confidence: botResult.confidence,
+      delayMs: decision === "allow" ? (link.redirect_delay_ms || 0) : 0,
+    }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (error) {
     console.error("[Cloaker] Error:", error);
-    return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
-    );
+    return new Response(JSON.stringify({ error: "Internal server error" }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 });
   }
 });
