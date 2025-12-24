@@ -13,7 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Plus, Link2, Trash2, Copy, ExternalLink, Shield, Globe, Smartphone, Bot, 
   MousePointerClick, ToggleRight, Eye, Fingerprint, Activity, ChartBar,
-  Users, AlertTriangle, CheckCircle, XCircle, Clock, Pencil
+  Users, AlertTriangle, CheckCircle, XCircle, Clock, Pencil, Timer, Zap,
+  Ban, Server, Wifi, Network, Lock, Unlock
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCloakedLinks, useCloakerVisitors, useCloakerStats } from "@/hooks/useCloakedLinks";
@@ -22,6 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Textarea } from "@/components/ui/textarea";
 
 const COUNTRIES = [
   { code: "BR", name: "Brasil" },
@@ -58,6 +60,20 @@ export default function Cloaker() {
     collectFingerprint: boolean;
     requireBehavior: boolean;
     behaviorTimeMs: number;
+    // Advanced fields
+    maxClicksDaily: number | null;
+    maxClicksTotal: number | null;
+    allowedHoursStart: number | null;
+    allowedHoursEnd: number | null;
+    passthroughUtm: boolean;
+    rateLimitPerIp: number | null;
+    blockVpn: boolean;
+    blockProxy: boolean;
+    blockDatacenter: boolean;
+    blockTor: boolean;
+    redirectDelayMs: number;
+    whitelistIps: string;
+    blacklistIps: string;
   } | null>(null);
   const [selectedLinkId, setSelectedLinkId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -73,6 +89,20 @@ export default function Cloaker() {
     collectFingerprint: true,
     requireBehavior: false,
     behaviorTimeMs: 2000,
+    // Advanced fields
+    maxClicksDaily: null as number | null,
+    maxClicksTotal: null as number | null,
+    allowedHoursStart: null as number | null,
+    allowedHoursEnd: null as number | null,
+    passthroughUtm: true,
+    rateLimitPerIp: null as number | null,
+    blockVpn: true,
+    blockProxy: true,
+    blockDatacenter: true,
+    blockTor: true,
+    redirectDelayMs: 0,
+    whitelistIps: "",
+    blacklistIps: "",
   });
 
   const { data: visitors, isLoading: visitorsLoading } = useCloakerVisitors(selectedLinkId);
@@ -119,6 +149,19 @@ export default function Cloaker() {
       collectFingerprint: true,
       requireBehavior: false,
       behaviorTimeMs: 2000,
+      maxClicksDaily: null,
+      maxClicksTotal: null,
+      allowedHoursStart: null,
+      allowedHoursEnd: null,
+      passthroughUtm: true,
+      rateLimitPerIp: null,
+      blockVpn: true,
+      blockProxy: true,
+      blockDatacenter: true,
+      blockTor: true,
+      redirectDelayMs: 0,
+      whitelistIps: "",
+      blacklistIps: "",
     });
   };
 
@@ -165,6 +208,19 @@ export default function Cloaker() {
       collectFingerprint: link.collect_fingerprint ?? true,
       requireBehavior: link.require_behavior ?? false,
       behaviorTimeMs: link.behavior_time_ms ?? 2000,
+      maxClicksDaily: link.max_clicks_daily ?? null,
+      maxClicksTotal: link.max_clicks_total ?? null,
+      allowedHoursStart: link.allowed_hours_start ?? null,
+      allowedHoursEnd: link.allowed_hours_end ?? null,
+      passthroughUtm: link.passthrough_utm ?? true,
+      rateLimitPerIp: link.rate_limit_per_ip ?? null,
+      blockVpn: link.block_vpn ?? true,
+      blockProxy: link.block_proxy ?? true,
+      blockDatacenter: link.block_datacenter ?? true,
+      blockTor: link.block_tor ?? true,
+      redirectDelayMs: link.redirect_delay_ms ?? 0,
+      whitelistIps: (link.whitelist_ips || []).join("\n"),
+      blacklistIps: (link.blacklist_ips || []).join("\n"),
     });
     setIsEditDialogOpen(true);
   };
@@ -172,6 +228,9 @@ export default function Cloaker() {
   const handleSaveEdit = async () => {
     if (!editingLink) return;
     try {
+      const whitelistArr = editingLink.whitelistIps.split("\n").map(s => s.trim()).filter(Boolean);
+      const blacklistArr = editingLink.blacklistIps.split("\n").map(s => s.trim()).filter(Boolean);
+      
       await updateLink({ 
         id: editingLink.id,
         name: editingLink.name,
@@ -186,6 +245,19 @@ export default function Cloaker() {
         collect_fingerprint: editingLink.collectFingerprint,
         require_behavior: editingLink.requireBehavior,
         behavior_time_ms: editingLink.behaviorTimeMs,
+        max_clicks_daily: editingLink.maxClicksDaily,
+        max_clicks_total: editingLink.maxClicksTotal,
+        allowed_hours_start: editingLink.allowedHoursStart,
+        allowed_hours_end: editingLink.allowedHoursEnd,
+        passthrough_utm: editingLink.passthroughUtm,
+        rate_limit_per_ip: editingLink.rateLimitPerIp,
+        block_vpn: editingLink.blockVpn,
+        block_proxy: editingLink.blockProxy,
+        block_datacenter: editingLink.blockDatacenter,
+        block_tor: editingLink.blockTor,
+        redirect_delay_ms: editingLink.redirectDelayMs,
+        whitelist_ips: whitelistArr.length > 0 ? whitelistArr : null,
+        blacklist_ips: blacklistArr.length > 0 ? blacklistArr : null,
       });
       setIsEditDialogOpen(false);
       setEditingLink(null);
@@ -729,9 +801,11 @@ export default function Cloaker() {
             {editingLink && (
               <div className="space-y-6">
                 <Tabs defaultValue="basic" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
+                  <TabsList className="grid w-full grid-cols-5">
                     <TabsTrigger value="basic">Básico</TabsTrigger>
                     <TabsTrigger value="filters">Filtros</TabsTrigger>
+                    <TabsTrigger value="security">Segurança</TabsTrigger>
+                    <TabsTrigger value="limits">Limites</TabsTrigger>
                     <TabsTrigger value="advanced">Avançado</TabsTrigger>
                   </TabsList>
 
@@ -779,6 +853,20 @@ export default function Cloaker() {
                         onChange={e => setEditingLink(prev => prev ? { ...prev, targetUrl: e.target.value } : null)}
                       />
                     </div>
+
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-card/50 border border-border">
+                      <div className="space-y-0.5">
+                        <Label className="text-sm font-medium flex items-center gap-2">
+                          <Zap className="h-4 w-4" />
+                          Passar UTM Parameters
+                        </Label>
+                        <p className="text-xs text-muted-foreground">Manter ?utm_source, etc na URL destino</p>
+                      </div>
+                      <Switch
+                        checked={editingLink.passthroughUtm}
+                        onCheckedChange={checked => setEditingLink(prev => prev ? { ...prev, passthroughUtm: checked } : null)}
+                      />
+                    </div>
                   </TabsContent>
 
                   <TabsContent value="filters" className="space-y-4 mt-4">
@@ -823,6 +911,188 @@ export default function Cloaker() {
                       <Switch
                         checked={editingLink.blockBots}
                         onCheckedChange={checked => setEditingLink(prev => prev ? { ...prev, blockBots: checked } : null)}
+                      />
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="security" className="space-y-4 mt-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-card/50 border border-border">
+                        <div className="space-y-0.5">
+                          <Label className="text-sm font-medium flex items-center gap-2">
+                            <Wifi className="h-4 w-4" />
+                            Bloquear VPN
+                          </Label>
+                        </div>
+                        <Switch
+                          checked={editingLink.blockVpn}
+                          onCheckedChange={checked => setEditingLink(prev => prev ? { ...prev, blockVpn: checked } : null)}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-card/50 border border-border">
+                        <div className="space-y-0.5">
+                          <Label className="text-sm font-medium flex items-center gap-2">
+                            <Network className="h-4 w-4" />
+                            Bloquear Proxy
+                          </Label>
+                        </div>
+                        <Switch
+                          checked={editingLink.blockProxy}
+                          onCheckedChange={checked => setEditingLink(prev => prev ? { ...prev, blockProxy: checked } : null)}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-card/50 border border-border">
+                        <div className="space-y-0.5">
+                          <Label className="text-sm font-medium flex items-center gap-2">
+                            <Server className="h-4 w-4" />
+                            Bloquear Datacenter
+                          </Label>
+                        </div>
+                        <Switch
+                          checked={editingLink.blockDatacenter}
+                          onCheckedChange={checked => setEditingLink(prev => prev ? { ...prev, blockDatacenter: checked } : null)}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-card/50 border border-border">
+                        <div className="space-y-0.5">
+                          <Label className="text-sm font-medium flex items-center gap-2">
+                            <Ban className="h-4 w-4" />
+                            Bloquear TOR
+                          </Label>
+                        </div>
+                        <Switch
+                          checked={editingLink.blockTor}
+                          onCheckedChange={checked => setEditingLink(prev => prev ? { ...prev, blockTor: checked } : null)}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Lock className="h-4 w-4" />
+                        IPs Whitelist (1 por linha)
+                      </Label>
+                      <Textarea
+                        placeholder="192.168.1.1&#10;10.0.0.1"
+                        value={editingLink.whitelistIps}
+                        onChange={e => setEditingLink(prev => prev ? { ...prev, whitelistIps: e.target.value } : null)}
+                        rows={3}
+                      />
+                      <p className="text-xs text-muted-foreground">Sempre permitir esses IPs</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Unlock className="h-4 w-4" />
+                        IPs Blacklist (1 por linha)
+                      </Label>
+                      <Textarea
+                        placeholder="1.2.3.4&#10;5.6.7.8"
+                        value={editingLink.blacklistIps}
+                        onChange={e => setEditingLink(prev => prev ? { ...prev, blacklistIps: e.target.value } : null)}
+                        rows={3}
+                      />
+                      <p className="text-xs text-muted-foreground">Sempre bloquear esses IPs</p>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="limits" className="space-y-4 mt-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="editMaxClicksDaily">Limite diário de cliques</Label>
+                        <Input
+                          id="editMaxClicksDaily"
+                          type="number"
+                          placeholder="Ilimitado"
+                          value={editingLink.maxClicksDaily ?? ""}
+                          onChange={e => setEditingLink(prev => prev ? { 
+                            ...prev, 
+                            maxClicksDaily: e.target.value ? parseInt(e.target.value) : null 
+                          } : null)}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="editMaxClicksTotal">Limite total de cliques</Label>
+                        <Input
+                          id="editMaxClicksTotal"
+                          type="number"
+                          placeholder="Ilimitado"
+                          value={editingLink.maxClicksTotal ?? ""}
+                          onChange={e => setEditingLink(prev => prev ? { 
+                            ...prev, 
+                            maxClicksTotal: e.target.value ? parseInt(e.target.value) : null 
+                          } : null)}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Horário permitido</Label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="editHoursStart" className="text-xs">Hora início (0-23)</Label>
+                          <Input
+                            id="editHoursStart"
+                            type="number"
+                            min={0}
+                            max={23}
+                            placeholder="Qualquer"
+                            value={editingLink.allowedHoursStart ?? ""}
+                            onChange={e => setEditingLink(prev => prev ? { 
+                              ...prev, 
+                              allowedHoursStart: e.target.value ? parseInt(e.target.value) : null 
+                            } : null)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="editHoursEnd" className="text-xs">Hora fim (0-23)</Label>
+                          <Input
+                            id="editHoursEnd"
+                            type="number"
+                            min={0}
+                            max={23}
+                            placeholder="Qualquer"
+                            value={editingLink.allowedHoursEnd ?? ""}
+                            onChange={e => setEditingLink(prev => prev ? { 
+                              ...prev, 
+                              allowedHoursEnd: e.target.value ? parseInt(e.target.value) : null 
+                            } : null)}
+                          />
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Fora deste horário, redireciona para URL segura</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="editRateLimit">Rate limit por IP (cliques/hora)</Label>
+                      <Input
+                        id="editRateLimit"
+                        type="number"
+                        placeholder="Ilimitado"
+                        value={editingLink.rateLimitPerIp ?? ""}
+                        onChange={e => setEditingLink(prev => prev ? { 
+                          ...prev, 
+                          rateLimitPerIp: e.target.value ? parseInt(e.target.value) : null 
+                        } : null)}
+                      />
+                      <p className="text-xs text-muted-foreground">Limite de cliques por IP por hora</p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label className="flex items-center gap-2">
+                        <Timer className="h-4 w-4" />
+                        Delay de redirecionamento: {editingLink.redirectDelayMs}ms
+                      </Label>
+                      <Slider
+                        value={[editingLink.redirectDelayMs]}
+                        onValueChange={([value]) => setEditingLink(prev => prev ? { ...prev, redirectDelayMs: value } : null)}
+                        min={0}
+                        max={5000}
+                        step={100}
                       />
                     </div>
                   </TabsContent>
