@@ -1022,13 +1022,31 @@ export default function CloakerRedirect() {
   }, []);
 
   const collectFingerprint = useCallback(async (): Promise<FingerprintData> => {
-    // Run all async operations in parallel
+    // Timeout wrapper for slow operations
+    const withTimeout = <T,>(promise: Promise<T>, ms: number, fallback: T): Promise<T> => {
+      return Promise.race([
+        promise,
+        new Promise<T>(resolve => setTimeout(() => resolve(fallback), ms))
+      ]);
+    };
+
+    // Run FAST operations synchronously
+    const automation = detectAutomation();
+    const connectionInfo = getConnectionInfo();
+    const memoryUsage = getMemoryUsage();
+    const mathConstants = getMathConstants();
+    const errorStackPattern = getErrorStackPattern();
+    const intlFingerprint = getIntlFingerprint();
+    const cssMediaFingerprint = getCSSMediaFingerprint();
+    const webgl = getWebGLInfo();
+    const canvasResult = getCanvasFingerprint();
+    const fontsResult = getFontsFingerprint();
+    const pluginsResult = getPluginsFingerprint();
+    const performanceTiming = getPerformanceTiming();
+    
+    // Run ASYNC operations in parallel with aggressive timeouts
     const [
-      webgl,
       audioResult,
-      canvasResult,
-      fontsResult,
-      pluginsResult,
       mediaDevices,
       batteryInfo,
       permissions,
@@ -1038,29 +1056,30 @@ export default function CloakerRedirect() {
       jsChallengeResult,
       domTime,
     ] = await Promise.all([
-      Promise.resolve(getWebGLInfo()),
-      getAudioFingerprint(),
-      Promise.resolve(getCanvasFingerprint()),
-      Promise.resolve(getFontsFingerprint()),
-      Promise.resolve(getPluginsFingerprint()),
-      getMediaDevicesFingerprint(),
-      getBatteryInfo(),
-      checkPermissions(),
-      measureTimingVariance(),
-      checkBrowserAPIs(),
-      proofOfWork(),
-      jsChallenge(),
-      testDOMManipulation(),
+      withTimeout(getAudioFingerprint(), 200, { hash: "", hasNoise: false }),
+      withTimeout(getMediaDevicesFingerprint(), 150, { count: 0, hash: "" }),
+      withTimeout(getBatteryInfo(), 100, { level: 0, charging: false }),
+      withTimeout(checkPermissions(), 150, []),
+      withTimeout(measureTimingVariance(), 100, 0),
+      withTimeout(checkBrowserAPIs(), 100, {
+        webWorkerSupport: false,
+        sharedArrayBufferSupport: false,
+        wasmSupport: false,
+        serviceWorkerSupport: false,
+        credentialsSupport: false,
+        notificationPermission: "default",
+        clipboardSupport: false,
+        gamepadsSupport: false,
+        bluetoothSupport: false,
+        usbSupport: false,
+        serialSupport: false,
+        hid: false,
+        xr: false,
+      }),
+      withTimeout(proofOfWork(), 300, "timeout"), // PoW is slow, aggressive timeout
+      withTimeout(jsChallenge(), 200, 0),
+      withTimeout(testDOMManipulation(), 100, 0),
     ]);
-    
-    const automation = detectAutomation();
-    const connectionInfo = getConnectionInfo();
-    const performanceTiming = getPerformanceTiming();
-    const memoryUsage = getMemoryUsage();
-    const mathConstants = getMathConstants();
-    const errorStackPattern = getErrorStackPattern();
-    const intlFingerprint = getIntlFingerprint();
-    const cssMediaFingerprint = getCSSMediaFingerprint();
     
     const partialFp: Partial<FingerprintData> = {
       userAgent: navigator.userAgent,
@@ -1178,13 +1197,37 @@ export default function CloakerRedirect() {
     hasRedirected.current = true;
 
     try {
-      setStatus("Verificando segurança...");
+      // === FAST PATH: Try instant GET redirect first ===
+      setStatus("Conectando...");
       
-      // Wait to collect behavioral data
-      await new Promise(resolve => setTimeout(resolve, 2500));
+      const fastResponse = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cloaker-redirect?s=${encodeURIComponent(slug)}`,
+        { 
+          method: "GET",
+          headers: { 
+            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          redirect: "manual" // Don't auto-follow redirects
+        }
+      );
       
-      setStatus("Analisando...");
-      const fingerprint = await collectFingerprint();
+      // If we got a redirect (302), use it immediately
+      if (fastResponse.status === 302 || fastResponse.type === "opaqueredirect") {
+        const location = fastResponse.headers.get("location");
+        if (location) {
+          window.location.replace(location);
+          return;
+        }
+      }
+      
+      // === FINGERPRINT PATH: Collect minimal data quickly ===
+      setStatus("Verificando...");
+      
+      // Collect fingerprint in parallel with minimal delay (300ms for basic behavior)
+      const [fingerprint] = await Promise.all([
+        collectFingerprint(),
+        new Promise(resolve => setTimeout(resolve, 300)) // Minimal behavior collection
+      ]);
 
       const { data, error: fnError } = await supabase.functions.invoke("cloaker-redirect", {
         body: { slug, fingerprint },
@@ -1193,20 +1236,24 @@ export default function CloakerRedirect() {
       if (fnError) throw fnError;
 
       if (data?.redirectUrl) {
-        setStatus("Redirecionando...");
         window.location.replace(data.redirectUrl);
       } else {
         setError("Página não encontrada");
       }
     } catch (err) {
       console.error("Redirect error:", err);
-      setError("Erro ao carregar");
+      // On error, try direct GET redirect as fallback
+      try {
+        window.location.href = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cloaker-redirect?s=${encodeURIComponent(slug)}`;
+      } catch {
+        setError("Erro ao carregar");
+      }
     }
   }, [slug, collectFingerprint]);
 
+  // Start immediately, no delay
   useEffect(() => {
-    const timer = setTimeout(handleRedirect, 500);
-    return () => clearTimeout(timer);
+    handleRedirect();
   }, [handleRedirect]);
 
   if (error) {
