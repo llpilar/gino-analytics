@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Plus, Link2, Trash2, Copy, ExternalLink, Shield, Globe, Smartphone, Bot, 
   MousePointerClick, ToggleRight, Eye, Fingerprint, Activity, ChartBar,
-  Users, AlertTriangle, CheckCircle, XCircle, Clock
+  Users, AlertTriangle, CheckCircle, XCircle, Clock, Pencil
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCloakedLinks, useCloakerVisitors, useCloakerStats } from "@/hooks/useCloakedLinks";
@@ -43,6 +43,8 @@ const DEVICES = [
 export default function Cloaker() {
   const { links, isLoading, createLink, updateLink, deleteLink } = useCloakedLinks();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingLink, setEditingLink] = useState<{ id: string; targetUrl: string; safeUrl: string } | null>(null);
   const [selectedLinkId, setSelectedLinkId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
@@ -130,6 +132,28 @@ export default function Cloaker() {
       toast.success("Link excluído");
     } catch (error) {
       toast.error("Erro ao excluir link");
+    }
+  };
+
+  const handleEditClick = (link: typeof links[0], e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingLink({ id: link.id, targetUrl: link.target_url, safeUrl: link.safe_url });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingLink) return;
+    try {
+      await updateLink({ 
+        id: editingLink.id, 
+        target_url: editingLink.targetUrl,
+        safe_url: editingLink.safeUrl 
+      });
+      setIsEditDialogOpen(false);
+      setEditingLink(null);
+      toast.success("URLs atualizadas!");
+    } catch (error) {
+      toast.error("Erro ao atualizar");
     }
   };
 
@@ -535,6 +559,14 @@ export default function Cloaker() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
+                            onClick={(e) => handleEditClick(link, e)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
                             onClick={(e) => { e.stopPropagation(); window.open(link.target_url, '_blank'); }}
                           >
                             <ExternalLink className="h-4 w-4" />
@@ -638,6 +670,40 @@ export default function Cloaker() {
             </SectionCard>
           </div>
         </div>
+
+        {/* Edit Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Editar URLs</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="editSafeUrl">URL Segura (bots)</Label>
+                <Input
+                  id="editSafeUrl"
+                  type="url"
+                  value={editingLink?.safeUrl || ""}
+                  onChange={e => setEditingLink(prev => prev ? { ...prev, safeUrl: e.target.value } : null)}
+                  placeholder="https://..."
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="editTargetUrl">URL de Destino</Label>
+                <Input
+                  id="editTargetUrl"
+                  type="url"
+                  value={editingLink?.targetUrl || ""}
+                  onChange={e => setEditingLink(prev => prev ? { ...prev, targetUrl: e.target.value } : null)}
+                  placeholder="https://..."
+                />
+              </div>
+              <Button onClick={handleSaveEdit} className="w-full">
+                Salvar
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardWrapper>
   );
