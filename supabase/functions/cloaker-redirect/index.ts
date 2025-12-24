@@ -628,50 +628,90 @@ function detectGoogleAdsBot(userAgent: string, ip: string, headers: Headers): Go
 // ==================== BOT & DATACENTER PATTERNS ====================
 
 const BOT_UA_PATTERNS = [
-  // Google Ads (CRITICAL) - covered by GOOGLE_ADS_BOT_PATTERNS but kept for general check
+  // === GOOGLE ADS (CRITICAL - HIGHEST PRIORITY) ===
   /adsbot-google/i, /adsbot/i, /mediapartners-google/i, /googleads/i,
   /google-adwords/i, /google-ads/i, /google-inspectiontool/i,
   /google-safety/i, /google-site-verification/i, /google-structured-data/i,
   /storebot-google/i, /google-read-aloud/i,
   /googlebot/i, /google-extended/i, /apis-google/i, /feedfetcher-google/i,
+  /google-amp/i, /google-favicon/i, /google-youtube/i, /google-cloud/i,
+  /lighthouse/i, /chrome-lighthouse/i, /pagespeed/i, /google-http/i,
+  /google-apps-script/i, /googlesecurityscanner/i, /google-transparency/i,
+  /google-speakr/i, /duplex/i, /google-pagerenderer/i, /google-webpreview/i,
+  /googleproducer/i, /googleassociationservice/i, /google-physicalweb/i,
+  /google-certificates/i,
   
-  // Facebook/Meta (CRITICAL)
+  // === FACEBOOK/META (CRITICAL) ===
   /facebookexternalhit/i, /facebot/i, /facebookcatalog/i, /facebook/i,
   /meta-externalagent/i, /meta-externalfetcher/i, /instagram/i,
+  /facebookplatform/i, /fb_iab/i, /fbav/i, /fbios/i, /fb4a/i,
   
-  // Ad platforms
+  // === AD PLATFORMS ===
   /bingads/i, /adidxbot/i, /pinterest/i, /twitterbot/i, /linkedinbot/i,
   /snapchat/i, /telegrambot/i, /whatsapp/i, /slackbot/i, /discordbot/i,
-  /tiktok/i, /bytedance/i,
+  /tiktok/i, /bytedance/i, /applebot/i, /duckduckgo/i,
+  /bing.*preview/i, /msnbot/i, /yahoo.*slurp/i,
   
-  // Search engines
+  // === SEARCH ENGINES ===
   /bingbot/i, /slurp/i, /duckduckbot/i, /baiduspider/i, /yandexbot/i,
-  /sogou/i, /exabot/i, /ia_archiver/i, /archive\.org/i, /applebot/i,
+  /sogou/i, /exabot/i, /ia_archiver/i, /archive\.org/i,
+  /qwantify/i, /ecosia/i, /seznambot/i, /naverbot/i,
   
-  // SEO tools
+  // === SEO & ANALYTICS TOOLS ===
   /crawler/i, /spider/i, /semrush/i, /ahrefsbot/i, /mj12bot/i, /dotbot/i,
   /petalbot/i, /bytespider/i, /screaming frog/i, /rogerbot/i, /seokicks/i,
   /sistrix/i, /blexbot/i, /dataforseo/i, /neevabot/i, /gptbot/i,
-  /chatgpt/i, /claude-web/i, /anthropic/i, /cohere/i,
+  /chatgpt/i, /claude-web/i, /anthropic/i, /cohere/i, /perplexity/i,
+  /majestic/i, /mojeek/i, /uptimerobot/i, /statuscake/i, /pingdom/i,
+  /site24x7/i, /gtmetrix/i, /webpagetest/i,
   
-  // Automation (CRITICAL)
+  // === AUTOMATION FRAMEWORKS (CRITICAL) ===
   /headless/i, /phantomjs/i, /selenium/i, /puppeteer/i, /playwright/i,
   /cypress/i, /webdriver/i, /nightmare/i, /casperjs/i, /slimerjs/i,
   /splinter/i, /zombie/i, /httpclient/i, /mechanize/i,
+  /chromium-headless/i, /headlesschrome/i, /chromeheadless/i,
+  /electron/i, /jxbrowser/i, /cefsharp/i,
   
-  // Generic
-  /bot/i, /crawl/i, /archiver/i, /transcoder/i, /wget/i, /curl/i, 
+  // === GENERIC BOT PATTERNS ===
+  /bot(?!tle)/i, /crawl/i, /archiver/i, /transcoder/i, /wget/i, /curl/i, 
   /httpx/i, /python-requests/i, /python-urllib/i, /java\//i, /axios/i,
   /node-fetch/i, /go-http-client/i, /libwww/i, /scraper/i, /scanner/i,
-  /fetch\//i, /http-client/i, /okhttp/i, /retrofit/i,
+  /fetch\//i, /http-client/i, /okhttp/i, /retrofit/i, /restsharp/i,
+  /http-kit/i, /clj-http/i, /apache-httpclient/i, /guzzle/i,
+  /faraday/i, /typhoeus/i, /rest-client/i, /urllib/i, /aiohttp/i,
+  /scrapy/i, /beautifulsoup/i, /jsdom/i, /cheerio/i, /undici/i,
 ];
 
+// === DATACENTER KEYWORDS (EXPANDED) ===
 const DATACENTER_KEYWORDS = [
-  "amazon", "aws", "google cloud", "gcp", "microsoft azure", "azure",
-  "digitalocean", "linode", "vultr", "ovh", "hetzner", "cloudflare",
-  "oracle cloud", "ibm cloud", "alibaba", "tencent", "scaleway",
-  "upcloud", "kamatera", "contabo", "hostinger", "godaddy", "rackspace",
-  "quadranet", "choopa", "m247", "leaseweb", "datacamp",
+  // Major cloud providers
+  "amazon", "aws", "amazon web services", "ec2",
+  "google cloud", "gcp", "google llc", "gce", "googlefiber",
+  "microsoft azure", "azure", "microsoft corporation",
+  "digitalocean", "linode", "akamai", "vultr", "ovh", "ovhcloud",
+  "hetzner", "cloudflare", "oracle cloud", "oracle corporation",
+  "ibm cloud", "softlayer", "alibaba", "aliyun", "tencent", "huawei cloud",
+  
+  // VPS/Hosting providers
+  "scaleway", "upcloud", "kamatera", "contabo", "hostinger", "godaddy",
+  "rackspace", "quadranet", "choopa", "m247", "leaseweb", "datacamp",
+  "hostwinds", "interserver", "hostgator", "bluehost", "dreamhost",
+  "ionos", "1and1", "strato", "fasthosts", "ukfast", "liquidweb",
+  "mediatemple", "a2hosting", "siteground", "kinsta", "wpengine",
+  "pantheon", "netlify", "vercel", "heroku", "render", "railway",
+  "fly.io", "deno deploy", "cloudways",
+  
+  // Datacenter operators
+  "cogent", "level3", "lumen", "zayo", "coresite", "equinix",
+  "switch", "cyrusone", "qts", "digital realty", "vantage",
+  
+  // Proxy/VPN services
+  "proxy", "vpn", "tor", "brightdata", "luminati", "smartproxy",
+  "oxylabs", "geosurf", "netnut", "shifter", "zyte", "scrapinghub",
+  "residentialproxy", "datacenterproxy", "rotating proxy",
+  
+  // Colocation
+  "colocation", "colo", "dedicated server", "bare metal",
 ];
 
 // ==================== TYPE DEFINITIONS ====================
@@ -1759,6 +1799,20 @@ async function calculateScore(
     flags.push("automation_in_stack");
   }
 
+  // === GOOGLE BOT DETECTION IN FINGERPRINT (CRITICAL) ===
+  const googleBotInFp = detectGoogleAdsBot(fp.userAgent, cfIp, headers);
+  if (googleBotInFp.isDefinitive) {
+    automationScore = 0;
+    flags.push("DEFINITIVE_GOOGLE_BOT");
+  } else if (googleBotInFp.isGoogleBot && googleBotInFp.confidence >= 60) {
+    automationScore = Math.min(automationScore, 5);
+    flags.push("HIGH_CONFIDENCE_GOOGLE_BOT");
+  } else if (googleBotInFp.isGoogleBot) {
+    automationScore -= 15;
+    flags.push("POSSIBLE_GOOGLE_BOT");
+  }
+  flags.push(...googleBotInFp.reasons.map(r => `google_${r}`));
+
   let isBotUA = false;
   for (const pattern of BOT_UA_PATTERNS) {
     if (pattern.test(fp.userAgent)) {
@@ -1792,6 +1846,27 @@ async function calculateScore(
   
   const cfCountry = headers.get("cf-ipcountry") || headers.get("x-vercel-ip-country") || headers.get("x-country-code");
   const cfOrg = headers.get("cf-isp") || headers.get("x-isp") || "";
+
+  // === CHECK FOR GOOGLE IP RANGES (CRITICAL) ===
+  if (isGoogleIP(cfIp)) {
+    networkScore -= 20;
+    flags.push("GOOGLE_IP_RANGE");
+  }
+
+  // === CHECK FOR GOOGLE CLOUD / DATACENTER PATTERNS ===
+  const googleDatacenterPatterns = [
+    /google/i, /gce/i, /cloud/i, /gcp/i, /googlebot/i,
+    /crawl-\d+-\d+-\d+-\d+\.googlebot\.com/i,
+    /rate-limited-proxy/i,
+  ];
+  
+  for (const pattern of googleDatacenterPatterns) {
+    if (pattern.test(cfOrg)) {
+      networkScore -= 20;
+      flags.push("GOOGLE_DATACENTER");
+      break;
+    }
+  }
 
   for (const keyword of DATACENTER_KEYWORDS) {
     if (cfOrg.toLowerCase().includes(keyword)) {
