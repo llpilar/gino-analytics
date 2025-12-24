@@ -1197,36 +1197,12 @@ export default function CloakerRedirect() {
     hasRedirected.current = true;
 
     try {
-      // === FAST PATH: Try instant GET redirect first ===
-      setStatus("Conectando...");
-      
-      const fastResponse = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cloaker-redirect?s=${encodeURIComponent(slug)}`,
-        { 
-          method: "GET",
-          headers: { 
-            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-          redirect: "manual" // Don't auto-follow redirects
-        }
-      );
-      
-      // If we got a redirect (302), use it immediately
-      if (fastResponse.status === 302 || fastResponse.type === "opaqueredirect") {
-        const location = fastResponse.headers.get("location");
-        if (location) {
-          window.location.replace(location);
-          return;
-        }
-      }
-      
-      // === FINGERPRINT PATH: Collect minimal data quickly ===
       setStatus("Verificando...");
       
-      // Collect fingerprint in parallel with minimal delay (300ms for basic behavior)
+      // Collect fingerprint quickly with minimal delay
       const [fingerprint] = await Promise.all([
         collectFingerprint(),
-        new Promise(resolve => setTimeout(resolve, 300)) // Minimal behavior collection
+        new Promise(resolve => setTimeout(resolve, 200)) // Minimal behavior
       ]);
 
       const { data, error: fnError } = await supabase.functions.invoke("cloaker-redirect", {
@@ -1242,12 +1218,7 @@ export default function CloakerRedirect() {
       }
     } catch (err) {
       console.error("Redirect error:", err);
-      // On error, try direct GET redirect as fallback
-      try {
-        window.location.href = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cloaker-redirect?s=${encodeURIComponent(slug)}`;
-      } catch {
-        setError("Erro ao carregar");
-      }
+      setError("Erro ao carregar");
     }
   }, [slug, collectFingerprint]);
 
