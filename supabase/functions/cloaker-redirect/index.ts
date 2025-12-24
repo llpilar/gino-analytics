@@ -32,6 +32,44 @@ const sessionCache = new Map<string, { firstSeen: number; visits: number; scores
 const fingerprintReputation = new Map<string, { score: number; lastSeen: number; decisionHistory: string[] }>();
 const approvedSessions = new Map<string, { ip: string; fingerprintHash: string; approvedAt: number; score: number }>();
 
+// ==================== ML ADAPTIVE CACHES ====================
+interface MLPattern {
+  patternType: string;
+  patternValue: string;
+  blockCount: number;
+  approveCount: number;
+  confidenceScore: number;
+  weightAdjustment: number;
+  lastSeen: number;
+}
+
+interface MLThresholds {
+  linkId: string;
+  minScoreAdjusted: number;
+  fingerprintWeight: number;
+  behaviorWeight: number;
+  networkWeight: number;
+  automationWeight: number;
+  learningRate: number;
+  totalDecisions: number;
+  blockRate: number;
+  falsePositiveRate: number;
+  lastAdjusted: number;
+}
+
+// In-memory ML caches (synced with DB periodically)
+const mlPatternsCache = new Map<string, MLPattern>();
+const mlThresholdsCache = new Map<string, MLThresholds>();
+const ML_CACHE_TTL = 300000; // 5 minutes
+let mlLastSync = 0;
+
+// Learning constants
+const LEARNING_RATE_DEFAULT = 0.1;
+const MIN_SAMPLES_FOR_ADJUSTMENT = 10;
+const PATTERN_CONFIDENCE_THRESHOLD = 0.7;
+const WEIGHT_ADJUSTMENT_MIN = 0.5;
+const WEIGHT_ADJUSTMENT_MAX = 2.0;
+
 function getCachedLink(slug: string): any | null {
   const cached = linkCache.get(slug);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
@@ -66,6 +104,442 @@ setInterval(() => {
   }
 }, 300000);
 
+// ==================== ML ADAPTIVE LEARNING SYSTEM ====================
+
+// Get pattern key for caching
+function getPatternKey(type: string, value: string): string {
+  return `${type}:${value}`;
+}
+
+// Sync ML data from database
+async function syncMLData(supabase: any): Promise<void> {
+  const now = Date.now();
+  if (now - mlLastSync < ML_CACHE_TTL) return;
+  
+  try {
+    // Load patterns
+    const { data: patterns } = await supabase
+      .from("cloaker_ml_patterns")
+      .select("*")
+      .order("confidence_score", { ascending: false })
+      .limit(1000);
+    
+    if (patterns) {
+      for (const p of patterns) {
+        const key = getPatternKey(p.pattern_type, p.pattern_value);
+        mlPatternsCache.set(key, {
+          patternType: p.pattern_type,
+          patternValue: p.pattern_value,
+          blockCount: p.block_count,
+          approveCount: p.approve_count,
+          confidenceScore: p.confidence_score,
+          weightAdjustment: p.weight_adjustment,
+          lastSeen: new Date(p.last_seen_at).getTime(),
+        });
+      }
+    }
+    
+    // Load thresholds
+    const { data: thresholds } = await supabase
+      .from("cloaker_ml_thresholds")
+      .select("*");
+    
+    if (thresholds) {
+      for (const t of thresholds) {
+        mlThresholdsCache.set(t.link_id, {
+          linkId: t.link_id,
+          minScoreAdjusted: t.min_score_adjusted,
+          fingerprintWeight: t.fingerprint_weight,
+          behaviorWeight: t.behavior_weight,
+          networkWeight: t.network_weight,
+          automationWeight: t.automation_weight,
+          learningRate: t.learning_rate,
+          totalDecisions: t.total_decisions,
+          blockRate: t.block_rate,
+          falsePositiveRate: t.false_positive_rate,
+          lastAdjusted: new Date(t.last_adjusted_at).getTime(),
+        });
+      }
+    }
+    
+    mlLastSync = now;
+    console.log(`[ML] Synced ${patterns?.length || 0} patterns, ${thresholds?.length || 0} thresholds`);
+  } catch (e) {
+    console.error("[ML] Sync error:", e);
+  }
+}
+
+// Get or initialize ML thresholds for a link
+function getMLThresholds(linkId: string, defaultMinScore: number): MLThresholds {
+  const cached = mlThresholdsCache.get(linkId);
+  if (cached) return cached;
+  
+  return {
+    linkId,
+    minScoreAdjusted: defaultMinScore,
+    fingerprintWeight: 1.0,
+    behaviorWeight: 1.0,
+    networkWeight: 1.0,
+    automationWeight: 1.0,
+    learningRate: LEARNING_RATE_DEFAULT,
+    totalDecisions: 0,
+    blockRate: 0,
+    falsePositiveRate: 0,
+    lastAdjusted: Date.now(),
+  };
+}
+
+// Get pattern weight adjustment based on ML learning
+function getPatternWeight(type: string, value: string): number {
+  const key = getPatternKey(type, value);
+  const pattern = mlPatternsCache.get(key);
+  if (!pattern) return 1.0;
+  
+  const totalSamples = pattern.blockCount + pattern.approveCount;
+  if (totalSamples < MIN_SAMPLES_FOR_ADJUSTMENT) return 1.0;
+  
+  return pattern.weightAdjustment;
+}
+
+// Extract patterns from visitor data for ML learning
+interface ExtractedPatterns {
+  userAgentBrowser: string;
+  userAgentOS: string;
+  screenResolution: string;
+  timezone: string;
+  language: string;
+  webglRenderer: string;
+  ipPrefix: string;
+  asnPattern: string;
+  behaviorPattern: string;
+}
+
+function extractPatterns(fingerprint: any, ip: string, asn: string, userAgent: string): ExtractedPatterns {
+  const ua = userAgent.toLowerCase();
+  
+  // Extract browser from UA
+  let browser = "unknown";
+  if (/chrome/i.test(ua) && !/edge|edg/i.test(ua)) browser = "chrome";
+  else if (/firefox/i.test(ua)) browser = "firefox";
+  else if (/safari/i.test(ua) && !/chrome/i.test(ua)) browser = "safari";
+  else if (/edge|edg/i.test(ua)) browser = "edge";
+  else if (/opera|opr/i.test(ua)) browser = "opera";
+  
+  // Extract OS from UA
+  let os = "unknown";
+  if (/windows/i.test(ua)) os = "windows";
+  else if (/mac\s*os/i.test(ua)) os = "macos";
+  else if (/linux/i.test(ua) && !/android/i.test(ua)) os = "linux";
+  else if (/android/i.test(ua)) os = "android";
+  else if (/iphone|ipad|ipod/i.test(ua)) os = "ios";
+  
+  // IP prefix (first 3 octets)
+  const ipParts = ip.split(".");
+  const ipPrefix = ipParts.length >= 3 ? `${ipParts[0]}.${ipParts[1]}.${ipParts[2]}` : ip;
+  
+  // Behavior pattern (categorize)
+  let behaviorPattern = "normal";
+  const mouseMovements = fingerprint?.mouseMovements || 0;
+  const timeOnPage = fingerprint?.timeOnPage || 0;
+  if (mouseMovements === 0 && timeOnPage < 1000) behaviorPattern = "instant_no_mouse";
+  else if (mouseMovements < 5 && timeOnPage < 2000) behaviorPattern = "minimal_interaction";
+  else if (mouseMovements > 50 && timeOnPage > 5000) behaviorPattern = "high_engagement";
+  
+  return {
+    userAgentBrowser: `browser:${browser}`,
+    userAgentOS: `os:${os}`,
+    screenResolution: `resolution:${fingerprint?.screenResolution || "unknown"}`,
+    timezone: `timezone:${fingerprint?.timezone || "unknown"}`,
+    language: `language:${fingerprint?.language || "unknown"}`,
+    webglRenderer: `webgl:${(fingerprint?.webglRenderer || "unknown").substring(0, 50)}`,
+    ipPrefix: `ip_prefix:${ipPrefix}`,
+    asnPattern: `asn:${asn || "unknown"}`,
+    behaviorPattern: `behavior:${behaviorPattern}`,
+  };
+}
+
+// Calculate adaptive score using ML weights
+function calculateAdaptiveScore(
+  baseScore: number,
+  fingerprint: any,
+  patterns: ExtractedPatterns,
+  thresholds: MLThresholds,
+  botResult: any
+): { score: number; adjustments: Record<string, number>; mlApplied: boolean } {
+  let score = baseScore;
+  const adjustments: Record<string, number> = {};
+  let mlApplied = false;
+  
+  // Apply fingerprint-based adjustments with ML weights
+  const fingerprintPatterns = [
+    patterns.screenResolution,
+    patterns.timezone,
+    patterns.webglRenderer,
+  ];
+  
+  for (const pattern of fingerprintPatterns) {
+    const weight = getPatternWeight("fingerprint", pattern);
+    if (weight !== 1.0) {
+      const adjustment = (weight - 1.0) * 15 * thresholds.fingerprintWeight;
+      score += adjustment;
+      adjustments[pattern] = adjustment;
+      mlApplied = true;
+    }
+  }
+  
+  // Apply behavior-based adjustments
+  const behaviorWeight = getPatternWeight("behavior", patterns.behaviorPattern);
+  if (behaviorWeight !== 1.0) {
+    const adjustment = (behaviorWeight - 1.0) * 20 * thresholds.behaviorWeight;
+    score += adjustment;
+    adjustments[patterns.behaviorPattern] = adjustment;
+    mlApplied = true;
+  }
+  
+  // Apply network-based adjustments
+  const networkPatterns = [patterns.ipPrefix, patterns.asnPattern];
+  for (const pattern of networkPatterns) {
+    const weight = getPatternWeight("network", pattern);
+    if (weight !== 1.0) {
+      const adjustment = (weight - 1.0) * 25 * thresholds.networkWeight;
+      score += adjustment;
+      adjustments[pattern] = adjustment;
+      mlApplied = true;
+    }
+  }
+  
+  // Apply user agent adjustments
+  const uaPatterns = [patterns.userAgentBrowser, patterns.userAgentOS];
+  for (const pattern of uaPatterns) {
+    const weight = getPatternWeight("user_agent", pattern);
+    if (weight !== 1.0) {
+      const adjustment = (weight - 1.0) * 10;
+      score += adjustment;
+      adjustments[pattern] = adjustment;
+      mlApplied = true;
+    }
+  }
+  
+  // Apply automation detection weight
+  if (botResult?.isBot && !botResult?.isAdPlatform) {
+    const automationPenalty = -botResult.confidence * 0.5 * thresholds.automationWeight;
+    score += automationPenalty;
+    adjustments["automation_penalty"] = automationPenalty;
+  }
+  
+  return {
+    score: Math.max(0, Math.min(100, score)),
+    adjustments,
+    mlApplied,
+  };
+}
+
+// Learn from decision - update patterns in background
+async function learnFromDecision(
+  supabase: any,
+  linkId: string,
+  decision: "allow" | "block",
+  patterns: ExtractedPatterns,
+  score: number,
+  fingerprint: any,
+  visitorId?: string
+): Promise<void> {
+  const now = new Date().toISOString();
+  const isBlock = decision === "block";
+  
+  // Update patterns in database
+  const patternUpdates: { type: string; value: string }[] = [
+    { type: "fingerprint", value: patterns.screenResolution },
+    { type: "fingerprint", value: patterns.timezone },
+    { type: "fingerprint", value: patterns.webglRenderer },
+    { type: "behavior", value: patterns.behaviorPattern },
+    { type: "network", value: patterns.ipPrefix },
+    { type: "network", value: patterns.asnPattern },
+    { type: "user_agent", value: patterns.userAgentBrowser },
+    { type: "user_agent", value: patterns.userAgentOS },
+  ];
+  
+  for (const { type, value } of patternUpdates) {
+    if (!value || value.includes("unknown")) continue;
+    
+    // Upsert pattern with updated counts
+    const { data: existing } = await supabase
+      .from("cloaker_ml_patterns")
+      .select("*")
+      .eq("pattern_type", type)
+      .eq("pattern_value", value)
+      .maybeSingle();
+    
+    if (existing) {
+      const newBlockCount = existing.block_count + (isBlock ? 1 : 0);
+      const newApproveCount = existing.approve_count + (isBlock ? 0 : 1);
+      const total = newBlockCount + newApproveCount;
+      
+      // Calculate new confidence and weight
+      let newConfidence = 0.5;
+      let newWeight = 1.0;
+      
+      if (total >= MIN_SAMPLES_FOR_ADJUSTMENT) {
+        const blockRatio = newBlockCount / total;
+        newConfidence = Math.abs(blockRatio - 0.5) * 2; // 0 to 1
+        
+        // Adjust weight based on block ratio
+        if (blockRatio > 0.7) {
+          // High block ratio = lower weight (penalize this pattern)
+          newWeight = Math.max(WEIGHT_ADJUSTMENT_MIN, 1.0 - (blockRatio - 0.5) * 1.5);
+        } else if (blockRatio < 0.3) {
+          // Low block ratio = higher weight (trust this pattern)
+          newWeight = Math.min(WEIGHT_ADJUSTMENT_MAX, 1.0 + (0.5 - blockRatio) * 1.5);
+        }
+      }
+      
+      await supabase
+        .from("cloaker_ml_patterns")
+        .update({
+          block_count: newBlockCount,
+          approve_count: newApproveCount,
+          confidence_score: newConfidence,
+          weight_adjustment: newWeight,
+          last_seen_at: now,
+          metadata: { lastScore: score },
+        })
+        .eq("id", existing.id);
+      
+      // Update cache
+      const key = getPatternKey(type, value);
+      mlPatternsCache.set(key, {
+        patternType: type,
+        patternValue: value,
+        blockCount: newBlockCount,
+        approveCount: newApproveCount,
+        confidenceScore: newConfidence,
+        weightAdjustment: newWeight,
+        lastSeen: Date.now(),
+      });
+    } else {
+      // Insert new pattern
+      await supabase
+        .from("cloaker_ml_patterns")
+        .insert({
+          pattern_type: type,
+          pattern_value: value,
+          block_count: isBlock ? 1 : 0,
+          approve_count: isBlock ? 0 : 1,
+          confidence_score: 0.5,
+          weight_adjustment: 1.0,
+          last_seen_at: now,
+          metadata: { firstScore: score },
+        });
+    }
+  }
+  
+  // Update link thresholds
+  const { data: linkThresholds } = await supabase
+    .from("cloaker_ml_thresholds")
+    .select("*")
+    .eq("link_id", linkId)
+    .maybeSingle();
+  
+  if (linkThresholds) {
+    const totalDecisions = linkThresholds.total_decisions + 1;
+    const blockRate = (linkThresholds.block_rate * linkThresholds.total_decisions + (isBlock ? 1 : 0)) / totalDecisions;
+    
+    // Adaptive threshold adjustment
+    let newMinScore = linkThresholds.min_score_adjusted;
+    
+    // If block rate is too high (>60%), lower the threshold slightly
+    if (totalDecisions >= 50 && blockRate > 0.6) {
+      newMinScore = Math.max(20, newMinScore - linkThresholds.learning_rate * 5);
+    }
+    // If block rate is too low (<20%), raise the threshold slightly
+    else if (totalDecisions >= 50 && blockRate < 0.2) {
+      newMinScore = Math.min(80, newMinScore + linkThresholds.learning_rate * 3);
+    }
+    
+    await supabase
+      .from("cloaker_ml_thresholds")
+      .update({
+        total_decisions: totalDecisions,
+        block_rate: blockRate,
+        min_score_adjusted: newMinScore,
+        last_adjusted_at: now,
+      })
+      .eq("link_id", linkId);
+    
+    // Update cache
+    mlThresholdsCache.set(linkId, {
+      ...linkThresholds,
+      totalDecisions,
+      blockRate,
+      minScoreAdjusted: newMinScore,
+      lastAdjusted: Date.now(),
+    });
+  } else {
+    // Create new threshold entry
+    await supabase
+      .from("cloaker_ml_thresholds")
+      .insert({
+        link_id: linkId,
+        total_decisions: 1,
+        block_rate: isBlock ? 1 : 0,
+        last_adjusted_at: now,
+      });
+  }
+  
+  console.log(`[ML] Learned from ${decision}: ${Object.keys(patterns).length} patterns updated for link ${linkId.substring(0, 8)}`);
+}
+
+// Record feedback for false positives/negatives (can be called from admin)
+async function recordFeedback(
+  supabase: any,
+  visitorId: string,
+  linkId: string,
+  originalDecision: string,
+  correctedDecision: string
+): Promise<void> {
+  const feedbackType = originalDecision === "block" && correctedDecision === "allow" 
+    ? "false_positive" 
+    : "false_negative";
+  
+  await supabase
+    .from("cloaker_ml_feedback")
+    .insert({
+      visitor_id: visitorId,
+      link_id: linkId,
+      original_decision: originalDecision,
+      corrected_decision: correctedDecision,
+      feedback_type: feedbackType,
+    });
+  
+  // Update false positive rate for link
+  if (feedbackType === "false_positive") {
+    const { data: thresholds } = await supabase
+      .from("cloaker_ml_thresholds")
+      .select("*")
+      .eq("link_id", linkId)
+      .maybeSingle();
+    
+    if (thresholds) {
+      const newFPRate = (thresholds.false_positive_rate * thresholds.total_decisions + 1) / (thresholds.total_decisions + 1);
+      
+      // If FP rate is high, adjust weights to be less aggressive
+      let newAutomationWeight = thresholds.automation_weight;
+      if (newFPRate > 0.1 && thresholds.total_decisions >= 20) {
+        newAutomationWeight = Math.max(0.5, thresholds.automation_weight - 0.1);
+      }
+      
+      await supabase
+        .from("cloaker_ml_thresholds")
+        .update({
+          false_positive_rate: newFPRate,
+          automation_weight: newAutomationWeight,
+        })
+        .eq("link_id", linkId);
+    }
+  }
+  
+  console.log(`[ML] Recorded ${feedbackType} feedback for visitor ${visitorId.substring(0, 8)}`);
+}
 // ==================== RATE LIMITING ====================
 function checkRateLimit(ip: string, limit: number, windowMinutes: number): { allowed: boolean; remaining: number } {
   const now = Date.now();
@@ -1102,6 +1576,9 @@ Deno.serve(async (req) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  
+  // Sync ML data in background (non-blocking)
+  queueMicrotask(() => syncMLData(supabase));
 
   // === GET: Fast redirect, ZRC, or challenge page ===
   if (req.method === "GET") {
@@ -1355,13 +1832,30 @@ Deno.serve(async (req) => {
 
     const fingerprintHash = generateFingerprintHash(fingerprint);
     const deviceType = getDeviceType(fingerprint.userAgent || ua);
-    const minScore = link.min_score || 35;
+    
+    // Get ML thresholds for this link (adaptive min_score)
+    const mlThresholds = getMLThresholds(link.id, link.min_score || 35);
+    const minScore = mlThresholds.minScoreAdjusted;
+    
+    // Extract patterns for ML learning
+    const patterns = extractPatterns(fingerprint, cfIp, cfAsn, fingerprint.userAgent || ua);
     
     const reputation = getFingerprintReputation(fingerprintHash);
-    const { score, flags, riskLevel } = calculateFingerprintScore(fingerprint, botResult);
-    const sessionInfo = trackSession(cfIp, fingerprintHash, score);
+    const { score: baseScore, flags, riskLevel } = calculateFingerprintScore(fingerprint, botResult);
+    const sessionInfo = trackSession(cfIp, fingerprintHash, baseScore);
     
-    let finalScore = score;
+    // Apply ML adaptive scoring
+    const { score: adaptiveScore, adjustments, mlApplied } = calculateAdaptiveScore(
+      baseScore,
+      fingerprint,
+      patterns,
+      mlThresholds,
+      botResult
+    );
+    
+    let finalScore = adaptiveScore;
+    
+    // Apply reputation adjustments
     if (reputation.trustLevel === "trusted") finalScore = Math.min(100, finalScore + 15);
     else if (reputation.trustLevel === "suspicious") finalScore -= 10;
     else if (reputation.trustLevel === "blocked") finalScore -= 30;
@@ -1395,11 +1889,13 @@ Deno.serve(async (req) => {
     }
 
     const processingTime = Date.now() - startTime;
-    console.log(`[Cloaker] POST Decision=${decision} Score=${finalScore}/${minScore} Risk=${riskLevel} Trust=${reputation.trustLevel} (${processingTime}ms)`);
+    console.log(`[Cloaker] POST Decision=${decision} Score=${finalScore}/${minScore} Base=${baseScore} ML=${mlApplied} Risk=${riskLevel} Trust=${reputation.trustLevel} (${processingTime}ms)`);
 
+    // Background: Log visitor and learn from decision
     queueMicrotask(async () => {
       try {
-        await supabase.from("cloaker_visitors").insert({
+        // Insert visitor log
+        const { data: visitorData } = await supabase.from("cloaker_visitors").insert({
           link_id: link.id, fingerprint_hash: fingerprintHash, score: finalScore, decision,
           user_agent: (fingerprint.userAgent || ua).substring(0, 500), language: fingerprint.language, timezone: fingerprint.timezone,
           screen_resolution: fingerprint.screenResolution, color_depth: fingerprint.colorDepth, device_memory: fingerprint.deviceMemory,
@@ -1411,17 +1907,41 @@ Deno.serve(async (req) => {
           has_webdriver: fingerprint.hasWebdriver, has_phantom: fingerprint.hasPhantom, has_selenium: fingerprint.hasSelenium,
           has_puppeteer: fingerprint.hasPuppeteer, ip_address: cfIp, country_code: cfCountry, city: cfCity, isp: cfIsp, asn: cfAsn,
           referer, redirect_url: targetUrl, ...utmParams, processing_time_ms: processingTime,
-        });
-        await supabase.from("cloaked_links").update({ clicks_count: (link.clicks_count || 0) + 1, clicks_today: (link.clicks_today || 0) + 1 }).eq("id", link.id);
-      } catch (e) { console.error("[Cloaker] Log error:", e); }
+        }).select("id").maybeSingle();
+        
+        // Update click counts
+        await supabase.from("cloaked_links").update({ 
+          clicks_count: (link.clicks_count || 0) + 1, 
+          clicks_today: (link.clicks_today || 0) + 1 
+        }).eq("id", link.id);
+        
+        // ML Learning: Update patterns and thresholds based on this decision
+        await learnFromDecision(
+          supabase,
+          link.id,
+          decision,
+          patterns,
+          finalScore,
+          fingerprint,
+          visitorData?.id
+        );
+        
+      } catch (e) { console.error("[Cloaker] Log/ML error:", e); }
     });
 
     const responseHeaders: Record<string, string> = { ...corsHeaders, "Content-Type": "application/json" };
     if (sessionCookie) responseHeaders["Set-Cookie"] = sessionCookie;
 
     return new Response(JSON.stringify({ 
-      redirectUrl: targetUrl, decision, score: finalScore, minScore, riskLevel,
-      confidence: botResult.confidence, delayMs: decision === "allow" ? (link.redirect_delay_ms || 0) : 0,
+      redirectUrl: targetUrl, 
+      decision, 
+      score: finalScore, 
+      minScore, 
+      riskLevel,
+      confidence: botResult.confidence, 
+      delayMs: decision === "allow" ? (link.redirect_delay_ms || 0) : 0,
+      mlApplied,
+      adjustments: mlApplied ? adjustments : undefined,
     }), { headers: responseHeaders });
 
   } catch (error) {
