@@ -45,67 +45,128 @@ export type Database = {
         Row: {
           allowed_countries: string[] | null
           allowed_devices: string[] | null
+          allowed_hours_end: number | null
+          allowed_hours_start: number | null
           behavior_time_ms: number | null
+          blacklist_ips: string[] | null
           block_bots: boolean
+          block_datacenter: boolean | null
+          block_proxy: boolean | null
+          block_tor: boolean | null
+          block_vpn: boolean | null
+          blocked_asns: string[] | null
           blocked_countries: string[] | null
+          blocked_isps: string[] | null
           clicks_count: number
+          clicks_today: number | null
           collect_fingerprint: boolean | null
           created_at: string
+          custom_user_agents: string[] | null
           id: string
           is_active: boolean
+          last_click_reset: string | null
+          max_clicks_daily: number | null
+          max_clicks_total: number | null
           min_score: number | null
           name: string
+          passthrough_utm: boolean | null
+          rate_limit_per_ip: number | null
+          rate_limit_window_minutes: number | null
+          redirect_delay_ms: number | null
           require_behavior: boolean | null
           safe_url: string
           slug: string
           target_url: string
+          target_urls: Json | null
           updated_at: string
           user_id: string
+          whitelist_ips: string[] | null
         }
         Insert: {
           allowed_countries?: string[] | null
           allowed_devices?: string[] | null
+          allowed_hours_end?: number | null
+          allowed_hours_start?: number | null
           behavior_time_ms?: number | null
+          blacklist_ips?: string[] | null
           block_bots?: boolean
+          block_datacenter?: boolean | null
+          block_proxy?: boolean | null
+          block_tor?: boolean | null
+          block_vpn?: boolean | null
+          blocked_asns?: string[] | null
           blocked_countries?: string[] | null
+          blocked_isps?: string[] | null
           clicks_count?: number
+          clicks_today?: number | null
           collect_fingerprint?: boolean | null
           created_at?: string
+          custom_user_agents?: string[] | null
           id?: string
           is_active?: boolean
+          last_click_reset?: string | null
+          max_clicks_daily?: number | null
+          max_clicks_total?: number | null
           min_score?: number | null
           name: string
+          passthrough_utm?: boolean | null
+          rate_limit_per_ip?: number | null
+          rate_limit_window_minutes?: number | null
+          redirect_delay_ms?: number | null
           require_behavior?: boolean | null
           safe_url: string
           slug: string
           target_url: string
+          target_urls?: Json | null
           updated_at?: string
           user_id: string
+          whitelist_ips?: string[] | null
         }
         Update: {
           allowed_countries?: string[] | null
           allowed_devices?: string[] | null
+          allowed_hours_end?: number | null
+          allowed_hours_start?: number | null
           behavior_time_ms?: number | null
+          blacklist_ips?: string[] | null
           block_bots?: boolean
+          block_datacenter?: boolean | null
+          block_proxy?: boolean | null
+          block_tor?: boolean | null
+          block_vpn?: boolean | null
+          blocked_asns?: string[] | null
           blocked_countries?: string[] | null
+          blocked_isps?: string[] | null
           clicks_count?: number
+          clicks_today?: number | null
           collect_fingerprint?: boolean | null
           created_at?: string
+          custom_user_agents?: string[] | null
           id?: string
           is_active?: boolean
+          last_click_reset?: string | null
+          max_clicks_daily?: number | null
+          max_clicks_total?: number | null
           min_score?: number | null
           name?: string
+          passthrough_utm?: boolean | null
+          rate_limit_per_ip?: number | null
+          rate_limit_window_minutes?: number | null
+          redirect_delay_ms?: number | null
           require_behavior?: boolean | null
           safe_url?: string
           slug?: string
           target_url?: string
+          target_urls?: Json | null
           updated_at?: string
           user_id?: string
+          whitelist_ips?: string[] | null
         }
         Relationships: []
       }
       cloaker_visitors: {
         Row: {
+          asn: string | null
           audio_hash: string | null
           canvas_hash: string | null
           city: string | null
@@ -138,6 +199,9 @@ export type Database = {
           mouse_movements: number | null
           platform: string | null
           plugins_count: number | null
+          processing_time_ms: number | null
+          redirect_url: string | null
+          referer: string | null
           score: number
           score_automation: number | null
           score_behavior: number | null
@@ -149,10 +213,16 @@ export type Database = {
           timezone: string | null
           touch_support: boolean | null
           user_agent: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
           webgl_renderer: string | null
           webgl_vendor: string | null
         }
         Insert: {
+          asn?: string | null
           audio_hash?: string | null
           canvas_hash?: string | null
           city?: string | null
@@ -185,6 +255,9 @@ export type Database = {
           mouse_movements?: number | null
           platform?: string | null
           plugins_count?: number | null
+          processing_time_ms?: number | null
+          redirect_url?: string | null
+          referer?: string | null
           score?: number
           score_automation?: number | null
           score_behavior?: number | null
@@ -196,10 +269,16 @@ export type Database = {
           timezone?: string | null
           touch_support?: boolean | null
           user_agent?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
           webgl_renderer?: string | null
           webgl_vendor?: string | null
         }
         Update: {
+          asn?: string | null
           audio_hash?: string | null
           canvas_hash?: string | null
           city?: string | null
@@ -232,6 +311,9 @@ export type Database = {
           mouse_movements?: number | null
           platform?: string | null
           plugins_count?: number | null
+          processing_time_ms?: number | null
+          redirect_url?: string | null
+          referer?: string | null
           score?: number
           score_automation?: number | null
           score_behavior?: number | null
@@ -243,6 +325,11 @@ export type Database = {
           timezone?: string | null
           touch_support?: boolean | null
           user_agent?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
           webgl_renderer?: string | null
           webgl_vendor?: string | null
         }
@@ -565,6 +652,7 @@ export type Database = {
       increment_login_count: { Args: { user_id: string }; Returns: undefined }
       is_user_approved: { Args: { _user_id: string }; Returns: boolean }
       make_user_admin: { Args: { _user_id: string }; Returns: undefined }
+      reset_daily_clicks: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "user"
