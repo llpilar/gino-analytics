@@ -76,6 +76,7 @@ export default function Cloaker() {
     blacklistIps: string;
   } | null>(null);
   const [selectedLinkId, setSelectedLinkId] = useState<string | null>(null);
+  // Configurações pré-otimizadas para Facebook e Google Ads
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
@@ -84,22 +85,31 @@ export default function Cloaker() {
     allowedCountries: [] as string[],
     blockedCountries: [] as string[],
     allowedDevices: [] as string[],
+    // === PROTEÇÃO ATIVADA POR PADRÃO ===
     blockBots: true,
-    minScore: 40,
+    // Score 35 = balanceado (não muito agressivo, não muito permissivo)
+    minScore: 35,
+    // Fingerprint ativo = melhor detecção de bots/automação
     collectFingerprint: true,
-    requireBehavior: false,
-    behaviorTimeMs: 2000,
-    // Advanced fields
+    // Comportamento ativo = página de challenge para máxima proteção
+    requireBehavior: true,
+    // 2.5s = tempo suficiente para coletar dados sem irritar usuário
+    behaviorTimeMs: 2500,
+    // === CONFIGURAÇÕES AVANÇADAS OTIMIZADAS ===
     maxClicksDaily: null as number | null,
     maxClicksTotal: null as number | null,
     allowedHoursStart: null as number | null,
     allowedHoursEnd: null as number | null,
+    // UTM passthrough = manter rastreamento de campanhas
     passthroughUtm: true,
-    rateLimitPerIp: null as number | null,
+    // Rate limit por IP = prevenir abuse
+    rateLimitPerIp: 10 as number | null,
+    // Bloquear todas as fontes suspeitas
     blockVpn: true,
     blockProxy: true,
     blockDatacenter: true,
     blockTor: true,
+    // Delay 0 = redirect instantâneo após aprovação
     redirectDelayMs: 0,
     whitelistIps: "",
     blacklistIps: "",
@@ -125,6 +135,14 @@ export default function Cloaker() {
         collect_fingerprint: formData.collectFingerprint,
         require_behavior: formData.requireBehavior,
         behavior_time_ms: formData.behaviorTimeMs,
+        // Configurações avançadas pré-otimizadas
+        passthrough_utm: formData.passthroughUtm,
+        rate_limit_per_ip: formData.rateLimitPerIp,
+        block_vpn: formData.blockVpn,
+        block_proxy: formData.blockProxy,
+        block_datacenter: formData.blockDatacenter,
+        block_tor: formData.blockTor,
+        redirect_delay_ms: formData.redirectDelayMs,
       });
       
       setIsDialogOpen(false);
@@ -145,16 +163,16 @@ export default function Cloaker() {
       blockedCountries: [],
       allowedDevices: [],
       blockBots: true,
-      minScore: 40,
+      minScore: 35,
       collectFingerprint: true,
-      requireBehavior: false,
-      behaviorTimeMs: 2000,
+      requireBehavior: true,
+      behaviorTimeMs: 2500,
       maxClicksDaily: null,
       maxClicksTotal: null,
       allowedHoursStart: null,
       allowedHoursEnd: null,
       passthroughUtm: true,
-      rateLimitPerIp: null,
+      rateLimitPerIp: 10,
       blockVpn: true,
       blockProxy: true,
       blockDatacenter: true,
