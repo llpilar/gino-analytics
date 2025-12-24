@@ -2007,7 +2007,7 @@ async function calculateScore(
 // ==================== EDGE FUNCTION HANDLER ====================
 
 Deno.serve(async (req) => {
-  console.log(`[Cloaker] Request: ${req.method}`);
+  const startTime = Date.now();
   
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -2017,7 +2017,7 @@ Deno.serve(async (req) => {
   const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-  // === GET: Instant header-based redirect ===
+  // === GET: Ultra-fast header-based redirect ===
   if (req.method === "GET") {
     const url = new URL(req.url);
     const slug = url.searchParams.get("s") || url.searchParams.get("slug");
@@ -2026,38 +2026,37 @@ Deno.serve(async (req) => {
       return new Response("Missing slug parameter", { status: 400 });
     }
     
-    console.log(`[Cloaker] GET request for slug: ${slug}`);
-    
-    const { data: link, error } = await supabase
-      .from("cloaked_links")
-      .select("*")
-      .eq("slug", slug)
-      .single();
-    
-    if (error || !link) {
-      console.log("[Cloaker] Link not found");
-      return new Response("Not found", { status: 404 });
-    }
-    
-    if (!link.is_active) {
-      console.log("[Cloaker] Link inactive");
-      return Response.redirect(link.safe_url, 302);
-    }
-
+    // FAST: Get headers immediately while DB query runs
     const userAgent = req.headers.get("user-agent") || "";
     const cfCountry = req.headers.get("cf-ipcountry") || req.headers.get("x-vercel-ip-country") || "";
     const cfIp = req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "";
     
-    const deviceType = getDeviceType(userAgent);
-    const isGenericBot = BOT_UA_PATTERNS.some(p => p.test(userAgent));
+    // FAST: Parallel detection while waiting for DB
+    const [googleBotResult, isGenericBot, deviceType, linkResult] = await Promise.all([
+      Promise.resolve(detectGoogleAdsBot(userAgent, cfIp, req.headers)),
+      Promise.resolve(BOT_UA_PATTERNS.some(p => p.test(userAgent))),
+      Promise.resolve(getDeviceType(userAgent)),
+      supabase.from("cloaked_links").select("id, slug, safe_url, target_url, is_active, block_bots, allowed_devices, allowed_countries, blocked_countries, clicks_count").eq("slug", slug).single(),
+    ]);
     
-    // === GOOGLE ADS BOT DETECTION (CRITICAL - ENHANCED) ===
-    const googleBotResult = detectGoogleAdsBot(userAgent, cfIp, req.headers);
+    const { data: link, error } = linkResult;
+    
+    if (error || !link) {
+      console.log(`[Cloaker] Link not found: ${slug} (${Date.now() - startTime}ms)`);
+      return new Response("Not found", { status: 404 });
+    }
+    
+    if (!link.is_active) {
+      console.log(`[Cloaker] Link inactive (${Date.now() - startTime}ms)`);
+      return Response.redirect(link.safe_url, 302);
+    }
+
     const isGoogleAdsBot = googleBotResult.isAdsBot;
     const isGoogleBot = googleBotResult.isGoogleBot;
     const isDefinitiveGoogleBot = googleBotResult.isDefinitive;
     const isBot = isGenericBot || isGoogleBot;
     
+    console.log(`[Cloaker] GET: Google=${isGoogleBot}, Definitive=${isDefinitiveGoogleBot}, Conf=${googleBotResult.confidence}%`);
     console.log(`[Cloaker] Google Check: isAdsBot=${isGoogleAdsBot}, isGoogleBot=${isGoogleBot}, isDefinitive=${isDefinitiveGoogleBot}, confidence=${googleBotResult.confidence}%, reasons=[${googleBotResult.reasons.join(",")}]`);
     
     let decision: "allow" | "block" = "allow";
@@ -2110,58 +2109,61 @@ Deno.serve(async (req) => {
 
     const redirectUrl = decision === "allow" ? link.target_url : link.safe_url;
     
-    console.log(`[Cloaker] Decision: ${decision}${blockReason ? ` (${blockReason})` : ""}`);
-    console.log(`[Cloaker] Device: ${deviceType}, Country: ${cfCountry || "unknown"}, IP: ${cfIp}, Bot: ${isBot}`);
-    console.log(`[Cloaker] Redirecting to: ${redirectUrl.substring(0, 50)}...`);
+    console.log(`[Cloaker] GET ${decision} (${Date.now() - startTime}ms) ${blockReason || "clean"}`);
 
-    // Log async with Google Ads info
-    (async () => {
-      try {
-        await supabase.from("cloaker_visitors").insert({
-          link_id: link.id,
-          fingerprint_hash: hashString(userAgent + cfIp),
-          score: decision === "allow" ? 100 : 0,
-          decision,
-          user_agent: userAgent,
-          ip_address: cfIp,
-          country_code: cfCountry,
-          platform: deviceType,
-          is_bot: isBot,
-        });
-        await supabase.from("cloaked_links").update({ clicks_count: link.clicks_count + 1 }).eq("id", link.id);
-      } catch (e) {
-        console.error("[Cloaker] Log error:", e);
-      }
-    })();
+    // ASYNC LOG: Don't block the redirect
+    setTimeout(() => {
+      supabase.from("cloaker_visitors").insert({
+        link_id: link.id,
+        fingerprint_hash: hashString(userAgent + cfIp),
+        score: decision === "allow" ? 100 : 0,
+        decision,
+        user_agent: userAgent,
+        ip_address: cfIp,
+        country_code: cfCountry,
+        platform: deviceType,
+        is_bot: isBot,
+      }).then(() => {
+        supabase.from("cloaked_links").update({ clicks_count: link.clicks_count + 1 }).eq("id", link.id);
+      });
+    }, 0);
 
     return Response.redirect(redirectUrl, 302);
   }
 
-  // === POST: Full fingerprint analysis ===
+  // === POST: Fast fingerprint analysis ===
   try {
     const body = await req.json();
     const { slug, fingerprint } = body;
     
-    console.log(`[Cloaker] POST Processing: ${slug}`);
+    // FAST: Get link and UA detection in parallel
+    const ua = req.headers.get("user-agent") || "";
+    const cfIp = req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "";
+    
+    const [linkResult, quickBotCheck] = await Promise.all([
+      supabase.from("cloaked_links").select("*").eq("slug", slug).eq("is_active", true).single(),
+      Promise.resolve(detectGoogleAdsBot(ua, cfIp, req.headers)),
+    ]);
 
-    const { data: link, error } = await supabase
-      .from("cloaked_links")
-      .select("*")
-      .eq("slug", slug)
-      .eq("is_active", true)
-      .single();
+    const { data: link, error } = linkResult;
 
     if (error || !link) {
-      console.log("[Cloaker] Link not found");
       return new Response(
         JSON.stringify({ error: "Link not found" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 }
       );
     }
 
+    // FAST PATH: If definitive bot, redirect immediately without full analysis
+    if (link.block_bots && quickBotCheck.isDefinitive) {
+      console.log(`[Cloaker] POST FAST-BLOCK: Definitive bot (${Date.now() - startTime}ms)`);
+      return new Response(
+        JSON.stringify({ redirectUrl: link.safe_url, decision: "blocked_definitive_bot" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     if (!fingerprint) {
-      console.log("[Cloaker] No fingerprint - blocking");
-      const ua = req.headers.get("user-agent") || "";
       const isBot = BOT_UA_PATTERNS.some(p => p.test(ua));
       
       if (isBot || link.collect_fingerprint) {
@@ -2171,25 +2173,19 @@ Deno.serve(async (req) => {
         );
       }
 
-      await supabase.from("cloaked_links").update({ clicks_count: link.clicks_count + 1 }).eq("id", link.id);
       return new Response(
         JSON.stringify({ redirectUrl: link.target_url, decision: "allowed_basic" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Calculate comprehensive score with all new analysis
+    // Calculate score (optimized to skip heavy operations for obvious bots)
     const scoreResult = await calculateScore(fingerprint as FingerprintData, link, req.headers, supabase);
     const fingerprintHash = generateFingerprintHash(fingerprint);
     
-    console.log(`[Cloaker] Score: ${scoreResult.total}, Risk: ${scoreResult.riskLevel}, Confidence: ${scoreResult.confidence}%`);
-    console.log(`[Cloaker] Breakdown: FP=${scoreResult.fingerprint}, B=${scoreResult.behavior}, N=${scoreResult.network}, A=${scoreResult.automation}, CL=${scoreResult.crossLayer}, E=${scoreResult.entropy}`);
-    console.log(`[Cloaker] CrossLayer Issues: ${scoreResult.crossLayerIssues.slice(0, 5).join(", ") || "none"}`);
-    console.log(`[Cloaker] Entropy: overNorm=${scoreResult.entropyAnalysis.overNormalized}, lowEnt=${scoreResult.entropyAnalysis.lowEntropy}`);
-    console.log(`[Cloaker] Flags: ${scoreResult.flags.slice(0, 10).join(", ") || "none"}`);
+    console.log(`[Cloaker] POST Score=${scoreResult.total} Risk=${scoreResult.riskLevel} (${Date.now() - startTime}ms)`);
 
     const cfCountry = req.headers.get("cf-ipcountry") || req.headers.get("x-vercel-ip-country");
-    const cfIp = req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
     const cfCity = req.headers.get("cf-city") || "";
 
     // Decision logic with probabilistic approach
