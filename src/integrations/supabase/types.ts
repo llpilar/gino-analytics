@@ -164,6 +164,155 @@ export type Database = {
         }
         Relationships: []
       }
+      cloaker_ml_feedback: {
+        Row: {
+          corrected_decision: string
+          created_at: string
+          feedback_type: string
+          id: string
+          link_id: string | null
+          original_decision: string
+          visitor_id: string | null
+        }
+        Insert: {
+          corrected_decision: string
+          created_at?: string
+          feedback_type: string
+          id?: string
+          link_id?: string | null
+          original_decision: string
+          visitor_id?: string | null
+        }
+        Update: {
+          corrected_decision?: string
+          created_at?: string
+          feedback_type?: string
+          id?: string
+          link_id?: string | null
+          original_decision?: string
+          visitor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloaker_ml_feedback_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "cloaked_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cloaker_ml_feedback_visitor_id_fkey"
+            columns: ["visitor_id"]
+            isOneToOne: false
+            referencedRelation: "cloaker_visitors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cloaker_ml_patterns: {
+        Row: {
+          approve_count: number
+          block_count: number
+          confidence_score: number
+          created_at: string
+          false_positive_count: number
+          id: string
+          last_seen_at: string
+          metadata: Json | null
+          pattern_type: string
+          pattern_value: string
+          updated_at: string
+          weight_adjustment: number
+        }
+        Insert: {
+          approve_count?: number
+          block_count?: number
+          confidence_score?: number
+          created_at?: string
+          false_positive_count?: number
+          id?: string
+          last_seen_at?: string
+          metadata?: Json | null
+          pattern_type: string
+          pattern_value: string
+          updated_at?: string
+          weight_adjustment?: number
+        }
+        Update: {
+          approve_count?: number
+          block_count?: number
+          confidence_score?: number
+          created_at?: string
+          false_positive_count?: number
+          id?: string
+          last_seen_at?: string
+          metadata?: Json | null
+          pattern_type?: string
+          pattern_value?: string
+          updated_at?: string
+          weight_adjustment?: number
+        }
+        Relationships: []
+      }
+      cloaker_ml_thresholds: {
+        Row: {
+          automation_weight: number
+          behavior_weight: number
+          block_rate: number
+          created_at: string
+          false_positive_rate: number
+          fingerprint_weight: number
+          id: string
+          last_adjusted_at: string
+          learning_rate: number
+          link_id: string | null
+          min_score_adjusted: number
+          network_weight: number
+          total_decisions: number
+          updated_at: string
+        }
+        Insert: {
+          automation_weight?: number
+          behavior_weight?: number
+          block_rate?: number
+          created_at?: string
+          false_positive_rate?: number
+          fingerprint_weight?: number
+          id?: string
+          last_adjusted_at?: string
+          learning_rate?: number
+          link_id?: string | null
+          min_score_adjusted?: number
+          network_weight?: number
+          total_decisions?: number
+          updated_at?: string
+        }
+        Update: {
+          automation_weight?: number
+          behavior_weight?: number
+          block_rate?: number
+          created_at?: string
+          false_positive_rate?: number
+          fingerprint_weight?: number
+          id?: string
+          last_adjusted_at?: string
+          learning_rate?: number
+          link_id?: string | null
+          min_score_adjusted?: number
+          network_weight?: number
+          total_decisions?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloaker_ml_thresholds_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: true
+            referencedRelation: "cloaked_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cloaker_visitors: {
         Row: {
           asn: string | null
