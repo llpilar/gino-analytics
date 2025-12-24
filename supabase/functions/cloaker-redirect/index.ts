@@ -6,9 +6,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// ==================== GOOGLE ADS BOT DETECTION (CRITICAL) ====================
+// ==================== GOOGLE ADS BOT DETECTION (CRITICAL - ENHANCED) ====================
 
-// === GOOGLE CRAWLERS BY PURPOSE (Official Documentation - October 2025) ===
+// === GOOGLE CRAWLERS BY PURPOSE (Official Documentation - December 2024) ===
 
 // 1. INDEXING (Core Search) - Main crawlers
 const GOOGLE_INDEXING_PATTERNS = [
@@ -141,12 +141,75 @@ const GOOGLE_ADS_BOT_PATTERNS = [
   /googleusercontent\.com/i,
 ];
 
+// === ENHANCED: Google Ads verification patterns that bypass standard detection ===
+const GOOGLE_ADS_STEALTH_PATTERNS = [
+  // Google Ads Quality Rater patterns (human reviewers with modified browsers)
+  /Chrome\/\d+.*\bGoogle\b/i,
+  /Chrome\/\d+.*\bgoogle\.com\b/i,
+  
+  // Google internal tools
+  /Google-AMPHTML/i,
+  /Google Web Preview/i,
+  /Google-PageRenderer/i,
+  /Google-PhysicalWebDemo/i,
+  /Google-Certificates-Bridge/i,
+  /Google-YouTube-Links/i,
+  /GoogleProducer/i,
+  /GoogleAssociationService/i,
+  /Google-Adwords-Instant/i,
+  /Google-AMPHTML/i,
+  
+  // Lighthouse (used by Google for performance audits of landing pages)
+  /Chrome-Lighthouse/i,
+  /Lighthouse/i,
+  /lighthouse/i,
+  /PSTS\/\d/i, // Privacy Sandbox Testing
+  
+  // Google Web Light (mobile optimization)
+  /googleweblight/i,
+  /Google-HTTP-Java-Client/i,
+  
+  // Google Transparency Report
+  /Google-Transparency-Report/i,
+  
+  // Internal Google testing
+  /Google-Apps-Script/i,
+  /GoogleSecurityScanner/i,
+  /Google-Site-Verification/i,
+];
+
+// === CRITICAL: Browser fingerprint patterns that indicate Google infrastructure ===
+const GOOGLE_INFRASTRUCTURE_INDICATORS = {
+  // Chrome versions commonly used by Google bots (often slightly behind latest)
+  suspiciousChromeVersions: [
+    /Chrome\/119\.0\.\d+\.\d+/,
+    /Chrome\/120\.0\.\d+\.\d+/,
+    /Chrome\/121\.0\.\d+\.\d+/,
+    /Chrome\/122\.0\.\d+\.\d+/,
+  ],
+  
+  // Known Google datacenter ASN patterns
+  googleASNs: [
+    "AS15169", // Google LLC
+    "AS396982", // Google Cloud
+    "AS36492", // Google Data Centers
+    "AS139070", // Google Asia
+    "AS139190", // Google Cloud Asia
+  ],
+  
+  // Specific screen resolutions used by bots
+  botResolutions: [
+    "800x600",
+    "1024x768", 
+    "1366x768",
+    "1920x1080",
+  ],
+};
+
 // Google's known IP ranges (IPv4) - Updated December 2024
-// Source: https://www.gstatic.com/ipranges/goog.json
-// Verification domains: googlebot.com, google.com, storebot.google.com, 
-//                       mediapartners.google.com, adsbot.google.com
+// Source: https://www.gstatic.com/ipranges/goog.json + cloud.json + special-crawlers.json
 const GOOGLE_IP_RANGES = [
-  // Google bot/crawler ranges
+  // Google bot/crawler ranges (crawlers)
   { start: "64.233.160.0", end: "64.233.191.255" },
   { start: "66.102.0.0", end: "66.102.15.255" },
   { start: "66.249.64.0", end: "66.249.95.255" },   // Googlebot main range
@@ -172,6 +235,30 @@ const GOOGLE_IP_RANGES = [
   { start: "66.249.66.0", end: "66.249.66.255" },    // AdsBot-Google
   { start: "66.249.68.0", end: "66.249.69.255" },    // Mediapartners-Google
   { start: "66.249.79.0", end: "66.249.79.255" },    // AdsBot-Google-Mobile
+  
+  // === NEW: Additional Google ranges often missed ===
+  // Google special crawlers (user-triggered fetchers)
+  { start: "192.178.0.0", end: "192.178.255.255" },
+  { start: "199.36.153.0", end: "199.36.153.255" },  // Private Google access
+  { start: "199.36.154.0", end: "199.36.155.255" },
+  
+  // Google global cache
+  { start: "74.114.24.0", end: "74.114.31.255" },
+  
+  // Additional Google Cloud Platform ranges
+  { start: "23.236.48.0", end: "23.236.63.255" },
+  { start: "23.251.128.0", end: "23.251.191.255" },
+  { start: "107.167.160.0", end: "107.167.191.255" },
+  { start: "107.178.192.0", end: "107.178.255.255" },
+  { start: "162.216.148.0", end: "162.216.151.255" },
+  { start: "162.222.176.0", end: "162.222.183.255" },
+  
+  // Google Fiber
+  { start: "136.22.0.0", end: "136.23.255.255" },
+  
+  // Cloud CDN / Load Balancer
+  { start: "34.128.0.0", end: "34.159.255.255" },
+  { start: "35.186.0.0", end: "35.186.127.255" },
 ];
 
 // Convert IP to number for range checking
@@ -199,12 +286,219 @@ function isGoogleIP(ip: string): boolean {
   return false;
 }
 
+// === NEW: Check for suspicious timing patterns ===
+function hasGoogleTimingPattern(headers: Headers): boolean {
+  // Google bots often have very consistent timing
+  const requestTime = headers.get("x-request-time") || "";
+  const cfRay = headers.get("cf-ray") || "";
+  
+  // Check for rapid sequential requests (bots crawl fast)
+  return false; // Placeholder for timing analysis
+}
+
+// === NEW: Analyze header anomalies specific to Google ===
+function analyzeGoogleHeaders(headers: Headers): { score: number; reasons: string[] } {
+  const reasons: string[] = [];
+  let score = 0;
+  
+  // 1. Check Via header
+  const via = headers.get("via") || "";
+  if (via.toLowerCase().includes("google") || via.toLowerCase().includes("gws")) {
+    score += 25;
+    reasons.push("google_via_header");
+  }
+  
+  // 2. Check for Google-specific headers
+  const googleHeaders = [
+    "x-google-cache",
+    "x-goog-authenticated-user-email",
+    "x-goog-authenticated-user-id", 
+    "x-goog-iap-jwt-assertion",
+    "x-goog-request-params",
+    "x-goog-user-project",
+    "x-gfe-backend-request-info",
+    "x-gfe-request-trace",
+    "x-google-serverless-node-envoy-config-path",
+  ];
+  
+  for (const h of googleHeaders) {
+    if (headers.get(h)) {
+      score += 40;
+      reasons.push(`google_header_${h}`);
+    }
+  }
+  
+  // 3. Check Accept header patterns
+  const accept = headers.get("accept") || "";
+  
+  // Google bots often have simplified Accept headers
+  if (accept === "text/html" || accept === "*/*") {
+    score += 10;
+    reasons.push("minimal_accept_header");
+  }
+  
+  // 4. Check Accept-Language
+  const acceptLang = headers.get("accept-language") || "";
+  if (acceptLang === "" || acceptLang === "*" || acceptLang === "en-US,en;q=0.9") {
+    score += 8;
+    reasons.push("generic_accept_language");
+  }
+  
+  // 5. Check Accept-Encoding (bots often have standard patterns)
+  const acceptEncoding = headers.get("accept-encoding") || "";
+  if (acceptEncoding === "gzip, deflate" || acceptEncoding === "gzip, deflate, br") {
+    // Common but not definitive
+    score += 3;
+  }
+  
+  // 6. Check for missing headers that real browsers have
+  const secFetchDest = headers.get("sec-fetch-dest") || "";
+  const secFetchMode = headers.get("sec-fetch-mode") || "";
+  const secFetchSite = headers.get("sec-fetch-site") || "";
+  const secFetchUser = headers.get("sec-fetch-user") || "";
+  
+  const missingSec = !secFetchDest && !secFetchMode && !secFetchSite;
+  if (missingSec) {
+    score += 15;
+    reasons.push("missing_sec_fetch_headers");
+  }
+  
+  // 7. Check Upgrade-Insecure-Requests
+  const upgradeInsecure = headers.get("upgrade-insecure-requests") || "";
+  if (!upgradeInsecure) {
+    score += 5;
+    reasons.push("missing_upgrade_insecure");
+  }
+  
+  // 8. Check for DNT header (bots rarely set it)
+  const dnt = headers.get("dnt") || "";
+  if (!dnt) {
+    score += 2;
+  }
+  
+  // 9. Check referer (Google bots often have no referer or google.com referer)
+  const referer = headers.get("referer") || "";
+  if (!referer) {
+    score += 5;
+    reasons.push("no_referer");
+  } else if (/google\.com/i.test(referer)) {
+    score += 15;
+    reasons.push("google_referer");
+  }
+  
+  // 10. Check CF-Connecting-IP vs X-Forwarded-For consistency
+  const cfIp = headers.get("cf-connecting-ip") || "";
+  const xff = headers.get("x-forwarded-for") || "";
+  if (cfIp && xff && !xff.includes(cfIp)) {
+    score += 10;
+    reasons.push("ip_header_mismatch");
+  }
+  
+  return { score, reasons };
+}
+
+// === NEW: Deep user-agent analysis ===
+function deepAnalyzeUserAgent(userAgent: string): { score: number; reasons: string[]; isDefiniteBot: boolean } {
+  const reasons: string[] = [];
+  let score = 0;
+  let isDefiniteBot = false;
+  
+  const ua = userAgent.toLowerCase();
+  
+  // 1. Direct bot indicators (definitive)
+  if (/googlebot|adsbot|mediapartners|storebot/i.test(userAgent)) {
+    isDefiniteBot = true;
+    score += 100;
+    reasons.push("definitive_google_bot_ua");
+  }
+  
+  // 2. Check for bot substring anywhere
+  if (/bot/i.test(userAgent) && !/cubot|about/i.test(userAgent)) {
+    score += 50;
+    reasons.push("contains_bot");
+  }
+  
+  // 3. Check for crawler/spider patterns
+  if (/crawler|spider|scraper|fetch|http/i.test(userAgent)) {
+    score += 40;
+    reasons.push("crawler_pattern");
+  }
+  
+  // 4. Check for headless browser signatures
+  if (/headless|phantomjs|nightmare|electron|puppeteer|playwright|selenium|webdriver/i.test(userAgent)) {
+    score += 60;
+    reasons.push("headless_signature");
+  }
+  
+  // 5. Stealth patterns - Google's hidden inspection tools
+  for (const pattern of GOOGLE_ADS_STEALTH_PATTERNS) {
+    if (pattern.test(userAgent)) {
+      score += 30;
+      reasons.push("google_stealth_pattern");
+      break;
+    }
+  }
+  
+  // 6. Check Chrome version anomalies
+  const chromeMatch = userAgent.match(/Chrome\/(\d+)\./);
+  if (chromeMatch) {
+    const chromeVersion = parseInt(chromeMatch[1]);
+    // Current stable is around 120-130. Very old or very new = suspicious
+    if (chromeVersion < 90 || chromeVersion > 140) {
+      score += 20;
+      reasons.push("unusual_chrome_version");
+    }
+  }
+  
+  // 7. Check for inconsistent platform claims
+  if (/windows/i.test(ua) && /android/i.test(ua)) {
+    score += 25;
+    reasons.push("platform_mismatch");
+  }
+  if (/iphone/i.test(ua) && /android/i.test(ua)) {
+    score += 25;
+    reasons.push("platform_mismatch");
+  }
+  if (/linux/i.test(ua) && /windows nt/i.test(ua)) {
+    score += 25;
+    reasons.push("platform_mismatch");
+  }
+  
+  // 8. Check for missing expected components
+  // Real Chrome always has AppleWebKit, Safari token
+  if (/chrome/i.test(ua) && !/applewebkit/i.test(ua)) {
+    score += 30;
+    reasons.push("missing_webkit");
+  }
+  
+  // 9. Check for empty or minimal UA
+  if (userAgent.length < 50) {
+    score += 35;
+    reasons.push("minimal_user_agent");
+  }
+  
+  // 10. Check for specific Google internal patterns
+  if (/google\.com|googleapis|gstatic/i.test(userAgent)) {
+    score += 25;
+    reasons.push("google_internal_reference");
+  }
+  
+  // 11. Check for URL in UA (common for bots)
+  if (/https?:\/\//i.test(userAgent)) {
+    score += 20;
+    reasons.push("url_in_ua");
+  }
+  
+  return { score, reasons, isDefiniteBot };
+}
+
 // Comprehensive Google Ads bot detection
 interface GoogleBotResult {
   isGoogleBot: boolean;
   isAdsBot: boolean;
   confidence: number;
   reasons: string[];
+  isDefinitive: boolean;
 }
 
 function detectGoogleAdsBot(userAgent: string, ip: string, headers: Headers): GoogleBotResult {
@@ -212,6 +506,7 @@ function detectGoogleAdsBot(userAgent: string, ip: string, headers: Headers): Go
   let isGoogleBot = false;
   let isAdsBot = false;
   let confidence = 0;
+  let isDefinitive = false;
 
   // 1. User-Agent check (most reliable)
   const isAdsUA = GOOGLE_ADS_BOT_PATTERNS.some(p => p.test(userAgent));
@@ -220,68 +515,105 @@ function detectGoogleAdsBot(userAgent: string, ip: string, headers: Headers): Go
     isAdsBot = true;
     confidence += 50;
     reasons.push("google_ads_user_agent");
+    isDefinitive = true;
   }
 
-  // 2. IP range check
+  // 2. Deep user-agent analysis
+  const uaAnalysis = deepAnalyzeUserAgent(userAgent);
+  if (uaAnalysis.isDefiniteBot) {
+    isGoogleBot = true;
+    isDefinitive = true;
+    confidence = 100;
+    reasons.push(...uaAnalysis.reasons);
+  } else if (uaAnalysis.score > 30) {
+    confidence += Math.min(uaAnalysis.score / 2, 30);
+    reasons.push(...uaAnalysis.reasons);
+  }
+
+  // 3. IP range check
   if (isGoogleIP(ip)) {
     isGoogleBot = true;
-    confidence += 30;
+    confidence += 35;
     reasons.push("google_ip_range");
     
-    // If IP is Google AND UA mentions ads, very high confidence
+    // If IP is Google AND UA mentions ads, definitive
     if (isAdsUA) {
       confidence = 100;
+      isDefinitive = true;
     }
   }
 
-  // 3. Check for Google-specific headers
-  const via = headers.get("via") || "";
-  const xForwardedFor = headers.get("x-forwarded-for") || "";
+  // 4. Header analysis
+  const headerAnalysis = analyzeGoogleHeaders(headers);
+  confidence += Math.min(headerAnalysis.score, 40);
+  reasons.push(...headerAnalysis.reasons);
   
+  if (headerAnalysis.score >= 30) {
+    isGoogleBot = true;
+  }
+
+  // 5. Check for Google-specific via/proxy headers
+  const via = headers.get("via") || "";
   if (via.toLowerCase().includes("google") || via.toLowerCase().includes("gws")) {
-    confidence += 15;
+    confidence += 20;
     reasons.push("google_via_header");
     isGoogleBot = true;
   }
 
-  // 4. Check Accept-Language (Google bots often have specific patterns)
+  // 6. Check Accept-Language (Google bots often have specific patterns)
   const acceptLang = headers.get("accept-language") || "";
   if (acceptLang === "" || acceptLang === "*") {
-    // Bots often have empty or wildcard Accept-Language
     if (isGoogleBot) {
-      confidence += 5;
+      confidence += 8;
       reasons.push("empty_accept_language");
     }
   }
 
-  // 5. Check for missing typical browser headers
-  const acceptEncoding = headers.get("accept-encoding") || "";
-  const accept = headers.get("accept") || "";
-  
-  // Google bots have specific accept patterns
-  if (accept.includes("text/html") && !accept.includes("application/xhtml+xml") && isGoogleBot) {
-    confidence += 5;
-    reasons.push("bot_accept_pattern");
-  }
-
-  // 6. Reverse DNS check hint (if from Google IP but claims Chrome)
-  if (isGoogleIP(ip) && /chrome/i.test(userAgent) && !/googlebot/i.test(userAgent)) {
-    // Google IP but claiming to be regular Chrome - suspicious
-    confidence += 10;
+  // 7. Reverse DNS hint (if from Google IP but claims Chrome)
+  if (isGoogleIP(ip) && /chrome/i.test(userAgent) && !/googlebot|adsbot/i.test(userAgent)) {
+    confidence += 15;
     reasons.push("google_ip_spoofed_ua");
     isGoogleBot = true;
   }
 
-  // 7. Check specific AdsBot patterns
+  // 8. Check specific AdsBot patterns
   if (/adsbot/i.test(userAgent)) {
     isAdsBot = true;
-    confidence = Math.max(confidence, 95);
+    isDefinitive = true;
+    confidence = Math.max(confidence, 98);
   }
   
   if (/mediapartners/i.test(userAgent)) {
     isAdsBot = true;
-    confidence = Math.max(confidence, 95);
+    isDefinitive = true;
+    confidence = Math.max(confidence, 98);
     reasons.push("mediapartners_google");
+  }
+
+  // 9. === NEW: Stealth pattern detection ===
+  for (const pattern of GOOGLE_ADS_STEALTH_PATTERNS) {
+    if (pattern.test(userAgent)) {
+      confidence += 25;
+      reasons.push("stealth_google_pattern");
+      isGoogleBot = true;
+      break;
+    }
+  }
+
+  // 10. === NEW: Combined signals threshold ===
+  // If we have multiple weak signals, treat as Google bot
+  const signalCount = reasons.length;
+  if (signalCount >= 4 && confidence >= 40) {
+    isGoogleBot = true;
+    confidence = Math.max(confidence, 75);
+  }
+
+  // 11. === NEW: Check for Lighthouse specifically ===
+  if (/lighthouse|chrome-lighthouse/i.test(userAgent)) {
+    isGoogleBot = true;
+    isAdsBot = true; // Lighthouse is used for landing page quality
+    confidence = Math.max(confidence, 90);
+    reasons.push("lighthouse");
   }
 
   return {
@@ -289,6 +621,7 @@ function detectGoogleAdsBot(userAgent: string, ip: string, headers: Headers): Go
     isAdsBot,
     confidence: Math.min(100, confidence),
     reasons,
+    isDefinitive,
   };
 }
 
@@ -1643,24 +1976,30 @@ Deno.serve(async (req) => {
     const deviceType = getDeviceType(userAgent);
     const isGenericBot = BOT_UA_PATTERNS.some(p => p.test(userAgent));
     
-    // === GOOGLE ADS BOT DETECTION (CRITICAL) ===
+    // === GOOGLE ADS BOT DETECTION (CRITICAL - ENHANCED) ===
     const googleBotResult = detectGoogleAdsBot(userAgent, cfIp, req.headers);
     const isGoogleAdsBot = googleBotResult.isAdsBot;
     const isGoogleBot = googleBotResult.isGoogleBot;
+    const isDefinitiveGoogleBot = googleBotResult.isDefinitive;
     const isBot = isGenericBot || isGoogleBot;
     
-    console.log(`[Cloaker] Google Ads Check: isAdsBot=${isGoogleAdsBot}, isGoogleBot=${isGoogleBot}, confidence=${googleBotResult.confidence}%, reasons=[${googleBotResult.reasons.join(",")}]`);
+    console.log(`[Cloaker] Google Check: isAdsBot=${isGoogleAdsBot}, isGoogleBot=${isGoogleBot}, isDefinitive=${isDefinitiveGoogleBot}, confidence=${googleBotResult.confidence}%, reasons=[${googleBotResult.reasons.join(",")}]`);
     
     let decision: "allow" | "block" = "allow";
     let blockReason = "";
 
-    // PRIORITY 1: Google Ads Bot - ALWAYS block when block_bots is enabled
-    if (link.block_bots && isGoogleAdsBot) {
+    // PRIORITY 0: Definitive Google Bot - ALWAYS block when block_bots enabled
+    if (link.block_bots && isDefinitiveGoogleBot) {
       decision = "block";
-      blockReason = `Google Ads Bot (${googleBotResult.reasons.join(", ")})`;
+      blockReason = `Definitive Google Bot (${googleBotResult.reasons.slice(0, 3).join(", ")})`;
     }
-    // PRIORITY 2: Any Google Bot (crawler, inspector, etc.)
-    else if (link.block_bots && isGoogleBot && googleBotResult.confidence >= 70) {
+    // PRIORITY 1: Google Ads Bot - ALWAYS block when block_bots is enabled
+    else if (link.block_bots && isGoogleAdsBot) {
+      decision = "block";
+      blockReason = `Google Ads Bot (${googleBotResult.reasons.slice(0, 3).join(", ")})`;
+    }
+    // PRIORITY 2: High confidence Google Bot
+    else if (link.block_bots && isGoogleBot && googleBotResult.confidence >= 60) {
       decision = "block";
       blockReason = `Google Bot (${googleBotResult.confidence}% confidence)`;
     }
@@ -1683,10 +2022,15 @@ Deno.serve(async (req) => {
       decision = "block";
       blockReason = "Bot detected (UA pattern)";
     }
-    // PRIORITY 6: Google IP but not clearly a bot (suspicious)
-    else if (link.block_bots && isGoogleIP(cfIp)) {
+    // PRIORITY 6: Google IP with medium confidence
+    else if (link.block_bots && isGoogleIP(cfIp) && googleBotResult.confidence >= 40) {
       decision = "block";
-      blockReason = "Google IP range (possible bot)";
+      blockReason = `Google IP (${googleBotResult.confidence}% confidence)`;
+    }
+    // PRIORITY 7: Multiple weak signals = suspicious
+    else if (link.block_bots && googleBotResult.reasons.length >= 3 && googleBotResult.confidence >= 35) {
+      decision = "block";
+      blockReason = `Multiple signals (${googleBotResult.reasons.length} flags, ${googleBotResult.confidence}% confidence)`;
     }
 
     const redirectUrl = decision === "allow" ? link.target_url : link.safe_url;
