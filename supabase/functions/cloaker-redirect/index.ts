@@ -6,6 +6,92 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// ==================== IN-MEMORY CACHE ====================
+// Cache links for 60 seconds to avoid repeated DB queries
+const linkCache = new Map<string, { link: any; timestamp: number }>();
+const CACHE_TTL = 60000; // 60 seconds
+
+function getCachedLink(slug: string): any | null {
+  const cached = linkCache.get(slug);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.link;
+  }
+  linkCache.delete(slug);
+  return null;
+}
+
+function setCachedLink(slug: string, link: any): void {
+  // Limit cache size to prevent memory issues
+  if (linkCache.size > 1000) {
+    const oldest = linkCache.keys().next().value;
+    if (oldest) linkCache.delete(oldest);
+  }
+  linkCache.set(slug, { link, timestamp: Date.now() });
+}
+
+// ==================== INSTANT BOT DETECTION (NO REGEX - FASTEST) ====================
+// Pre-compiled lowercase patterns for O(1) lookup
+const INSTANT_BOT_KEYWORDS = new Set([
+  "googlebot", "adsbot", "mediapartners", "storebot", "bingbot", "yandexbot",
+  "baiduspider", "facebookexternalhit", "facebot", "twitterbot", "linkedinbot",
+  "slackbot", "telegrambot", "whatsapp", "discordbot", "applebot", "duckduckbot",
+  "semrush", "ahrefs", "mj12bot", "dotbot", "petalbot", "bytespider",
+  "crawler", "spider", "bot", "crawl", "headless", "phantomjs", "selenium", 
+  "puppeteer", "playwright", "webdriver", "lighthouse", "pagespeed",
+  "curl", "wget", "python", "java/", "axios", "node-fetch", "scrapy",
+]);
+
+// Ultra-fast bot check - no regex, just string includes
+function instantBotCheck(ua: string): boolean {
+  const uaLower = ua.toLowerCase();
+  for (const keyword of INSTANT_BOT_KEYWORDS) {
+    if (uaLower.includes(keyword)) return true;
+  }
+  return false;
+}
+
+// Fast Google-specific check
+function instantGoogleCheck(ua: string, ip: string): { isGoogle: boolean; isDefinitive: boolean } {
+  const uaLower = ua.toLowerCase();
+  
+  // Definitive Google patterns
+  if (uaLower.includes("googlebot") || uaLower.includes("adsbot") || 
+      uaLower.includes("mediapartners") || uaLower.includes("storebot")) {
+    return { isGoogle: true, isDefinitive: true };
+  }
+  
+  // Check Google IP ranges (most common first)
+  if (ip) {
+    const ipParts = ip.split(".").map(Number);
+    if (ipParts.length === 4) {
+      const [a, b] = ipParts;
+      // Most common Google ranges
+      if (a === 66 && b === 249) return { isGoogle: true, isDefinitive: true }; // Googlebot main
+      if (a === 64 && b >= 233 && b <= 233) return { isGoogle: true, isDefinitive: true };
+      if (a === 66 && b === 102) return { isGoogle: true, isDefinitive: true };
+      if (a === 72 && b === 14) return { isGoogle: true, isDefinitive: true };
+      if (a === 74 && b === 125) return { isGoogle: true, isDefinitive: true };
+      if (a === 142 && (b === 250 || b === 251)) return { isGoogle: true, isDefinitive: true };
+      if (a === 172 && b === 217) return { isGoogle: true, isDefinitive: true };
+      if (a === 173 && b === 194) return { isGoogle: true, isDefinitive: true };
+      if (a === 209 && b === 85) return { isGoogle: true, isDefinitive: true };
+      if (a === 216 && (b === 58 || b === 239)) return { isGoogle: true, isDefinitive: true };
+      // Google Cloud (less definitive)
+      if (a === 34 || a === 35 || a === 104 || a === 130 || a === 146) {
+        return { isGoogle: true, isDefinitive: false };
+      }
+    }
+  }
+  
+  // Stealth patterns
+  if (uaLower.includes("lighthouse") || uaLower.includes("pagespeed") ||
+      uaLower.includes("google-") || uaLower.includes("apis-google")) {
+    return { isGoogle: true, isDefinitive: true };
+  }
+  
+  return { isGoogle: false, isDefinitive: false };
+}
+
 // ==================== GOOGLE ADS BOT DETECTION (CRITICAL - ENHANCED) ====================
 
 // === GOOGLE CRAWLERS BY PURPOSE (Official Documentation - December 2024) ===
@@ -2013,11 +2099,7 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-  // === GET: Ultra-fast header-based redirect ===
+  // === GET: ULTRA-FAST header-based redirect ===
   if (req.method === "GET") {
     const url = new URL(req.url);
     const slug = url.searchParams.get("s") || url.searchParams.get("slug");
@@ -2026,112 +2108,145 @@ Deno.serve(async (req) => {
       return new Response("Missing slug parameter", { status: 400 });
     }
     
-    // FAST: Get headers immediately while DB query runs
+    // INSTANT: Get headers first
     const userAgent = req.headers.get("user-agent") || "";
-    const cfCountry = req.headers.get("cf-ipcountry") || req.headers.get("x-vercel-ip-country") || "";
     const cfIp = req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "";
+    const cfCountry = req.headers.get("cf-ipcountry") || req.headers.get("x-vercel-ip-country") || "";
     
-    // FAST: Parallel detection while waiting for DB
-    const [googleBotResult, isGenericBot, deviceType, linkResult] = await Promise.all([
-      Promise.resolve(detectGoogleAdsBot(userAgent, cfIp, req.headers)),
-      Promise.resolve(BOT_UA_PATTERNS.some(p => p.test(userAgent))),
-      Promise.resolve(getDeviceType(userAgent)),
-      supabase.from("cloaked_links").select("id, slug, safe_url, target_url, is_active, block_bots, allowed_devices, allowed_countries, blocked_countries, clicks_count").eq("slug", slug).single(),
-    ]);
+    // INSTANT BOT CHECK (< 1ms) - before anything else
+    const instantBot = instantBotCheck(userAgent);
+    const instantGoogle = instantGoogleCheck(userAgent, cfIp);
     
-    const { data: link, error } = linkResult;
+    // Try cache first (< 1ms)
+    let link = getCachedLink(slug);
     
-    if (error || !link) {
-      console.log(`[Cloaker] Link not found: ${slug} (${Date.now() - startTime}ms)`);
-      return new Response("Not found", { status: 404 });
+    if (!link) {
+      // Cache miss - query DB
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const supabase = createClient(supabaseUrl, supabaseServiceKey);
+      
+      const { data, error } = await supabase
+        .from("cloaked_links")
+        .select("id, slug, safe_url, target_url, is_active, block_bots, allowed_devices, allowed_countries, blocked_countries, clicks_count")
+        .eq("slug", slug)
+        .single();
+      
+      if (error || !data) {
+        console.log(`[Cloaker] 404 ${slug} (${Date.now() - startTime}ms)`);
+        return new Response("Not found", { status: 404 });
+      }
+      
+      link = data;
+      setCachedLink(slug, link);
     }
     
     if (!link.is_active) {
-      console.log(`[Cloaker] Link inactive (${Date.now() - startTime}ms)`);
       return Response.redirect(link.safe_url, 302);
     }
-
-    const isGoogleAdsBot = googleBotResult.isAdsBot;
-    const isGoogleBot = googleBotResult.isGoogleBot;
-    const isDefinitiveGoogleBot = googleBotResult.isDefinitive;
-    const isBot = isGenericBot || isGoogleBot;
     
-    console.log(`[Cloaker] GET: Google=${isGoogleBot}, Definitive=${isDefinitiveGoogleBot}, Conf=${googleBotResult.confidence}%`);
-    console.log(`[Cloaker] Google Check: isAdsBot=${isGoogleAdsBot}, isGoogleBot=${isGoogleBot}, isDefinitive=${isDefinitiveGoogleBot}, confidence=${googleBotResult.confidence}%, reasons=[${googleBotResult.reasons.join(",")}]`);
+    // FAST DECISION for obvious bots
+    if (link.block_bots && (instantGoogle.isDefinitive || instantBot)) {
+      console.log(`[Cloaker] FAST-BLOCK ${Date.now() - startTime}ms bot=${instantBot} google=${instantGoogle.isDefinitive}`);
+      
+      // Async log - don't wait
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const supabase = createClient(supabaseUrl, supabaseServiceKey);
+      
+      queueMicrotask(() => {
+        supabase.from("cloaker_visitors").insert({
+          link_id: link.id,
+          fingerprint_hash: "fast-block",
+          score: 0,
+          decision: "block",
+          user_agent: userAgent.substring(0, 500),
+          ip_address: cfIp,
+          country_code: cfCountry,
+          is_bot: true,
+        });
+        supabase.from("cloaked_links").update({ clicks_count: (link.clicks_count || 0) + 1 }).eq("id", link.id);
+      });
+      
+      return Response.redirect(link.safe_url, 302);
+    }
     
-    let decision: "allow" | "block" = "allow";
-    let blockReason = "";
-
-    // PRIORITY 0: Definitive Google Bot - ALWAYS block when block_bots enabled
-    if (link.block_bots && isDefinitiveGoogleBot) {
-      decision = "block";
-      blockReason = `Definitive Google Bot (${googleBotResult.reasons.slice(0, 3).join(", ")})`;
+    // Device filter
+    const deviceType = getDeviceType(userAgent);
+    if (link.allowed_devices?.length > 0 && !link.allowed_devices.includes(deviceType)) {
+      return Response.redirect(link.safe_url, 302);
     }
-    // PRIORITY 1: Google Ads Bot - ALWAYS block when block_bots is enabled
-    else if (link.block_bots && isGoogleAdsBot) {
-      decision = "block";
-      blockReason = `Google Ads Bot (${googleBotResult.reasons.slice(0, 3).join(", ")})`;
-    }
-    // PRIORITY 2: High confidence Google Bot
-    else if (link.block_bots && isGoogleBot && googleBotResult.confidence >= 60) {
-      decision = "block";
-      blockReason = `Google Bot (${googleBotResult.confidence}% confidence)`;
-    }
-    // PRIORITY 3: Device filter
-    else if (link.allowed_devices?.length > 0 && !link.allowed_devices.includes(deviceType)) {
-      decision = "block";
-      blockReason = `Device ${deviceType} not allowed`;
-    }
-    // PRIORITY 4: Country filters
-    else if (link.allowed_countries?.length > 0 && cfCountry && !link.allowed_countries.includes(cfCountry)) {
-      decision = "block";
-      blockReason = `Country ${cfCountry} not allowed`;
-    }
-    else if (link.blocked_countries?.length > 0 && cfCountry && link.blocked_countries.includes(cfCountry)) {
-      decision = "block";
-      blockReason = `Country ${cfCountry} blocked`;
-    }
-    // PRIORITY 5: Other bots
-    else if (link.block_bots && isGenericBot) {
-      decision = "block";
-      blockReason = "Bot detected (UA pattern)";
-    }
-    // PRIORITY 6: Google IP with medium confidence
-    else if (link.block_bots && isGoogleIP(cfIp) && googleBotResult.confidence >= 40) {
-      decision = "block";
-      blockReason = `Google IP (${googleBotResult.confidence}% confidence)`;
-    }
-    // PRIORITY 7: Multiple weak signals = suspicious
-    else if (link.block_bots && googleBotResult.reasons.length >= 3 && googleBotResult.confidence >= 35) {
-      decision = "block";
-      blockReason = `Multiple signals (${googleBotResult.reasons.length} flags, ${googleBotResult.confidence}% confidence)`;
-    }
-
-    const redirectUrl = decision === "allow" ? link.target_url : link.safe_url;
     
-    console.log(`[Cloaker] GET ${decision} (${Date.now() - startTime}ms) ${blockReason || "clean"}`);
-
-    // ASYNC LOG: Don't block the redirect
-    setTimeout(() => {
+    // Country filters
+    if (link.allowed_countries?.length > 0 && cfCountry && !link.allowed_countries.includes(cfCountry)) {
+      return Response.redirect(link.safe_url, 302);
+    }
+    if (link.blocked_countries?.length > 0 && cfCountry && link.blocked_countries.includes(cfCountry)) {
+      return Response.redirect(link.safe_url, 302);
+    }
+    
+    // Extended bot check only if not obvious
+    if (link.block_bots) {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const supabase = createClient(supabaseUrl, supabaseServiceKey);
+      
+      const googleBotResult = detectGoogleAdsBot(userAgent, cfIp, req.headers);
+      const isGenericBot = BOT_UA_PATTERNS.some(p => p.test(userAgent));
+      
+      if (googleBotResult.isDefinitive || googleBotResult.isAdsBot || 
+          (googleBotResult.isGoogleBot && googleBotResult.confidence >= 60) ||
+          isGenericBot || isGoogleIP(cfIp)) {
+        
+        console.log(`[Cloaker] BLOCK ${Date.now() - startTime}ms conf=${googleBotResult.confidence}%`);
+        
+        queueMicrotask(() => {
+          supabase.from("cloaker_visitors").insert({
+            link_id: link.id,
+            fingerprint_hash: "extended-block",
+            score: 0,
+            decision: "block",
+            user_agent: userAgent.substring(0, 500),
+            ip_address: cfIp,
+            country_code: cfCountry,
+            is_bot: true,
+          });
+          supabase.from("cloaked_links").update({ clicks_count: (link.clicks_count || 0) + 1 }).eq("id", link.id);
+        });
+        
+        return Response.redirect(link.safe_url, 302);
+      }
+    }
+    
+    // ALLOW - looks clean
+    console.log(`[Cloaker] ALLOW ${Date.now() - startTime}ms`);
+    
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    queueMicrotask(() => {
       supabase.from("cloaker_visitors").insert({
         link_id: link.id,
-        fingerprint_hash: hashString(userAgent + cfIp),
-        score: decision === "allow" ? 100 : 0,
-        decision,
-        user_agent: userAgent,
+        fingerprint_hash: "get-allow",
+        score: 100,
+        decision: "allow",
+        user_agent: userAgent.substring(0, 500),
         ip_address: cfIp,
         country_code: cfCountry,
         platform: deviceType,
-        is_bot: isBot,
-      }).then(() => {
-        supabase.from("cloaked_links").update({ clicks_count: link.clicks_count + 1 }).eq("id", link.id);
+        is_bot: false,
       });
-    }, 0);
-
-    return Response.redirect(redirectUrl, 302);
+      supabase.from("cloaked_links").update({ clicks_count: (link.clicks_count || 0) + 1 }).eq("id", link.id);
+    });
+    
+    return Response.redirect(link.target_url, 302);
   }
 
-  // === POST: Fast fingerprint analysis ===
+  // === POST: Fingerprint analysis ===
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
   try {
     const body = await req.json();
     const { slug, fingerprint } = body;
