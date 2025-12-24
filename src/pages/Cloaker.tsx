@@ -44,7 +44,21 @@ export default function Cloaker() {
   const { links, isLoading, createLink, updateLink, deleteLink } = useCloakedLinks();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingLink, setEditingLink] = useState<{ id: string; targetUrl: string; safeUrl: string } | null>(null);
+  const [editingLink, setEditingLink] = useState<{
+    id: string;
+    name: string;
+    slug: string;
+    safeUrl: string;
+    targetUrl: string;
+    allowedCountries: string[];
+    blockedCountries: string[];
+    allowedDevices: string[];
+    blockBots: boolean;
+    minScore: number;
+    collectFingerprint: boolean;
+    requireBehavior: boolean;
+    behaviorTimeMs: number;
+  } | null>(null);
   const [selectedLinkId, setSelectedLinkId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
@@ -137,7 +151,21 @@ export default function Cloaker() {
 
   const handleEditClick = (link: typeof links[0], e: React.MouseEvent) => {
     e.stopPropagation();
-    setEditingLink({ id: link.id, targetUrl: link.target_url, safeUrl: link.safe_url });
+    setEditingLink({
+      id: link.id,
+      name: link.name,
+      slug: link.slug,
+      safeUrl: link.safe_url,
+      targetUrl: link.target_url,
+      allowedCountries: link.allowed_countries || [],
+      blockedCountries: link.blocked_countries || [],
+      allowedDevices: link.allowed_devices || [],
+      blockBots: link.block_bots,
+      minScore: link.min_score ?? 40,
+      collectFingerprint: link.collect_fingerprint ?? true,
+      requireBehavior: link.require_behavior ?? false,
+      behaviorTimeMs: link.behavior_time_ms ?? 2000,
+    });
     setIsEditDialogOpen(true);
   };
 
@@ -145,15 +173,35 @@ export default function Cloaker() {
     if (!editingLink) return;
     try {
       await updateLink({ 
-        id: editingLink.id, 
+        id: editingLink.id,
+        name: editingLink.name,
+        slug: editingLink.slug,
         target_url: editingLink.targetUrl,
-        safe_url: editingLink.safeUrl 
+        safe_url: editingLink.safeUrl,
+        allowed_countries: editingLink.allowedCountries.length > 0 ? editingLink.allowedCountries : null,
+        blocked_countries: editingLink.blockedCountries.length > 0 ? editingLink.blockedCountries : null,
+        allowed_devices: editingLink.allowedDevices.length > 0 ? editingLink.allowedDevices : null,
+        block_bots: editingLink.blockBots,
+        min_score: editingLink.minScore,
+        collect_fingerprint: editingLink.collectFingerprint,
+        require_behavior: editingLink.requireBehavior,
+        behavior_time_ms: editingLink.behaviorTimeMs,
       });
       setIsEditDialogOpen(false);
       setEditingLink(null);
-      toast.success("URLs atualizadas!");
+      toast.success("Link atualizado!");
     } catch (error) {
       toast.error("Erro ao atualizar");
+    }
+  };
+
+  const toggleEditArrayValue = (field: 'allowedCountries' | 'blockedCountries' | 'allowedDevices', value: string) => {
+    if (!editingLink) return;
+    const array = editingLink[field];
+    if (array.includes(value)) {
+      setEditingLink({ ...editingLink, [field]: array.filter(v => v !== value) });
+    } else {
+      setEditingLink({ ...editingLink, [field]: [...array, value] });
     }
   };
 
@@ -673,35 +721,180 @@ export default function Cloaker() {
 
         {/* Edit Dialog */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Editar URLs</DialogTitle>
+              <DialogTitle>Editar Link</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="editSafeUrl">URL Segura (bots)</Label>
-                <Input
-                  id="editSafeUrl"
-                  type="url"
-                  value={editingLink?.safeUrl || ""}
-                  onChange={e => setEditingLink(prev => prev ? { ...prev, safeUrl: e.target.value } : null)}
-                  placeholder="https://..."
-                />
+            
+            {editingLink && (
+              <div className="space-y-6">
+                <Tabs defaultValue="basic" className="w-full">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="basic">Básico</TabsTrigger>
+                    <TabsTrigger value="filters">Filtros</TabsTrigger>
+                    <TabsTrigger value="advanced">Avançado</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="basic" className="space-y-4 mt-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="editName">Nome do Link</Label>
+                        <Input
+                          id="editName"
+                          placeholder="Ex: Campanha Black Friday"
+                          value={editingLink.name}
+                          onChange={e => setEditingLink(prev => prev ? { ...prev, name: e.target.value } : null)}
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="editSlug">Slug (URL curta)</Label>
+                        <Input
+                          id="editSlug"
+                          placeholder="Ex: bf2024"
+                          value={editingLink.slug}
+                          onChange={e => setEditingLink(prev => prev ? { ...prev, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') } : null)}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="editSafeUrl">URL Segura (bots e bloqueados)</Label>
+                      <Input
+                        id="editSafeUrl"
+                        type="url"
+                        placeholder="https://seusite.com/blog"
+                        value={editingLink.safeUrl}
+                        onChange={e => setEditingLink(prev => prev ? { ...prev, safeUrl: e.target.value } : null)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="editTargetUrl">URL de Destino (tráfego real)</Label>
+                      <Input
+                        id="editTargetUrl"
+                        type="url"
+                        placeholder="https://seusite.com/oferta"
+                        value={editingLink.targetUrl}
+                        onChange={e => setEditingLink(prev => prev ? { ...prev, targetUrl: e.target.value } : null)}
+                      />
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="filters" className="space-y-4 mt-4">
+                    <div className="space-y-2">
+                      <Label>Países Permitidos</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {COUNTRIES.map(country => (
+                          <Badge
+                            key={country.code}
+                            variant={editingLink.allowedCountries.includes(country.code) ? "default" : "outline"}
+                            className="cursor-pointer transition-all hover:scale-105"
+                            onClick={() => toggleEditArrayValue('allowedCountries', country.code)}
+                          >
+                            {country.name}
+                          </Badge>
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground">Deixe vazio para permitir todos</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Dispositivos Permitidos</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {DEVICES.map(device => (
+                          <Badge
+                            key={device.value}
+                            variant={editingLink.allowedDevices.includes(device.value) ? "default" : "outline"}
+                            className="cursor-pointer transition-all hover:scale-105"
+                            onClick={() => toggleEditArrayValue('allowedDevices', device.value)}
+                          >
+                            {device.label}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-card/50 border border-border">
+                      <div className="space-y-0.5">
+                        <Label className="text-sm font-medium">Bloquear Bots</Label>
+                        <p className="text-xs text-muted-foreground">Facebook, Google, crawlers</p>
+                      </div>
+                      <Switch
+                        checked={editingLink.blockBots}
+                        onCheckedChange={checked => setEditingLink(prev => prev ? { ...prev, blockBots: checked } : null)}
+                      />
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="advanced" className="space-y-4 mt-4">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label>Score Mínimo: {editingLink.minScore}</Label>
+                        <span className={`text-sm font-medium ${getScoreColor(editingLink.minScore)}`}>
+                          {editingLink.minScore >= 70 ? "Alto" : editingLink.minScore >= 40 ? "Médio" : "Baixo"}
+                        </span>
+                      </div>
+                      <Slider
+                        value={[editingLink.minScore]}
+                        onValueChange={([value]) => setEditingLink(prev => prev ? { ...prev, minScore: value } : null)}
+                        min={0}
+                        max={100}
+                        step={5}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Visitantes com score abaixo serão redirecionados para URL segura
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-card/50 border border-border">
+                      <div className="space-y-0.5">
+                        <Label className="text-sm font-medium flex items-center gap-2">
+                          <Fingerprint className="h-4 w-4" />
+                          Coletar Fingerprint
+                        </Label>
+                        <p className="text-xs text-muted-foreground">Canvas, WebGL, áudio, fontes</p>
+                      </div>
+                      <Switch
+                        checked={editingLink.collectFingerprint}
+                        onCheckedChange={checked => setEditingLink(prev => prev ? { ...prev, collectFingerprint: checked } : null)}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-card/50 border border-border">
+                      <div className="space-y-0.5">
+                        <Label className="text-sm font-medium flex items-center gap-2">
+                          <Activity className="h-4 w-4" />
+                          Análise Comportamental
+                        </Label>
+                        <p className="text-xs text-muted-foreground">Mouse, scroll, tempo na página</p>
+                      </div>
+                      <Switch
+                        checked={editingLink.requireBehavior}
+                        onCheckedChange={checked => setEditingLink(prev => prev ? { ...prev, requireBehavior: checked } : null)}
+                      />
+                    </div>
+
+                    {editingLink.requireBehavior && (
+                      <div className="space-y-3">
+                        <Label>Tempo mínimo (ms): {editingLink.behaviorTimeMs}</Label>
+                        <Slider
+                          value={[editingLink.behaviorTimeMs]}
+                          onValueChange={([value]) => setEditingLink(prev => prev ? { ...prev, behaviorTimeMs: value } : null)}
+                          min={500}
+                          max={5000}
+                          step={250}
+                        />
+                      </div>
+                    )}
+                  </TabsContent>
+                </Tabs>
+
+                <Button onClick={handleSaveEdit} className="w-full">
+                  Salvar Alterações
+                </Button>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="editTargetUrl">URL de Destino</Label>
-                <Input
-                  id="editTargetUrl"
-                  type="url"
-                  value={editingLink?.targetUrl || ""}
-                  onChange={e => setEditingLink(prev => prev ? { ...prev, targetUrl: e.target.value } : null)}
-                  placeholder="https://..."
-                />
-              </div>
-              <Button onClick={handleSaveEdit} className="w-full">
-                Salvar
-              </Button>
-            </div>
+            )}
           </DialogContent>
         </Dialog>
       </div>
