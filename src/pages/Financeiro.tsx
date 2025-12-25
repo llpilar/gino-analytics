@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Trash2, Plus, Settings, DollarSign, ImageIcon, X, Eye, Loader2, Calendar, ToggleLeft, ToggleRight, Banknote, ArrowDownCircle, FileSpreadsheet } from "lucide-react";
+import { Trash2, Plus, Settings, DollarSign, ImageIcon, X, Eye, Loader2, Calendar, ToggleLeft, ToggleRight, Banknote, ArrowDownCircle, FileSpreadsheet, Download } from "lucide-react";
 import { 
   useExpenses, 
   usePartnersConfig, 
@@ -45,6 +45,28 @@ const CATEGORIES = [
   "Ferramentas",
   "Outros",
 ];
+
+// CSV Export utilities
+const downloadCSV = (data: string, filename: string) => {
+  const BOM = '\uFEFF';
+  const blob = new Blob([BOM + data], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(link.href);
+};
+
+const escapeCSV = (value: string | number | null | undefined): string => {
+  if (value === null || value === undefined) return '';
+  const str = String(value);
+  if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
+};
 
 // Excel-style cell component
 const ExcelCell = ({ 
@@ -305,6 +327,101 @@ export default function Financeiro() {
   const nextToWithdraw = partner1OpenBalance > partner2OpenBalance ? partner1 : partner2;
   const nextWithdrawAmount = Math.max(partner1OpenBalance, partner2OpenBalance);
 
+  // Export functions
+  const exportExpensesToCSV = () => {
+    if (!expenses || expenses.length === 0) {
+      toast.error('Nenhuma despesa para exportar');
+      return;
+    }
+    const headers = ['Data', 'Descrição', 'Categoria', 'Pago Por', 'Valor'];
+    const rows = expenses.map(e => [
+      format(new Date(e.expense_date), 'dd/MM/yyyy'),
+      escapeCSV(e.description),
+      escapeCSV(e.category || 'Outros'),
+      escapeCSV(e.paid_by),
+      Number(e.amount).toFixed(2).replace('.', ',')
+    ]);
+    const csv = [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
+    downloadCSV(csv, `despesas_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+    toast.success('Despesas exportadas!');
+  };
+
+  const exportWithdrawalsToCSV = () => {
+    if (!withdrawals || withdrawals.length === 0) {
+      toast.error('Nenhum saque para exportar');
+      return;
+    }
+    const headers = ['Data', 'Quem Sacou', 'Descrição', 'Valor'];
+    const rows = withdrawals.map(w => [
+      format(new Date(w.withdrawal_date), 'dd/MM/yyyy'),
+      escapeCSV(w.partner_name),
+      escapeCSV(w.description || '-'),
+      Number(w.amount).toFixed(2).replace('.', ',')
+    ]);
+    const csv = [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
+    downloadCSV(csv, `saques_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+    toast.success('Saques exportados!');
+  };
+
+  const exportFixedToCSV = () => {
+    if (!fixedExpenses || fixedExpenses.length === 0) {
+      toast.error('Nenhum gasto fixo para exportar');
+      return;
+    }
+    const headers = ['Ativo', 'Descrição', 'Pago Por', 'Valor Mensal'];
+    const rows = fixedExpenses.map(f => [
+      f.is_active ? 'Sim' : 'Não',
+      escapeCSV(f.description),
+      escapeCSV(f.paid_by),
+      Number(f.amount).toFixed(2).replace('.', ',')
+    ]);
+    const csv = [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
+    downloadCSV(csv, `gastos_fixos_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+    toast.success('Gastos fixos exportados!');
+  };
+
+  const exportAllToCSV = () => {
+    // Create a comprehensive export with all data
+    let csv = '';
+    
+    // Summary section
+    csv += 'RESUMO FINANCEIRO\n';
+    csv += `Data de Exportação;${format(new Date(), 'dd/MM/yyyy HH:mm')}\n\n`;
+    
+    csv += 'RESUMO POR SÓCIO\n';
+    csv += `Sócio;Despesas;Saques;Saldo Aberto;Acerto\n`;
+    csv += `${partner1};${partner1Total.toFixed(2).replace('.', ',')};${partner1Withdrawals.toFixed(2).replace('.', ',')};${partner1OpenBalance.toFixed(2).replace('.', ',')};${partner1Balance.toFixed(2).replace('.', ',')}\n`;
+    csv += `${partner2};${partner2Total.toFixed(2).replace('.', ',')};${partner2Withdrawals.toFixed(2).replace('.', ',')};${partner2OpenBalance.toFixed(2).replace('.', ',')};${partner2Balance.toFixed(2).replace('.', ',')}\n`;
+    csv += `TOTAL;${totalExpenses.toFixed(2).replace('.', ',')};${totalWithdrawals.toFixed(2).replace('.', ',')};${(partner1OpenBalance + partner2OpenBalance).toFixed(2).replace('.', ',')};\n\n`;
+    
+    // Expenses
+    csv += 'DESPESAS\n';
+    csv += 'Data;Descrição;Categoria;Pago Por;Valor\n';
+    expenses?.forEach(e => {
+      csv += `${format(new Date(e.expense_date), 'dd/MM/yyyy')};${escapeCSV(e.description)};${escapeCSV(e.category || 'Outros')};${escapeCSV(e.paid_by)};${Number(e.amount).toFixed(2).replace('.', ',')}\n`;
+    });
+    csv += '\n';
+    
+    // Withdrawals
+    csv += 'SAQUES\n';
+    csv += 'Data;Quem Sacou;Descrição;Valor\n';
+    withdrawals?.forEach(w => {
+      csv += `${format(new Date(w.withdrawal_date), 'dd/MM/yyyy')};${escapeCSV(w.partner_name)};${escapeCSV(w.description || '-')};${Number(w.amount).toFixed(2).replace('.', ',')}\n`;
+    });
+    csv += '\n';
+    
+    // Fixed expenses
+    csv += 'GASTOS FIXOS\n';
+    csv += 'Ativo;Descrição;Pago Por;Valor Mensal\n';
+    fixedExpenses?.forEach(f => {
+      csv += `${f.is_active ? 'Sim' : 'Não'};${escapeCSV(f.description)};${escapeCSV(f.paid_by)};${Number(f.amount).toFixed(2).replace('.', ',')}\n`;
+    });
+    csv += `\nTotal Fixos Ativos;;${fixedExpensesTotal.toFixed(2).replace('.', ',')}\n`;
+    
+    downloadCSV(csv, `financeiro_completo_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+    toast.success('Relatório completo exportado!');
+  };
+
   if (expensesLoading || configLoading || fixedLoading || withdrawalsLoading) {
     return (
       <DashboardWrapper>
@@ -448,20 +565,32 @@ export default function Financeiro() {
 
         {/* Tabs */}
         <Tabs defaultValue="expenses" className="space-y-4">
-          <TabsList className="bg-muted border border-border h-auto p-1">
-            <TabsTrigger value="expenses" className="data-[state=active]:bg-background text-xs sm:text-sm px-2 sm:px-4">
-              <DollarSign className="h-4 w-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Despesas</span>
-            </TabsTrigger>
-            <TabsTrigger value="withdrawals" className="data-[state=active]:bg-background text-xs sm:text-sm px-2 sm:px-4">
-              <Banknote className="h-4 w-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Saques</span>
-            </TabsTrigger>
-            <TabsTrigger value="fixed" className="data-[state=active]:bg-background text-xs sm:text-sm px-2 sm:px-4">
-              <Calendar className="h-4 w-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Fixos</span>
-            </TabsTrigger>
-          </TabsList>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <TabsList className="bg-muted border border-border h-auto p-1">
+              <TabsTrigger value="expenses" className="data-[state=active]:bg-background text-xs sm:text-sm px-2 sm:px-4">
+                <DollarSign className="h-4 w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Despesas</span>
+              </TabsTrigger>
+              <TabsTrigger value="withdrawals" className="data-[state=active]:bg-background text-xs sm:text-sm px-2 sm:px-4">
+                <Banknote className="h-4 w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Saques</span>
+              </TabsTrigger>
+              <TabsTrigger value="fixed" className="data-[state=active]:bg-background text-xs sm:text-sm px-2 sm:px-4">
+                <Calendar className="h-4 w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Fixos</span>
+              </TabsTrigger>
+            </TabsList>
+            
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={exportAllToCSV}
+              className="border-emerald-500/50 text-emerald-500 hover:bg-emerald-500/10"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Exportar Tudo
+            </Button>
+          </div>
 
           {/* Expenses Tab */}
           <TabsContent value="expenses" className="space-y-4">
@@ -472,8 +601,15 @@ export default function Financeiro() {
                   <Plus className="h-4 w-4" />
                   Nova Despesa
                 </span>
-                {/* Receipt upload */}
+                {/* Export + Receipt upload */}
                 <div className="flex items-center gap-2">
+                  <button
+                    onClick={exportExpensesToCSV}
+                    className="flex items-center gap-1 px-2 py-1 text-xs rounded border border-emerald-500/50 text-emerald-500 bg-background hover:bg-emerald-500/10 transition-colors"
+                  >
+                    <Download className="h-3 w-3" />
+                    CSV
+                  </button>
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -638,11 +774,18 @@ export default function Financeiro() {
           <TabsContent value="withdrawals" className="space-y-4">
             {/* New Withdrawal Form */}
             <div className="border-2 border-border rounded-lg overflow-hidden">
-              <div className="bg-muted/60 border-b border-border px-4 py-2">
+              <div className="bg-muted/60 border-b border-border px-4 py-2 flex items-center justify-between">
                 <span className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <ArrowDownCircle className="h-4 w-4" />
                   Novo Saque
                 </span>
+                <button
+                  onClick={exportWithdrawalsToCSV}
+                  className="flex items-center gap-1 px-2 py-1 text-xs rounded border border-emerald-500/50 text-emerald-500 bg-background hover:bg-emerald-500/10 transition-colors"
+                >
+                  <Download className="h-3 w-3" />
+                  CSV
+                </button>
               </div>
               <div className="grid grid-cols-5 bg-background">
                 <div>
@@ -756,11 +899,18 @@ export default function Financeiro() {
           <TabsContent value="fixed" className="space-y-4">
             {/* Add Fixed Expense Form */}
             <div className="border-2 border-border rounded-lg overflow-hidden">
-              <div className="bg-muted/60 border-b border-border px-4 py-2">
+              <div className="bg-muted/60 border-b border-border px-4 py-2 flex items-center justify-between">
                 <span className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
                   Novo Gasto Fixo
                 </span>
+                <button
+                  onClick={exportFixedToCSV}
+                  className="flex items-center gap-1 px-2 py-1 text-xs rounded border border-emerald-500/50 text-emerald-500 bg-background hover:bg-emerald-500/10 transition-colors"
+                >
+                  <Download className="h-3 w-3" />
+                  CSV
+                </button>
               </div>
               <div className="grid grid-cols-4 bg-background">
                 <div>
