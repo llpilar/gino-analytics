@@ -697,30 +697,70 @@ function isIpInCidr(ip: string, cidr: string): boolean {
   return (ipNum & maskNum) === (rangeNum & maskNum);
 }
 
-// ==================== REFERER FILTERING (GOOGLE ADS) ====================
+// ==================== REFERER FILTERING (GOOGLE ADS - ULTRA COMPREHENSIVE) ====================
 const GOOGLE_ADS_REFERER_PATTERNS = [
-  // Google Ads click URLs
+  // === GOOGLE ADS CLICK URLS ===
   /google\.com\/aclk/i,
   /google\.[a-z.]+\/aclk/i,
+  /google\.com\/ads/i,
+  /google\.[a-z.]+\/ads/i,
+  
+  // === DOUBLECLICK / DV360 ===
   /googleads\.g\.doubleclick\.net/i,
+  /doubleclick\.net/i,
+  /ad\.doubleclick\.net/i,
+  /pubads\.g\.doubleclick\.net/i,
+  /securepubads\.g\.doubleclick\.net/i,
+  /pagead2\.googlesyndication\.com/i,
+  /pagead\.googlesyndication\.com/i,
+  
+  // === GOOGLE AD SERVICES ===
   /googlesyndication\.com/i,
   /googleadservices\.com/i,
-  /google\.com\/pagead/i,
-  /google\.com\/ads/i,
-  /adservice\.google\./i,
   /www\.googleadservices\.com/i,
   /partner\.googleadservices\.com/i,
-  // Google Search
-  /www\.google\./i,
+  /adservice\.google\.[a-z.]+/i,
+  /adservice\.google\.com/i,
+  
+  // === GOOGLE PAGEAD ===
+  /google\.com\/pagead/i,
+  /google\.[a-z.]+\/pagead/i,
+  /pagead\.l\.doubleclick\.net/i,
+  
+  // === GOOGLE SEARCH (PPC LANDING) ===
+  /www\.google\.[a-z.]+\/search/i,
+  /www\.google\.[a-z.]+\/url/i,
   /google\.[a-z]{2,3}(\.[a-z]{2})?\/search/i,
   /google\.[a-z]{2,3}(\.[a-z]{2})?\/url/i,
-  // YouTube Ads
-  /youtube\.com\/redirect/i,
-  /youtube\.com\/ads/i,
-  // Display Network
+  
+  // === GOOGLE ADS PREVIEW ===
   /adspreview\.googleapis\.com/i,
   /adssettings\.google\.com/i,
   /ads\.google\.com/i,
+  /adwords\.google\.com/i,
+  
+  // === YOUTUBE ADS ===
+  /youtube\.com\/redirect/i,
+  /youtube\.com\/ads/i,
+  /youtube\.com\/watch.*[?&]ad_/i,
+  /youtube\.com\/embed.*autoplay/i,
+  
+  // === GOOGLE SHOPPING ===
+  /shopping\.google\.[a-z.]+/i,
+  /google\.[a-z.]+\/shopping/i,
+  
+  // === GOOGLE MAPS ADS ===
+  /maps\.google\.[a-z.]+\/maps.*ad/i,
+  /google\.com\/maps.*promoted/i,
+  
+  // === GOOGLE DISPLAY NETWORK ===
+  /googlevideo\.com/i,
+  /gstatic\.com\/ads/i,
+  
+  // === GOOGLE ANALYTICS / TAG MANAGER (AD TRACKING) ===
+  /googletagmanager\.com/i,
+  /google-analytics\.com/i,
+  /analytics\.google\.com/i,
 ];
 
 const BING_ADS_REFERER_PATTERNS = [
@@ -923,31 +963,132 @@ function extractUtmParams(request: Request): Record<string, string> {
   };
 }
 
-// ==================== GOOGLE ADS - COMPREHENSIVE ====================
+// ==================== GOOGLE ADS - ULTRA COMPREHENSIVE ====================
+// All known Google bot patterns including internal tools, policy reviewers, crawlers
 const GOOGLE_BOT_UA_PATTERNS = [
-  /AdsBot-Google/i, /AdsBot-Google-Mobile/i, /Googlebot/i,
-  /Mediapartners-Google/i, /Mediapartners/i, /Storebot-Google/i,
-  /Google-Extended/i, /Google-Adwords/i, /Google-Shopping/i,
-  /Google-InspectionTool/i, /Lighthouse/i, /Chrome-Lighthouse/i,
-  /PageSpeed/i, /PSTS\/\d/i, /DuplexWeb-Google/i, /GoogleProducer/i,
-  /GoogleSecurityScanner/i, /APIs-Google/i, /FeedFetcher-Google/i,
+  // === CORE AD BOTS ===
+  /AdsBot-Google/i,
+  /AdsBot-Google-Mobile/i,
+  /AdsBot-Google-Mobile-Apps/i,
+  /Google-Ads-Creatives-Assistant/i,
+  /Google-Ads-Quality/i,
+  /Google-AdWords/i,
+  /Googlebot-Image/i,
+  /Googlebot-News/i,
+  /Googlebot-Video/i,
+  /Googlebot/i,
+  /Google-Site-Verification/i,
+  /Google-Structured-Data-Testing-Tool/i,
+  /Google-AMPHTML/i,
+  
+  // === POLICY & REVIEW BOTS ===
+  /Google-Safety/i,
+  /Google-Read-Aloud/i,
+  /Google-adtte/i,
+  /Google-Adwords-Instant/i,
+  /Google-Adwords-DisplayAds/i,
+  /Google-Youtube-Links/i,
+  /Google-Publisher-Plugin/i,
+  /Google-PhishingChecker/i,
+  /GoogleDocs/i,
+  /GoogleSecurityScanner/i,
+  /Google-InspectionTool/i,
+  
+  // === LIGHTHOUSE & PAGESPEED ===
+  /Lighthouse/i,
+  /Chrome-Lighthouse/i,
+  /PageSpeed\s*Insights/i,
+  /PSTS\/\d/i,
+  /Speed\s*Insights/i,
+  /Google\s*Page\s*Speed/i,
+  /CrUX/i,
+  /Chrome\s*User\s*Experience\s*Report/i,
+  
+  // === MEDIA & CONTENT BOTS ===
+  /Mediapartners-Google/i,
+  /Mediapartners/i,
+  /Google-Read-Aloud/i,
+  /FeedFetcher-Google/i,
+  /Google-Podcast/i,
+  /Google-StoreBot/i,
+  /Storebot-Google/i,
+  /Google-Shopping-Quality/i,
+  /Google-Shopping/i,
+  
+  // === OTHER GOOGLE BOTS ===
+  /APIs-Google/i,
+  /DuplexWeb-Google/i,
+  /GoogleProducer/i,
+  /Google-Extended/i,
+  /AppEngine-Google/i,
+  /Googleweblight/i,
+  /GoogleAssistant/i,
+  /Google\s*Web\s*Preview/i,
+  /Google-Transparency-Report/i,
+  /Google-HotelAdsVerifier/i,
+  /Google-LocalListingsVerifier/i,
 ];
 
+// Extended Google IP ranges (all known Google datacenter ranges)
 const GOOGLE_IP_RANGES = [
+  // Primary Googlebot ranges
   { start: "66.249.64.0", end: "66.249.95.255" },
+  { start: "66.249.0.0", end: "66.249.63.255" },
+  // Google general
   { start: "64.233.160.0", end: "64.233.191.255" },
+  { start: "64.233.0.0", end: "64.233.63.255" },
+  { start: "64.68.80.0", end: "64.68.95.255" },
+  // Google services
   { start: "72.14.192.0", end: "72.14.255.255" },
   { start: "74.125.0.0", end: "74.125.255.255" },
+  // Google Cloud / modern infra
   { start: "142.250.0.0", end: "142.251.255.255" },
+  { start: "142.250.0.0", end: "142.250.255.255" },
   { start: "172.217.0.0", end: "172.217.255.255" },
+  { start: "172.253.0.0", end: "172.253.255.255" },
   { start: "173.194.0.0", end: "173.194.255.255" },
+  // Google infrastructure
   { start: "209.85.128.0", end: "209.85.255.255" },
   { start: "216.58.192.0", end: "216.58.223.255" },
+  { start: "216.239.32.0", end: "216.239.63.255" },
+  // Google Cloud Platform
   { start: "34.64.0.0", end: "34.127.255.255" },
+  { start: "34.128.0.0", end: "34.191.255.255" },
   { start: "35.184.0.0", end: "35.247.255.255" },
+  { start: "35.192.0.0", end: "35.223.255.255" },
+  // Additional GCP ranges
+  { start: "104.196.0.0", end: "104.199.255.255" },
+  { start: "104.154.0.0", end: "104.155.255.255" },
+  { start: "130.211.0.0", end: "130.211.255.255" },
+  { start: "146.148.0.0", end: "146.148.127.255" },
+  // YouTube / Google Video
+  { start: "199.223.232.0", end: "199.223.239.255" },
+  { start: "207.223.160.0", end: "207.223.175.255" },
+  // Modern Google ranges
+  { start: "108.170.192.0", end: "108.170.255.255" },
+  { start: "108.177.0.0", end: "108.177.127.255" },
+  // Additional crawler IPs
+  { start: "203.208.32.0", end: "203.208.63.255" },
+  { start: "70.32.128.0", end: "70.32.143.255" },
 ];
 
-const GOOGLE_ASNS = ["AS15169", "AS396982", "AS36492", "AS139070", "AS36040"];
+// All Google ASNs (Autonomous System Numbers)
+const GOOGLE_ASNS = [
+  "AS15169",  // Google LLC
+  "AS396982", // Google Cloud
+  "AS36492",  // Google (alternate)
+  "AS139070", // Google Asia Pacific
+  "AS36040",  // YouTube
+  "AS13949",  // Google Fiber
+  "AS16591",  // Google Fiber 
+  "AS395973", // Google Cloud Platform
+  "AS36384",  // Google (alternate)
+  "AS45566",  // Google Japan
+  "AS16550",  // Google (cache servers)
+  "AS26910",  // Google Cloud 2
+  "AS41264",  // Google Switzerland
+  "AS19527",  // Google
+];
 
 // ==================== MICROSOFT/BING ADS ====================
 const MICROSOFT_BOT_UA_PATTERNS = [
@@ -1096,20 +1237,63 @@ function detectAdPlatform(userAgent: string, ip: string, headers: Headers, refer
     reasons.push(...refererAnalysis.reasons);
   }
 
-  // ===== GOOGLE =====
+  // ===== GOOGLE DETECTION (COMPREHENSIVE) =====
+  // 1. User Agent Detection
   for (const pattern of GOOGLE_BOT_UA_PATTERNS) {
     if (pattern.test(userAgent)) {
       platform = "google"; isDefinitive = true; confidence = 100;
       if (/adsbot/i.test(userAgent)) { botType = "AdsBot"; reasons.push("GOOGLE_ADSBOT_UA"); }
       else if (/mediapartners/i.test(userAgent)) { botType = "Mediapartners"; reasons.push("GOOGLE_MEDIAPARTNERS_UA"); }
-      else if (/lighthouse|pagespeed/i.test(userAgent)) { botType = "Lighthouse"; reasons.push("GOOGLE_LIGHTHOUSE_UA"); }
+      else if (/lighthouse|pagespeed|speed\s*insights|crux/i.test(userAgent)) { botType = "Lighthouse"; reasons.push("GOOGLE_LIGHTHOUSE_UA"); }
       else if (/googlebot/i.test(userAgent)) { botType = "Googlebot"; reasons.push("GOOGLE_GOOGLEBOT_UA"); }
+      else if (/google-shopping|storebot|hotel/i.test(userAgent)) { botType = "Google Shopping"; reasons.push("GOOGLE_SHOPPING_UA"); }
+      else if (/google-safety|security|phishing/i.test(userAgent)) { botType = "Google Safety"; reasons.push("GOOGLE_SAFETY_UA"); }
+      else if (/google-ads|adwords|ad-quality/i.test(userAgent)) { botType = "Google Ads"; reasons.push("GOOGLE_ADS_UA"); }
       else { botType = "Google Bot"; reasons.push("GOOGLE_BOT_UA"); }
       break;
     }
   }
+  
+  // 2. IP Range Detection
   if (!platform && isGoogleIP(ip)) {
     platform = "google"; confidence = 95; botType = "Google IP"; reasons.push("GOOGLE_IP_RANGE"); isDefinitive = true;
+  }
+  
+  // 3. Header-Based Google Detection
+  if (!platform) {
+    const xForwardedFor = headers.get("x-forwarded-for") || "";
+    const via = headers.get("via") || "";
+    const xGoogleCacheControl = headers.get("x-google-cache-control");
+    const googleApis = headers.get("x-google-apis-url");
+    const xCloud = headers.get("x-cloud-trace-context");
+    const xGoogRequest = headers.get("x-goog-request-params");
+    
+    // Google-specific headers
+    if (xGoogleCacheControl || googleApis || xGoogRequest) {
+      platform = "google"; confidence = 90; botType = "Google Header"; 
+      reasons.push("GOOGLE_SPECIFIC_HEADER"); isDefinitive = true;
+    }
+    
+    // Via header with Google
+    if (/google/i.test(via)) {
+      platform = "google"; confidence = 88; botType = "Google Via"; reasons.push("GOOGLE_VIA_HEADER");
+    }
+    
+    // GCP trace context (internal Google traffic)
+    if (xCloud && /projects\/google/i.test(xCloud)) {
+      platform = "google"; confidence = 92; botType = "Google Cloud"; 
+      reasons.push("GOOGLE_CLOUD_TRACE"); isDefinitive = true;
+    }
+  }
+  
+  // 4. URL Parameters Detection (gclid = Google Click ID)
+  if (!platform) {
+    const gclidHeader = headers.get("x-original-url") || headers.get("x-forwarded-url") || "";
+    if (/[?&]gclid=/i.test(gclidHeader) || /[?&]gbraid=/i.test(gclidHeader) || /[?&]wbraid=/i.test(gclidHeader)) {
+      // This is likely Google Ads traffic destination, not the bot itself
+      // Don't block, but note it
+      reasons.push("GOOGLE_ADS_CLICK_ID_URL");
+    }
   }
 
   // ===== MICROSOFT/BING =====
@@ -1119,6 +1303,7 @@ function detectAdPlatform(userAgent: string, ip: string, headers: Headers, refer
         platform = "microsoft"; isDefinitive = true; confidence = 100;
         if (/bingbot|msnbot/i.test(userAgent)) { botType = "Bingbot"; reasons.push("BING_BOT_UA"); }
         else if (/adidxbot/i.test(userAgent)) { botType = "Bing Ads"; reasons.push("BING_ADS_UA"); }
+        else if (/bingpreview/i.test(userAgent)) { botType = "Bing Preview"; reasons.push("BING_PREVIEW_UA"); }
         else { botType = "Microsoft Bot"; reasons.push("MICROSOFT_BOT_UA"); }
         break;
       }
@@ -1196,13 +1381,20 @@ function detectAdPlatform(userAgent: string, ip: string, headers: Headers, refer
   const cfIsp = headers.get("cf-isp") || headers.get("x-isp") || "";
   
   if (!platform && cfAsn) {
-    if (GOOGLE_ASNS.some(asn => cfAsn.toUpperCase().includes(asn))) { platform = "google"; confidence = 92; botType = "Google ASN"; reasons.push("GOOGLE_ASN"); }
+    if (GOOGLE_ASNS.some(asn => cfAsn.toUpperCase().includes(asn))) { 
+      platform = "google"; confidence = 94; botType = "Google ASN"; 
+      reasons.push("GOOGLE_ASN"); isDefinitive = true; 
+    }
     else if (MICROSOFT_ASNS.some(asn => cfAsn.toUpperCase().includes(asn))) { platform = "microsoft"; confidence = 88; botType = "Microsoft ASN"; reasons.push("MICROSOFT_ASN"); }
     else if (FACEBOOK_ASNS.some(asn => cfAsn.toUpperCase().includes(asn))) { platform = "facebook"; confidence = 92; botType = "Facebook ASN"; reasons.push("FACEBOOK_ASN"); }
     else if (TIKTOK_ASNS.some(asn => cfAsn.toUpperCase().includes(asn))) { platform = "tiktok"; confidence = 88; botType = "TikTok ASN"; reasons.push("TIKTOK_ASN"); }
   }
 
-  if (!platform && /google/i.test(cfIsp)) { platform = "google"; confidence = 90; botType = "Google ISP"; reasons.push("GOOGLE_ISP"); }
+  // ISP name checks
+  if (!platform && /google/i.test(cfIsp)) { 
+    platform = "google"; confidence = 92; botType = "Google ISP"; 
+    reasons.push("GOOGLE_ISP"); isDefinitive = true; 
+  }
   else if (!platform && /microsoft|bing/i.test(cfIsp)) { platform = "microsoft"; confidence = 85; botType = "Microsoft ISP"; reasons.push("MICROSOFT_ISP"); }
   else if (!platform && /facebook|meta/i.test(cfIsp)) { platform = "facebook"; confidence = 90; botType = "Facebook ISP"; reasons.push("FACEBOOK_ISP"); }
 
