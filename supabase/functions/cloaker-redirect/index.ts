@@ -1813,13 +1813,21 @@ Deno.serve(async (req) => {
       const functionUrl = `https://eyevvanvdvcxdqyxzwfr.supabase.co/functions/v1/cloaker-redirect`;
       console.log(`[Cloaker] CHALLENGE: Serving JS challenge page for ${slug}`);
       const challengeHtml = generateChallengePage(slug, behaviorTime, functionUrl);
-      const responseHeaders = new Headers();
-      responseHeaders.set("Content-Type", "text/html; charset=utf-8");
-      responseHeaders.set("Cache-Control", "no-cache, no-store, must-revalidate");
-      responseHeaders.set("Access-Control-Allow-Origin", "*");
-      return new Response(challengeHtml, { 
+      console.log(`[Cloaker] Challenge HTML length: ${challengeHtml.length} bytes`);
+      
+      // Use TextEncoder to ensure proper UTF-8 encoding
+      const encoder = new TextEncoder();
+      const body = encoder.encode(challengeHtml);
+      
+      return new Response(body, { 
         status: 200,
-        headers: responseHeaders 
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "X-Content-Type-Options": "nosniff",
+        }
       });
     }
     
