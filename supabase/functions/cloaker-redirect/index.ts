@@ -1812,21 +1812,29 @@ Deno.serve(async (req) => {
       const behaviorTime = link.behavior_time_ms || 2000;
       const functionUrl = `https://eyevvanvdvcxdqyxzwfr.supabase.co/functions/v1/cloaker-redirect`;
       console.log(`[Cloaker] CHALLENGE: Serving JS challenge page for ${slug}`);
-      const challengeHtml = generateChallengePage(slug, behaviorTime, functionUrl);
-      console.log(`[Cloaker] Challenge HTML length: ${challengeHtml.length} bytes`);
       
-      // Use TextEncoder to ensure proper UTF-8 encoding
-      const encoder = new TextEncoder();
-      const body = encoder.encode(challengeHtml);
+      // Test with super minimal HTML to diagnose rendering issue
+      const testHtml = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Test</title>
+</head>
+<body style="background:purple;color:white;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;">
+<h1>Se voce esta vendo isso com fundo roxo, funcionou!</h1>
+<script>
+console.log("Script loaded");
+setTimeout(function() {
+  alert("JavaScript funcionando! Redirecionando em 3s...");
+}, 1000);
+</script>
+</body>
+</html>`;
       
-      return new Response(body, { 
+      return new Response(testHtml, { 
         status: 200,
         headers: {
-          "Content-Type": "text/html; charset=utf-8",
-          "Cache-Control": "no-cache, no-store, must-revalidate",
-          "Pragma": "no-cache",
-          "Expires": "0",
-          "X-Content-Type-Options": "nosniff",
+          "Content-Type": "text/html",
         }
       });
     }
