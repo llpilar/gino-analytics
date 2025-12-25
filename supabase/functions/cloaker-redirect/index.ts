@@ -1947,8 +1947,14 @@ Deno.serve(async (req) => {
       const behaviorTime = link.behavior_time_ms || 2000;
       const functionUrl = `https://eyevvanvdvcxdqyxzwfr.supabase.co/functions/v1/cloaker-redirect`;
       console.log(`[Cloaker] CHALLENGE: Serving JS challenge page for ${slug}`);
-      return new Response(generateChallengePage(slug, behaviorTime, functionUrl), {
-        headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate" },
+      const challengeHtml = generateChallengePage(slug, behaviorTime, functionUrl);
+      const responseHeaders = new Headers();
+      responseHeaders.set("Content-Type", "text/html; charset=utf-8");
+      responseHeaders.set("Cache-Control", "no-cache, no-store, must-revalidate");
+      responseHeaders.set("Access-Control-Allow-Origin", "*");
+      return new Response(challengeHtml, { 
+        status: 200,
+        headers: responseHeaders 
       });
     }
     
