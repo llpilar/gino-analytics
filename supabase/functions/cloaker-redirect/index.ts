@@ -1794,10 +1794,13 @@ Deno.serve(async (req) => {
   // === GET: Fast redirect, ZRC, or challenge page ===
   if (req.method === "GET") {
     const url = new URL(req.url);
-    const slug = url.searchParams.get("s") || url.searchParams.get("slug");
+    // Support both path-based (/cloaker-redirect/slug) and query-based (?s=slug)
+    const pathParts = url.pathname.split("/").filter(Boolean);
+    const slugFromPath = pathParts.length > 1 ? pathParts[pathParts.length - 1] : null;
+    const slug = slugFromPath || url.searchParams.get("s") || url.searchParams.get("slug");
     const zrcMode = url.searchParams.get("zrc") === "1";
     
-    if (!slug) return new Response("Missing slug", { status: 400 });
+    if (!slug) return new Response("Missing slug. Use: /cloaker-redirect/{slug} or ?s={slug}", { status: 400 });
     
     const userAgent = req.headers.get("user-agent") || "";
     const cfIp = req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "";
