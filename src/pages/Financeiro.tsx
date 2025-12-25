@@ -538,20 +538,6 @@ export default function Financeiro() {
                 )}
               </ExcelCell>
               
-              {/* Balance Row */}
-              <ExcelCell className="font-medium bg-primary/10">Acerto</ExcelCell>
-              <ExcelCell align="center" className={`font-mono font-bold bg-primary/10 ${partner1Balance > 0 ? 'text-emerald-500' : partner1Balance < 0 ? 'text-destructive' : ''}`}>
-                {partner1Balance > 0 ? `+${formatBRL(partner1Balance)}` : formatBRL(partner1Balance)}
-              </ExcelCell>
-              <ExcelCell align="center" className={`font-mono font-bold bg-primary/10 ${partner2Balance > 0 ? 'text-emerald-500' : partner2Balance < 0 ? 'text-destructive' : ''}`}>
-                {partner2Balance > 0 ? `+${formatBRL(partner2Balance)}` : formatBRL(partner2Balance)}
-              </ExcelCell>
-              <ExcelCell align="right" className="bg-primary/10">-</ExcelCell>
-              <ExcelCell align="right" className="bg-primary/10">-</ExcelCell>
-              <ExcelCell align="center" className="bg-primary/10 text-xs font-medium">
-                {partner1Balance === 0 ? '✓ OK' : partner1Balance > 0 ? `${partner2} deve` : `${partner1} deve`}
-              </ExcelCell>
-              
               {/* Fixed Expenses Row */}
               <ExcelCell className="font-medium border-t-2 border-border">Fixos/Mês</ExcelCell>
               <ExcelCell align="center" className="border-t-2 border-border">-</ExcelCell>
