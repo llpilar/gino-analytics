@@ -2,11 +2,9 @@ import { useState, useRef, useEffect } from "react";
 import { DashboardWrapper } from "@/components/DashboardWrapper";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Trash2, Plus, Settings, DollarSign, TrendingUp, TrendingDown, Users, ImageIcon, X, Eye, Loader2, Calendar, ToggleLeft, ToggleRight, Banknote, ArrowDownCircle } from "lucide-react";
+import { Trash2, Plus, Settings, DollarSign, ImageIcon, X, Eye, Loader2, Calendar, ToggleLeft, ToggleRight, Banknote, ArrowDownCircle, FileSpreadsheet } from "lucide-react";
 import { 
   useExpenses, 
   usePartnersConfig, 
@@ -23,8 +21,6 @@ import {
   useAddWithdrawal,
   useDeleteWithdrawal
 } from "@/hooks/useExpenses";
-import { StatsCard, SectionCard, CardColorVariant } from "@/components/ui/stats-card";
-import { LucideIcon } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -49,6 +45,82 @@ const CATEGORIES = [
   "Ferramentas",
   "Outros",
 ];
+
+// Excel-style cell component
+const ExcelCell = ({ 
+  children, 
+  className = "", 
+  header = false,
+  align = "left",
+  width,
+}: { 
+  children: React.ReactNode; 
+  className?: string; 
+  header?: boolean;
+  align?: "left" | "center" | "right";
+  width?: string;
+}) => {
+  const alignClass = align === "right" ? "text-right" : align === "center" ? "text-center" : "text-left";
+  const baseClass = header 
+    ? "bg-muted/80 font-semibold text-foreground text-xs uppercase tracking-wide" 
+    : "bg-background text-foreground";
+  
+  return (
+    <div 
+      className={`border border-border px-3 py-2 ${baseClass} ${alignClass} ${className}`}
+      style={width ? { width, minWidth: width } : {}}
+    >
+      {children}
+    </div>
+  );
+};
+
+// Excel-style input cell
+const ExcelInputCell = ({ 
+  value, 
+  onChange, 
+  placeholder,
+  type = "text",
+  className = "",
+}: { 
+  value: string; 
+  onChange: (v: string) => void; 
+  placeholder?: string;
+  type?: string;
+  className?: string;
+}) => (
+  <input 
+    type={type}
+    value={value}
+    onChange={(e) => onChange(e.target.value)}
+    placeholder={placeholder}
+    className={`w-full h-full bg-background border border-border px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary ${className}`}
+  />
+);
+
+// Excel-style select cell
+const ExcelSelectCell = ({ 
+  value, 
+  onChange, 
+  options,
+  placeholder,
+}: { 
+  value: string; 
+  onChange: (v: string) => void; 
+  options: { value: string; label: string }[];
+  placeholder?: string;
+}) => (
+  <Select value={value} onValueChange={onChange}>
+    <SelectTrigger className="w-full h-full bg-background border border-border rounded-none text-sm focus:ring-2 focus:ring-primary">
+      <SelectValue placeholder={placeholder} />
+    </SelectTrigger>
+    <SelectContent className="bg-popover border-border">
+      {options.map((opt) => (
+        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+);
 
 export default function Financeiro() {
   const { data: expenses, isLoading: expensesLoading } = useExpenses();
@@ -227,113 +299,73 @@ export default function Financeiro() {
   const partner2Withdrawals = withdrawals?.filter(w => w.partner_name === partner2).reduce((sum, w) => sum + Number(w.amount), 0) || 0;
   const totalWithdrawals = partner1Withdrawals + partner2Withdrawals;
 
-  // Calculate open balance (what each partner still needs to withdraw to reimburse their expenses)
+  // Calculate open balance
   const partner1OpenBalance = partner1Total - partner1Withdrawals;
   const partner2OpenBalance = partner2Total - partner2Withdrawals;
-  
-  // Determine who should withdraw next
   const nextToWithdraw = partner1OpenBalance > partner2OpenBalance ? partner1 : partner2;
   const nextWithdrawAmount = Math.max(partner1OpenBalance, partner2OpenBalance);
 
   if (expensesLoading || configLoading || fixedLoading || withdrawalsLoading) {
     return (
       <DashboardWrapper>
-        <div className="w-full max-w-[2400px] mx-auto px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 2xl:px-12 py-4 md:py-6 min-h-screen">
+        <div className="w-full max-w-[2400px] mx-auto px-3 sm:px-4 md:px-6 py-4 min-h-screen">
           <Skeleton className="h-10 w-48 bg-muted" />
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
-            {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-32 bg-muted" />
+          <div className="mt-6 space-y-2">
+            {[...Array(8)].map((_, i) => (
+              <Skeleton key={i} className="h-10 bg-muted" />
             ))}
           </div>
-          <Skeleton className="h-96 mt-8 bg-muted" />
         </div>
       </DashboardWrapper>
     );
   }
 
-  const statCards: { title: string; value: string; subtitle?: string; subtitleColor?: string; icon: LucideIcon; color: CardColorVariant }[] = [
-    {
-      title: "Total Despesas",
-      value: formatBRL(totalExpenses),
-      icon: DollarSign,
-      color: "cyan",
-    },
-    {
-      title: "Total Saques",
-      value: formatBRL(totalWithdrawals),
-      subtitle: `${partner1}: ${formatBRL(partner1Withdrawals)} | ${partner2}: ${formatBRL(partner2Withdrawals)}`,
-      subtitleColor: 'text-muted-foreground',
-      icon: Banknote,
-      color: "orange",
-    },
-    {
-      title: partner1,
-      value: formatBRL(partner1Total),
-      subtitle: partner1Balance > 0 ? `Receber ${formatBRL(partner1Balance)}` : partner1Balance < 0 ? `Deve ${formatBRL(Math.abs(partner1Balance))}` : 'Equilibrado',
-      subtitleColor: partner1Balance > 0 ? 'text-chart-2' : partner1Balance < 0 ? 'text-destructive' : 'text-muted-foreground',
-      icon: Users,
-      color: "purple",
-    },
-    {
-      title: partner2,
-      value: formatBRL(partner2Total),
-      subtitle: partner2Balance > 0 ? `Receber ${formatBRL(partner2Balance)}` : partner2Balance < 0 ? `Deve ${formatBRL(Math.abs(partner2Balance))}` : 'Equilibrado',
-      subtitleColor: partner2Balance > 0 ? 'text-chart-2' : partner2Balance < 0 ? 'text-destructive' : 'text-muted-foreground',
-      icon: Users,
-      color: "green",
-    }
-  ];
-
   return (
     <DashboardWrapper>
-      <div className="w-full max-w-[2400px] mx-auto px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 2xl:px-12 py-4 md:py-6 lg:py-8 min-h-screen pb-24 md:pb-12">
+      <div className="w-full max-w-[2400px] mx-auto px-3 sm:px-4 md:px-6 py-4 min-h-screen pb-24 md:pb-12">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 md:mb-8">
-          <PageHeader 
-            title="Financeiro"
-            subtitle="Controle de despesas, saques e divisão entre sócios"
-          />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-3">
+            <FileSpreadsheet className="h-8 w-8 text-primary" />
+            <PageHeader 
+              title="Financeiro"
+              subtitle="Planilha de controle financeiro"
+            />
+          </div>
           <Dialog open={configDialog} onOpenChange={setConfigDialog}>
             <DialogTrigger asChild>
               <Button 
                 variant="outline" 
                 size="sm"
                 onClick={() => setNewConfig({ partner1_name: partner1, partner2_name: partner2 })}
-                className="bg-card/80 border-2 border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50 w-full sm:w-auto"
+                className="border-border"
               >
                 <Settings className="h-4 w-4 mr-2" />
-                Configurar Sócios
+                Sócios
               </Button>
             </DialogTrigger>
-              <DialogContent className="bg-popover/95 border-2 border-border backdrop-blur-xl">
+            <DialogContent className="bg-background border-border">
               <DialogHeader>
-                <DialogTitle className="text-xl font-black text-primary">
-                  Configurar Nomes dos Sócios
-                </DialogTitle>
+                <DialogTitle>Configurar Sócios</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-4">
                 <div>
-                  <Label className="text-muted-foreground">Nome do Sócio 1</Label>
+                  <label className="text-sm text-muted-foreground">Sócio 1</label>
                   <Input
                     value={newConfig.partner1_name}
                     onChange={(e) => setNewConfig({ ...newConfig, partner1_name: e.target.value })}
-                    placeholder="Nome do primeiro sócio"
-                    className="bg-card/60 border-border text-foreground focus:border-primary"
+                    className="mt-1"
                   />
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">Nome do Sócio 2</Label>
+                  <label className="text-sm text-muted-foreground">Sócio 2</label>
                   <Input
                     value={newConfig.partner2_name}
                     onChange={(e) => setNewConfig({ ...newConfig, partner2_name: e.target.value })}
-                    placeholder="Nome do segundo sócio"
-                    className="bg-card/60 border-border text-foreground focus:border-primary"
+                    className="mt-1"
                   />
                 </div>
-                <Button 
-                  onClick={handleUpdateConfig} 
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
-                >
+                <Button onClick={handleUpdateConfig} className="w-full">
                   Salvar
                 </Button>
               </div>
@@ -341,153 +373,107 @@ export default function Financeiro() {
           </Dialog>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
-          {statCards.map((stat, index) => (
-            <StatsCard
-              key={index}
-              title={stat.title}
-              value={stat.value}
-              subtitle={stat.subtitle}
-              subtitleColor={stat.subtitleColor}
-              icon={stat.icon}
-              color={stat.color}
-            />
-          ))}
-        </div>
-
-        {/* Saldo em Aberto - Open Balance Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
-          <div className="bg-card/60 border border-border rounded-xl p-4 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-1 h-full bg-purple-500"></div>
-            <div className="ml-2">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Saldo em Aberto - {partner1}</p>
-              <p className={`text-2xl font-black ${partner1OpenBalance > 0 ? 'text-purple-400' : 'text-chart-2'}`}>
+        {/* Summary Spreadsheet */}
+        <div className="mb-6 overflow-x-auto">
+          <div className="inline-block min-w-full">
+            <div className="grid grid-cols-6 border-2 border-border rounded-lg overflow-hidden bg-background">
+              {/* Header Row */}
+              <ExcelCell header>RESUMO</ExcelCell>
+              <ExcelCell header align="center">{partner1}</ExcelCell>
+              <ExcelCell header align="center">{partner2}</ExcelCell>
+              <ExcelCell header align="right">TOTAL</ExcelCell>
+              <ExcelCell header align="right">SALDO</ExcelCell>
+              <ExcelCell header align="center">STATUS</ExcelCell>
+              
+              {/* Expenses Row */}
+              <ExcelCell className="font-medium">Despesas</ExcelCell>
+              <ExcelCell align="center" className="font-mono">{formatBRL(partner1Total)}</ExcelCell>
+              <ExcelCell align="center" className="font-mono">{formatBRL(partner2Total)}</ExcelCell>
+              <ExcelCell align="right" className="font-mono font-semibold text-primary">{formatBRL(totalExpenses)}</ExcelCell>
+              <ExcelCell align="right" className="font-mono">-</ExcelCell>
+              <ExcelCell align="center">-</ExcelCell>
+              
+              {/* Withdrawals Row */}
+              <ExcelCell className="font-medium">Saques</ExcelCell>
+              <ExcelCell align="center" className="font-mono">{formatBRL(partner1Withdrawals)}</ExcelCell>
+              <ExcelCell align="center" className="font-mono">{formatBRL(partner2Withdrawals)}</ExcelCell>
+              <ExcelCell align="right" className="font-mono font-semibold text-orange-500">{formatBRL(totalWithdrawals)}</ExcelCell>
+              <ExcelCell align="right" className="font-mono">-</ExcelCell>
+              <ExcelCell align="center">-</ExcelCell>
+              
+              {/* Open Balance Row */}
+              <ExcelCell className="font-medium bg-muted/40">Saldo Aberto</ExcelCell>
+              <ExcelCell align="center" className={`font-mono font-bold bg-muted/40 ${partner1OpenBalance > 0 ? 'text-emerald-500' : 'text-muted-foreground'}`}>
                 {formatBRL(partner1OpenBalance)}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Gastou {formatBRL(partner1Total)} • Sacou {formatBRL(partner1Withdrawals)}
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-card/60 border border-border rounded-xl p-4 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-1 h-full bg-orange-500"></div>
-            <div className="ml-2">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Saldo em Aberto - {partner2}</p>
-              <p className={`text-2xl font-black ${partner2OpenBalance > 0 ? 'text-orange-400' : 'text-chart-2'}`}>
+              </ExcelCell>
+              <ExcelCell align="center" className={`font-mono font-bold bg-muted/40 ${partner2OpenBalance > 0 ? 'text-emerald-500' : 'text-muted-foreground'}`}>
                 {formatBRL(partner2OpenBalance)}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Gastou {formatBRL(partner2Total)} • Sacou {formatBRL(partner2Withdrawals)}
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-card/60 border-2 border-primary/30 rounded-xl p-4 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-1 h-full bg-primary"></div>
-            <div className="ml-2">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Próximo Saque</p>
-              {nextWithdrawAmount > 0 ? (
-                <>
-                  <p className="text-2xl font-black text-primary">{nextToWithdraw}</p>
-                  <p className="text-xs text-chart-2 mt-1 font-semibold">
-                    <ArrowDownCircle className="inline h-3 w-3 mr-1" />
-                    {formatBRL(nextWithdrawAmount)} a receber
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className="text-2xl font-black text-chart-2">Equilibrado!</p>
-                  <p className="text-xs text-muted-foreground mt-1">Ambos já receberam o que gastaram</p>
-                </>
-              )}
+              </ExcelCell>
+              <ExcelCell align="right" className="font-mono bg-muted/40">-</ExcelCell>
+              <ExcelCell align="right" className="font-mono font-bold bg-muted/40 text-primary">
+                {formatBRL(partner1OpenBalance + partner2OpenBalance)}
+              </ExcelCell>
+              <ExcelCell align="center" className="bg-muted/40 text-xs">
+                {nextWithdrawAmount > 0 ? (
+                  <span className="text-emerald-500 font-medium">{nextToWithdraw} saca</span>
+                ) : (
+                  <span className="text-muted-foreground">Equilibrado</span>
+                )}
+              </ExcelCell>
+              
+              {/* Balance Row */}
+              <ExcelCell className="font-medium bg-primary/10">Acerto</ExcelCell>
+              <ExcelCell align="center" className={`font-mono font-bold bg-primary/10 ${partner1Balance > 0 ? 'text-emerald-500' : partner1Balance < 0 ? 'text-destructive' : ''}`}>
+                {partner1Balance > 0 ? `+${formatBRL(partner1Balance)}` : formatBRL(partner1Balance)}
+              </ExcelCell>
+              <ExcelCell align="center" className={`font-mono font-bold bg-primary/10 ${partner2Balance > 0 ? 'text-emerald-500' : partner2Balance < 0 ? 'text-destructive' : ''}`}>
+                {partner2Balance > 0 ? `+${formatBRL(partner2Balance)}` : formatBRL(partner2Balance)}
+              </ExcelCell>
+              <ExcelCell align="right" className="bg-primary/10">-</ExcelCell>
+              <ExcelCell align="right" className="bg-primary/10">-</ExcelCell>
+              <ExcelCell align="center" className="bg-primary/10 text-xs font-medium">
+                {partner1Balance === 0 ? '✓ OK' : partner1Balance > 0 ? `${partner2} deve` : `${partner1} deve`}
+              </ExcelCell>
+              
+              {/* Fixed Expenses Row */}
+              <ExcelCell className="font-medium border-t-2 border-border">Fixos/Mês</ExcelCell>
+              <ExcelCell align="center" className="border-t-2 border-border">-</ExcelCell>
+              <ExcelCell align="center" className="border-t-2 border-border">-</ExcelCell>
+              <ExcelCell align="right" className="font-mono font-semibold text-amber-500 border-t-2 border-border">{formatBRL(fixedExpensesTotal)}</ExcelCell>
+              <ExcelCell align="right" className="border-t-2 border-border">-</ExcelCell>
+              <ExcelCell align="center" className="text-xs text-muted-foreground border-t-2 border-border">{activeFixedExpenses.length} ativos</ExcelCell>
             </div>
           </div>
         </div>
 
-        {/* Tabs for different sections */}
-        <Tabs defaultValue="expenses" className="space-y-6">
-          <TabsList className="bg-card/60 border border-border">
-            <TabsTrigger value="expenses" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <DollarSign className="h-4 w-4 mr-2" />
-              Despesas
+        {/* Tabs */}
+        <Tabs defaultValue="expenses" className="space-y-4">
+          <TabsList className="bg-muted border border-border h-auto p-1">
+            <TabsTrigger value="expenses" className="data-[state=active]:bg-background text-xs sm:text-sm px-2 sm:px-4">
+              <DollarSign className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Despesas</span>
             </TabsTrigger>
-            <TabsTrigger value="withdrawals" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <Banknote className="h-4 w-4 mr-2" />
-              Saques
+            <TabsTrigger value="withdrawals" className="data-[state=active]:bg-background text-xs sm:text-sm px-2 sm:px-4">
+              <Banknote className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Saques</span>
             </TabsTrigger>
-            <TabsTrigger value="fixed" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <Calendar className="h-4 w-4 mr-2" />
-              Gastos Fixos
+            <TabsTrigger value="fixed" className="data-[state=active]:bg-background text-xs sm:text-sm px-2 sm:px-4">
+              <Calendar className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Fixos</span>
             </TabsTrigger>
           </TabsList>
 
           {/* Expenses Tab */}
-          <TabsContent value="expenses" className="space-y-6">
-            <SectionCard title="Nova Despesa" icon={Plus} color="cyan">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 md:gap-4 mb-4">
-                <div className="sm:col-span-2 lg:col-span-2">
-                  <Label className="text-muted-foreground text-xs uppercase tracking-wider">Descrição</Label>
-                  <Input
-                    value={newExpense.description}
-                    onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })}
-                    placeholder="Ex: Facebook Ads"
-                    className="bg-card/60 border-primary/30 text-foreground focus:border-primary mt-1"
-                  />
-                </div>
-                <div>
-                  <Label className="text-muted-foreground text-xs uppercase tracking-wider">Valor</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={newExpense.amount}
-                    onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
-                    placeholder="0,00"
-                    className="bg-card/60 border-primary/30 text-foreground focus:border-primary mt-1"
-                  />
-                </div>
-                <div>
-                  <Label className="text-muted-foreground text-xs uppercase tracking-wider">Pago por</Label>
-                  <Select value={newExpense.paid_by} onValueChange={(v) => setNewExpense({ ...newExpense, paid_by: v })}>
-                    <SelectTrigger className="bg-card/60 border-primary/30 text-foreground focus:border-primary mt-1">
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-popover/95 border-primary/30">
-                      <SelectItem value={partner1} className="text-foreground hover:bg-primary/20">{partner1}</SelectItem>
-                      <SelectItem value={partner2} className="text-foreground hover:bg-primary/20">{partner2}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground text-xs uppercase tracking-wider">Categoria</Label>
-                  <Select value={newExpense.category} onValueChange={(v) => setNewExpense({ ...newExpense, category: v })}>
-                    <SelectTrigger className="bg-card/60 border-primary/30 text-foreground focus:border-primary mt-1">
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-popover/95 border-primary/30">
-                      {CATEGORIES.map((cat) => (
-                        <SelectItem key={cat} value={cat} className="text-foreground hover:bg-primary/20">{cat}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-end sm:col-span-2 lg:col-span-1">
-                  <Button 
-                    onClick={handleAddExpense} 
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
-                    disabled={addExpense.isPending || isUploading}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    {isUploading ? 'Enviando...' : 'Adicionar'}
-                  </Button>
-                </div>
-              </div>
-
-              {/* Receipt Upload Section */}
-              <div className="mt-4 p-4 rounded-xl bg-card/40 border border-border">
-                <Label className="text-muted-foreground text-xs uppercase tracking-wider mb-2 block">Comprovante (opcional)</Label>
-                <div className="flex items-center gap-4">
+          <TabsContent value="expenses" className="space-y-4">
+            {/* New Expense Form - Excel Style */}
+            <div className="border-2 border-border rounded-lg overflow-hidden">
+              <div className="bg-muted/60 border-b border-border px-4 py-2 flex items-center justify-between">
+                <span className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Nova Despesa
+                </span>
+                {/* Receipt upload */}
+                <div className="flex items-center gap-2">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -498,383 +484,401 @@ export default function Financeiro() {
                   />
                   <label
                     htmlFor="receipt-upload"
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 border border-primary/30 text-primary cursor-pointer hover:bg-primary/20 transition-colors"
+                    className="flex items-center gap-1 px-2 py-1 text-xs rounded border border-border bg-background cursor-pointer hover:bg-muted transition-colors"
                   >
-                    <ImageIcon className="h-4 w-4" />
-                    <span className="text-sm font-medium">Anexar Imagem</span>
+                    <ImageIcon className="h-3 w-3" />
+                    Anexar
                   </label>
-                  
                   {previewUrl && (
                     <div className="relative">
-                      <img 
-                        src={previewUrl} 
-                        alt="Preview" 
-                        className="h-16 w-16 object-cover rounded-lg border border-primary/30"
-                      />
+                      <img src={previewUrl} alt="Preview" className="h-8 w-8 object-cover rounded border border-border" />
                       <button
                         onClick={clearSelectedFile}
-                        className="absolute -top-2 -right-2 p-1 bg-destructive rounded-full hover:bg-destructive/80 transition-colors"
+                        className="absolute -top-1 -right-1 p-0.5 bg-destructive rounded-full"
                       >
-                        <X className="h-3 w-3 text-destructive-foreground" />
+                        <X className="h-2 w-2 text-destructive-foreground" />
                       </button>
                     </div>
                   )}
-                  
-                  {selectedFile && (
-                    <span className="text-sm text-muted-foreground">{selectedFile.name}</span>
-                  )}
                 </div>
               </div>
-            </SectionCard>
-
-            {/* Expenses Table */}
-            <SectionCard title="Histórico de Despesas" icon={DollarSign} color="purple">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-b border-border hover:bg-transparent">
-                      <TableHead className="text-muted-foreground text-xs uppercase tracking-wider">Data</TableHead>
-                      <TableHead className="text-muted-foreground text-xs uppercase tracking-wider">Descrição</TableHead>
-                      <TableHead className="text-muted-foreground text-xs uppercase tracking-wider">Categoria</TableHead>
-                      <TableHead className="text-muted-foreground text-xs uppercase tracking-wider">Pago por</TableHead>
-                      <TableHead className="text-muted-foreground text-xs uppercase tracking-wider text-right">Valor</TableHead>
-                      <TableHead className="text-muted-foreground text-xs uppercase tracking-wider text-center">Comprovante</TableHead>
-                      <TableHead className="w-12"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {expenses?.length === 0 ? (
-                      <TableRow className="hover:bg-transparent">
-                        <TableCell colSpan={7} className="text-center text-muted-foreground py-12">
-                          <div className="flex flex-col items-center gap-2">
-                            <DollarSign className="h-12 w-12 text-muted-foreground/50" />
-                            <span>Nenhuma despesa registrada ainda</span>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      expenses?.map((expense) => (
-                        <TableRow key={expense.id} className="border-b border-border hover:bg-accent/50">
-                          <TableCell className="text-muted-foreground">
-                            {format(new Date(expense.expense_date), "dd/MM/yyyy", { locale: ptBR })}
-                          </TableCell>
-                          <TableCell className="font-medium text-foreground">{expense.description}</TableCell>
-                          <TableCell>
-                            <span className="px-2 py-1 rounded-full text-xs bg-primary/10 text-primary border border-primary/30">
-                              {expense.category || "Outros"}
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            <span className="font-bold text-primary">
-                              {expense.paid_by}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-right font-mono text-chart-2 font-bold">
-                            {formatBRL(Number(expense.amount))}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {expense.receipt_url ? (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setReceiptFilePath(expense.receipt_url)}
-                                className="hover:bg-primary/20 text-primary"
-                              >
-                                <Eye className="h-4 w-4 mr-1" />
-                                Ver
-                              </Button>
-                            ) : (
-                              <span className="text-muted-foreground text-sm">-</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => deleteExpense.mutate(expense.id)}
-                              disabled={deleteExpense.isPending}
-                              className="hover:bg-destructive/20 hover:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </SectionCard>
-          </TabsContent>
-
-          {/* Withdrawals Tab */}
-          <TabsContent value="withdrawals" className="space-y-6">
-            <SectionCard title="Novo Saque" icon={ArrowDownCircle} color="orange">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
-                <div>
-                  <Label className="text-muted-foreground text-xs uppercase tracking-wider">Quem Sacou</Label>
-                  <Select value={newWithdrawal.partner_name} onValueChange={(v) => setNewWithdrawal({ ...newWithdrawal, partner_name: v })}>
-                    <SelectTrigger className="bg-card/60 border-primary/30 text-foreground focus:border-primary mt-1">
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-popover/95 border-primary/30">
-                      <SelectItem value={partner1} className="text-foreground hover:bg-primary/20">{partner1}</SelectItem>
-                      <SelectItem value={partner2} className="text-foreground hover:bg-primary/20">{partner2}</SelectItem>
-                    </SelectContent>
-                  </Select>
+              <div className="grid grid-cols-6 bg-background">
+                <div className="col-span-2">
+                  <ExcelInputCell 
+                    value={newExpense.description}
+                    onChange={(v) => setNewExpense({ ...newExpense, description: v })}
+                    placeholder="Descrição..."
+                  />
                 </div>
                 <div>
-                  <Label className="text-muted-foreground text-xs uppercase tracking-wider">Valor</Label>
-                  <Input
+                  <ExcelInputCell 
                     type="number"
-                    step="0.01"
-                    value={newWithdrawal.amount}
-                    onChange={(e) => setNewWithdrawal({ ...newWithdrawal, amount: e.target.value })}
-                    placeholder="0,00"
-                    className="bg-card/60 border-primary/30 text-foreground focus:border-primary mt-1"
+                    value={newExpense.amount}
+                    onChange={(v) => setNewExpense({ ...newExpense, amount: v })}
+                    placeholder="Valor"
                   />
                 </div>
                 <div>
-                  <Label className="text-muted-foreground text-xs uppercase tracking-wider">Data</Label>
-                  <Input
-                    type="date"
-                    value={newWithdrawal.withdrawal_date}
-                    onChange={(e) => setNewWithdrawal({ ...newWithdrawal, withdrawal_date: e.target.value })}
-                    className="bg-card/60 border-primary/30 text-foreground focus:border-primary mt-1"
+                  <ExcelSelectCell
+                    value={newExpense.paid_by}
+                    onChange={(v) => setNewExpense({ ...newExpense, paid_by: v })}
+                    options={[
+                      { value: partner1, label: partner1 },
+                      { value: partner2, label: partner2 },
+                    ]}
+                    placeholder="Pago por"
                   />
                 </div>
                 <div>
-                  <Label className="text-muted-foreground text-xs uppercase tracking-wider">Descrição (opcional)</Label>
-                  <Input
-                    value={newWithdrawal.description}
-                    onChange={(e) => setNewWithdrawal({ ...newWithdrawal, description: e.target.value })}
-                    placeholder="Ex: Pró-labore"
-                    className="bg-card/60 border-primary/30 text-foreground focus:border-primary mt-1"
+                  <ExcelSelectCell
+                    value={newExpense.category}
+                    onChange={(v) => setNewExpense({ ...newExpense, category: v })}
+                    options={CATEGORIES.map(c => ({ value: c, label: c }))}
+                    placeholder="Categoria"
                   />
                 </div>
-                <div className="flex items-end">
+                <div>
                   <Button 
-                    onClick={handleAddWithdrawal} 
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
-                    disabled={addWithdrawal.isPending}
+                    onClick={handleAddExpense}
+                    disabled={addExpense.isPending || isUploading}
+                    className="w-full h-full rounded-none"
                   >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Registrar Saque
+                    <Plus className="h-4 w-4 mr-1" />
+                    {isUploading ? '...' : 'Add'}
                   </Button>
                 </div>
               </div>
-            </SectionCard>
+            </div>
 
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 rounded-xl bg-card/60 border border-border">
-                <p className="text-muted-foreground text-sm mb-1">Saques de {partner1}</p>
-                <p className="text-2xl font-bold text-primary">{formatBRL(partner1Withdrawals)}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {withdrawals?.filter(w => w.partner_name === partner1).length || 0} saques
-                </p>
+            {/* Expenses Table - Excel Style */}
+            <div className="border-2 border-border rounded-lg overflow-hidden">
+              <div className="overflow-x-auto">
+                <div className="min-w-[700px]">
+                  {/* Header */}
+                  <div className="grid grid-cols-[100px_1fr_120px_100px_120px_60px_50px] bg-muted/80 border-b-2 border-border">
+                    <ExcelCell header>DATA</ExcelCell>
+                    <ExcelCell header>DESCRIÇÃO</ExcelCell>
+                    <ExcelCell header>CATEGORIA</ExcelCell>
+                    <ExcelCell header>PAGO POR</ExcelCell>
+                    <ExcelCell header align="right">VALOR</ExcelCell>
+                    <ExcelCell header align="center">📎</ExcelCell>
+                    <ExcelCell header align="center">🗑</ExcelCell>
+                  </div>
+                  
+                  {/* Body */}
+                  {expenses?.length === 0 ? (
+                    <div className="py-12 text-center text-muted-foreground bg-background">
+                      <DollarSign className="h-12 w-12 mx-auto mb-2 opacity-30" />
+                      <p>Nenhuma despesa registrada</p>
+                    </div>
+                  ) : (
+                    expenses?.map((expense, idx) => (
+                      <div 
+                        key={expense.id} 
+                        className={`grid grid-cols-[100px_1fr_120px_100px_120px_60px_50px] ${idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'} hover:bg-primary/5 transition-colors`}
+                      >
+                        <ExcelCell className="font-mono text-xs text-muted-foreground">
+                          {format(new Date(expense.expense_date), "dd/MM/yy")}
+                        </ExcelCell>
+                        <ExcelCell className="font-medium truncate">{expense.description}</ExcelCell>
+                        <ExcelCell>
+                          <span className="px-2 py-0.5 rounded text-xs bg-muted text-foreground">
+                            {expense.category || "Outros"}
+                          </span>
+                        </ExcelCell>
+                        <ExcelCell className="font-medium text-primary">{expense.paid_by}</ExcelCell>
+                        <ExcelCell align="right" className="font-mono font-bold text-emerald-500">
+                          {formatBRL(Number(expense.amount))}
+                        </ExcelCell>
+                        <ExcelCell align="center">
+                          {expense.receipt_url ? (
+                            <button
+                              onClick={() => setReceiptFilePath(expense.receipt_url)}
+                              className="text-primary hover:underline text-xs"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </button>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </ExcelCell>
+                        <ExcelCell align="center">
+                          <button
+                            onClick={() => deleteExpense.mutate(expense.id)}
+                            disabled={deleteExpense.isPending}
+                            className="text-destructive hover:text-destructive/80"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </ExcelCell>
+                      </div>
+                    ))
+                  )}
+                  
+                  {/* Footer Total */}
+                  {expenses && expenses.length > 0 && (
+                    <div className="grid grid-cols-[100px_1fr_120px_100px_120px_60px_50px] bg-muted/60 border-t-2 border-border">
+                      <ExcelCell className="font-bold">TOTAL</ExcelCell>
+                      <ExcelCell className="font-medium text-muted-foreground">{expenses.length} registros</ExcelCell>
+                      <ExcelCell>-</ExcelCell>
+                      <ExcelCell>-</ExcelCell>
+                      <ExcelCell align="right" className="font-mono font-bold text-primary text-lg">
+                        {formatBRL(totalExpenses)}
+                      </ExcelCell>
+                      <ExcelCell align="center">-</ExcelCell>
+                      <ExcelCell align="center">-</ExcelCell>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="p-4 rounded-xl bg-card/60 border border-border">
-                <p className="text-muted-foreground text-sm mb-1">Saques de {partner2}</p>
-                <p className="text-2xl font-bold text-primary">{formatBRL(partner2Withdrawals)}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {withdrawals?.filter(w => w.partner_name === partner2).length || 0} saques
-                </p>
+            </div>
+          </TabsContent>
+
+          {/* Withdrawals Tab */}
+          <TabsContent value="withdrawals" className="space-y-4">
+            {/* New Withdrawal Form */}
+            <div className="border-2 border-border rounded-lg overflow-hidden">
+              <div className="bg-muted/60 border-b border-border px-4 py-2">
+                <span className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <ArrowDownCircle className="h-4 w-4" />
+                  Novo Saque
+                </span>
               </div>
-              <div className="p-4 rounded-xl bg-card/60 border border-border">
-                <p className="text-muted-foreground text-sm mb-1">Diferença</p>
-                <p className="text-2xl font-bold text-chart-2">
-                  {formatBRL(Math.abs(partner1Withdrawals - partner2Withdrawals))}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {partner1Withdrawals > partner2Withdrawals 
-                    ? `${partner1} sacou mais` 
-                    : partner2Withdrawals > partner1Withdrawals 
-                      ? `${partner2} sacou mais` 
-                      : 'Saques iguais'}
-                </p>
+              <div className="grid grid-cols-5 bg-background">
+                <div>
+                  <ExcelSelectCell
+                    value={newWithdrawal.partner_name}
+                    onChange={(v) => setNewWithdrawal({ ...newWithdrawal, partner_name: v })}
+                    options={[
+                      { value: partner1, label: partner1 },
+                      { value: partner2, label: partner2 },
+                    ]}
+                    placeholder="Quem sacou"
+                  />
+                </div>
+                <div>
+                  <ExcelInputCell 
+                    type="number"
+                    value={newWithdrawal.amount}
+                    onChange={(v) => setNewWithdrawal({ ...newWithdrawal, amount: v })}
+                    placeholder="Valor"
+                  />
+                </div>
+                <div>
+                  <input
+                    type="date"
+                    value={newWithdrawal.withdrawal_date}
+                    onChange={(e) => setNewWithdrawal({ ...newWithdrawal, withdrawal_date: e.target.value })}
+                    className="w-full h-full bg-background border border-border px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+                <div>
+                  <ExcelInputCell 
+                    value={newWithdrawal.description}
+                    onChange={(v) => setNewWithdrawal({ ...newWithdrawal, description: v })}
+                    placeholder="Descrição (opt)"
+                  />
+                </div>
+                <div>
+                  <Button 
+                    onClick={handleAddWithdrawal}
+                    disabled={addWithdrawal.isPending}
+                    className="w-full h-full rounded-none"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add
+                  </Button>
+                </div>
               </div>
             </div>
 
             {/* Withdrawals Table */}
-            <SectionCard title="Histórico de Saques" icon={Banknote} color="orange">
+            <div className="border-2 border-border rounded-lg overflow-hidden">
               <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-b border-border hover:bg-transparent">
-                      <TableHead className="text-muted-foreground text-xs uppercase tracking-wider">Data</TableHead>
-                      <TableHead className="text-muted-foreground text-xs uppercase tracking-wider">Quem Sacou</TableHead>
-                      <TableHead className="text-muted-foreground text-xs uppercase tracking-wider">Descrição</TableHead>
-                      <TableHead className="text-muted-foreground text-xs uppercase tracking-wider text-right">Valor</TableHead>
-                      <TableHead className="w-12"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {withdrawals?.length === 0 ? (
-                      <TableRow className="hover:bg-transparent">
-                        <TableCell colSpan={5} className="text-center text-muted-foreground py-12">
-                          <div className="flex flex-col items-center gap-2">
-                            <Banknote className="h-12 w-12 text-muted-foreground/50" />
-                            <span>Nenhum saque registrado ainda</span>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      withdrawals?.map((withdrawal) => (
-                        <TableRow key={withdrawal.id} className="border-b border-border hover:bg-accent/50">
-                          <TableCell className="text-muted-foreground">
-                            {format(new Date(withdrawal.withdrawal_date), "dd/MM/yyyy", { locale: ptBR })}
-                          </TableCell>
-                          <TableCell>
-                            <span className="font-bold text-primary">
-                              {withdrawal.partner_name}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-foreground">
-                            {withdrawal.description || "-"}
-                          </TableCell>
-                          <TableCell className="text-right font-mono text-chart-2 font-bold">
-                            {formatBRL(Number(withdrawal.amount))}
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => deleteWithdrawal.mutate(withdrawal.id)}
-                              disabled={deleteWithdrawal.isPending}
-                              className="hover:bg-destructive/20 hover:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
+                <div className="min-w-[600px]">
+                  <div className="grid grid-cols-[100px_120px_1fr_150px_50px] bg-muted/80 border-b-2 border-border">
+                    <ExcelCell header>DATA</ExcelCell>
+                    <ExcelCell header>QUEM</ExcelCell>
+                    <ExcelCell header>DESCRIÇÃO</ExcelCell>
+                    <ExcelCell header align="right">VALOR</ExcelCell>
+                    <ExcelCell header align="center">🗑</ExcelCell>
+                  </div>
+                  
+                  {withdrawals?.length === 0 ? (
+                    <div className="py-12 text-center text-muted-foreground bg-background">
+                      <Banknote className="h-12 w-12 mx-auto mb-2 opacity-30" />
+                      <p>Nenhum saque registrado</p>
+                    </div>
+                  ) : (
+                    withdrawals?.map((withdrawal, idx) => (
+                      <div 
+                        key={withdrawal.id} 
+                        className={`grid grid-cols-[100px_120px_1fr_150px_50px] ${idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'} hover:bg-primary/5`}
+                      >
+                        <ExcelCell className="font-mono text-xs text-muted-foreground">
+                          {format(new Date(withdrawal.withdrawal_date), "dd/MM/yy")}
+                        </ExcelCell>
+                        <ExcelCell className="font-medium text-primary">{withdrawal.partner_name}</ExcelCell>
+                        <ExcelCell className="text-muted-foreground">{withdrawal.description || "-"}</ExcelCell>
+                        <ExcelCell align="right" className="font-mono font-bold text-orange-500">
+                          {formatBRL(Number(withdrawal.amount))}
+                        </ExcelCell>
+                        <ExcelCell align="center">
+                          <button
+                            onClick={() => deleteWithdrawal.mutate(withdrawal.id)}
+                            disabled={deleteWithdrawal.isPending}
+                            className="text-destructive hover:text-destructive/80"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </ExcelCell>
+                      </div>
+                    ))
+                  )}
+                  
+                  {withdrawals && withdrawals.length > 0 && (
+                    <div className="grid grid-cols-[100px_120px_1fr_150px_50px] bg-muted/60 border-t-2 border-border">
+                      <ExcelCell className="font-bold">TOTAL</ExcelCell>
+                      <ExcelCell className="text-muted-foreground">{withdrawals.length} saques</ExcelCell>
+                      <ExcelCell>-</ExcelCell>
+                      <ExcelCell align="right" className="font-mono font-bold text-primary text-lg">
+                        {formatBRL(totalWithdrawals)}
+                      </ExcelCell>
+                      <ExcelCell>-</ExcelCell>
+                    </div>
+                  )}
+                </div>
               </div>
-            </SectionCard>
+            </div>
           </TabsContent>
 
           {/* Fixed Expenses Tab */}
-          <TabsContent value="fixed" className="space-y-6">
-            <SectionCard title="Gastos Fixos Mensais" icon={Calendar} color="green">
-              <p className="text-muted-foreground text-xs md:text-sm mb-4">
-                Despesas que se repetem todo mês. Total mensal: <span className="text-primary font-bold">{formatBRL(fixedExpensesTotal)}</span>
-              </p>
-              
-              {/* Add Fixed Expense Form */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 mb-6">
-                <div className="sm:col-span-2 lg:col-span-2">
-                  <Label className="text-muted-foreground text-xs uppercase tracking-wider">Descrição</Label>
-                  <Input
+          <TabsContent value="fixed" className="space-y-4">
+            {/* Add Fixed Expense Form */}
+            <div className="border-2 border-border rounded-lg overflow-hidden">
+              <div className="bg-muted/60 border-b border-border px-4 py-2">
+                <span className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Novo Gasto Fixo
+                </span>
+              </div>
+              <div className="grid grid-cols-4 bg-background">
+                <div>
+                  <ExcelInputCell 
                     value={newFixedExpense.description}
-                    onChange={(e) => setNewFixedExpense({ ...newFixedExpense, description: e.target.value })}
-                    placeholder="Ex: Hospedagem, Ferramentas"
-                    className="bg-card/60 border-border text-foreground focus:border-primary mt-1"
+                    onChange={(v) => setNewFixedExpense({ ...newFixedExpense, description: v })}
+                    placeholder="Descrição"
                   />
                 </div>
                 <div>
-                  <Label className="text-muted-foreground text-xs uppercase tracking-wider">Valor Mensal</Label>
-                  <Input
+                  <ExcelInputCell 
                     type="number"
-                    step="0.01"
                     value={newFixedExpense.amount}
-                    onChange={(e) => setNewFixedExpense({ ...newFixedExpense, amount: e.target.value })}
-                    placeholder="0,00"
-                    className="bg-card/60 border-border text-foreground focus:border-primary mt-1"
+                    onChange={(v) => setNewFixedExpense({ ...newFixedExpense, amount: v })}
+                    placeholder="Valor/mês"
                   />
                 </div>
                 <div>
-                  <Label className="text-muted-foreground text-xs uppercase tracking-wider">Pago por</Label>
-                  <Select value={newFixedExpense.paid_by} onValueChange={(v) => setNewFixedExpense({ ...newFixedExpense, paid_by: v })}>
-                    <SelectTrigger className="bg-card/60 border-border text-foreground focus:border-primary mt-1">
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-popover/95 border-border">
-                      <SelectItem value={partner1} className="text-foreground hover:bg-primary/20">{partner1}</SelectItem>
-                      <SelectItem value={partner2} className="text-foreground hover:bg-primary/20">{partner2}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <ExcelSelectCell
+                    value={newFixedExpense.paid_by}
+                    onChange={(v) => setNewFixedExpense({ ...newFixedExpense, paid_by: v })}
+                    options={[
+                      { value: partner1, label: partner1 },
+                      { value: partner2, label: partner2 },
+                    ]}
+                    placeholder="Pago por"
+                  />
                 </div>
-                <div className="flex items-end">
+                <div>
                   <Button 
-                    onClick={handleAddFixedExpense} 
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
+                    onClick={handleAddFixedExpense}
                     disabled={addFixedExpense.isPending}
+                    className="w-full h-full rounded-none"
                   >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Adicionar
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add
                   </Button>
                 </div>
               </div>
+            </div>
 
-              {/* Fixed Expenses List */}
-              <div className="space-y-3">
-                {fixedExpenses?.length === 0 ? (
-                  <div className="text-center text-muted-foreground py-8">
-                    <Calendar className="h-12 w-12 mx-auto text-muted-foreground/50 mb-2" />
-                    <span>Nenhum gasto fixo cadastrado</span>
+            {/* Fixed Expenses Table */}
+            <div className="border-2 border-border rounded-lg overflow-hidden">
+              <div className="overflow-x-auto">
+                <div className="min-w-[500px]">
+                  <div className="grid grid-cols-[60px_1fr_120px_150px_50px] bg-muted/80 border-b-2 border-border">
+                    <ExcelCell header align="center">ON</ExcelCell>
+                    <ExcelCell header>DESCRIÇÃO</ExcelCell>
+                    <ExcelCell header>PAGO POR</ExcelCell>
+                    <ExcelCell header align="right">VALOR/MÊS</ExcelCell>
+                    <ExcelCell header align="center">🗑</ExcelCell>
                   </div>
-                ) : (
-                  fixedExpenses?.map((expense) => (
-                    <div 
-                      key={expense.id} 
-                      className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
-                        expense.is_active 
-                          ? 'bg-primary/5 border-primary/30' 
-                          : 'bg-muted/50 border-border opacity-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-4">
-                        <button
-                          onClick={() => toggleFixedExpense.mutate({ id: expense.id, is_active: !expense.is_active })}
-                          className="text-muted-foreground hover:text-primary transition-colors"
-                        >
-                          {expense.is_active ? (
-                            <ToggleRight className="h-6 w-6 text-primary" />
-                          ) : (
-                            <ToggleLeft className="h-6 w-6" />
-                          )}
-                        </button>
-                        <div>
-                          <p className={`font-medium ${expense.is_active ? 'text-foreground' : 'text-muted-foreground'}`}>
-                            {expense.description}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            Pago por: <span className="text-primary">{expense.paid_by}</span>
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <span className={`font-mono font-bold ${expense.is_active ? 'text-chart-2' : 'text-muted-foreground'}`}>
-                          {formatBRL(Number(expense.amount))}/mês
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => deleteFixedExpense.mutate(expense.id)}
-                          disabled={deleteFixedExpense.isPending}
-                          className="hover:bg-destructive/20 hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
+                  
+                  {fixedExpenses?.length === 0 ? (
+                    <div className="py-12 text-center text-muted-foreground bg-background">
+                      <Calendar className="h-12 w-12 mx-auto mb-2 opacity-30" />
+                      <p>Nenhum gasto fixo cadastrado</p>
                     </div>
-                  ))
-                )}
+                  ) : (
+                    fixedExpenses?.map((expense, idx) => (
+                      <div 
+                        key={expense.id} 
+                        className={`grid grid-cols-[60px_1fr_120px_150px_50px] ${idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'} ${!expense.is_active ? 'opacity-50' : ''} hover:bg-primary/5`}
+                      >
+                        <ExcelCell align="center">
+                          <button
+                            onClick={() => toggleFixedExpense.mutate({ id: expense.id, is_active: !expense.is_active })}
+                            className="hover:opacity-80"
+                          >
+                            {expense.is_active ? (
+                              <ToggleRight className="h-5 w-5 text-emerald-500" />
+                            ) : (
+                              <ToggleLeft className="h-5 w-5 text-muted-foreground" />
+                            )}
+                          </button>
+                        </ExcelCell>
+                        <ExcelCell className={expense.is_active ? "font-medium" : "text-muted-foreground"}>
+                          {expense.description}
+                        </ExcelCell>
+                        <ExcelCell className="text-primary">{expense.paid_by}</ExcelCell>
+                        <ExcelCell align="right" className={`font-mono font-bold ${expense.is_active ? 'text-amber-500' : 'text-muted-foreground'}`}>
+                          {formatBRL(Number(expense.amount))}
+                        </ExcelCell>
+                        <ExcelCell align="center">
+                          <button
+                            onClick={() => deleteFixedExpense.mutate(expense.id)}
+                            disabled={deleteFixedExpense.isPending}
+                            className="text-destructive hover:text-destructive/80"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </ExcelCell>
+                      </div>
+                    ))
+                  )}
+                  
+                  {fixedExpenses && fixedExpenses.length > 0 && (
+                    <div className="grid grid-cols-[60px_1fr_120px_150px_50px] bg-muted/60 border-t-2 border-border">
+                      <ExcelCell align="center">-</ExcelCell>
+                      <ExcelCell className="font-bold">TOTAL MENSAL</ExcelCell>
+                      <ExcelCell className="text-muted-foreground">{activeFixedExpenses.length} ativos</ExcelCell>
+                      <ExcelCell align="right" className="font-mono font-bold text-primary text-lg">
+                        {formatBRL(fixedExpensesTotal)}
+                      </ExcelCell>
+                      <ExcelCell>-</ExcelCell>
+                    </div>
+                  )}
+                </div>
               </div>
-            </SectionCard>
+            </div>
           </TabsContent>
         </Tabs>
 
         {/* Receipt View Dialog */}
         <Dialog open={!!receiptFilePath} onOpenChange={() => setReceiptFilePath(null)}>
-          <DialogContent className="bg-popover/95 border-2 border-primary/30 backdrop-blur-xl max-w-2xl">
+          <DialogContent className="bg-background border-border max-w-2xl">
             <DialogHeader>
-              <DialogTitle className="text-xl font-black text-primary">
-                Comprovante
-              </DialogTitle>
+              <DialogTitle>Comprovante</DialogTitle>
             </DialogHeader>
             <div className="flex justify-center min-h-[200px] items-center">
               {isLoadingReceipt ? (
@@ -886,10 +890,10 @@ export default function Financeiro() {
                 <img 
                   src={viewReceiptUrl} 
                   alt="Comprovante" 
-                  className="max-w-full max-h-[70vh] rounded-lg border border-primary/30"
+                  className="max-w-full max-h-[70vh] rounded-lg border border-border"
                 />
               ) : (
-                <span className="text-muted-foreground">Erro ao carregar comprovante</span>
+                <span className="text-muted-foreground">Erro ao carregar</span>
               )}
             </div>
           </DialogContent>
