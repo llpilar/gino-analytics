@@ -1603,9 +1603,9 @@ async function fetchAndProxy(targetUrl: string, request: Request): Promise<Respo
 }
 
 // ==================== CHALLENGE PAGE ====================
-function generateChallengePage(slug: string, delayMs: number): string {
+function generateChallengePage(slug: string, delayMs: number, functionUrl: string): string {
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1627,13 +1627,14 @@ function generateChallengePage(slug: string, delayMs: number): string {
 <body>
   <div class="container">
     <div class="spinner"></div>
-    <h1>Verificando segurança</h1>
+    <h1>Verificando seguranca</h1>
     <p>Por favor, aguarde...</p>
     <div class="progress"><div class="progress-bar"></div></div>
   </div>
   <script>
     (function(){
       var startTime = Date.now();
+      var postUrl = "${functionUrl}/${slug}";
       var data = {
         slug: "${slug}",
         fingerprint: {
@@ -1697,10 +1698,28 @@ function generateChallengePage(slug: string, delayMs: number): string {
         data.fingerprint.touchEvents = events.touch;
         data.fingerprint.focusChanges = events.focus;
         data.fingerprint.timeOnPage = Date.now() - startTime;
-        fetch(window.location.origin + window.location.pathname, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
-        .then(function(r) { return r.json(); })
-        .then(function(result) { if (result.redirectUrl) { window.location.href = result.redirectUrl; } })
-        .catch(function() { window.location.reload(); });
+        console.log('[Cloaker] Sending fingerprint to:', postUrl);
+        fetch(postUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+        .then(function(r) { 
+          console.log('[Cloaker] Response status:', r.status);
+          return r.json(); 
+        })
+        .then(function(result) { 
+          console.log('[Cloaker] Result:', result);
+          if (result.redirectUrl) { 
+            if (result.delayMs && result.delayMs > 0) {
+              setTimeout(function() { window.location.href = result.redirectUrl; }, result.delayMs);
+            } else {
+              window.location.href = result.redirectUrl; 
+            }
+          } else {
+            console.error('[Cloaker] No redirectUrl in response');
+          }
+        })
+        .catch(function(err) { 
+          console.error('[Cloaker] Fetch error:', err);
+          window.location.reload(); 
+        });
       }, ${Math.max(delayMs, 1500)});
     })();
   </script>
@@ -1904,8 +1923,9 @@ Deno.serve(async (req) => {
     // === FINGERPRINT COLLECTION MODE ===
     if (link.collect_fingerprint && link.require_behavior) {
       const behaviorTime = link.behavior_time_ms || 2000;
+      const functionUrl = `https://eyevvanvdvcxdqyxzwfr.supabase.co/functions/v1/cloaker-redirect`;
       console.log(`[Cloaker] CHALLENGE: Serving JS challenge page for ${slug}`);
-      return new Response(generateChallengePage(slug, behaviorTime), {
+      return new Response(generateChallengePage(slug, behaviorTime, functionUrl), {
         headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-cache, no-store, must-revalidate" },
       });
     }
