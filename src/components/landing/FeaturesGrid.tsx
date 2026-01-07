@@ -2,7 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { 
   TrendingUp, BarChart3, MapPin, Shield, Bell, DollarSign,
-  Zap, Check, Users, ChevronRight
+  Check
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -37,20 +37,19 @@ const FeaturesGrid = () => {
           </p>
         </motion.div>
 
-        {/* Bento Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-4">
-          {/* Card 1 - Wide - Vendas em Tempo Real */}
+        {/* Bento Grid - 3 columns x 2 rows */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          
+          {/* Card 1 - Vendas em Tempo Real */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
             viewport={{ once: true }}
-            className="md:col-span-3 lg:col-span-4"
           >
             <Card className="h-full overflow-hidden border-border/50 bg-gradient-to-br from-card to-card/50 backdrop-blur-xl hover:border-primary/40 transition-all duration-300 group">
-              <CardContent className="p-6 h-full flex flex-col">
-                {/* Stats Display */}
-                <div className="flex items-center justify-between mb-6">
+              <CardContent className="p-6 h-full flex flex-col min-h-[280px]">
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <motion.div
                       animate={{ scale: [1, 1.2, 1] }}
@@ -59,11 +58,10 @@ const FeaturesGrid = () => {
                     />
                     <span className="text-xs text-muted-foreground">Ao vivo</span>
                   </div>
-                  <span className="text-4xl font-black text-primary">99.9%</span>
+                  <span className="text-3xl font-black text-primary">99.9%</span>
                 </div>
                 
-                {/* Mini Chart Animation */}
-                <div className="flex-1 flex items-end gap-1 mb-6 min-h-[80px]">
+                <div className="flex-1 flex items-end gap-1 mb-4 min-h-[60px]">
                   {[45, 60, 35, 80, 55, 90, 70, 85, 65, 95, 75, 88].map((height, i) => (
                     <motion.div
                       key={i}
@@ -84,100 +82,23 @@ const FeaturesGrid = () => {
                     <h3 className="text-lg font-bold text-foreground">Vendas em Tempo Real</h3>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Acompanhe cada venda no momento em que acontece com atualização instantânea.
+                    Acompanhe cada venda no momento em que acontece.
                   </p>
                 </div>
               </CardContent>
             </Card>
           </motion.div>
 
-          {/* Card 2 - Tall - Segurança */}
+          {/* Card 2 - Análises Detalhadas */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
             viewport={{ once: true }}
-            className="md:col-span-3 lg:col-span-4 lg:row-span-2"
           >
             <Card className="h-full overflow-hidden border-border/50 bg-gradient-to-br from-card to-card/50 backdrop-blur-xl hover:border-primary/40 transition-all duration-300 group">
-              <CardContent className="p-6 h-full flex flex-col">
-                {/* Security Visual */}
-                <div className="relative flex-1 flex items-center justify-center py-8">
-                  <motion.div
-                    className="relative"
-                    whileHover={{ scale: 1.05 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    {/* Outer Ring */}
-                    <motion.div
-                      className="absolute inset-0 rounded-full border-2 border-dashed border-primary/30"
-                      style={{ width: 160, height: 160, margin: -20 }}
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                    />
-                    
-                    {/* Shield Icon */}
-                    <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                      <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
-                        <Shield className="w-12 h-12 text-primary" />
-                      </div>
-                    </div>
-
-                    {/* Floating Checks */}
-                    {[0, 1, 2, 3].map((i) => (
-                      <motion.div
-                        key={i}
-                        className="absolute w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center"
-                        style={{
-                          top: `${20 + Math.sin(i * 1.5) * 60}%`,
-                          left: `${20 + Math.cos(i * 1.5) * 60}%`,
-                        }}
-                        animate={{ 
-                          scale: [1, 1.2, 1],
-                          opacity: [0.5, 1, 0.5]
-                        }}
-                        transition={{ 
-                          duration: 2, 
-                          delay: i * 0.5,
-                          repeat: Infinity 
-                        }}
-                      >
-                        <Check className="w-4 h-4 text-green-500" />
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                </div>
-
-                <div className="mt-auto">
-                  <h3 className="text-xl font-bold text-foreground mb-2">Cloaker Integrado</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Proteja seus links de afiliado com nosso sistema anti-spy avançado. Bloqueio de bots, VPNs e muito mais.
-                  </p>
-                  
-                  <div className="flex flex-wrap gap-2">
-                    {["Anti-Bot", "Anti-VPN", "Anti-Spy"].map((tag) => (
-                      <span key={tag} className="px-3 py-1 text-xs font-medium rounded-full bg-primary/10 text-primary">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Card 3 - Regular - Análises */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            viewport={{ once: true }}
-            className="md:col-span-3 lg:col-span-4"
-          >
-            <Card className="h-full overflow-hidden border-border/50 bg-gradient-to-br from-card to-card/50 backdrop-blur-xl hover:border-primary/40 transition-all duration-300 group">
-              <CardContent className="p-6 h-full flex flex-col">
-                {/* Stats Grid */}
-                <div className="grid grid-cols-2 gap-3 mb-6">
+              <CardContent className="p-6 h-full flex flex-col min-h-[280px]">
+                <div className="grid grid-cols-2 gap-3 mb-4">
                   {[
                     { label: "Conversão", value: "4.8%", color: "text-green-500" },
                     { label: "Ticket", value: "R$247", color: "text-primary" },
@@ -188,7 +109,7 @@ const FeaturesGrid = () => {
                       key={stat.label}
                       initial={{ opacity: 0, scale: 0.8 }}
                       whileInView={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.3, delay: 0.4 + i * 0.1 }}
+                      transition={{ duration: 0.3, delay: 0.3 + i * 0.1 }}
                       viewport={{ once: true }}
                       className="p-3 rounded-xl bg-muted/50 text-center"
                     >
@@ -206,26 +127,23 @@ const FeaturesGrid = () => {
                     <h3 className="text-lg font-bold text-foreground">Análises Detalhadas</h3>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Métricas completas de conversão, ticket médio e performance por período.
+                    Métricas completas de conversão e performance.
                   </p>
                 </div>
               </CardContent>
             </Card>
           </motion.div>
 
-          {/* Card 4 - Wide - Mapa de Vendas */}
+          {/* Card 3 - Mapa de Vendas */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
             viewport={{ once: true }}
-            className="md:col-span-3 lg:col-span-4"
           >
             <Card className="h-full overflow-hidden border-border/50 bg-gradient-to-br from-card to-card/50 backdrop-blur-xl hover:border-primary/40 transition-all duration-300 group">
-              <CardContent className="p-6 h-full flex flex-col">
-                {/* Map Visualization */}
-                <div className="relative h-32 rounded-xl bg-muted/30 overflow-hidden mb-4">
-                  {/* Map dots */}
+              <CardContent className="p-6 h-full flex flex-col min-h-[280px]">
+                <div className="relative flex-1 rounded-xl bg-muted/30 overflow-hidden mb-4 min-h-[100px]">
                   {[
                     { x: "15%", y: "30%", delay: 0 },
                     { x: "35%", y: "50%", delay: 0.3 },
@@ -253,8 +171,6 @@ const FeaturesGrid = () => {
                       <div className="absolute inset-0 rounded-full bg-primary/30 animate-ping" />
                     </motion.div>
                   ))}
-
-                  {/* Grid lines */}
                   <div className="absolute inset-0 opacity-20" style={{
                     backgroundImage: `linear-gradient(hsl(var(--primary)) 1px, transparent 1px),
                                       linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)`,
@@ -270,7 +186,61 @@ const FeaturesGrid = () => {
                     <h3 className="text-lg font-bold text-foreground">Mapa de Vendas</h3>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Visualize geograficamente de onde vêm suas vendas COD.
+                    Visualize geograficamente de onde vêm suas vendas.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Card 4 - Cloaker Integrado */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            viewport={{ once: true }}
+          >
+            <Card className="h-full overflow-hidden border-border/50 bg-gradient-to-br from-card to-card/50 backdrop-blur-xl hover:border-primary/40 transition-all duration-300 group">
+              <CardContent className="p-6 h-full flex flex-col min-h-[280px]">
+                <div className="relative flex-1 flex items-center justify-center mb-4">
+                  <motion.div className="relative" whileHover={{ scale: 1.05 }} transition={{ duration: 0.3 }}>
+                    <motion.div
+                      className="absolute inset-0 rounded-full border-2 border-dashed border-primary/30"
+                      style={{ width: 120, height: 120, margin: -15 }}
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                    />
+                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
+                        <Shield className="w-8 h-8 text-primary" />
+                      </div>
+                    </div>
+                    {[0, 1, 2].map((i) => (
+                      <motion.div
+                        key={i}
+                        className="absolute w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center"
+                        style={{
+                          top: `${30 + Math.sin(i * 2) * 50}%`,
+                          left: `${30 + Math.cos(i * 2) * 50}%`,
+                        }}
+                        animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+                        transition={{ duration: 2, delay: i * 0.5, repeat: Infinity }}
+                      >
+                        <Check className="w-3 h-3 text-green-500" />
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                </div>
+
+                <div className="mt-auto">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                      <Shield className="w-5 h-5 text-primary" />
+                    </div>
+                    <h3 className="text-lg font-bold text-foreground">Cloaker Integrado</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Proteja seus links com sistema anti-spy avançado.
                   </p>
                 </div>
               </CardContent>
@@ -283,12 +253,10 @@ const FeaturesGrid = () => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.5 }}
             viewport={{ once: true }}
-            className="md:col-span-3 lg:col-span-4"
           >
             <Card className="h-full overflow-hidden border-border/50 bg-gradient-to-br from-card to-card/50 backdrop-blur-xl hover:border-primary/40 transition-all duration-300 group">
-              <CardContent className="p-6 h-full flex flex-col">
-                {/* Notification Preview */}
-                <div className="space-y-3 mb-4">
+              <CardContent className="p-6 h-full flex flex-col min-h-[280px]">
+                <div className="space-y-3 mb-4 flex-1">
                   {[
                     { title: "Nova venda!", desc: "São Paulo • R$ 297,00", time: "agora" },
                     { title: "Venda confirmada", desc: "Rio de Janeiro • R$ 189,00", time: "2min" },
@@ -325,28 +293,26 @@ const FeaturesGrid = () => {
                     <h3 className="text-lg font-bold text-foreground">Notificações Push</h3>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Receba alertas de novas vendas diretamente no seu dispositivo.
+                    Alertas de vendas direto no seu dispositivo.
                   </p>
                 </div>
               </CardContent>
             </Card>
           </motion.div>
 
-          {/* Card 6 - Wide - Controle Financeiro */}
+          {/* Card 6 - Controle Financeiro */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.6 }}
             viewport={{ once: true }}
-            className="md:col-span-6 lg:col-span-4"
           >
             <Card className="h-full overflow-hidden border-border/50 bg-gradient-to-br from-card to-card/50 backdrop-blur-xl hover:border-primary/40 transition-all duration-300 group">
-              <CardContent className="p-6 h-full flex flex-col">
-                {/* Financial Summary */}
-                <div className="flex items-center justify-between mb-6">
+              <CardContent className="p-6 h-full flex flex-col min-h-[280px]">
+                <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Lucro Líquido</p>
-                    <p className="text-2xl font-bold text-green-500">R$ 12.847,00</p>
+                    <p className="text-2xl font-bold text-green-500">R$ 12.847</p>
                   </div>
                   <motion.div
                     className="flex items-center gap-1 px-3 py-1 rounded-full bg-green-500/10 text-green-500 text-sm font-medium"
@@ -358,8 +324,7 @@ const FeaturesGrid = () => {
                   </motion.div>
                 </div>
 
-                {/* Progress Bars */}
-                <div className="space-y-3 mb-4">
+                <div className="space-y-3 mb-4 flex-1">
                   {[
                     { label: "Receita", value: 85, color: "bg-primary" },
                     { label: "Despesas", value: 35, color: "bg-orange-500" },
@@ -391,12 +356,13 @@ const FeaturesGrid = () => {
                     <h3 className="text-lg font-bold text-foreground">Controle Financeiro</h3>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Gerencie despesas, lucros e fluxo de caixa em um só lugar.
+                    Gerencie despesas, lucros e fluxo de caixa.
                   </p>
                 </div>
               </CardContent>
             </Card>
           </motion.div>
+
         </div>
       </div>
     </section>
