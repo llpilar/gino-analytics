@@ -5,9 +5,10 @@ import {
   Package, TrendingUp, BarChart3, Shield, Zap, 
   Clock, MapPin, DollarSign, ArrowRight, Check,
   Smartphone, Bell, Users, Sparkles, ChevronDown,
-  Activity, Eye, Target, Play, MousePointer, RefreshCw
+  Activity, Eye, Target, RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 import codfyLogo from "@/assets/codfy-logo.png";
 
 const features = [
@@ -90,7 +91,7 @@ const GlowOrb = ({ className, delay = 0 }: { className: string; delay?: number }
   />
 );
 
-// Animated Dashboard Demo Component
+// Animated Dashboard Demo Component with Scroll Animation
 const DemoSection = () => {
   const [activeMetric, setActiveMetric] = useState(0);
   const [salesCount, setSalesCount] = useState(127);
@@ -114,290 +115,218 @@ const DemoSection = () => {
   ];
 
   return (
-    <section className="relative z-10 py-20 lg:py-32 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-          className="text-center mb-12 lg:mb-16"
-        >
-          <motion.span 
-            className="inline-block text-primary font-semibold text-sm uppercase tracking-widest mb-4"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-          >
-            Demonstração
-          </motion.span>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-foreground mb-6">
-            Veja o dashboard
-            <span className="block bg-gradient-to-r from-primary to-chart-2 bg-clip-text text-transparent">
-              em ação
-            </span>
-          </h2>
-          <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
-            Interface moderna com dados atualizados em tempo real
-          </p>
-        </motion.div>
-
-        {/* Dashboard Mockup */}
-        <motion.div
-          initial={{ opacity: 0, y: 40, scale: 0.95 }}
-          whileInView={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="relative"
-        >
-          {/* Glow Effect Behind */}
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/30 via-chart-2/20 to-chart-5/30 blur-3xl opacity-50 -z-10 scale-110" />
-          
-          {/* Browser Frame */}
-          <div className="relative rounded-2xl lg:rounded-3xl overflow-hidden border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl shadow-primary/10">
-            {/* Browser Header */}
-            <div className="flex items-center gap-2 px-4 py-3 bg-card/80 border-b border-border/50">
-              <div className="flex gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-                <div className="w-3 h-3 rounded-full bg-green-500/80" />
-              </div>
-              <div className="flex-1 mx-4">
-                <div className="max-w-md mx-auto px-4 py-1.5 rounded-lg bg-muted/50 text-sm text-muted-foreground text-center flex items-center justify-center gap-2">
-                  <Shield className="w-3.5 h-3.5 text-green-500" />
-                  <span>app.codfy.com/dashboard</span>
-                </div>
-              </div>
+    <section className="relative z-10 overflow-hidden bg-gradient-to-b from-transparent via-card/20 to-transparent">
+      <ContainerScroll
+        titleComponent={
+          <div className="text-center mb-8">
+            <motion.span 
+              className="inline-block text-primary font-semibold text-sm uppercase tracking-widest mb-4"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+            >
+              Demonstração Interativa
+            </motion.span>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black text-foreground mb-4">
+              Veja o poder do
+              <span className="block bg-gradient-to-r from-primary via-chart-2 to-chart-5 bg-clip-text text-transparent">
+                Dashboard em Ação
+              </span>
+            </h2>
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
+              Role para baixo e veja a interface que vai transformar seu negócio
+            </p>
+          </div>
+        }
+      >
+        {/* Dashboard Content Inside the 3D Card */}
+        <div className="h-full w-full bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-800 p-4 sm:p-6 lg:p-8 overflow-hidden">
+          {/* Top Bar */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <img src={codfyLogo} alt="CODFY" className="w-8 h-8 rounded-lg" />
+              <span className="font-bold text-white">Dashboard</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <motion.div
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 1, repeat: Infinity }}
+                className="w-2 h-2 rounded-full bg-green-500"
+              />
+              <span className="text-xs text-zinc-400">Ao vivo</span>
               <motion.div 
                 animate={{ rotate: 360 }}
                 transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                className="text-primary"
+                className="text-primary ml-2"
               >
                 <RefreshCw className="w-4 h-4" />
               </motion.div>
             </div>
-
-            {/* Dashboard Content */}
-            <div className="p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-background to-card/50">
-              {/* Top Bar */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <img src={codfyLogo} alt="CODFY" className="w-8 h-8 rounded-lg" />
-                  <span className="font-bold text-foreground">Dashboard</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <motion.div
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 1, repeat: Infinity }}
-                    className="w-2 h-2 rounded-full bg-green-500"
-                  />
-                  <span className="text-xs text-muted-foreground">Ao vivo</span>
-                </div>
-              </div>
-
-              {/* Metrics Grid */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
-                {demoMetrics.map((metric, index) => (
-                  <motion.div
-                    key={metric.label}
-                    animate={{
-                      scale: activeMetric === index ? 1.02 : 1,
-                      borderColor: activeMetric === index ? "hsl(var(--primary))" : "hsl(var(--border) / 0.5)"
-                    }}
-                    className="relative p-4 sm:p-5 rounded-xl bg-card/80 border border-border/50 overflow-hidden group"
-                  >
-                    {/* Active indicator */}
-                    {activeMetric === index && (
-                      <motion.div
-                        layoutId="activeMetric"
-                        className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                      />
-                    )}
-                    <p className="text-xs sm:text-sm text-muted-foreground mb-1">{metric.label}</p>
-                    <motion.p 
-                      key={metric.value}
-                      initial={{ opacity: 0.5, y: -5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground"
-                    >
-                      {metric.prefix}{metric.value}{metric.suffix}
-                    </motion.p>
-                    <motion.div
-                      className={`absolute bottom-0 left-0 h-1 bg-gradient-to-r ${metric.color}`}
-                      animate={{ width: activeMetric === index ? "100%" : "30%" }}
-                      transition={{ duration: 0.5 }}
-                    />
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* Chart Area */}
-              <div className="grid lg:grid-cols-3 gap-4">
-                {/* Main Chart */}
-                <div className="lg:col-span-2 p-4 sm:p-6 rounded-xl bg-card/60 border border-border/50">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-sm font-medium text-foreground">Vendas por Hora</span>
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-primary" />
-                      <span className="text-xs text-muted-foreground">Hoje</span>
-                    </div>
-                  </div>
-                  {/* Animated Chart Bars */}
-                  <div className="flex items-end justify-between h-32 sm:h-40 gap-1 sm:gap-2">
-                    {[65, 45, 80, 55, 90, 70, 85, 60, 95, 75, 88, 72].map((height, i) => (
-                      <motion.div
-                        key={i}
-                        className="flex-1 bg-gradient-to-t from-primary/80 to-primary/40 rounded-t-sm"
-                        initial={{ height: 0 }}
-                        whileInView={{ height: `${height}%` }}
-                        transition={{ duration: 0.8, delay: i * 0.05 }}
-                        viewport={{ once: true }}
-                      />
-                    ))}
-                  </div>
-                  <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                    <span>08:00</span>
-                    <span>12:00</span>
-                    <span>16:00</span>
-                    <span>20:00</span>
-                  </div>
-                </div>
-
-                {/* Side Stats */}
-                <div className="space-y-4">
-                  {/* Recent Sale Animation */}
-                  <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.5 }}
-                    viewport={{ once: true }}
-                    className="p-4 rounded-xl bg-gradient-to-r from-green-500/10 to-emerald-500/5 border border-green-500/30"
-                  >
-                    <div className="flex items-center gap-3">
-                      <motion.div
-                        animate={{ scale: [1, 1.2, 1] }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
-                        className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center"
-                      >
-                        <Bell className="w-5 h-5 text-green-500" />
-                      </motion.div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">Nova Venda!</p>
-                        <p className="text-xs text-muted-foreground">São Paulo • R$ 297,00</p>
-                      </div>
-                    </div>
-                  </motion.div>
-
-                  {/* Map Preview */}
-                  <div className="p-4 rounded-xl bg-card/60 border border-border/50">
-                    <p className="text-sm font-medium text-foreground mb-3">Mapa de Vendas</p>
-                    <div className="relative h-24 rounded-lg bg-muted/30 overflow-hidden">
-                      {/* Fake map dots */}
-                      {[
-                        { x: "20%", y: "30%" },
-                        { x: "45%", y: "50%" },
-                        { x: "70%", y: "40%" },
-                        { x: "55%", y: "70%" },
-                        { x: "30%", y: "60%" }
-                      ].map((pos, i) => (
-                        <motion.div
-                          key={i}
-                          className="absolute w-2 h-2"
-                          style={{ left: pos.x, top: pos.y }}
-                          animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
-                          transition={{ duration: 2, delay: i * 0.3, repeat: Infinity }}
-                        >
-                          <div className="w-full h-full rounded-full bg-primary" />
-                          <div className="absolute inset-0 rounded-full bg-primary/50 animate-ping" />
-                        </motion.div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Quick Stat */}
-                  <div className="p-4 rounded-xl bg-card/60 border border-border/50">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Taxa de Aprovação</span>
-                      <span className="text-lg font-bold text-green-500">92%</span>
-                    </div>
-                    <div className="mt-2 h-2 rounded-full bg-muted/50 overflow-hidden">
-                      <motion.div
-                        className="h-full bg-gradient-to-r from-green-500 to-emerald-500"
-                        initial={{ width: 0 }}
-                        whileInView={{ width: "92%" }}
-                        transition={{ duration: 1, delay: 0.3 }}
-                        viewport={{ once: true }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Interactive Cursor Animation */}
-              <motion.div
-                className="absolute hidden lg:block pointer-events-none"
-                animate={{
-                  x: [100, 300, 500, 400, 200, 100],
-                  y: [100, 150, 100, 200, 180, 100]
-                }}
-                transition={{
-                  duration: 8,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-              >
-                <MousePointer className="w-5 h-5 text-primary drop-shadow-lg" />
-                <motion.div
-                  className="absolute -inset-2 rounded-full bg-primary/20"
-                  animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
-                  transition={{ duration: 1, repeat: Infinity }}
-                />
-              </motion.div>
-            </div>
           </div>
 
-          {/* Play Button Overlay */}
-          <motion.div
-            initial={{ opacity: 1 }}
-            whileHover={{ opacity: 0 }}
-            className="absolute inset-0 flex items-center justify-center bg-background/20 backdrop-blur-[2px] rounded-2xl lg:rounded-3xl cursor-pointer group"
-          >
-            <motion.div
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex items-center gap-3 px-6 py-3 rounded-full bg-primary/90 text-primary-foreground shadow-2xl shadow-primary/30"
-            >
-              <Play className="w-5 h-5 fill-current" />
-              <span className="font-semibold">Ver em ação</span>
-            </motion.div>
-          </motion.div>
-        </motion.div>
+          {/* Metrics Grid */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+            {demoMetrics.map((metric, index) => (
+              <motion.div
+                key={metric.label}
+                animate={{
+                  scale: activeMetric === index ? 1.02 : 1,
+                  borderColor: activeMetric === index ? "hsl(var(--primary))" : "rgba(255,255,255,0.1)"
+                }}
+                className="relative p-4 sm:p-5 rounded-xl bg-zinc-800/80 border border-zinc-700/50 overflow-hidden group"
+              >
+                {/* Active indicator */}
+                {activeMetric === index && (
+                  <motion.div
+                    layoutId="activeMetricDemo"
+                    className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  />
+                )}
+                <p className="text-xs sm:text-sm text-zinc-400 mb-1">{metric.label}</p>
+                <motion.p 
+                  key={metric.value}
+                  initial={{ opacity: 0.5, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-lg sm:text-xl lg:text-2xl font-bold text-white"
+                >
+                  {metric.prefix}{metric.value}{metric.suffix}
+                </motion.p>
+                <motion.div
+                  className={`absolute bottom-0 left-0 h-1 bg-gradient-to-r ${metric.color}`}
+                  animate={{ width: activeMetric === index ? "100%" : "30%" }}
+                  transition={{ duration: 0.5 }}
+                />
+              </motion.div>
+            ))}
+          </div>
 
-        {/* Feature Tags */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          viewport={{ once: true }}
-          className="flex flex-wrap items-center justify-center gap-3 mt-8"
-        >
-          {["Tempo Real", "Dados Seguros", "Multi-dispositivo", "Fácil de Usar"].map((tag, i) => (
-            <motion.span
-              key={tag}
-              initial={{ opacity: 0, scale: 0.8 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3, delay: 0.4 + i * 0.1 }}
-              viewport={{ once: true }}
-              className="px-4 py-2 rounded-full text-sm font-medium bg-primary/10 text-primary border border-primary/20"
-            >
-              {tag}
-            </motion.span>
-          ))}
-        </motion.div>
-      </div>
+          {/* Chart Area */}
+          <div className="grid lg:grid-cols-3 gap-4">
+            {/* Main Chart */}
+            <div className="lg:col-span-2 p-4 sm:p-6 rounded-xl bg-zinc-800/60 border border-zinc-700/50">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-sm font-medium text-white">Vendas por Hora</span>
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-primary" />
+                  <span className="text-xs text-zinc-400">Hoje</span>
+                </div>
+              </div>
+              {/* Animated Chart Bars */}
+              <div className="flex items-end justify-between h-24 sm:h-32 gap-1 sm:gap-2">
+                {[65, 45, 80, 55, 90, 70, 85, 60, 95, 75, 88, 72].map((height, i) => (
+                  <motion.div
+                    key={i}
+                    className="flex-1 bg-gradient-to-t from-primary/80 to-primary/40 rounded-t-sm"
+                    initial={{ height: 0 }}
+                    whileInView={{ height: `${height}%` }}
+                    transition={{ duration: 0.8, delay: i * 0.05 }}
+                    viewport={{ once: true }}
+                  />
+                ))}
+              </div>
+              <div className="flex justify-between mt-2 text-xs text-zinc-500">
+                <span>08:00</span>
+                <span>12:00</span>
+                <span>16:00</span>
+                <span>20:00</span>
+              </div>
+            </div>
+
+            {/* Side Stats */}
+            <div className="space-y-4">
+              {/* Recent Sale Animation */}
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5 }}
+                viewport={{ once: true }}
+                className="p-4 rounded-xl bg-gradient-to-r from-green-500/20 to-emerald-500/10 border border-green-500/30"
+              >
+                <div className="flex items-center gap-3">
+                  <motion.div
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                    className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center"
+                  >
+                    <Bell className="w-5 h-5 text-green-500" />
+                  </motion.div>
+                  <div>
+                    <p className="text-sm font-medium text-white">Nova Venda!</p>
+                    <p className="text-xs text-zinc-400">São Paulo • R$ 297,00</p>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Map Preview */}
+              <div className="p-4 rounded-xl bg-zinc-800/60 border border-zinc-700/50">
+                <p className="text-sm font-medium text-white mb-3">Mapa de Vendas</p>
+                <div className="relative h-20 rounded-lg bg-zinc-900/50 overflow-hidden">
+                  {[
+                    { x: "20%", y: "30%" },
+                    { x: "45%", y: "50%" },
+                    { x: "70%", y: "40%" },
+                    { x: "55%", y: "70%" },
+                    { x: "30%", y: "60%" }
+                  ].map((pos, i) => (
+                    <motion.div
+                      key={i}
+                      className="absolute w-2 h-2"
+                      style={{ left: pos.x, top: pos.y }}
+                      animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
+                      transition={{ duration: 2, delay: i * 0.3, repeat: Infinity }}
+                    >
+                      <div className="w-full h-full rounded-full bg-primary" />
+                      <div className="absolute inset-0 rounded-full bg-primary/50 animate-ping" />
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Quick Stat */}
+              <div className="p-4 rounded-xl bg-zinc-800/60 border border-zinc-700/50">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-zinc-400">Taxa de Aprovação</span>
+                  <span className="text-lg font-bold text-green-500">92%</span>
+                </div>
+                <div className="mt-2 h-2 rounded-full bg-zinc-700 overflow-hidden">
+                  <motion.div
+                    className="h-full bg-gradient-to-r from-green-500 to-emerald-500"
+                    initial={{ width: 0 }}
+                    whileInView={{ width: "92%" }}
+                    transition={{ duration: 1, delay: 0.3 }}
+                    viewport={{ once: true }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ContainerScroll>
+
+      {/* Feature Tags */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.3 }}
+        viewport={{ once: true }}
+        className="flex flex-wrap items-center justify-center gap-3 -mt-32 pb-20 relative z-20"
+      >
+        {["Tempo Real", "Dados Seguros", "Multi-dispositivo", "Fácil de Usar"].map((tag, i) => (
+          <motion.span
+            key={tag}
+            initial={{ opacity: 0, scale: 0.8 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, delay: 0.4 + i * 0.1 }}
+            viewport={{ once: true }}
+            className="px-4 py-2 rounded-full text-sm font-medium bg-primary/10 text-primary border border-primary/20 backdrop-blur-sm"
+          >
+            {tag}
+          </motion.span>
+        ))}
+      </motion.div>
     </section>
   );
 };
