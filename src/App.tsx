@@ -20,7 +20,7 @@ import Configuracoes from "./pages/Configuracoes";
 
 import Financeiro from "./pages/Financeiro";
 import Envios from "./pages/Envios";
-import Lucratividade from "./pages/Lucratividade";
+
 import Cloaker from "./pages/Cloaker";
 import CloakerRedirect from "./pages/CloakerRedirect";
 import Admin from "./pages/Admin";
@@ -54,7 +54,7 @@ const App = () => (
                           
                           <Route path="/financeiro" element={<ProtectedRoute><Financeiro /></ProtectedRoute>} />
                           <Route path="/envios" element={<ProtectedRoute><Envios /></ProtectedRoute>} />
-                          <Route path="/lucratividade" element={<ProtectedRoute><Lucratividade /></ProtectedRoute>} />
+                          
                           <Route path="/cloaker" element={<ProtectedRoute><Cloaker /></ProtectedRoute>} />
                           <Route path="/go/:slug" element={<CloakerRedirect />} />
                           <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
