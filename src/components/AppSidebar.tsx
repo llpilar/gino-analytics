@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  LayoutDashboard, BarChart3, Settings, Wallet, Truck, Calculator, 
+  LayoutDashboard, BarChart3, Settings, Wallet, Truck, 
   Shield, ShieldCheck, ChevronLeft, LogOut, Sparkles,
   RefreshCw, Eye, X
 } from "lucide-react";
@@ -21,7 +21,6 @@ import { useState } from "react";
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
   { icon: BarChart3, label: "Análises", path: "/analises" },
-  { icon: Calculator, label: "Lucro", path: "/lucratividade" },
   { icon: Wallet, label: "Financeiro", path: "/financeiro" },
   { icon: Truck, label: "Envios", path: "/envios" },
   { icon: Shield, label: "Cloaker", path: "/cloaker" },
