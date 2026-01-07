@@ -107,7 +107,7 @@ export function AppSidebar() {
                   <Sparkles className="w-4 h-4 text-primary-foreground" />
                 </div>
                 <span className="font-bold text-lg bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                  Dashify
+                  CODFY
                 </span>
               </motion.div>
             )}
