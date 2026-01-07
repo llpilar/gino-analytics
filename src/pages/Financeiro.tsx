@@ -4,6 +4,7 @@ import { DashboardWrapper } from "@/components/DashboardWrapper";
 import { Button } from "@/components/ui/button";
 import { DollarSign, Maximize2, Minimize2, ShieldX } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useImpersonate } from "@/contexts/ImpersonateContext";
 
 const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1pIIuLWojZBy6xxaMrnFcRHyuyWN4966tk0-qx3pTjZk/edit?gid=1204621446";
 
@@ -15,9 +16,13 @@ const AUTHORIZED_EMAILS = [
 
 export default function Financeiro() {
   const { user, loading } = useAuth();
+  const { isImpersonating } = useImpersonate();
   const navigate = useNavigate();
   const userEmail = user?.email?.toLowerCase() || "";
-  const isAuthorized = AUTHORIZED_EMAILS.some(email => email.toLowerCase() === userEmail);
+  const isAuthorizedEmail = AUTHORIZED_EMAILS.some(email => email.toLowerCase() === userEmail);
+  
+  // Bloqueia acesso se estiver impersonando OU se o email não for autorizado
+  const isAuthorized = isAuthorizedEmail && !isImpersonating;
 
   // Redireciona se não autorizado
   useEffect(() => {
