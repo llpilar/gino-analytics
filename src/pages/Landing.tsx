@@ -12,6 +12,7 @@ import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 import { AnimatedHero } from "@/components/ui/animated-hero";
 import FeaturesGrid from "@/components/landing/FeaturesGrid";
 import WhyChooseUs from "@/components/landing/WhyChooseUs";
+import PricingSection from "@/components/landing/PricingSection";
 import codfyLogo from "@/assets/codfy-logo.png";
 
 const stats = [
@@ -463,7 +464,8 @@ export default function Landing() {
       {/* Why Choose Us Section */}
       <WhyChooseUs />
 
-      {/* CTA Section */}
+      {/* Pricing Section */}
+      <PricingSection />
       <section className="relative z-10 py-20 lg:py-32">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
