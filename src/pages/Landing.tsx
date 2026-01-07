@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 import { AnimatedHero } from "@/components/ui/animated-hero";
 import FeaturesGrid from "@/components/landing/FeaturesGrid";
+import WhyChooseUs from "@/components/landing/WhyChooseUs";
 import codfyLogo from "@/assets/codfy-logo.png";
 
 const stats = [
@@ -459,95 +460,8 @@ export default function Landing() {
       {/* Features Section - New Grid */}
       <FeaturesGrid />
 
-      {/* Benefits Section */}
-      <section className="relative z-10 py-20 lg:py-32 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-card/50 to-transparent" />
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -40 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-            >
-              <span className="inline-block text-primary font-semibold text-sm uppercase tracking-widest mb-4">
-                Por que escolher
-              </span>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-foreground mb-8">
-                O CODFY é diferente de
-                <span className="block text-primary">
-                  qualquer outro
-                </span>
-              </h2>
-              <div className="space-y-5">
-                {[
-                  "Dados atualizados em tempo real",
-                  "Interface intuitiva e moderna",
-                  "Integração com Shopify e Facebook Ads",
-                  "Cloaker anti-spy integrado",
-                  "Notificações push de vendas",
-                  "Relatórios detalhados de performance"
-                ].map((benefit, index) => (
-                  <motion.div 
-                    key={index} 
-                    className="flex items-center gap-4 group"
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.4, delay: index * 0.1 }}
-                    viewport={{ once: true }}
-                  >
-                    <motion.div 
-                      className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform"
-                      whileHover={{ rotate: 360 }}
-                      transition={{ duration: 0.5 }}
-                    >
-                      <Check className="w-4 h-4 text-primary" />
-                    </motion.div>
-                    <span className="text-foreground text-lg group-hover:text-primary transition-colors">{benefit}</span>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 40 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-              className="grid grid-cols-2 gap-4 sm:gap-6"
-            >
-              {[
-                { icon: Smartphone, title: "Mobile First", desc: "Acesse de qualquer dispositivo", gradient: "from-blue-500 to-cyan-500" },
-                { icon: Clock, title: "Tempo Real", desc: "Dados atualizados instantaneamente", gradient: "from-green-500 to-emerald-500" },
-                { icon: Users, title: "Multi-usuário", desc: "Gerencie sua equipe", gradient: "from-purple-500 to-pink-500" },
-                { icon: Target, title: "Precisão", desc: "Métricas 100% confiáveis", gradient: "from-orange-500 to-red-500" }
-              ].map((item, index) => (
-                <motion.div
-                  key={item.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  whileHover={{ y: -5, scale: 1.03 }}
-                  className="p-6 rounded-2xl bg-card/80 border border-border/50 hover:border-primary/30 backdrop-blur-xl transition-all duration-300 group"
-                >
-                  <motion.div
-                    className={`w-12 h-12 rounded-xl bg-gradient-to-br ${item.gradient} p-0.5 mb-4`}
-                    whileHover={{ rotate: 10 }}
-                  >
-                    <div className="w-full h-full rounded-xl bg-background/90 flex items-center justify-center">
-                      <item.icon className="w-6 h-6 text-foreground" />
-                    </div>
-                  </motion.div>
-                  <h4 className="font-bold text-foreground mb-2 group-hover:text-primary transition-colors">{item.title}</h4>
-                  <p className="text-sm text-muted-foreground">{item.desc}</p>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-        </div>
-      </section>
+      {/* Why Choose Us Section */}
+      <WhyChooseUs />
 
       {/* CTA Section */}
       <section className="relative z-10 py-20 lg:py-32">
