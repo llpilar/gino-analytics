@@ -130,7 +130,7 @@ const DemoSection = () => {
             </motion.span>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black text-foreground mb-4">
               Veja o poder do
-              <span className="block bg-gradient-to-r from-primary via-chart-2 to-chart-5 bg-clip-text text-transparent">
+              <span className="block text-primary">
                 Dashboard em Ação
               </span>
             </h2>
@@ -514,7 +514,7 @@ export default function Landing() {
             </motion.span>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-foreground mb-6">
               Tudo que você precisa em
-              <span className="block bg-gradient-to-r from-primary to-chart-2 bg-clip-text text-transparent">
+              <span className="block text-primary">
                 um só lugar
               </span>
             </h2>
@@ -588,7 +588,7 @@ export default function Landing() {
               </span>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-foreground mb-8">
                 O CODFY é diferente de
-                <span className="block bg-gradient-to-r from-primary to-chart-5 bg-clip-text text-transparent">
+                <span className="block text-primary">
                   qualquer outro
                 </span>
               </h2>
@@ -688,7 +688,7 @@ export default function Landing() {
               
               <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black text-foreground mb-6">
                 Pronto para
-                <span className="block bg-gradient-to-r from-primary via-chart-2 to-chart-5 bg-clip-text text-transparent">
+                <span className="block text-primary">
                   escalar seu negócio?
                 </span>
               </h2>
