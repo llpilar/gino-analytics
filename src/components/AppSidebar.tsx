@@ -2,9 +2,10 @@ import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   LayoutDashboard, BarChart3, Settings, Wallet, Truck, 
-  Shield, ShieldCheck, ChevronLeft, LogOut, Sparkles,
+  Shield, ShieldCheck, ChevronLeft, LogOut,
   RefreshCw, Eye, X, Sun, Moon
 } from "lucide-react";
+import codfyLogo from "@/assets/codfy-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useImpersonate } from "@/contexts/ImpersonateContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
@@ -103,9 +104,7 @@ export function AppSidebar() {
                 exit={{ opacity: 0, x: -10 }}
                 className="flex items-center gap-2"
               >
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center">
-                  <Sparkles className="w-4 h-4 text-primary-foreground" />
-                </div>
+                <img src={codfyLogo} alt="CODFY" className="w-8 h-8 rounded-lg object-contain" />
                 <span className="font-bold text-lg bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
                   CODFY
                 </span>
