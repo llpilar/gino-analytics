@@ -17,11 +17,12 @@ export default function Financeiro() {
         </div>
 
         {/* Google Sheets Embed */}
-        <div className="flex-1 w-full min-h-[600px] rounded-xl overflow-hidden border border-border bg-card">
+        <div className="flex-1 w-full min-h-[700px] rounded-xl overflow-hidden border border-border bg-card">
           <iframe
-            src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQNySsnxWwznHjDeyXT7KJfCwvs-bD1IfKOLoyBnJ4-c2Qvln2qFct7S5j3arSRsU4R197-MKegeTBx/pubhtml?widget=true&amp;headers=false"
-            className="w-full h-full min-h-[600px]"
+            src="https://docs.google.com/spreadsheets/d/1pIIuLWojZBy6xxaMrnFcRHyuyWN4966tk0-qx3pTjZk/edit?gid=1204621446&rm=minimal"
+            className="w-full h-full min-h-[700px]"
             title="Planilha Financeiro"
+            allow="clipboard-write"
           />
         </div>
       </div>
