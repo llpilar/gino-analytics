@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ContainerScroll } from "@/components/ui/container-scroll-animation";
+import { AnimatedHero } from "@/components/ui/animated-hero";
 import codfyLogo from "@/assets/codfy-logo.png";
 
 const features = [
@@ -407,109 +408,43 @@ export default function Landing() {
         </div>
       </motion.header>
 
-      {/* Hero Section */}
-      <section className="relative z-10 py-16 sm:py-24 lg:py-32 overflow-hidden">
-        <motion.div style={{ y: heroY, opacity: heroOpacity }} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-5xl mx-auto">
-            {/* Badge */}
+      {/* Hero Section with Animated Titles */}
+      <section className="relative z-10 overflow-hidden">
+        <motion.div style={{ y: heroY, opacity: heroOpacity }}>
+          <AnimatedHero
+            badge="Dashboard Profissional para COD"
+            badgeIcon={<><Package className="w-4 h-4" /><Sparkles className="w-4 h-4" /></>}
+            titles={["Total", "Completo", "Inteligente", "Profissional", "Automatizado"]}
+            staticTitle="Controle"
+            staticTitleAfter="do seu Negócio COD"
+            description="A plataforma definitiva para acompanhar vendas, analisar métricas e escalar seu negócio de contra entrega com dados em tempo real."
+            primaryCta={{
+              text: "Começar Agora — Grátis",
+              href: "/auth",
+              icon: <Zap className="w-5 h-5" />
+            }}
+            secondaryCta={{
+              text: "Ver Demonstração",
+              href: "#demo",
+              icon: <Eye className="w-5 h-5" />
+            }}
+          />
+          
+          {/* Scroll Indicator */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.5 }}
+            className="flex flex-col items-center gap-2 pb-8"
+          >
+            <span className="text-sm text-muted-foreground">Descubra mais</span>
             <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6 }}
+              animate={{ y: [0, 8, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
             >
-              <motion.div 
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-primary/20 to-chart-2/20 border border-primary/30 text-primary text-sm font-semibold mb-8 backdrop-blur-sm"
-                animate={{ boxShadow: ["0 0 20px rgba(var(--primary), 0.2)", "0 0 40px rgba(var(--primary), 0.4)", "0 0 20px rgba(var(--primary), 0.2)"] }}
-                transition={{ duration: 3, repeat: Infinity }}
-              >
-                <Package className="w-4 h-4" />
-                <span>Dashboard Profissional para COD</span>
-                <Sparkles className="w-4 h-4" />
-              </motion.div>
+              <ChevronDown className="w-6 h-6 text-muted-foreground" />
             </motion.div>
-
-            {/* Title */}
-            <motion.h1
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black leading-[1.1] mb-8"
-            >
-              <span className="text-foreground">Controle </span>
-              <span className="relative inline-block">
-                <span className="bg-gradient-to-r from-primary via-chart-2 to-chart-5 bg-clip-text text-transparent">
-                  Total
-                </span>
-                <motion.span
-                  className="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-primary to-chart-2 rounded-full"
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ duration: 0.8, delay: 0.8 }}
-                />
-              </span>
-              <br />
-              <span className="text-foreground">do seu </span>
-              <span className="relative">
-                <span className="bg-gradient-to-r from-chart-2 via-primary to-chart-5 bg-clip-text text-transparent">
-                  Negócio COD
-                </span>
-              </span>
-            </motion.h1>
-
-            {/* Description */}
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="text-lg sm:text-xl lg:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed"
-            >
-              A plataforma definitiva para acompanhar vendas, analisar métricas e 
-              <span className="text-foreground font-medium"> escalar seu negócio</span> de contra entrega com 
-              <span className="text-primary font-medium"> dados em tempo real</span>.
-            </motion.p>
-
-            {/* CTA Buttons */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-              className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6"
-            >
-              <Link to="/auth">
-                <motion.div 
-                  whileHover={{ scale: 1.05, y: -2 }} 
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Button size="lg" className="gap-3 text-lg px-8 sm:px-10 py-6 sm:py-7 rounded-2xl shadow-2xl shadow-primary/30 bg-gradient-to-r from-primary via-primary to-chart-2 hover:opacity-90 transition-opacity">
-                    <Zap className="w-5 h-5" />
-                    Começar Agora — Grátis
-                  </Button>
-                </motion.div>
-              </Link>
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Button size="lg" variant="outline" className="gap-3 text-lg px-8 sm:px-10 py-6 sm:py-7 rounded-2xl border-2 hover:bg-muted/50">
-                  <Eye className="w-5 h-5" />
-                  Ver Demonstração
-                </Button>
-              </motion.div>
-            </motion.div>
-
-            {/* Scroll Indicator */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.5 }}
-              className="mt-16 flex flex-col items-center gap-2"
-            >
-              <span className="text-sm text-muted-foreground">Descubra mais</span>
-              <motion.div
-                animate={{ y: [0, 8, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-              >
-                <ChevronDown className="w-6 h-6 text-muted-foreground" />
-              </motion.div>
-            </motion.div>
-          </div>
+          </motion.div>
         </motion.div>
       </section>
 
