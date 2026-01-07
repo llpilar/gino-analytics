@@ -3,14 +3,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   LayoutDashboard, BarChart3, Settings, Wallet, Truck, 
   Shield, ShieldCheck, ChevronLeft, LogOut, Sparkles,
-  RefreshCw, Eye, X, Sun, Moon, Monitor, LayoutGrid, Layers
+  RefreshCw, Eye, X, Sun, Moon
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useImpersonate } from "@/contexts/ImpersonateContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useSidebarState } from "@/contexts/SidebarContext";
 import { useTheme } from "@/contexts/ThemeContext";
-import { useDashboardSettings } from "@/contexts/DashboardSettingsContext";
 import { DateFilterDropdown } from "@/components/DateFilterDropdown";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -34,19 +33,12 @@ const baseMenuItems = [
   { icon: Settings, label: "Configurações", path: "/configuracoes" },
 ];
 
-const viewModeOptions = [
-  { id: 'normal' as const, icon: Monitor, label: 'Normal' },
-  { id: 'compact' as const, icon: LayoutGrid, label: 'Compacto' },
-  { id: 'combined' as const, icon: Layers, label: 'Combinado' },
-];
-
 export function AppSidebar() {
   const { signOut, isAdmin, profile, user } = useAuth();
   const { impersonatedUser, isImpersonating, stopImpersonating } = useImpersonate();
   const { currency, setCurrency } = useCurrency();
   const { isCollapsed, setIsCollapsed } = useSidebarState();
   const { theme, themes, isDarkMode, toggleDarkMode } = useTheme();
-  const { viewMode, setViewMode } = useDashboardSettings();
   const location = useLocation();
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -209,59 +201,6 @@ export function AppSidebar() {
 
         {/* Controls */}
         <div className="px-2 py-3 border-t border-sidebar-border/50 space-y-2">
-          {/* View Mode Toggle */}
-          <div className={cn(
-            "flex items-center gap-2 p-2 rounded-xl bg-sidebar-accent/30",
-            isCollapsed && "justify-center"
-          )}>
-            {isCollapsed ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      const currentIndex = viewModeOptions.findIndex(v => v.id === viewMode);
-                      const nextIndex = (currentIndex + 1) % viewModeOptions.length;
-                      setViewMode(viewModeOptions[nextIndex].id);
-                    }}
-                    className="h-8 w-8 rounded-lg hover:bg-sidebar-accent"
-                  >
-                    {viewModeOptions.find(v => v.id === viewMode)?.icon && (
-                      (() => {
-                        const IconComponent = viewModeOptions.find(v => v.id === viewMode)!.icon;
-                        return <IconComponent className="w-4 h-4" />;
-                      })()
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="right">
-                  Modo: {viewModeOptions.find(v => v.id === viewMode)?.label}
-                </TooltipContent>
-              </Tooltip>
-            ) : (
-              <div className="flex items-center bg-sidebar rounded-lg p-0.5 border border-sidebar-border w-full">
-                {viewModeOptions.map((option) => {
-                  const Icon = option.icon;
-                  return (
-                    <button
-                      key={option.id}
-                      onClick={() => setViewMode(option.id)}
-                      className={cn(
-                        "flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center justify-center gap-1",
-                        viewMode === option.id
-                          ? 'bg-primary text-primary-foreground'
-                          : 'text-muted-foreground hover:text-foreground'
-                      )}
-                    >
-                      <Icon className="w-3.5 h-3.5" />
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
           {/* Theme Toggle - Only if theme supports dark mode */}
           {supportsDarkMode && (
             <div className={cn(
