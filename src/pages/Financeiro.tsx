@@ -1,13 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardWrapper } from "@/components/DashboardWrapper";
 import { Button } from "@/components/ui/button";
 import { DollarSign, Maximize2, Minimize2 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1pIIuLWojZBy6xxaMrnFcRHyuyWN4966tk0-qx3pTjZk/edit?gid=1204621446";
 
 export default function Financeiro() {
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isFullscreen]);
 
   if (isFullscreen) {
     return (
