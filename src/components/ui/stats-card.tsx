@@ -1,7 +1,6 @@
 import { LucideIcon, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useVisualEffects } from "@/contexts/VisualEffectsContext";
-import { useDashboardSettings } from "@/contexts/DashboardSettingsContext";
 
 export type CardColorVariant = "cyan" | "purple" | "green" | "orange" | "pink" | "blue" | "red";
 
@@ -92,13 +91,12 @@ export const StatsCard = ({
 }: StatsCardProps) => {
   const colors = colorClasses[color];
   const { premiumEffects } = useVisualEffects();
-  const { compactMode } = useDashboardSettings();
 
   return (
     <article
       className={cn(
         "group relative rounded-2xl overflow-hidden",
-        compactMode ? "p-3 md:p-4" : "p-5 md:p-6",
+        "p-3 md:p-4",
         "bg-card/80 backdrop-blur-xl border",
         "transition-all duration-500 ease-out",
         colors.border,
@@ -131,51 +129,42 @@ export const StatsCard = ({
       {/* Content */}
       <div className="relative z-10">
         {/* Header with icon and title */}
-        <div className={cn("flex items-center gap-3", compactMode ? "mb-2" : "mb-4")}>
+        <div className="flex items-center gap-3 mb-2">
           <div className={cn(
             "rounded-xl flex items-center justify-center",
-            compactMode ? "w-8 h-8" : "w-11 h-11",
+            "w-8 h-8",
             premiumEffects && "transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3",
             colors.bg
           )}>
-            <Icon className={cn(compactMode ? "w-4 h-4" : "w-5 h-5", premiumEffects && "transition-all duration-300", colors.text)} aria-hidden="true" />
+            <Icon className={cn("w-4 h-4", premiumEffects && "transition-all duration-300", colors.text)} aria-hidden="true" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className={cn(
-              "font-bold text-muted-foreground uppercase tracking-widest truncate",
-              compactMode ? "text-[9px]" : "text-[10px] md:text-xs"
-            )}>
+            <h3 className="font-bold text-muted-foreground uppercase tracking-widest truncate text-[9px]">
               {title}
             </h3>
           </div>
         </div>
         
         {/* Value with gradient text effect */}
-        <div className={cn(
-          "font-black truncate",
-          "bg-clip-text transition-all duration-300",
-          "text-foreground",
-          compactMode ? "text-xl md:text-2xl" : "text-2xl md:text-3xl lg:text-4xl"
-        )}>
+        <div className="font-black truncate bg-clip-text transition-all duration-300 text-foreground text-xl md:text-2xl">
           {value}
         </div>
         
         {/* Subtitle or Live indicator */}
         {subtitle ? (
           <p className={cn(
-            "font-medium",
-            subtitleColor,
-            compactMode ? "text-[10px] mt-1" : "text-xs md:text-sm mt-3"
+            "font-medium text-[10px] mt-1",
+            subtitleColor
           )}>
             {subtitle}
           </p>
         ) : showLiveIndicator ? (
-          <div className={cn("flex items-center gap-2", compactMode ? "mt-1" : "mt-3")}>
+          <div className="flex items-center gap-2 mt-1">
             <div className="relative">
               <div className={cn("w-2 h-2 rounded-full", colors.text.replace('text-', 'bg-'))} />
               <div className={cn("absolute inset-0 w-2 h-2 rounded-full animate-ping opacity-75", colors.text.replace('text-', 'bg-'))} />
             </div>
-            <span className={cn("font-semibold", colors.text, compactMode ? "text-[10px]" : "text-xs")}>Ao vivo</span>
+            <span className={cn("font-semibold text-[10px]", colors.text)}>Ao vivo</span>
           </div>
         ) : null}
         

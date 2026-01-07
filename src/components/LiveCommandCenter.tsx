@@ -3,7 +3,7 @@ import { DashboardWrapper } from "./DashboardWrapper";
 import { useShopifyRevenueToday, useShopifyAnalytics } from "@/hooks/useShopifyData";
 import { format, differenceInMinutes, isToday, isSameDay } from "date-fns";
 import { DashboardSkeleton } from "./DashboardSkeleton";
-import { TrendingUp, DollarSign, ShoppingCart, Users, Zap, Monitor, LayoutGrid, Eye, Megaphone, Target, Info, Layers } from "lucide-react";
+import { TrendingUp, DollarSign, ShoppingCart, Users, Zap, Monitor, LayoutGrid, Eye, Megaphone, Target, Info } from "lucide-react";
 import { NotificationCenter } from "./NotificationCenter";
 import { ComparisonBadge } from "./ComparisonBadge";
 import { useDailyComparison } from "@/hooks/useComparisonMetrics";
@@ -13,7 +13,6 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { useDateFilter } from "@/contexts/DateFilterContext";
 import { useVisualEffects } from "@/contexts/VisualEffectsContext";
 import { useTheme } from "@/contexts/ThemeContext";
-import { useDashboardSettings } from "@/contexts/DashboardSettingsContext";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { useGA4Visitors } from "@/hooks/useGA4Visitors";
@@ -35,7 +34,6 @@ export const LiveCommandCenter = () => {
   const { visitorCount } = useGA4Visitors();
   const { data: facebookAdsData } = useFacebookAdsToday();
   const { premiumEffects } = useVisualEffects();
-  const { setViewMode } = useDashboardSettings();
 
   // Check for mobile viewport
   useEffect(() => {
@@ -206,23 +204,6 @@ export const LiveCommandCenter = () => {
                 </Button>
               </TooltipTrigger>
               <TooltipContent><p>Grade</p></TooltipContent>
-            </Tooltip>
-            <Tooltip delayDuration={500}>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setViewMode("combined")}
-                  className={cn(
-                    "rounded-full h-8 px-3 transition-all",
-                    "text-muted-foreground hover:text-foreground"
-                  )}
-                  aria-label="Modo combinado"
-                >
-                  <Layers className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent><p>Combinado</p></TooltipContent>
             </Tooltip>
           </div>
         </div>

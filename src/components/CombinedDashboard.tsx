@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 import { DashboardWrapper } from "@/components/DashboardWrapper";
 import { 
   DollarSign, ShoppingCart, TrendingUp, Eye, Video, MapPin, Zap, 
-  Megaphone, Monitor, LayoutGrid, Layers, X, Maximize2, Target, 
+  Megaphone, X, Maximize2, Target, 
   BarChart3, Percent, ArrowUpRight, ArrowDownRight, Clock, TrendingDown
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -20,7 +20,6 @@ import { ConversionFunnel } from "@/components/ConversionFunnel";
 import { differenceInMinutes, isToday, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useDateFilter } from "@/contexts/DateFilterContext";
-import { useDashboardSettings } from "@/contexts/DashboardSettingsContext";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
@@ -122,7 +121,6 @@ export const CombinedDashboard = () => {
   const { dateRange } = useDateFilter();
   const { visitorCount } = useGA4Visitors();
   const { data: facebookAdsData } = useFacebookAdsToday();
-  const { viewMode, setViewMode } = useDashboardSettings();
 
   // VTurb data
   const { data: vturbPlayersList, isLoading: vturbPlayersLoading } = useVturbListPlayers();
@@ -189,41 +187,6 @@ export const CombinedDashboard = () => {
 
   return (
     <DashboardWrapper>
-      {/* Layout Toggle */}
-      {!isMobile && (
-        <motion.div 
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="fixed top-4 left-4 z-40"
-        >
-          <div className="flex items-center gap-1 p-1 rounded-full bg-card/90 border border-border/50 backdrop-blur-xl shadow-lg">
-            {[
-              { mode: "normal" as const, icon: Monitor, label: "Orbital" },
-              { mode: "compact" as const, icon: LayoutGrid, label: "Grade" },
-              { mode: "combined" as const, icon: Layers, label: "Combinado" },
-            ].map((item) => (
-              <Tooltip key={item.mode} delayDuration={300}>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setViewMode(item.mode)}
-                    className={cn(
-                      "rounded-full h-8 px-3 transition-all duration-200",
-                      viewMode === item.mode 
-                        ? "bg-primary text-primary-foreground shadow-md" 
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                    )}
-                  >
-                    <item.icon className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom"><p>{item.label}</p></TooltipContent>
-              </Tooltip>
-            ))}
-          </div>
-        </motion.div>
-      )}
 
       <div className="w-full max-w-[2400px] mx-auto px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 2xl:px-12 py-4 min-h-screen pb-24 md:pb-8">
         {/* Header */}
