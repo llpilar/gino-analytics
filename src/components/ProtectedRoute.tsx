@@ -35,7 +35,7 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
 
     // Rota requer admin mas user não é admin
     if (requireAdmin && !isAdmin) {
-      navigate("/");
+      navigate("/dashboard");
       return;
     }
   }, [user, loading, isAdmin, isApproved, isPending, profile, navigate, location.pathname, requireAdmin]);

@@ -20,7 +20,7 @@ const FINANCEIRO_AUTHORIZED_EMAILS = [
 ];
 
 const baseMainItems = [
-  { icon: LayoutDashboard, label: "Home", path: "/" },
+  { icon: LayoutDashboard, label: "Home", path: "/dashboard" },
   { icon: BarChart3, label: "Análises", path: "/analises" },
   { icon: Calculator, label: "Lucro", path: "/lucratividade" },
   { icon: Wallet, label: "Financeiro", path: "/financeiro", restricted: true },

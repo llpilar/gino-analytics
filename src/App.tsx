@@ -13,6 +13,7 @@ import { ImpersonateProvider } from "@/contexts/ImpersonateContext";
 import { SidebarProvider } from "@/contexts/SidebarContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ImpersonateBanner } from "@/components/ImpersonateBanner";
+import Landing from "./pages/Landing";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Analises from "./pages/Analises";
@@ -46,10 +47,11 @@ const App = () => (
                       <SidebarProvider>
                         <ImpersonateBanner />
                         <Routes>
+                          <Route path="/" element={<Landing />} />
                           <Route path="/auth" element={<Auth />} />
                           <Route path="/aguardando-aprovacao" element={<AguardandoAprovacao />} />
                           <Route path="/conta-bloqueada" element={<ContaBloqueada />} />
-                          <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+                          <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
                           <Route path="/analises" element={<ProtectedRoute><Analises /></ProtectedRoute>} />
                           
                           <Route path="/financeiro" element={<ProtectedRoute><Financeiro /></ProtectedRoute>} />
