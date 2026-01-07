@@ -40,7 +40,7 @@ export const DashboardSidebar = () => {
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex h-16 items-center justify-center">
           <h1 className={`text-2xl font-bold text-primary tracking-tight transition-opacity ${open ? 'opacity-100' : 'opacity-0'}`}>
-            Dashify
+            CODFY
           </h1>
         </div>
       </SidebarHeader>
