@@ -17,7 +17,7 @@ const DashboardSettingsContext = createContext<DashboardSettingsContextType | un
 export const DashboardSettingsProvider = ({ children }: { children: ReactNode }) => {
   const [viewMode, setViewModeState] = useState<ViewMode>(() => {
     const stored = localStorage.getItem("viewMode");
-    return stored !== null ? JSON.parse(stored) : "normal";
+    return stored !== null ? JSON.parse(stored) : "combined";
   });
 
   // compactMode is derived from viewMode for backwards compatibility
