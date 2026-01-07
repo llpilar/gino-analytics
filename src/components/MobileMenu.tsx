@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLocation, Link } from "react-router-dom";
 
 const menuItems = [
-  { icon: Home, label: "Dashboard", path: "/" },
+  { icon: Home, label: "Dashboard", path: "/dashboard" },
   { icon: BarChart3, label: "Análises", path: "/analises" },
   { icon: Activity, label: "Ao Vivo", path: "/live-view" },
   { icon: Truck, label: "Envios", path: "/envios" },
