@@ -3,12 +3,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   LayoutDashboard, BarChart3, Settings, Wallet, Truck, 
   Shield, ShieldCheck, ChevronLeft, LogOut, Sparkles,
-  RefreshCw, Eye, X
+  RefreshCw, Eye, X, Sun, Moon
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useImpersonate } from "@/contexts/ImpersonateContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useSidebarState } from "@/contexts/SidebarContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { DateFilterDropdown } from "@/components/DateFilterDropdown";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -37,9 +38,13 @@ export function AppSidebar() {
   const { impersonatedUser, isImpersonating, stopImpersonating } = useImpersonate();
   const { currency, setCurrency } = useCurrency();
   const { isCollapsed, setIsCollapsed } = useSidebarState();
+  const { theme, themes, isDarkMode, toggleDarkMode } = useTheme();
   const location = useLocation();
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  const currentThemeConfig = themes.find(t => t.id === theme);
+  const supportsDarkMode = currentThemeConfig?.supportsDarkMode ?? false;
 
   const userEmail = user?.email?.toLowerCase() || "";
   const isFinanceiroAuthorized = FINANCEIRO_AUTHORIZED_EMAILS.some(
@@ -196,6 +201,56 @@ export function AppSidebar() {
 
         {/* Controls */}
         <div className="px-2 py-3 border-t border-sidebar-border/50 space-y-2">
+          {/* Theme Toggle - Only if theme supports dark mode */}
+          {supportsDarkMode && (
+            <div className={cn(
+              "flex items-center gap-2 p-2 rounded-xl bg-sidebar-accent/30",
+              isCollapsed && "justify-center"
+            )}>
+              {isCollapsed ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={toggleDarkMode}
+                      className="h-8 w-8 rounded-lg hover:bg-sidebar-accent"
+                    >
+                      {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    {isDarkMode ? "Modo claro" : "Modo escuro"}
+                  </TooltipContent>
+                </Tooltip>
+              ) : (
+                <div 
+                  className="flex items-center bg-sidebar rounded-lg p-0.5 cursor-pointer border border-sidebar-border w-full"
+                  onClick={toggleDarkMode}
+                >
+                  <div className={cn(
+                    "flex-1 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center justify-center gap-1.5",
+                    !isDarkMode 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}>
+                    <Sun className="w-3.5 h-3.5" />
+                    Claro
+                  </div>
+                  <div className={cn(
+                    "flex-1 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center justify-center gap-1.5",
+                    isDarkMode 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}>
+                    <Moon className="w-3.5 h-3.5" />
+                    Escuro
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Currency Toggle */}
           <div className={cn(
             "flex items-center gap-2 p-2 rounded-xl bg-sidebar-accent/30",
