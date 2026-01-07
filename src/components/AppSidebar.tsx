@@ -18,23 +18,37 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useState } from "react";
 
-const menuItems = [
+const FINANCEIRO_AUTHORIZED_EMAILS = [
+  "lucas@pilar.com.br",
+  "obioboost@outlook.com"
+];
+
+const baseMenuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
   { icon: BarChart3, label: "Análises", path: "/analises" },
-  { icon: Wallet, label: "Financeiro", path: "/financeiro" },
+  { icon: Wallet, label: "Financeiro", path: "/financeiro", restricted: true },
   { icon: Truck, label: "Envios", path: "/envios" },
   { icon: Shield, label: "Cloaker", path: "/cloaker" },
   { icon: Settings, label: "Configurações", path: "/configuracoes" },
 ];
 
 export function AppSidebar() {
-  const { signOut, isAdmin, profile } = useAuth();
+  const { signOut, isAdmin, profile, user } = useAuth();
   const { impersonatedUser, isImpersonating, stopImpersonating } = useImpersonate();
   const { currency, setCurrency } = useCurrency();
   const { isCollapsed, setIsCollapsed } = useSidebarState();
   const location = useLocation();
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const userEmail = user?.email?.toLowerCase() || "";
+  const isFinanceiroAuthorized = FINANCEIRO_AUTHORIZED_EMAILS.some(
+    email => email.toLowerCase() === userEmail
+  ) && !isImpersonating;
+
+  const menuItems = baseMenuItems.filter(item => 
+    !item.restricted || isFinanceiroAuthorized
+  );
 
   const allMenuItems = isAdmin 
     ? [...menuItems, { icon: ShieldCheck, label: "Admin", path: "/admin" }]

@@ -12,12 +12,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
+import { useImpersonate } from "@/contexts/ImpersonateContext";
 
-const mainItems = [
+const FINANCEIRO_AUTHORIZED_EMAILS = [
+  "lucas@pilar.com.br",
+  "obioboost@outlook.com"
+];
+
+const baseMainItems = [
   { icon: LayoutDashboard, label: "Home", path: "/" },
   { icon: BarChart3, label: "Análises", path: "/analises" },
   { icon: Calculator, label: "Lucro", path: "/lucratividade" },
-  { icon: Wallet, label: "Financeiro", path: "/financeiro" },
+  { icon: Wallet, label: "Financeiro", path: "/financeiro", restricted: true },
 ];
 
 const moreItems = [
@@ -27,7 +33,17 @@ const moreItems = [
 
 export function MobileBottomNav() {
   const location = useLocation();
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
+  const { isImpersonating } = useImpersonate();
+
+  const userEmail = user?.email?.toLowerCase() || "";
+  const isFinanceiroAuthorized = FINANCEIRO_AUTHORIZED_EMAILS.some(
+    email => email.toLowerCase() === userEmail
+  ) && !isImpersonating;
+
+  const mainItems = baseMainItems.filter(item => 
+    !item.restricted || isFinanceiroAuthorized
+  );
 
   const isInMoreMenu = moreItems.some(item => item.path === location.pathname) || 
     (isAdmin && location.pathname === "/admin");
