@@ -1,11 +1,60 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { DashboardWrapper } from "@/components/DashboardWrapper";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Maximize2, Minimize2 } from "lucide-react";
+import { DollarSign, Maximize2, Minimize2, ShieldX } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1pIIuLWojZBy6xxaMrnFcRHyuyWN4966tk0-qx3pTjZk/edit?gid=1204621446";
 
+// Emails autorizados a acessar a página Financeiro
+const AUTHORIZED_EMAILS = [
+  "lucas@pilar.com.br",
+  "obioboost@outlook.com"
+];
+
 export default function Financeiro() {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  const userEmail = user?.email?.toLowerCase() || "";
+  const isAuthorized = AUTHORIZED_EMAILS.some(email => email.toLowerCase() === userEmail);
+
+  // Redireciona se não autorizado
+  useEffect(() => {
+    if (!loading && user && !isAuthorized) {
+      navigate("/");
+    }
+  }, [loading, user, isAuthorized, navigate]);
+
+  // Se não autorizado, mostra mensagem de acesso negado
+  if (!loading && user && !isAuthorized) {
+    return (
+      <DashboardWrapper>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+          <div className="p-4 bg-destructive/10 rounded-full">
+            <ShieldX className="h-12 w-12 text-destructive" />
+          </div>
+          <h1 className="text-2xl font-bold text-foreground">Acesso Restrito</h1>
+          <p className="text-muted-foreground text-center max-w-md">
+            Você não tem permissão para acessar esta página.
+          </p>
+          <Button onClick={() => navigate("/")} variant="outline">
+            Voltar ao Dashboard
+          </Button>
+        </div>
+      </DashboardWrapper>
+    );
+  }
+
+  if (loading) {
+    return (
+      <DashboardWrapper>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-muted-foreground">Carregando...</div>
+        </div>
+      </DashboardWrapper>
+    );
+  }
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
