@@ -10,46 +10,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 import { AnimatedHero } from "@/components/ui/animated-hero";
+import FeaturesGrid from "@/components/landing/FeaturesGrid";
 import codfyLogo from "@/assets/codfy-logo.png";
-
-const features = [
-  {
-    icon: TrendingUp,
-    title: "Vendas em Tempo Real",
-    description: "Acompanhe cada venda no momento em que acontece com atualização instantânea.",
-    gradient: "from-emerald-500 to-teal-500"
-  },
-  {
-    icon: BarChart3,
-    title: "Análises Detalhadas",
-    description: "Métricas completas de conversão, ticket médio e performance por período.",
-    gradient: "from-blue-500 to-cyan-500"
-  },
-  {
-    icon: MapPin,
-    title: "Mapa de Vendas",
-    description: "Visualize geograficamente de onde vêm suas vendas COD.",
-    gradient: "from-purple-500 to-pink-500"
-  },
-  {
-    icon: Shield,
-    title: "Cloaker Integrado",
-    description: "Proteja seus links de afiliado com nosso sistema anti-spy avançado.",
-    gradient: "from-orange-500 to-red-500"
-  },
-  {
-    icon: Bell,
-    title: "Notificações Push",
-    description: "Receba alertas de novas vendas diretamente no seu dispositivo.",
-    gradient: "from-yellow-500 to-orange-500"
-  },
-  {
-    icon: DollarSign,
-    title: "Controle Financeiro",
-    description: "Gerencie despesas, lucros e fluxo de caixa em um só lugar.",
-    gradient: "from-green-500 to-emerald-500"
-  }
-];
 
 const stats = [
   { value: "99.9%", label: "Uptime", icon: Activity },
@@ -494,82 +456,8 @@ export default function Landing() {
       {/* Demo Section */}
       <DemoSection />
 
-      {/* Features Section */}
-      <section className="relative z-10 py-20 lg:py-32">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-16 lg:mb-20"
-          >
-            <motion.span 
-              className="inline-block text-primary font-semibold text-sm uppercase tracking-widest mb-4"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-            >
-              Recursos
-            </motion.span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-foreground mb-6">
-              Tudo que você precisa em
-              <span className="block text-primary">
-                um só lugar
-              </span>
-            </h2>
-            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Ferramentas poderosas para monitorar, analisar e escalar seu negócio COD
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {features.map((feature, index) => (
-              <motion.div
-                key={feature.title}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true, margin: "-50px" }}
-                whileHover={{ y: -8, scale: 1.02 }}
-                className="group relative p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-card/80 to-card/40 border border-border/50 hover:border-primary/40 backdrop-blur-xl transition-all duration-500 overflow-hidden"
-              >
-                {/* Hover Glow */}
-                <motion.div
-                  className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-500`}
-                />
-                
-                {/* Icon */}
-                <motion.div 
-                  className={`relative w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.gradient} p-0.5 mb-6`}
-                  whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <div className="w-full h-full rounded-2xl bg-background/90 flex items-center justify-center">
-                    <feature.icon className="w-7 h-7 text-foreground" />
-                  </div>
-                </motion.div>
-                
-                <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors">
-                  {feature.title}
-                </h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  {feature.description}
-                </p>
-                
-                {/* Arrow indicator */}
-                <motion.div
-                  className="absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                  initial={{ x: -10 }}
-                  whileHover={{ x: 0 }}
-                >
-                  <ArrowRight className="w-5 h-5 text-primary" />
-                </motion.div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Features Section - New Grid */}
+      <FeaturesGrid />
 
       {/* Benefits Section */}
       <section className="relative z-10 py-20 lg:py-32 overflow-hidden">
