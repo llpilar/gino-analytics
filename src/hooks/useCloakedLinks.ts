@@ -26,7 +26,7 @@ interface CloakedLink {
   behavior_time_ms: number;
   created_at: string;
   updated_at: string;
-  // New advanced fields
+  // Advanced fields
   max_clicks_daily: number | null;
   max_clicks_total: number | null;
   allowed_hours_start: number | null;
@@ -47,6 +47,13 @@ interface CloakedLink {
   blacklist_ips: string[] | null;
   clicks_today: number;
   last_click_reset: string;
+  // New filter fields
+  allowed_referers: string[] | null;
+  blocked_referers: string[] | null;
+  required_url_params: Record<string, string> | null;
+  blocked_url_params: Record<string, string> | null;
+  allowed_languages: string[] | null;
+  blocked_languages: string[] | null;
 }
 
 interface CloakerVisitor {
@@ -109,6 +116,13 @@ interface CreateLinkData {
   redirect_delay_ms?: number;
   whitelist_ips?: string[] | null;
   blacklist_ips?: string[] | null;
+  // New filter fields
+  allowed_referers?: string[] | null;
+  blocked_referers?: string[] | null;
+  required_url_params?: Record<string, string> | null;
+  blocked_url_params?: Record<string, string> | null;
+  allowed_languages?: string[] | null;
+  blocked_languages?: string[] | null;
 }
 
 interface UpdateLinkData extends Partial<CreateLinkData> {
@@ -168,6 +182,13 @@ export function useCloakedLinks() {
         redirect_delay_ms: data.redirect_delay_ms ?? 0,
         whitelist_ips: data.whitelist_ips || null,
         blacklist_ips: data.blacklist_ips || null,
+        // New filter fields
+        allowed_referers: data.allowed_referers || null,
+        blocked_referers: data.blocked_referers || null,
+        required_url_params: data.required_url_params || null,
+        blocked_url_params: data.blocked_url_params || null,
+        allowed_languages: data.allowed_languages || null,
+        blocked_languages: data.blocked_languages || null,
       });
       if (error) throw error;
     },
@@ -211,6 +232,13 @@ export function useCloakedLinks() {
       if (data.redirect_delay_ms !== undefined) updateData.redirect_delay_ms = data.redirect_delay_ms;
       if (data.whitelist_ips !== undefined) updateData.whitelist_ips = data.whitelist_ips;
       if (data.blacklist_ips !== undefined) updateData.blacklist_ips = data.blacklist_ips;
+      // New filter fields
+      if (data.allowed_referers !== undefined) updateData.allowed_referers = data.allowed_referers;
+      if (data.blocked_referers !== undefined) updateData.blocked_referers = data.blocked_referers;
+      if (data.required_url_params !== undefined) updateData.required_url_params = data.required_url_params;
+      if (data.blocked_url_params !== undefined) updateData.blocked_url_params = data.blocked_url_params;
+      if (data.allowed_languages !== undefined) updateData.allowed_languages = data.allowed_languages;
+      if (data.blocked_languages !== undefined) updateData.blocked_languages = data.blocked_languages;
       
       const { error } = await supabase
         .from("cloaked_links")

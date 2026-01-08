@@ -14,7 +14,7 @@ import {
   Plus, Link2, Trash2, Copy, ExternalLink, Shield, Globe, Smartphone, Bot, 
   MousePointerClick, ToggleRight, Eye, Fingerprint, Activity, ChartBar,
   Users, AlertTriangle, CheckCircle, XCircle, Clock, Pencil, Timer, Zap,
-  Ban, Server, Wifi, Network, Lock, Unlock
+  Ban, Server, Wifi, Network, Lock, Unlock, Languages, LinkIcon, Filter
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCloakedLinks, useCloakerVisitors, useCloakerStats } from "@/hooks/useCloakedLinks";
@@ -40,6 +40,19 @@ const DEVICES = [
   { value: "mobile", label: "Mobile" },
   { value: "desktop", label: "Desktop" },
   { value: "tablet", label: "Tablet" },
+];
+
+const LANGUAGES = [
+  { code: "pt-BR", name: "Português (Brasil)" },
+  { code: "pt-PT", name: "Português (Portugal)" },
+  { code: "en-US", name: "Inglês (EUA)" },
+  { code: "en-GB", name: "Inglês (Reino Unido)" },
+  { code: "es-ES", name: "Espanhol (Espanha)" },
+  { code: "es-MX", name: "Espanhol (México)" },
+  { code: "es-CO", name: "Espanhol (Colômbia)" },
+  { code: "fr-FR", name: "Francês" },
+  { code: "de-DE", name: "Alemão" },
+  { code: "it-IT", name: "Italiano" },
 ];
 
 export default function Cloaker() {
@@ -74,6 +87,13 @@ export default function Cloaker() {
     redirectDelayMs: number;
     whitelistIps: string;
     blacklistIps: string;
+    // New filter fields
+    allowedReferers: string;
+    blockedReferers: string;
+    requiredUrlParams: string;
+    blockedUrlParams: string;
+    allowedLanguages: string[];
+    blockedLanguages: string[];
   } | null>(null);
   const [selectedLinkId, setSelectedLinkId] = useState<string | null>(null);
   // Configurações pré-otimizadas para Facebook e Google Ads
@@ -113,6 +133,13 @@ export default function Cloaker() {
     redirectDelayMs: 0,
     whitelistIps: "",
     blacklistIps: "",
+    // === NOVOS FILTROS ===
+    allowedReferers: "",
+    blockedReferers: "",
+    requiredUrlParams: "",
+    blockedUrlParams: "",
+    allowedLanguages: [] as string[],
+    blockedLanguages: [] as string[],
   });
 
   const { data: visitors, isLoading: visitorsLoading } = useCloakerVisitors(selectedLinkId);
@@ -180,6 +207,13 @@ export default function Cloaker() {
       redirectDelayMs: 0,
       whitelistIps: "",
       blacklistIps: "",
+      // New filter fields
+      allowedReferers: "",
+      blockedReferers: "",
+      requiredUrlParams: "",
+      blockedUrlParams: "",
+      allowedLanguages: [],
+      blockedLanguages: [],
     });
   };
 
@@ -239,6 +273,13 @@ export default function Cloaker() {
       redirectDelayMs: link.redirect_delay_ms ?? 0,
       whitelistIps: (link.whitelist_ips || []).join("\n"),
       blacklistIps: (link.blacklist_ips || []).join("\n"),
+      // New filter fields
+      allowedReferers: (link.allowed_referers || []).join("\n"),
+      blockedReferers: (link.blocked_referers || []).join("\n"),
+      requiredUrlParams: link.required_url_params ? Object.entries(link.required_url_params).map(([k, v]) => `${k}=${v}`).join("\n") : "",
+      blockedUrlParams: link.blocked_url_params ? Object.entries(link.blocked_url_params).map(([k, v]) => `${k}=${v}`).join("\n") : "",
+      allowedLanguages: link.allowed_languages || [],
+      blockedLanguages: link.blocked_languages || [],
     });
     setIsEditDialogOpen(true);
   };
@@ -248,6 +289,20 @@ export default function Cloaker() {
     try {
       const whitelistArr = editingLink.whitelistIps.split("\n").map(s => s.trim()).filter(Boolean);
       const blacklistArr = editingLink.blacklistIps.split("\n").map(s => s.trim()).filter(Boolean);
+      const allowedReferersArr = editingLink.allowedReferers.split("\n").map(s => s.trim()).filter(Boolean);
+      const blockedReferersArr = editingLink.blockedReferers.split("\n").map(s => s.trim()).filter(Boolean);
+      
+      // Parse URL params from key=value format
+      const parseUrlParams = (str: string): Record<string, string> | null => {
+        const lines = str.split("\n").map(s => s.trim()).filter(Boolean);
+        if (lines.length === 0) return null;
+        const params: Record<string, string> = {};
+        for (const line of lines) {
+          const [key, ...valueParts] = line.split("=");
+          if (key) params[key.trim()] = valueParts.join("=").trim();
+        }
+        return Object.keys(params).length > 0 ? params : null;
+      };
       
       await updateLink({ 
         id: editingLink.id,
@@ -276,6 +331,13 @@ export default function Cloaker() {
         redirect_delay_ms: editingLink.redirectDelayMs,
         whitelist_ips: whitelistArr.length > 0 ? whitelistArr : null,
         blacklist_ips: blacklistArr.length > 0 ? blacklistArr : null,
+        // New filter fields
+        allowed_referers: allowedReferersArr.length > 0 ? allowedReferersArr : null,
+        blocked_referers: blockedReferersArr.length > 0 ? blockedReferersArr : null,
+        required_url_params: parseUrlParams(editingLink.requiredUrlParams),
+        blocked_url_params: parseUrlParams(editingLink.blockedUrlParams),
+        allowed_languages: editingLink.allowedLanguages.length > 0 ? editingLink.allowedLanguages : null,
+        blocked_languages: editingLink.blockedLanguages.length > 0 ? editingLink.blockedLanguages : null,
       });
       setIsEditDialogOpen(false);
       setEditingLink(null);
@@ -285,7 +347,7 @@ export default function Cloaker() {
     }
   };
 
-  const toggleEditArrayValue = (field: 'allowedCountries' | 'blockedCountries' | 'allowedDevices', value: string) => {
+  const toggleEditArrayValue = (field: 'allowedCountries' | 'blockedCountries' | 'allowedDevices' | 'allowedLanguages' | 'blockedLanguages', value: string) => {
     if (!editingLink) return;
     const array = editingLink[field];
     if (array.includes(value)) {
@@ -819,9 +881,10 @@ export default function Cloaker() {
             {editingLink && (
               <div className="space-y-6">
                 <Tabs defaultValue="basic" className="w-full">
-                  <TabsList className="grid w-full grid-cols-5">
+                  <TabsList className="grid w-full grid-cols-6">
                     <TabsTrigger value="basic">Básico</TabsTrigger>
                     <TabsTrigger value="filters">Filtros</TabsTrigger>
+                    <TabsTrigger value="referer">Referência</TabsTrigger>
                     <TabsTrigger value="security">Segurança</TabsTrigger>
                     <TabsTrigger value="limits">Limites</TabsTrigger>
                     <TabsTrigger value="advanced">Avançado</TabsTrigger>
@@ -930,6 +993,105 @@ export default function Cloaker() {
                         checked={editingLink.blockBots}
                         onCheckedChange={checked => setEditingLink(prev => prev ? { ...prev, blockBots: checked } : null)}
                       />
+                    </div>
+                  </TabsContent>
+
+                  {/* NEW TAB: Referência, URL Params, Linguagem */}
+                  <TabsContent value="referer" className="space-y-4 mt-4">
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <LinkIcon className="h-4 w-4" />
+                        Referers Permitidos (1 por linha)
+                      </Label>
+                      <Textarea
+                        placeholder="facebook.com&#10;google.com&#10;instagram.com"
+                        value={editingLink.allowedReferers}
+                        onChange={e => setEditingLink(prev => prev ? { ...prev, allowedReferers: e.target.value } : null)}
+                        rows={3}
+                      />
+                      <p className="text-xs text-muted-foreground">Aceitar apenas tráfego destes domínios (deixe vazio para todos)</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Ban className="h-4 w-4" />
+                        Referers Bloqueados (1 por linha)
+                      </Label>
+                      <Textarea
+                        placeholder="adspy.com&#10;anstrex.com"
+                        value={editingLink.blockedReferers}
+                        onChange={e => setEditingLink(prev => prev ? { ...prev, blockedReferers: e.target.value } : null)}
+                        rows={3}
+                      />
+                      <p className="text-xs text-muted-foreground">Bloquear tráfego destes domínios</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Filter className="h-4 w-4" />
+                        Parâmetros URL Obrigatórios (1 por linha)
+                      </Label>
+                      <Textarea
+                        placeholder="utm_source=facebook&#10;ref=campaign"
+                        value={editingLink.requiredUrlParams}
+                        onChange={e => setEditingLink(prev => prev ? { ...prev, requiredUrlParams: e.target.value } : null)}
+                        rows={3}
+                      />
+                      <p className="text-xs text-muted-foreground">Formato: chave=valor. Só permite se tiver esses parâmetros</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Ban className="h-4 w-4" />
+                        Parâmetros URL Bloqueados (1 por linha)
+                      </Label>
+                      <Textarea
+                        placeholder="spy=true&#10;debug=1"
+                        value={editingLink.blockedUrlParams}
+                        onChange={e => setEditingLink(prev => prev ? { ...prev, blockedUrlParams: e.target.value } : null)}
+                        rows={3}
+                      />
+                      <p className="text-xs text-muted-foreground">Formato: chave=valor. Bloqueia se tiver esses parâmetros</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Languages className="h-4 w-4" />
+                        Idiomas Permitidos
+                      </Label>
+                      <div className="flex flex-wrap gap-2">
+                        {LANGUAGES.map(lang => (
+                          <Badge
+                            key={lang.code}
+                            variant={editingLink.allowedLanguages.includes(lang.code) ? "default" : "outline"}
+                            className="cursor-pointer transition-all hover:scale-105"
+                            onClick={() => toggleEditArrayValue('allowedLanguages', lang.code)}
+                          >
+                            {lang.name}
+                          </Badge>
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground">Deixe vazio para permitir todos</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Ban className="h-4 w-4" />
+                        Idiomas Bloqueados
+                      </Label>
+                      <div className="flex flex-wrap gap-2">
+                        {LANGUAGES.map(lang => (
+                          <Badge
+                            key={lang.code}
+                            variant={editingLink.blockedLanguages.includes(lang.code) ? "destructive" : "outline"}
+                            className="cursor-pointer transition-all hover:scale-105"
+                            onClick={() => toggleEditArrayValue('blockedLanguages', lang.code)}
+                          >
+                            {lang.name}
+                          </Badge>
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground">Bloquear acessos com esses idiomas</p>
                     </div>
                   </TabsContent>
 

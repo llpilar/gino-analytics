@@ -1764,6 +1764,55 @@ Deno.serve(async (req) => {
       return Response.redirect(link.safe_url, 302);
     }
     
+    // Language filter
+    const acceptLanguage = req.headers.get("accept-language") || "";
+    const browserLang = acceptLanguage.split(",")[0]?.trim() || "";
+    if (link.allowed_languages?.length > 0 && browserLang && !link.allowed_languages.some((l: string) => browserLang.startsWith(l.split("-")[0]))) {
+      console.log(`[Cloaker] BLOCKED: language_not_allowed ${browserLang}`);
+      return Response.redirect(link.safe_url, 302);
+    }
+    if (link.blocked_languages?.length > 0 && browserLang && link.blocked_languages.some((l: string) => browserLang.startsWith(l.split("-")[0]))) {
+      console.log(`[Cloaker] BLOCKED: language_blocked ${browserLang}`);
+      return Response.redirect(link.safe_url, 302);
+    }
+    
+    // Referer filter
+    if (link.allowed_referers?.length > 0 && referer) {
+      const refererMatch = link.allowed_referers.some((r: string) => referer.toLowerCase().includes(r.toLowerCase()));
+      if (!refererMatch) {
+        console.log(`[Cloaker] BLOCKED: referer_not_allowed ${referer}`);
+        return Response.redirect(link.safe_url, 302);
+      }
+    }
+    if (link.blocked_referers?.length > 0 && referer) {
+      const refererBlocked = link.blocked_referers.some((r: string) => referer.toLowerCase().includes(r.toLowerCase()));
+      if (refererBlocked) {
+        console.log(`[Cloaker] BLOCKED: referer_blocked ${referer}`);
+        return Response.redirect(link.safe_url, 302);
+      }
+    }
+    
+    // URL params filter
+    const incomingUrl = new URL(req.url);
+    if (link.required_url_params && typeof link.required_url_params === 'object') {
+      for (const [key, value] of Object.entries(link.required_url_params)) {
+        const paramValue = incomingUrl.searchParams.get(key);
+        if (!paramValue || (value && paramValue !== value)) {
+          console.log(`[Cloaker] BLOCKED: required_param_missing ${key}=${value}`);
+          return Response.redirect(link.safe_url, 302);
+        }
+      }
+    }
+    if (link.blocked_url_params && typeof link.blocked_url_params === 'object') {
+      for (const [key, value] of Object.entries(link.blocked_url_params)) {
+        const paramValue = incomingUrl.searchParams.get(key);
+        if (paramValue && (!value || paramValue === value)) {
+          console.log(`[Cloaker] BLOCKED: blocked_param_found ${key}=${value}`);
+          return Response.redirect(link.safe_url, 302);
+        }
+      }
+    }
+    
     if (checkIspBlock(cfIsp, link)) {
       console.log(`[Cloaker] BLOCKED: isp_blocked ${cfIsp}`);
       return Response.redirect(link.safe_url, 302);
