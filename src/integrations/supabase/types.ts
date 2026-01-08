@@ -47,6 +47,8 @@ export type Database = {
           allowed_devices: string[] | null
           allowed_hours_end: number | null
           allowed_hours_start: number | null
+          allowed_languages: string[] | null
+          allowed_referers: string[] | null
           behavior_time_ms: number | null
           blacklist_ips: string[] | null
           block_bots: boolean
@@ -57,6 +59,9 @@ export type Database = {
           blocked_asns: string[] | null
           blocked_countries: string[] | null
           blocked_isps: string[] | null
+          blocked_languages: string[] | null
+          blocked_referers: string[] | null
+          blocked_url_params: Json | null
           clicks_count: number
           clicks_today: number | null
           collect_fingerprint: boolean | null
@@ -74,6 +79,7 @@ export type Database = {
           rate_limit_window_minutes: number | null
           redirect_delay_ms: number | null
           require_behavior: boolean | null
+          required_url_params: Json | null
           safe_url: string
           slug: string
           target_url: string
@@ -87,6 +93,8 @@ export type Database = {
           allowed_devices?: string[] | null
           allowed_hours_end?: number | null
           allowed_hours_start?: number | null
+          allowed_languages?: string[] | null
+          allowed_referers?: string[] | null
           behavior_time_ms?: number | null
           blacklist_ips?: string[] | null
           block_bots?: boolean
@@ -97,6 +105,9 @@ export type Database = {
           blocked_asns?: string[] | null
           blocked_countries?: string[] | null
           blocked_isps?: string[] | null
+          blocked_languages?: string[] | null
+          blocked_referers?: string[] | null
+          blocked_url_params?: Json | null
           clicks_count?: number
           clicks_today?: number | null
           collect_fingerprint?: boolean | null
@@ -114,6 +125,7 @@ export type Database = {
           rate_limit_window_minutes?: number | null
           redirect_delay_ms?: number | null
           require_behavior?: boolean | null
+          required_url_params?: Json | null
           safe_url: string
           slug: string
           target_url: string
@@ -127,6 +139,8 @@ export type Database = {
           allowed_devices?: string[] | null
           allowed_hours_end?: number | null
           allowed_hours_start?: number | null
+          allowed_languages?: string[] | null
+          allowed_referers?: string[] | null
           behavior_time_ms?: number | null
           blacklist_ips?: string[] | null
           block_bots?: boolean
@@ -137,6 +151,9 @@ export type Database = {
           blocked_asns?: string[] | null
           blocked_countries?: string[] | null
           blocked_isps?: string[] | null
+          blocked_languages?: string[] | null
+          blocked_referers?: string[] | null
+          blocked_url_params?: Json | null
           clicks_count?: number
           clicks_today?: number | null
           collect_fingerprint?: boolean | null
@@ -154,6 +171,7 @@ export type Database = {
           rate_limit_window_minutes?: number | null
           redirect_delay_ms?: number | null
           require_behavior?: boolean | null
+          required_url_params?: Json | null
           safe_url?: string
           slug?: string
           target_url?: string
