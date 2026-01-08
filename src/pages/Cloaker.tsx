@@ -100,8 +100,8 @@ export default function Cloaker() {
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
-    safeUrl: "",
-    targetUrl: "",
+    safeUrl: "https://pagina.segu.online/",
+    targetUrl: "https://bioboost.site/",
     allowedCountries: [] as string[],
     blockedCountries: [] as string[],
     allowedDevices: [] as string[],
@@ -184,8 +184,8 @@ export default function Cloaker() {
     setFormData({
       name: "",
       slug: "",
-      safeUrl: "",
-      targetUrl: "",
+      safeUrl: "https://pagina.segu.online/",
+      targetUrl: "https://bioboost.site/",
       allowedCountries: [],
       blockedCountries: [],
       allowedDevices: [],
