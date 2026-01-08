@@ -5,16 +5,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Lock, Mail, ArrowRight, UserPlus } from "lucide-react";
+import { Lock, Mail, ArrowRight, UserPlus, User, Phone, Building2, Globe } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Auth() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
+  
+  // Form fields
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [company, setCompany] = useState("");
+  const [role, setRole] = useState("");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -52,17 +60,42 @@ export default function Auth() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isSignUp && password !== confirmPassword) {
+      toast({
+        title: "Erro",
+        description: "As senhas não coincidem",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
+        const { error, data } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/`
+            emailRedirectTo: `${window.location.origin}/`,
+            data: {
+              name,
+              phone,
+              company,
+              role
+            }
           }
         });
         if (error) throw error;
+        
+        // Update profile with additional data
+        if (data.user) {
+          await supabase.from('profiles').upsert({
+            id: data.user.id,
+            name,
+          });
+        }
+        
         toast({
           title: "Conta criada!",
           description: "Verifique seu email para confirmar o cadastro."
@@ -95,6 +128,16 @@ export default function Auth() {
     }
   };
 
+  const formatPhone = (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 11) {
+      return numbers
+        .replace(/^(\d{2})/, '($1) ')
+        .replace(/(\d{5})(\d)/, '$1-$2');
+    }
+    return value.slice(0, 15);
+  };
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
       {/* Gradient orbs */}
@@ -111,7 +154,7 @@ export default function Auth() {
         }}
       />
 
-      <div className="relative w-full max-w-sm">
+      <div className="relative w-full max-w-md">
         {/* Card */}
         <div className="relative">
           {/* Glow effect */}
@@ -119,23 +162,108 @@ export default function Auth() {
           
           <div className="relative bg-card/90 backdrop-blur-xl rounded-2xl p-8 border border-border/50">
             {/* Header */}
-            <div className="text-center mb-8">
+            <div className="text-center mb-6">
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20 mb-4">
                 {isSignUp ? <UserPlus className="w-5 h-5 text-primary" /> : <Lock className="w-5 h-5 text-primary" />}
               </div>
               <h1 className="text-xl font-semibold text-foreground tracking-tight">
-                {isSignUp ? "Criar conta" : "Entrar na conta"}
+                {isSignUp ? "Criar sua conta" : "Entrar na conta"}
               </h1>
               <p className="text-muted-foreground text-sm mt-1">
-                {isSignUp ? "Preencha os dados abaixo" : "Acesso restrito"}
+                {isSignUp ? "Preencha seus dados para começar" : "Acesso restrito"}
               </p>
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {isSignUp && (
+                <>
+                  {/* Name */}
+                  <div className="space-y-2">
+                    <Label htmlFor="name" className="text-muted-foreground text-xs font-medium uppercase tracking-wider">
+                      Nome completo *
+                    </Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="name"
+                        type="text"
+                        placeholder="Seu nome completo"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                        className="pl-10 bg-input border-border focus:border-primary/50 focus:ring-1 focus:ring-primary/20 text-foreground placeholder:text-muted-foreground h-11 rounded-xl transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Phone and Company in row */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="phone" className="text-muted-foreground text-xs font-medium uppercase tracking-wider">
+                        Telefone
+                      </Label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          id="phone"
+                          type="tel"
+                          placeholder="(00) 00000-0000"
+                          value={phone}
+                          onChange={(e) => setPhone(formatPhone(e.target.value))}
+                          className="pl-10 bg-input border-border focus:border-primary/50 focus:ring-1 focus:ring-primary/20 text-foreground placeholder:text-muted-foreground h-11 rounded-xl transition-all"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="company" className="text-muted-foreground text-xs font-medium uppercase tracking-wider">
+                        Empresa
+                      </Label>
+                      <div className="relative">
+                        <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          id="company"
+                          type="text"
+                          placeholder="Sua empresa"
+                          value={company}
+                          onChange={(e) => setCompany(e.target.value)}
+                          className="pl-10 bg-input border-border focus:border-primary/50 focus:ring-1 focus:ring-primary/20 text-foreground placeholder:text-muted-foreground h-11 rounded-xl transition-all"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Role */}
+                  <div className="space-y-2">
+                    <Label htmlFor="role" className="text-muted-foreground text-xs font-medium uppercase tracking-wider">
+                      Cargo / Função
+                    </Label>
+                    <div className="relative">
+                      <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
+                      <Select value={role} onValueChange={setRole}>
+                        <SelectTrigger className="pl-10 bg-input border-border focus:border-primary/50 focus:ring-1 focus:ring-primary/20 text-foreground h-11 rounded-xl transition-all">
+                          <SelectValue placeholder="Selecione seu cargo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ceo">CEO / Fundador</SelectItem>
+                          <SelectItem value="marketing">Marketing</SelectItem>
+                          <SelectItem value="vendas">Vendas</SelectItem>
+                          <SelectItem value="desenvolvedor">Desenvolvedor</SelectItem>
+                          <SelectItem value="designer">Designer</SelectItem>
+                          <SelectItem value="gestor">Gestor de Tráfego</SelectItem>
+                          <SelectItem value="outro">Outro</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Email */}
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-muted-foreground text-xs font-medium uppercase tracking-wider">
-                  Email
+                  Email *
                 </Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -151,9 +279,10 @@ export default function Auth() {
                 </div>
               </div>
 
+              {/* Password */}
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-muted-foreground text-xs font-medium uppercase tracking-wider">
-                  Senha
+                  Senha *
                 </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -168,27 +297,53 @@ export default function Auth() {
                     className="pl-10 bg-input border-border focus:border-primary/50 focus:ring-1 focus:ring-primary/20 text-foreground placeholder:text-muted-foreground h-11 rounded-xl transition-all"
                   />
                 </div>
+                {isSignUp && (
+                  <p className="text-xs text-muted-foreground">Mínimo de 6 caracteres</p>
+                )}
               </div>
+
+              {/* Confirm Password */}
+              {isSignUp && (
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword" className="text-muted-foreground text-xs font-medium uppercase tracking-wider">
+                    Confirmar senha *
+                  </Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      placeholder="••••••••"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                      minLength={6}
+                      className="pl-10 bg-input border-border focus:border-primary/50 focus:ring-1 focus:ring-primary/20 text-foreground placeholder:text-muted-foreground h-11 rounded-xl transition-all"
+                    />
+                  </div>
+                </div>
+              )}
 
               <Button
                 type="submit"
-                className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl shadow-lg shadow-primary/25 transition-all hover:shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] group"
+                className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl shadow-lg shadow-primary/25 transition-all hover:shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] group mt-2"
                 disabled={loading}
               >
                 {loading ? (
                   <span className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                    {isSignUp ? "Criando..." : "Entrando..."}
+                    {isSignUp ? "Criando conta..." : "Entrando..."}
                   </span>
                 ) : (
                   <span className="flex items-center justify-center gap-2">
-                    {isSignUp ? "Criar conta" : "Entrar"}
+                    {isSignUp ? "Criar minha conta" : "Entrar"}
                     <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
                   </span>
                 )}
               </Button>
+
               {/* Divider */}
-              <div className="relative my-6">
+              <div className="relative my-4">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-border/50" />
                 </div>
