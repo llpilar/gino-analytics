@@ -1937,19 +1937,44 @@ Deno.serve(async (req) => {
       const behaviorTime = link.behavior_time_ms || 2000;
       // Use dynamic function URL from request
       const functionUrl = `${supabaseUrl}/functions/v1/cloaker-redirect`;
-      console.log(`[Cloaker] CHALLENGE: Serving JS challenge page for ${slug}, POST to ${functionUrl}`);
-      const challengeHtml = generateChallengePage(slug, behaviorTime, functionUrl);
-      console.log(`[Cloaker] Challenge HTML length: ${challengeHtml.length} bytes`);
+      console.log(`[Cloaker] CHALLENGE: Skipping fingerprint due to CSP, redirecting directly`);
       
-      return new Response(challengeHtml, { 
-        status: 200,
+      // Due to Supabase Edge Runtime CSP restrictions that force text/plain,
+      // we skip the fingerprint challenge and proceed with direct allow/redirect
+      // The fingerprint collection has to be done via client-side CloakerRedirect page
+      let targetUrl = selectTargetUrl(link);
+      if (link.passthrough_utm) targetUrl = applyUtmPassthrough(targetUrl, req);
+      
+      const processingTime = Date.now() - startTime;
+      console.log(`[Cloaker] ALLOW (skip-challenge) device=${deviceType} country=${cfCountry} (${processingTime}ms)`);
+      
+      const newSessionId = generateSessionId();
+      approveSession(newSessionId, cfIp, "challenge-skip", 75);
+      trackSession(cfIp, "challenge-skip", 75);
+      
+      queueMicrotask(() => {
+        supabase.from("cloaker_visitors").insert({
+          link_id: link.id, fingerprint_hash: "challenge-skip", score: 75, decision: "allow",
+          user_agent: userAgent.substring(0, 500), ip_address: cfIp, country_code: cfCountry,
+          isp: cfIsp, asn: cfAsn, platform: deviceType, is_bot: false, referer, redirect_url: targetUrl,
+          ...utmParams, processing_time_ms: processingTime,
+        }).then(() => {});
+        supabase.from("cloaked_links").update({ clicks_count: (link.clicks_count || 0) + 1, clicks_today: (link.clicks_today || 0) + 1 }).eq("id", link.id).then(() => {});
+      });
+      
+      // For ZRC mode, proxy content
+      if (zrcMode) {
+        const response = await fetchAndProxy(targetUrl, req);
+        response.headers.set("Set-Cookie", `${SESSION_COOKIE_NAME}=${newSessionId}; Path=/; Max-Age=${SESSION_COOKIE_MAX_AGE}; HttpOnly; SameSite=Lax`);
+        return response;
+      }
+      
+      return new Response(null, {
+        status: 302,
         headers: {
-          "Content-Type": "text/html; charset=utf-8",
-          "Cache-Control": "no-cache, no-store, must-revalidate",
-          "Pragma": "no-cache",
-          "Expires": "0",
-          "X-Content-Type-Options": "nosniff",
-        }
+          "Location": targetUrl,
+          "Set-Cookie": `${SESSION_COOKIE_NAME}=${newSessionId}; Path=/; Max-Age=${SESSION_COOKIE_MAX_AGE}; HttpOnly; SameSite=Lax`,
+        },
       });
     }
     
