@@ -1859,8 +1859,9 @@ Deno.serve(async (req) => {
     // === FINGERPRINT COLLECTION MODE ===
     if (link.collect_fingerprint && link.require_behavior) {
       const behaviorTime = link.behavior_time_ms || 2000;
-      const functionUrl = `https://codfy.site`;
-      console.log(`[Cloaker] CHALLENGE: Serving JS challenge page for ${slug}`);
+      // Use dynamic function URL from request
+      const functionUrl = `${supabaseUrl}/functions/v1/cloaker-redirect`;
+      console.log(`[Cloaker] CHALLENGE: Serving JS challenge page for ${slug}, POST to ${functionUrl}`);
       const challengeHtml = generateChallengePage(slug, behaviorTime, functionUrl);
       console.log(`[Cloaker] Challenge HTML length: ${challengeHtml.length} bytes`);
       
