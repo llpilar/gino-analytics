@@ -220,9 +220,15 @@ export default function Cloaker() {
   const handleCopyLink = (slug: string) => {
     // Use edge function URL directly - hides lovable domain
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const url = `${supabaseUrl}/functions/v1/cloaker-redirect?s=${slug}`;
+    const url = `${supabaseUrl}/functions/v1/cloaker-redirect/${slug}`;
     navigator.clipboard.writeText(url);
     toast.success("Link copiado!");
+  };
+
+  const handleTestLink = (slug: string) => {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const url = `${supabaseUrl}/functions/v1/cloaker-redirect/${slug}`;
+    window.open(url, "_blank");
   };
 
   const handleToggleActive = async (id: string, isActive: boolean) => {
@@ -722,8 +728,18 @@ export default function Cloaker() {
                               size="sm"
                               className="h-6 w-6 p-0 shrink-0"
                               onClick={(e) => { e.stopPropagation(); handleCopyLink(link.slug); }}
+                              title="Copiar link"
                             >
                               <Copy className="h-3 w-3" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              className="h-6 w-6 p-0 shrink-0 text-primary hover:text-primary"
+                              onClick={(e) => { e.stopPropagation(); handleTestLink(link.slug); }}
+                              title="Testar link"
+                            >
+                              <ExternalLink className="h-3 w-3" />
                             </Button>
                           </div>
 
