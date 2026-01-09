@@ -226,8 +226,8 @@ export default function Cloaker() {
   };
 
   const handleTestLink = (slug: string) => {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const url = `${supabaseUrl}/functions/v1/cloaker-redirect/${slug}`;
+    // Use frontend route for fingerprint collection
+    const url = `${window.location.origin}/c/${slug}`;
     window.open(url, "_blank");
   };
 

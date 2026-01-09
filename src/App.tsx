@@ -59,6 +59,7 @@ const App = () => (
                           
                           <Route path="/cloaker" element={<ProtectedRoute><Cloaker /></ProtectedRoute>} />
                           <Route path="/go/:slug" element={<CloakerRedirect />} />
+                          <Route path="/c/:slug" element={<CloakerRedirect />} />
                           <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
                           <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
                           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
