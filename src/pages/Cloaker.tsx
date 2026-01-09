@@ -55,111 +55,111 @@ const LANGUAGES = [
   { code: "it-IT", name: "Italiano" },
 ];
 
-// Presets de configuração
+// Presets de configuração - OTIMIZADOS para cada plataforma
 const PRESETS = {
   facebook: {
     name: "Facebook Ads",
     icon: "📘",
-    description: "Otimizado para tráfego do Facebook/Instagram",
+    description: "Otimizado para FB/Instagram Ads",
     config: {
       blockBots: true,
-      minScore: 30, // Menos agressivo para não bloquear usuários reais
+      minScore: 25, // Baixo - in-app browsers têm fingerprints estranhos
       collectFingerprint: true,
-      requireBehavior: false, // Desativado - pode irritar usuários mobile
+      requireBehavior: false, // NUNCA em mobile - mata conversão
       behaviorTimeMs: 2000,
       passthroughUtm: true,
-      rateLimitPerIp: 15, // Mais permissivo
-      blockVpn: false, // Muitos usuários usam VPN
-      blockProxy: true,
-      blockDatacenter: true,
+      rateLimitPerIp: 20, // Alto - IPs compartilhados em mobile
+      blockVpn: false, // CRÍTICO: muitos usuários BR usam VPN
+      blockProxy: false, // Empresas usam proxy
+      blockDatacenter: true, // Bots geralmente vêm de DC
       blockTor: true,
       redirectDelayMs: 0,
-      allowedReferers: "facebook.com\nfb.com\ninstagram.com\nl.facebook.com\nlm.facebook.com",
-      blockedReferers: "adspy.com\nanstrex.com\nbigspy.com\nspyfu.com\ndropispy.com",
+      allowedReferers: "", // Vazio = aceita tudo (FB manda de vários domínios)
+      blockedReferers: "adspy.com\nanstrex.com\nbigspy.com\nspyfu.com\ndropispy.com\npipiads.com\nadplexity.com",
     }
   },
   google: {
     name: "Google Ads",
     icon: "🔍",
-    description: "Otimizado para tráfego do Google Ads",
+    description: "Otimizado para Google Ads",
     config: {
       blockBots: true,
-      minScore: 35,
+      minScore: 35, // Médio - tráfego Google é mais "limpo"
       collectFingerprint: true,
-      requireBehavior: false,
+      requireBehavior: false, // Desativado para não prejudicar conversão
       behaviorTimeMs: 2000,
       passthroughUtm: true,
-      rateLimitPerIp: 10,
-      blockVpn: true, // Google Ads geralmente não usa VPN
-      blockProxy: true,
+      rateLimitPerIp: 15,
+      blockVpn: false, // Melhor não bloquear - perde tráfego real
+      blockProxy: false,
       blockDatacenter: true,
       blockTor: true,
       redirectDelayMs: 0,
-      allowedReferers: "google.com\ngoogleadservices.com\ngoogleads.g.doubleclick.net",
-      blockedReferers: "adspy.com\nanstrex.com\nbigspy.com\nspyfu.com\nsemrush.com\nahrefs.com",
+      allowedReferers: "",
+      blockedReferers: "adspy.com\nanstrex.com\nbigspy.com\nspyfu.com\nsemrush.com\nahrefs.com\nsimilarweb.com",
     }
   },
   tiktok: {
     name: "TikTok Ads",
     icon: "🎵",
-    description: "Otimizado para tráfego do TikTok",
+    description: "Otimizado para TikTok Ads",
     config: {
       blockBots: true,
-      minScore: 25, // Muito mobile, ser permissivo
+      minScore: 20, // MUITO baixo - público jovem, mobile, impulso
       collectFingerprint: true,
-      requireBehavior: false,
+      requireBehavior: false, // NUNCA - TikTok é 100% mobile
       behaviorTimeMs: 1500,
       passthroughUtm: true,
-      rateLimitPerIp: 20, // TikTok gera muito tráfego rápido
-      blockVpn: false, // Usuários jovens usam VPN
-      blockProxy: true,
+      rateLimitPerIp: 30, // MUITO alto - TikTok gera picos de tráfego
+      blockVpn: false, // Jovens usam VPN
+      blockProxy: false,
       blockDatacenter: true,
       blockTor: true,
       redirectDelayMs: 0,
-      allowedReferers: "tiktok.com\ntiktokcdn.com\nbytedance.com",
-      blockedReferers: "adspy.com\nanstrex.com\nbigspy.com\npipiads.com",
+      allowedReferers: "",
+      blockedReferers: "adspy.com\nanstrex.com\nbigspy.com\npipiads.com\nadplexity.com",
     }
   },
   organic: {
     name: "Tráfego Orgânico",
     icon: "🌿",
-    description: "Configuração leve para SEO e tráfego direto",
+    description: "SEO, direto, redes sociais",
     config: {
-      blockBots: true, // Ainda bloqueia bots
-      minScore: 20, // Bem permissivo
+      blockBots: true, // Bloqueia crawlers maliciosos
+      minScore: 15, // BEM permissivo
       collectFingerprint: true,
       requireBehavior: false,
       behaviorTimeMs: 1000,
       passthroughUtm: true,
-      rateLimitPerIp: 30, // Muito permissivo
-      blockVpn: false, // Orgânico pode vir de qualquer lugar
-      blockProxy: false,
-      blockDatacenter: true, // Datacenters geralmente são bots
+      rateLimitPerIp: 50, // Muito permissivo
+      blockVpn: false,
+      blockProxy: false, // Empresas e universidades usam proxy
+      blockDatacenter: false, // Pode ser usuário de VPS legítimo
       blockTor: true,
       redirectDelayMs: 0,
-      allowedReferers: "", // Aceita qualquer referer
+      allowedReferers: "",
       blockedReferers: "adspy.com\nanstrex.com\nbigspy.com",
     }
   },
   maximum: {
     name: "Proteção Máxima",
     icon: "🛡️",
-    description: "Todas as proteções ativadas",
+    description: "Para ofertas sensíveis/blackhat",
     config: {
       blockBots: true,
-      minScore: 50, // Alto score exigido
+      minScore: 45, // Alto - só passa quem for muito humano
       collectFingerprint: true,
-      requireBehavior: true, // Análise comportamental ativa
-      behaviorTimeMs: 3000,
+      requireBehavior: true, // ATIVADO - filtra ao máximo
+      behaviorTimeMs: 3000, // 3 segundos de análise
       passthroughUtm: true,
       rateLimitPerIp: 5, // Bem restritivo
-      blockVpn: true,
+      blockVpn: true, // Bloqueia tudo
       blockProxy: true,
       blockDatacenter: true,
       blockTor: true,
-      redirectDelayMs: 500, // Pequeno delay
+      redirectDelayMs: 500, // Pequeno delay anti-bot
       allowedReferers: "",
-      blockedReferers: "adspy.com\nanstrex.com\nbigspy.com\nspyfu.com\nsemrush.com\nahrefs.com\ndropispy.com\npipiads.com",
+      blockedReferers: "adspy.com\nanstrex.com\nbigspy.com\nspyfu.com\nsemrush.com\nahrefs.com\ndropispy.com\npipiads.com\nadplexity.com\nsimilarweb.com",
     }
   }
 };
