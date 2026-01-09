@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   LayoutDashboard, BarChart3, Settings, Wallet, Truck, 
   Shield, ShieldCheck, ChevronLeft, LogOut,
-  RefreshCw, Eye, X, Sun, Moon
+  RefreshCw, Eye, X, Sun, Moon, FileText
 } from "lucide-react";
 import codfyLogo from "@/assets/codfy-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
@@ -31,6 +31,7 @@ const baseMenuItems = [
   { icon: Wallet, label: "Financeiro", path: "/financeiro", restricted: true },
   { icon: Truck, label: "Envios", path: "/envios" },
   { icon: Shield, label: "Cloaker", path: "/cloaker" },
+  { icon: FileText, label: "Logs Cloaker", path: "/cloaker/logs" },
   { icon: Settings, label: "Configurações", path: "/configuracoes" },
 ];
 
