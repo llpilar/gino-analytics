@@ -1198,9 +1198,14 @@ const MICROSOFT_IP_RANGES = [
 const MICROSOFT_ASNS = ["AS8075", "AS3598", "AS8068"];
 
 // ==================== FACEBOOK/META ====================
+// IMPORTANT: Only match actual crawlers, NOT in-app browsers!
+// FBAV/FBAN/Instagram in UA = real users using in-app browser
 const FACEBOOK_BOT_UA_PATTERNS = [
-  /facebookexternalhit/i, /Facebot/i, /facebookcatalog/i,
-  /meta-external/i, /WhatsApp/i, /Instagram/i, /FBAV/i, /FBAN/i,
+  /facebookexternalhit/i,  // Facebook link preview crawler
+  /Facebot/i,              // Facebook crawler
+  /facebookcatalog/i,      // Facebook catalog crawler
+  /meta-external/i,        // Meta external crawler
+  // WhatsApp, Instagram, FBAV, FBAN are IN-APP BROWSERS - NOT bots!
 ];
 
 const FACEBOOK_IP_RANGES = [
@@ -1404,18 +1409,22 @@ function detectAdPlatform(userAgent: string, ip: string, headers: Headers, refer
   }
 
   // ===== FACEBOOK/META =====
+  // Only detect actual crawlers, not in-app browsers
   if (!platform) {
     for (const pattern of FACEBOOK_BOT_UA_PATTERNS) {
       if (pattern.test(userAgent)) {
         platform = "facebook"; isDefinitive = true; confidence = 100;
-        if (/facebookexternalhit|facebot/i.test(userAgent)) { botType = "Facebook Crawler"; reasons.push("FACEBOOK_CRAWLER_UA"); }
-        else if (/whatsapp/i.test(userAgent)) { botType = "WhatsApp"; reasons.push("WHATSAPP_UA"); }
-        else if (/instagram/i.test(userAgent)) { botType = "Instagram"; reasons.push("INSTAGRAM_UA"); }
+        if (/facebookexternalhit/i.test(userAgent)) { botType = "Facebook Crawler"; reasons.push("FACEBOOK_CRAWLER_UA"); }
+        else if (/facebot/i.test(userAgent)) { botType = "Facebot"; reasons.push("FACEBOT_UA"); }
+        else if (/facebookcatalog/i.test(userAgent)) { botType = "Facebook Catalog"; reasons.push("FACEBOOK_CATALOG_UA"); }
+        else if (/meta-external/i.test(userAgent)) { botType = "Meta External"; reasons.push("META_EXTERNAL_UA"); }
         else { botType = "Meta Bot"; reasons.push("META_BOT_UA"); }
         break;
       }
     }
-    if (!platform && isFacebookIP(ip)) {
+    // Only block Facebook IPs if they're also running crawler UA
+    // Regular users on Facebook network should not be blocked
+    if (!platform && isFacebookIP(ip) && /facebookexternalhit|facebot|facebookcatalog|meta-external/i.test(userAgent)) {
       platform = "facebook"; confidence = 95; botType = "Meta IP"; reasons.push("FACEBOOK_IP_RANGE"); isDefinitive = true;
     }
   }
@@ -1476,7 +1485,10 @@ function detectAdPlatform(userAgent: string, ip: string, headers: Headers, refer
       reasons.push("GOOGLE_ASN"); isDefinitive = true; 
     }
     else if (MICROSOFT_ASNS.some(asn => cfAsn.toUpperCase().includes(asn))) { platform = "microsoft"; confidence = 88; botType = "Microsoft ASN"; reasons.push("MICROSOFT_ASN"); }
-    else if (FACEBOOK_ASNS.some(asn => cfAsn.toUpperCase().includes(asn))) { platform = "facebook"; confidence = 92; botType = "Facebook ASN"; reasons.push("FACEBOOK_ASN"); }
+    // Facebook ASN check - only block if also has crawler UA (users on Facebook network are real people)
+    else if (FACEBOOK_ASNS.some(asn => cfAsn.toUpperCase().includes(asn)) && /facebookexternalhit|facebot|facebookcatalog|meta-external/i.test(userAgent)) { 
+      platform = "facebook"; confidence = 92; botType = "Facebook ASN"; reasons.push("FACEBOOK_ASN"); 
+    }
     else if (TIKTOK_ASNS.some(asn => cfAsn.toUpperCase().includes(asn))) { platform = "tiktok"; confidence = 88; botType = "TikTok ASN"; reasons.push("TIKTOK_ASN"); }
   }
 
@@ -1486,7 +1498,10 @@ function detectAdPlatform(userAgent: string, ip: string, headers: Headers, refer
     reasons.push("GOOGLE_ISP"); isDefinitive = true; 
   }
   else if (!platform && /microsoft|bing/i.test(cfIsp)) { platform = "microsoft"; confidence = 85; botType = "Microsoft ISP"; reasons.push("MICROSOFT_ISP"); }
-  else if (!platform && /facebook|meta/i.test(cfIsp)) { platform = "facebook"; confidence = 90; botType = "Facebook ISP"; reasons.push("FACEBOOK_ISP"); }
+  // Facebook ISP - only block with crawler UA (real users use Facebook network)
+  else if (!platform && /facebook|meta/i.test(cfIsp) && /facebookexternalhit|facebot|facebookcatalog|meta-external/i.test(userAgent)) { 
+    platform = "facebook"; confidence = 90; botType = "Facebook ISP"; reasons.push("FACEBOOK_ISP"); 
+  }
 
   return { detected: platform !== null, platform, botType, confidence: Math.min(100, confidence), reasons, isDefinitive };
 }
