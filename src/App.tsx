@@ -23,6 +23,7 @@ import Financeiro from "./pages/Financeiro";
 import Envios from "./pages/Envios";
 
 import Cloaker from "./pages/Cloaker";
+import CloakerLogs from "./pages/CloakerLogs";
 import CloakerRedirect from "./pages/CloakerRedirect";
 import Admin from "./pages/Admin";
 import AguardandoAprovacao from "./pages/AguardandoAprovacao";
@@ -58,6 +59,7 @@ const App = () => (
                           <Route path="/envios" element={<ProtectedRoute><Envios /></ProtectedRoute>} />
                           
                           <Route path="/cloaker" element={<ProtectedRoute><Cloaker /></ProtectedRoute>} />
+                          <Route path="/cloaker/logs" element={<ProtectedRoute><CloakerLogs /></ProtectedRoute>} />
                           <Route path="/go/:slug" element={<CloakerRedirect />} />
                           <Route path="/c/:slug" element={<CloakerRedirect />} />
                           <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
