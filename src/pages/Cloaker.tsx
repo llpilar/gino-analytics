@@ -55,6 +55,115 @@ const LANGUAGES = [
   { code: "it-IT", name: "Italiano" },
 ];
 
+// Presets de configuração
+const PRESETS = {
+  facebook: {
+    name: "Facebook Ads",
+    icon: "📘",
+    description: "Otimizado para tráfego do Facebook/Instagram",
+    config: {
+      blockBots: true,
+      minScore: 30, // Menos agressivo para não bloquear usuários reais
+      collectFingerprint: true,
+      requireBehavior: false, // Desativado - pode irritar usuários mobile
+      behaviorTimeMs: 2000,
+      passthroughUtm: true,
+      rateLimitPerIp: 15, // Mais permissivo
+      blockVpn: false, // Muitos usuários usam VPN
+      blockProxy: true,
+      blockDatacenter: true,
+      blockTor: true,
+      redirectDelayMs: 0,
+      allowedReferers: "facebook.com\nfb.com\ninstagram.com\nl.facebook.com\nlm.facebook.com",
+      blockedReferers: "adspy.com\nanstrex.com\nbigspy.com\nspyfu.com\ndropispy.com",
+    }
+  },
+  google: {
+    name: "Google Ads",
+    icon: "🔍",
+    description: "Otimizado para tráfego do Google Ads",
+    config: {
+      blockBots: true,
+      minScore: 35,
+      collectFingerprint: true,
+      requireBehavior: false,
+      behaviorTimeMs: 2000,
+      passthroughUtm: true,
+      rateLimitPerIp: 10,
+      blockVpn: true, // Google Ads geralmente não usa VPN
+      blockProxy: true,
+      blockDatacenter: true,
+      blockTor: true,
+      redirectDelayMs: 0,
+      allowedReferers: "google.com\ngoogleadservices.com\ngoogleads.g.doubleclick.net",
+      blockedReferers: "adspy.com\nanstrex.com\nbigspy.com\nspyfu.com\nsemrush.com\nahrefs.com",
+    }
+  },
+  tiktok: {
+    name: "TikTok Ads",
+    icon: "🎵",
+    description: "Otimizado para tráfego do TikTok",
+    config: {
+      blockBots: true,
+      minScore: 25, // Muito mobile, ser permissivo
+      collectFingerprint: true,
+      requireBehavior: false,
+      behaviorTimeMs: 1500,
+      passthroughUtm: true,
+      rateLimitPerIp: 20, // TikTok gera muito tráfego rápido
+      blockVpn: false, // Usuários jovens usam VPN
+      blockProxy: true,
+      blockDatacenter: true,
+      blockTor: true,
+      redirectDelayMs: 0,
+      allowedReferers: "tiktok.com\ntiktokcdn.com\nbytedance.com",
+      blockedReferers: "adspy.com\nanstrex.com\nbigspy.com\npipiads.com",
+    }
+  },
+  organic: {
+    name: "Tráfego Orgânico",
+    icon: "🌿",
+    description: "Configuração leve para SEO e tráfego direto",
+    config: {
+      blockBots: true, // Ainda bloqueia bots
+      minScore: 20, // Bem permissivo
+      collectFingerprint: true,
+      requireBehavior: false,
+      behaviorTimeMs: 1000,
+      passthroughUtm: true,
+      rateLimitPerIp: 30, // Muito permissivo
+      blockVpn: false, // Orgânico pode vir de qualquer lugar
+      blockProxy: false,
+      blockDatacenter: true, // Datacenters geralmente são bots
+      blockTor: true,
+      redirectDelayMs: 0,
+      allowedReferers: "", // Aceita qualquer referer
+      blockedReferers: "adspy.com\nanstrex.com\nbigspy.com",
+    }
+  },
+  maximum: {
+    name: "Proteção Máxima",
+    icon: "🛡️",
+    description: "Todas as proteções ativadas",
+    config: {
+      blockBots: true,
+      minScore: 50, // Alto score exigido
+      collectFingerprint: true,
+      requireBehavior: true, // Análise comportamental ativa
+      behaviorTimeMs: 3000,
+      passthroughUtm: true,
+      rateLimitPerIp: 5, // Bem restritivo
+      blockVpn: true,
+      blockProxy: true,
+      blockDatacenter: true,
+      blockTor: true,
+      redirectDelayMs: 500, // Pequeno delay
+      allowedReferers: "",
+      blockedReferers: "adspy.com\nanstrex.com\nbigspy.com\nspyfu.com\nsemrush.com\nahrefs.com\ndropispy.com\npipiads.com",
+    }
+  }
+};
+
 export default function Cloaker() {
   const { links, isLoading, createLink, updateLink, deleteLink } = useCloakedLinks();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -249,6 +358,15 @@ export default function Cloaker() {
       allowedLanguages: [],
       blockedLanguages: [],
     });
+  };
+
+  const applyPreset = (presetKey: keyof typeof PRESETS) => {
+    const preset = PRESETS[presetKey];
+    setFormData(prev => ({
+      ...prev,
+      ...preset.config,
+    }));
+    toast.success(`Preset "${preset.name}" aplicado!`);
   };
 
   const handleCopyLink = (slug: string) => {
@@ -466,6 +584,29 @@ export default function Cloaker() {
               </DialogHeader>
               
               <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Presets de Configuração Rápida */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Configuração Rápida</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                    {Object.entries(PRESETS).map(([key, preset]) => (
+                      <Button
+                        key={key}
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-auto py-2 px-3 flex flex-col items-center gap-1 hover:bg-primary/10 hover:border-primary/50 transition-all"
+                        onClick={() => applyPreset(key as keyof typeof PRESETS)}
+                      >
+                        <span className="text-lg">{preset.icon}</span>
+                        <span className="text-xs font-medium">{preset.name}</span>
+                      </Button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Clique para aplicar configurações otimizadas para cada plataforma
+                  </p>
+                </div>
+
                 <Tabs defaultValue="basic" className="w-full">
                   <TabsList className="grid w-full grid-cols-7 text-xs">
                     <TabsTrigger value="basic">Básico</TabsTrigger>
