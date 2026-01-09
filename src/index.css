@@ -192,126 +192,126 @@
   }
 
   /* ===== THEME 3: Royal Blue (Light Mode) ===== */
-  /* Deep royal blue with elegant gold accents */
+  /* Deep royal blue - similar structure to Clean Blue */
   [data-theme="royal-blue"] {
-    --background: 225 25% 97%;
-    --foreground: 230 50% 10%;
+    --background: 230 20% 98%;
+    --foreground: 230 25% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 230 50% 10%;
+    --card-foreground: 230 25% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 230 50% 10%;
-    --primary: 235 85% 50%;
+    --popover-foreground: 230 25% 10%;
+    --primary: 235 85% 55%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 225 25% 92%;
-    --secondary-foreground: 230 50% 15%;
-    --muted: 225 20% 93%;
-    --muted-foreground: 225 15% 45%;
-    --accent: 38 95% 65%;
-    --accent-foreground: 30 50% 15%;
-    --destructive: 0 80% 55%;
+    --secondary: 235 20% 92%;
+    --secondary-foreground: 230 25% 30%;
+    --muted: 230 15% 93%;
+    --muted-foreground: 230 10% 45%;
+    --accent: 235 20% 92%;
+    --accent-foreground: 235 85% 45%;
+    --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 100%;
-    --border: 225 20% 88%;
-    --input: 225 20% 88%;
-    --ring: 235 85% 50%;
-    --radius: 0.625rem;
+    --border: 230 15% 88%;
+    --input: 230 15% 88%;
+    --ring: 235 85% 55%;
+    --radius: 0.5rem;
     
-    --chart-1: 235 85% 50%;
-    --chart-2: 38 95% 65%;
-    --chart-3: 165 60% 45%;
-    --chart-4: 0 80% 55%;
-    --chart-5: 280 70% 55%;
+    --chart-1: 235 85% 55%;
+    --chart-2: 235 60% 65%;
+    --chart-3: 155 65% 45%;
+    --chart-4: 40 90% 50%;
+    --chart-5: 320 65% 55%;
     
-    --neon-cyan: 195 80% 50%;
-    --neon-cyan-light: 195 80% 60%;
-    --neon-purple: 280 70% 55%;
-    --neon-purple-light: 280 70% 65%;
-    --neon-pink: 330 70% 55%;
-    --neon-pink-light: 330 70% 65%;
-    --neon-green: 165 60% 45%;
-    --neon-green-light: 165 60% 55%;
-    --neon-orange: 38 95% 55%;
-    --neon-orange-light: 38 95% 65%;
-    --neon-blue: 235 85% 50%;
-    --neon-blue-light: 235 85% 60%;
+    --neon-cyan: 235 85% 55%;
+    --neon-cyan-light: 235 85% 65%;
+    --neon-purple: 270 65% 55%;
+    --neon-purple-light: 270 65% 65%;
+    --neon-pink: 320 65% 55%;
+    --neon-pink-light: 320 65% 65%;
+    --neon-green: 155 65% 45%;
+    --neon-green-light: 155 65% 55%;
+    --neon-orange: 40 90% 50%;
+    --neon-orange-light: 40 90% 60%;
+    --neon-blue: 235 85% 55%;
+    --neon-blue-light: 235 85% 65%;
     
-    --status-success: 165 60% 45%;
-    --status-warning: 38 95% 55%;
-    --status-error: 0 80% 55%;
-    --status-info: 235 85% 50%;
+    --status-success: 155 65% 45%;
+    --status-warning: 40 90% 50%;
+    --status-error: 0 75% 55%;
+    --status-info: 235 85% 55%;
     
     --surface-elevated: 0 0% 100%;
-    --surface-overlay: 225 25% 95%;
+    --surface-overlay: 230 15% 96%;
     
-    --sidebar-background: 225 25% 96%;
-    --sidebar: 225 25% 96%;
-    --sidebar-foreground: 230 50% 10%;
-    --sidebar-primary: 235 85% 50%;
+    --sidebar-background: 230 15% 97%;
+    --sidebar: 230 15% 97%;
+    --sidebar-foreground: 230 25% 10%;
+    --sidebar-primary: 235 85% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 38 95% 65%;
-    --sidebar-accent-foreground: 30 50% 15%;
-    --sidebar-border: 225 20% 88%;
-    --sidebar-ring: 235 85% 50%;
+    --sidebar-accent: 235 20% 92%;
+    --sidebar-accent-foreground: 235 85% 45%;
+    --sidebar-border: 230 15% 88%;
+    --sidebar-ring: 235 85% 55%;
   }
 
   /* ===== Royal Blue Dark Mode ===== */
   .dark [data-theme="royal-blue"],
   [data-theme="royal-blue"].dark {
-    --background: 230 25% 4%;
-    --foreground: 225 20% 95%;
-    --card: 230 25% 7%;
-    --card-foreground: 225 20% 95%;
-    --popover: 230 25% 6%;
-    --popover-foreground: 225 20% 95%;
-    --primary: 235 80% 55%;
+    --background: 235 20% 4%;
+    --foreground: 230 15% 98%;
+    --card: 235 20% 7%;
+    --card-foreground: 230 15% 98%;
+    --popover: 235 20% 6%;
+    --popover-foreground: 230 15% 98%;
+    --primary: 235 85% 60%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 230 20% 14%;
-    --secondary-foreground: 225 15% 75%;
-    --muted: 230 20% 12%;
-    --muted-foreground: 225 10% 50%;
-    --accent: 38 90% 60%;
-    --accent-foreground: 30 50% 10%;
-    --destructive: 0 80% 55%;
+    --secondary: 235 15% 15%;
+    --secondary-foreground: 230 10% 75%;
+    --muted: 235 15% 12%;
+    --muted-foreground: 230 8% 55%;
+    --accent: 235 15% 18%;
+    --accent-foreground: 230 15% 90%;
+    --destructive: 0 75% 50%;
     --destructive-foreground: 0 0% 100%;
-    --border: 230 20% 14%;
-    --input: 230 20% 12%;
-    --ring: 235 80% 55%;
+    --border: 235 15% 15%;
+    --input: 235 15% 12%;
+    --ring: 235 85% 60%;
     
-    --chart-1: 235 80% 55%;
-    --chart-2: 38 90% 60%;
-    --chart-3: 165 60% 50%;
-    --chart-4: 0 80% 55%;
-    --chart-5: 280 70% 60%;
+    --chart-1: 235 85% 60%;
+    --chart-2: 235 70% 65%;
+    --chart-3: 155 65% 50%;
+    --chart-4: 40 90% 55%;
+    --chart-5: 320 65% 60%;
     
-    --neon-cyan: 195 80% 55%;
-    --neon-cyan-light: 195 80% 65%;
-    --neon-purple: 280 70% 60%;
-    --neon-purple-light: 280 70% 70%;
-    --neon-pink: 330 70% 60%;
-    --neon-pink-light: 330 70% 70%;
-    --neon-green: 165 60% 50%;
-    --neon-green-light: 165 60% 60%;
-    --neon-orange: 38 90% 60%;
-    --neon-orange-light: 38 90% 70%;
-    --neon-blue: 235 80% 55%;
-    --neon-blue-light: 235 80% 65%;
+    --neon-cyan: 235 85% 60%;
+    --neon-cyan-light: 235 85% 70%;
+    --neon-purple: 270 65% 60%;
+    --neon-purple-light: 270 65% 70%;
+    --neon-pink: 320 65% 60%;
+    --neon-pink-light: 320 65% 70%;
+    --neon-green: 155 65% 50%;
+    --neon-green-light: 155 65% 60%;
+    --neon-orange: 40 90% 55%;
+    --neon-orange-light: 40 90% 65%;
+    --neon-blue: 235 85% 60%;
+    --neon-blue-light: 235 85% 70%;
     
-    --status-success: 165 60% 50%;
-    --status-warning: 38 90% 60%;
-    --status-error: 0 80% 55%;
-    --status-info: 235 80% 55%;
+    --status-success: 155 65% 50%;
+    --status-warning: 40 90% 55%;
+    --status-error: 0 75% 50%;
+    --status-info: 235 85% 60%;
     
-    --surface-elevated: 230 25% 9%;
-    --surface-overlay: 230 25% 3%;
+    --surface-elevated: 235 20% 9%;
+    --surface-overlay: 235 20% 3%;
     
-    --sidebar-background: 230 25% 5%;
-    --sidebar: 230 25% 5%;
-    --sidebar-foreground: 225 20% 95%;
-    --sidebar-primary: 235 80% 55%;
+    --sidebar-background: 235 20% 5%;
+    --sidebar: 235 20% 5%;
+    --sidebar-foreground: 230 15% 98%;
+    --sidebar-primary: 235 85% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 38 90% 60%;
-    --sidebar-accent-foreground: 30 50% 10%;
-    --sidebar-border: 230 20% 14%;
-    --sidebar-ring: 235 80% 55%;
+    --sidebar-accent: 235 15% 15%;
+    --sidebar-accent-foreground: 230 15% 90%;
+    --sidebar-border: 235 15% 15%;
+    --sidebar-ring: 235 85% 60%;
   }
 
   /* ===== THEME 4: Netflix Red (Light Mode) ===== */
@@ -470,16 +470,15 @@
       hsl(220, 18%, 5%) 100%);
   }
 
-  /* Royal Blue */
+  /* Royal Blue - same style as Clean Blue */
   [data-theme="royal-blue"] body {
-    background: hsl(225, 25%, 97%);
+    background: hsl(230, 20%, 98%);
   }
   .dark [data-theme="royal-blue"] body,
   [data-theme="royal-blue"].dark body {
-    background: linear-gradient(145deg, 
-      hsl(230, 25%, 4%) 0%, 
-      hsl(235, 30%, 6%) 50%,
-      hsl(230, 25%, 5%) 100%);
+    background: linear-gradient(180deg, 
+      hsl(235, 20%, 4%) 0%, 
+      hsl(235, 22%, 5%) 100%);
   }
 
   /* Netflix Red */
@@ -707,38 +706,35 @@
   }
 
   /* ===== ROYAL BLUE THEME CARDS ===== */
+  /* Same structure as Clean Blue but with royal blue primary */
   [data-theme="royal-blue"] .glass-card,
   [data-theme="royal-blue"] .standard-card {
     background: hsl(0, 0%, 100%);
     border: 1px solid hsl(var(--border));
-    box-shadow: 0 2px 4px hsl(230, 50%, 0% / 0.06);
+    box-shadow: 0 1px 3px hsl(235, 20%, 0% / 0.06);
   }
   
   [data-theme="royal-blue"] .glass-card:hover,
   [data-theme="royal-blue"] .standard-card:hover {
-    border-color: hsl(var(--primary) / 0.25);
-    box-shadow: 0 4px 16px hsl(var(--primary) / 0.1);
+    border-color: hsl(var(--primary) / 0.3);
+    box-shadow: 0 4px 12px hsl(var(--primary) / 0.1);
   }
 
   .dark [data-theme="royal-blue"] .glass-card,
   .dark [data-theme="royal-blue"] .standard-card,
   [data-theme="royal-blue"].dark .glass-card,
   [data-theme="royal-blue"].dark .standard-card {
-    background: hsl(230, 25%, 7%);
+    background: hsl(235, 20%, 7%);
     border: 1px solid hsl(var(--border));
-    box-shadow: 
-      0 1px 2px hsl(0, 0%, 0% / 0.4),
-      inset 0 1px 0 hsl(var(--accent) / 0.03);
+    box-shadow: 0 1px 3px hsl(0, 0%, 0% / 0.3);
   }
 
   .dark [data-theme="royal-blue"] .glass-card:hover,
   .dark [data-theme="royal-blue"] .standard-card:hover,
   [data-theme="royal-blue"].dark .glass-card:hover,
   [data-theme="royal-blue"].dark .standard-card:hover {
-    border-color: hsl(var(--accent) / 0.35);
-    box-shadow: 
-      0 8px 24px hsl(var(--primary) / 0.12),
-      inset 0 1px 0 hsl(var(--accent) / 0.05);
+    border-color: hsl(var(--primary) / 0.35);
+    box-shadow: 0 8px 24px hsl(var(--primary) / 0.1);
   }
 
   .dark [data-theme="royal-blue"] .standard-card-cyan,
@@ -749,7 +745,7 @@
   [data-theme="royal-blue"].dark .standard-card-purple,
   [data-theme="royal-blue"].dark .standard-card-green,
   [data-theme="royal-blue"].dark .standard-card-orange {
-    background: hsl(230, 25%, 7%);
+    background: hsl(235, 20%, 7%);
   }
 
   /* ===== NETFLIX RED THEME CARDS ===== */
@@ -1229,20 +1225,20 @@
     background: hsl(var(--primary) / 0.4);
   }
 
-  /* Royal Blue dark scrollbar */
+  /* Royal Blue dark scrollbar - same style as Clean Blue */
   .dark [data-theme="royal-blue"] ::-webkit-scrollbar-track,
   [data-theme="royal-blue"].dark ::-webkit-scrollbar-track {
-    background: hsl(230, 25%, 5%);
+    background: hsl(235, 20%, 5%);
   }
 
   .dark [data-theme="royal-blue"] ::-webkit-scrollbar-thumb,
   [data-theme="royal-blue"].dark ::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, hsl(var(--primary) / 0.3), hsl(var(--accent) / 0.2));
+    background: hsl(var(--primary) / 0.25);
   }
 
   .dark [data-theme="royal-blue"] ::-webkit-scrollbar-thumb:hover,
   [data-theme="royal-blue"].dark ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, hsl(var(--primary) / 0.5), hsl(var(--accent) / 0.35));
+    background: hsl(var(--primary) / 0.4);
   }
 
   /* Netflix Red dark scrollbar */
