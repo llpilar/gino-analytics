@@ -1609,82 +1609,80 @@ function generateChallengePage(slug: string, delayMs: number, functionUrl: strin
   const postUrl = functionUrl + "/" + slug;
   const minDelay = Math.max(delayMs, 1500);
   
-  // Build HTML as concatenated strings to avoid template literal issues
-  const html = [
-    '<!DOCTYPE html>',
-    '<html lang="pt-BR">',
-    '<head>',
-    '<meta charset="UTF-8">',
-    '<meta name="viewport" content="width=device-width, initial-scale=1.0">',
-    '<meta name="robots" content="noindex, nofollow">',
-    '<title>Verificando...</title>',
-    '<style>',
-    '*{margin:0;padding:0;box-sizing:border-box}',
-    'body{font-family:system-ui,-apple-system,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)}',
-    '.container{text-align:center;color:white;padding:2rem}',
-    '.spinner{width:50px;height:50px;border:3px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 1.5rem}',
-    '@keyframes spin{to{transform:rotate(360deg)}}',
-    'h1{font-size:1.5rem;font-weight:500;margin-bottom:0.5rem}',
-    'p{opacity:0.8;font-size:0.9rem}',
-    '.progress{width:200px;height:4px;background:rgba(255,255,255,0.2);border-radius:2px;margin:1rem auto 0;overflow:hidden}',
-    '.progress-bar{width:0%;height:100%;background:white;animation:progress ' + minDelay + 'ms linear forwards}',
-    '@keyframes progress{to{width:100%}}',
-    '.error{color:#ff6b6b;margin-top:1rem;font-size:0.85rem;display:none}',
-    '</style>',
-    '</head>',
-    '<body>',
-    '<div class="container">',
-    '<div class="spinner"></div>',
-    '<h1>Verificando seguranca</h1>',
-    '<p>Por favor, aguarde...</p>',
-    '<div class="progress"><div class="progress-bar"></div></div>',
-    '<p class="error" id="error"></p>',
-    '</div>',
-    '<script>',
-    '(function(){',
-    'var startTime=Date.now();',
-    'var postUrl="' + postUrl + '";',
-    'var slug="' + slug + '";',
-    'var b={m:0,s:0,k:0,t:0,f:0};',
-    'document.addEventListener("mousemove",function(){b.m++;},{passive:true});',
-    'document.addEventListener("scroll",function(){b.s++;},{passive:true});',
-    'document.addEventListener("keypress",function(){b.k++;},{passive:true});',
-    'document.addEventListener("touchstart",function(){b.t++;},{passive:true});',
-    'window.addEventListener("focus",function(){b.f++;});',
-    'window.addEventListener("blur",function(){b.f++;});',
-    'function go(u){if(u&&typeof u==="string"){window.location.replace(u);}else{window.location.reload();}}',
-    'setTimeout(function(){',
-    'var p={slug:slug,fingerprint:{',
-    'userAgent:navigator.userAgent,',
-    'language:navigator.language,',
-    'timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,',
-    'screenResolution:screen.width+"x"+screen.height,',
-    'colorDepth:screen.colorDepth,',
-    'deviceMemory:navigator.deviceMemory||null,',
-    'hardwareConcurrency:navigator.hardwareConcurrency||null,',
-    'platform:navigator.platform,',
-    'maxTouchPoints:navigator.maxTouchPoints||0,',
-    'touchSupport:"ontouchstart"in window,',
-    'cookieEnabled:navigator.cookieEnabled,',
-    'pluginsCount:navigator.plugins?navigator.plugins.length:0,',
-    'hasWebdriver:!!navigator.webdriver,',
-    'mouseMovements:b.m,',
-    'scrollEvents:b.s,',
-    'keypressEvents:b.k,',
-    'touchEvents:b.t,',
-    'focusChanges:b.f,',
-    'timeOnPage:Date.now()-startTime',
-    '}};',
-    'fetch(postUrl,{method:"POST",headers:{"Content-Type":"application/json"},mode:"cors",credentials:"omit",body:JSON.stringify(p)})',
-    '.then(function(r){if(!r.ok)throw new Error("E"+r.status);return r.json();})',
-    '.then(function(d){if(d.redirectUrl){go(d.redirectUrl);}else{window.location.reload();}})',
-    '.catch(function(e){console.error("CL:",e);setTimeout(function(){window.location.reload();},2000);});',
-    '},' + minDelay + ');',
-    '})();',
-    '</script>',
-    '</body>',
-    '</html>'
-  ].join('');
+  // Build HTML as a simple concatenated string
+  let html = "<!DOCTYPE html>";
+  html += "<html lang=\"pt-BR\">";
+  html += "<head>";
+  html += "<meta charset=\"UTF-8\">";
+  html += "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">";
+  html += "<meta name=\"robots\" content=\"noindex, nofollow\">";
+  html += "<title>Verificando...</title>";
+  html += "<style>";
+  html += "*{margin:0;padding:0;box-sizing:border-box}";
+  html += "body{font-family:system-ui,-apple-system,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)}";
+  html += ".container{text-align:center;color:white;padding:2rem}";
+  html += ".spinner{width:50px;height:50px;border:3px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 1.5rem}";
+  html += "@keyframes spin{to{transform:rotate(360deg)}}";
+  html += "h1{font-size:1.5rem;font-weight:500;margin-bottom:0.5rem}";
+  html += "p{opacity:0.8;font-size:0.9rem}";
+  html += ".progress{width:200px;height:4px;background:rgba(255,255,255,0.2);border-radius:2px;margin:1rem auto 0;overflow:hidden}";
+  html += ".progress-bar{width:0%;height:100%;background:white;animation:progress " + minDelay + "ms linear forwards}";
+  html += "@keyframes progress{to{width:100%}}";
+  html += ".error{color:#ff6b6b;margin-top:1rem;font-size:0.85rem;display:none}";
+  html += "</style>";
+  html += "</head>";
+  html += "<body>";
+  html += "<div class=\"container\">";
+  html += "<div class=\"spinner\"></div>";
+  html += "<h1>Verificando seguranca</h1>";
+  html += "<p>Por favor, aguarde...</p>";
+  html += "<div class=\"progress\"><div class=\"progress-bar\"></div></div>";
+  html += "<p class=\"error\" id=\"error\"></p>";
+  html += "</div>";
+  html += "<script>";
+  html += "(function(){";
+  html += "var startTime=Date.now();";
+  html += "var postUrl=\"" + postUrl + "\";";
+  html += "var slug=\"" + slug + "\";";
+  html += "var b={m:0,s:0,k:0,t:0,f:0};";
+  html += "document.addEventListener(\"mousemove\",function(){b.m++;},{passive:true});";
+  html += "document.addEventListener(\"scroll\",function(){b.s++;},{passive:true});";
+  html += "document.addEventListener(\"keypress\",function(){b.k++;},{passive:true});";
+  html += "document.addEventListener(\"touchstart\",function(){b.t++;},{passive:true});";
+  html += "window.addEventListener(\"focus\",function(){b.f++;});";
+  html += "window.addEventListener(\"blur\",function(){b.f++;});";
+  html += "function go(u){if(u&&typeof u===\"string\"){window.location.replace(u);}else{window.location.reload();}}";
+  html += "setTimeout(function(){";
+  html += "var p={slug:slug,fingerprint:{";
+  html += "userAgent:navigator.userAgent,";
+  html += "language:navigator.language,";
+  html += "timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,";
+  html += "screenResolution:screen.width+\"x\"+screen.height,";
+  html += "colorDepth:screen.colorDepth,";
+  html += "deviceMemory:navigator.deviceMemory||null,";
+  html += "hardwareConcurrency:navigator.hardwareConcurrency||null,";
+  html += "platform:navigator.platform,";
+  html += "maxTouchPoints:navigator.maxTouchPoints||0,";
+  html += "touchSupport:\"ontouchstart\"in window,";
+  html += "cookieEnabled:navigator.cookieEnabled,";
+  html += "pluginsCount:navigator.plugins?navigator.plugins.length:0,";
+  html += "hasWebdriver:!!navigator.webdriver,";
+  html += "mouseMovements:b.m,";
+  html += "scrollEvents:b.s,";
+  html += "keypressEvents:b.k,";
+  html += "touchEvents:b.t,";
+  html += "focusChanges:b.f,";
+  html += "timeOnPage:Date.now()-startTime";
+  html += "}};";
+  html += "fetch(postUrl,{method:\"POST\",headers:{\"Content-Type\":\"application/json\"},mode:\"cors\",credentials:\"omit\",body:JSON.stringify(p)})";
+  html += ".then(function(r){if(!r.ok)throw new Error(\"E\"+r.status);return r.json();})";
+  html += ".then(function(d){if(d.redirectUrl){go(d.redirectUrl);}else{window.location.reload();}})";
+  html += ".catch(function(e){console.error(\"CL:\",e);setTimeout(function(){window.location.reload();},2000);});";
+  html += "}," + minDelay + ");";
+  html += "})();";
+  html += "</script>";
+  html += "</body>";
+  html += "</html>";
   
   return html;
 }
