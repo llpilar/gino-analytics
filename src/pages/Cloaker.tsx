@@ -153,6 +153,21 @@ export default function Cloaker() {
     e.preventDefault();
     
     try {
+      // Parse arrays from textarea strings
+      const parseLines = (str: string): string[] => 
+        str.split("\n").map(s => s.trim()).filter(Boolean);
+      
+      const parseUrlParams = (str: string): Record<string, string> | null => {
+        const lines = str.split("\n").map(s => s.trim()).filter(Boolean);
+        if (lines.length === 0) return null;
+        const params: Record<string, string> = {};
+        for (const line of lines) {
+          const [key, ...valueParts] = line.split("=");
+          if (key) params[key.trim()] = valueParts.join("=").trim();
+        }
+        return Object.keys(params).length > 0 ? params : null;
+      };
+
       await createLink({
         name: formData.name,
         slug: formData.slug,
@@ -166,7 +181,11 @@ export default function Cloaker() {
         collect_fingerprint: formData.collectFingerprint,
         require_behavior: formData.requireBehavior,
         behavior_time_ms: formData.behaviorTimeMs,
-        // Configurações avançadas pré-otimizadas
+        // Configurações avançadas
+        max_clicks_daily: formData.maxClicksDaily,
+        max_clicks_total: formData.maxClicksTotal,
+        allowed_hours_start: formData.allowedHoursStart,
+        allowed_hours_end: formData.allowedHoursEnd,
         passthrough_utm: formData.passthroughUtm,
         rate_limit_per_ip: formData.rateLimitPerIp,
         block_vpn: formData.blockVpn,
@@ -174,6 +193,17 @@ export default function Cloaker() {
         block_datacenter: formData.blockDatacenter,
         block_tor: formData.blockTor,
         redirect_delay_ms: formData.redirectDelayMs,
+        // IPs whitelist/blacklist
+        whitelist_ips: parseLines(formData.whitelistIps).length > 0 ? parseLines(formData.whitelistIps) : null,
+        blacklist_ips: parseLines(formData.blacklistIps).length > 0 ? parseLines(formData.blacklistIps) : null,
+        // Referers e URL params
+        allowed_referers: parseLines(formData.allowedReferers).length > 0 ? parseLines(formData.allowedReferers) : null,
+        blocked_referers: parseLines(formData.blockedReferers).length > 0 ? parseLines(formData.blockedReferers) : null,
+        required_url_params: parseUrlParams(formData.requiredUrlParams),
+        blocked_url_params: parseUrlParams(formData.blockedUrlParams),
+        // Idiomas
+        allowed_languages: formData.allowedLanguages.length > 0 ? formData.allowedLanguages : null,
+        blocked_languages: formData.blockedLanguages.length > 0 ? formData.blockedLanguages : null,
       });
       
       setIsDialogOpen(false);
@@ -430,19 +460,24 @@ export default function Cloaker() {
                 Novo Link
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Criar Link Protegido</DialogTitle>
               </DialogHeader>
               
               <form onSubmit={handleSubmit} className="space-y-6">
                 <Tabs defaultValue="basic" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
+                  <TabsList className="grid w-full grid-cols-7 text-xs">
                     <TabsTrigger value="basic">Básico</TabsTrigger>
                     <TabsTrigger value="filters">Filtros</TabsTrigger>
+                    <TabsTrigger value="referer">Referência</TabsTrigger>
+                    <TabsTrigger value="security">Segurança</TabsTrigger>
+                    <TabsTrigger value="limits">Limites</TabsTrigger>
+                    <TabsTrigger value="webhook">Webhook</TabsTrigger>
                     <TabsTrigger value="advanced">Avançado</TabsTrigger>
                   </TabsList>
 
+                  {/* TAB: Básico */}
                   <TabsContent value="basic" className="space-y-4 mt-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
@@ -491,8 +526,23 @@ export default function Cloaker() {
                         required
                       />
                     </div>
+
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-card/50 border border-border">
+                      <div className="space-y-0.5">
+                        <Label className="text-sm font-medium flex items-center gap-2">
+                          <Zap className="h-4 w-4" />
+                          Passar UTM Parameters
+                        </Label>
+                        <p className="text-xs text-muted-foreground">Manter ?utm_source, etc na URL destino</p>
+                      </div>
+                      <Switch
+                        checked={formData.passthroughUtm}
+                        onCheckedChange={checked => setFormData(prev => ({ ...prev, passthroughUtm: checked }))}
+                      />
+                    </div>
                   </TabsContent>
 
+                  {/* TAB: Filtros */}
                   <TabsContent value="filters" className="space-y-4 mt-4">
                     <div className="space-y-2">
                       <Label>Países Permitidos</Label>
@@ -513,6 +563,26 @@ export default function Cloaker() {
                         ))}
                       </div>
                       <p className="text-xs text-muted-foreground">Deixe vazio para permitir todos</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Países Bloqueados</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {COUNTRIES.map(country => (
+                          <Badge
+                            key={country.code}
+                            variant={formData.blockedCountries.includes(country.code) ? "destructive" : "outline"}
+                            className="cursor-pointer transition-all hover:scale-105"
+                            onClick={() => toggleArrayValue(
+                              formData.blockedCountries, 
+                              country.code, 
+                              arr => setFormData(prev => ({ ...prev, blockedCountries: arr }))
+                            )}
+                          >
+                            {country.name}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
 
                     <div className="space-y-2">
@@ -547,6 +617,315 @@ export default function Cloaker() {
                     </div>
                   </TabsContent>
 
+                  {/* TAB: Referência */}
+                  <TabsContent value="referer" className="space-y-4 mt-4">
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <LinkIcon className="h-4 w-4" />
+                        Referers Permitidos (1 por linha)
+                      </Label>
+                      <Textarea
+                        placeholder="facebook.com&#10;google.com&#10;instagram.com"
+                        value={formData.allowedReferers}
+                        onChange={e => setFormData(prev => ({ ...prev, allowedReferers: e.target.value }))}
+                        rows={3}
+                      />
+                      <p className="text-xs text-muted-foreground">Aceitar apenas tráfego destes domínios (deixe vazio para todos)</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Ban className="h-4 w-4" />
+                        Referers Bloqueados (1 por linha)
+                      </Label>
+                      <Textarea
+                        placeholder="adspy.com&#10;anstrex.com"
+                        value={formData.blockedReferers}
+                        onChange={e => setFormData(prev => ({ ...prev, blockedReferers: e.target.value }))}
+                        rows={3}
+                      />
+                      <p className="text-xs text-muted-foreground">Bloquear tráfego destes domínios</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Filter className="h-4 w-4" />
+                        Parâmetros URL Obrigatórios (1 por linha)
+                      </Label>
+                      <Textarea
+                        placeholder="utm_source=facebook&#10;ref=campaign"
+                        value={formData.requiredUrlParams}
+                        onChange={e => setFormData(prev => ({ ...prev, requiredUrlParams: e.target.value }))}
+                        rows={3}
+                      />
+                      <p className="text-xs text-muted-foreground">Formato: chave=valor. Só permite se tiver esses parâmetros</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Ban className="h-4 w-4" />
+                        Parâmetros URL Bloqueados (1 por linha)
+                      </Label>
+                      <Textarea
+                        placeholder="spy=true&#10;debug=1"
+                        value={formData.blockedUrlParams}
+                        onChange={e => setFormData(prev => ({ ...prev, blockedUrlParams: e.target.value }))}
+                        rows={3}
+                      />
+                      <p className="text-xs text-muted-foreground">Formato: chave=valor. Bloqueia se tiver esses parâmetros</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Languages className="h-4 w-4" />
+                        Idiomas Permitidos
+                      </Label>
+                      <div className="flex flex-wrap gap-2">
+                        {LANGUAGES.map(lang => (
+                          <Badge
+                            key={lang.code}
+                            variant={formData.allowedLanguages.includes(lang.code) ? "default" : "outline"}
+                            className="cursor-pointer transition-all hover:scale-105"
+                            onClick={() => toggleArrayValue(
+                              formData.allowedLanguages, 
+                              lang.code, 
+                              arr => setFormData(prev => ({ ...prev, allowedLanguages: arr }))
+                            )}
+                          >
+                            {lang.name}
+                          </Badge>
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground">Deixe vazio para permitir todos</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Ban className="h-4 w-4" />
+                        Idiomas Bloqueados
+                      </Label>
+                      <div className="flex flex-wrap gap-2">
+                        {LANGUAGES.map(lang => (
+                          <Badge
+                            key={lang.code}
+                            variant={formData.blockedLanguages.includes(lang.code) ? "destructive" : "outline"}
+                            className="cursor-pointer transition-all hover:scale-105"
+                            onClick={() => toggleArrayValue(
+                              formData.blockedLanguages, 
+                              lang.code, 
+                              arr => setFormData(prev => ({ ...prev, blockedLanguages: arr }))
+                            )}
+                          >
+                            {lang.name}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </TabsContent>
+
+                  {/* TAB: Segurança */}
+                  <TabsContent value="security" className="space-y-4 mt-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-card/50 border border-border">
+                        <div className="space-y-0.5">
+                          <Label className="text-sm font-medium flex items-center gap-2">
+                            <Wifi className="h-4 w-4" />
+                            Bloquear VPN
+                          </Label>
+                        </div>
+                        <Switch
+                          checked={formData.blockVpn}
+                          onCheckedChange={checked => setFormData(prev => ({ ...prev, blockVpn: checked }))}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-card/50 border border-border">
+                        <div className="space-y-0.5">
+                          <Label className="text-sm font-medium flex items-center gap-2">
+                            <Network className="h-4 w-4" />
+                            Bloquear Proxy
+                          </Label>
+                        </div>
+                        <Switch
+                          checked={formData.blockProxy}
+                          onCheckedChange={checked => setFormData(prev => ({ ...prev, blockProxy: checked }))}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-card/50 border border-border">
+                        <div className="space-y-0.5">
+                          <Label className="text-sm font-medium flex items-center gap-2">
+                            <Server className="h-4 w-4" />
+                            Bloquear Datacenter
+                          </Label>
+                        </div>
+                        <Switch
+                          checked={formData.blockDatacenter}
+                          onCheckedChange={checked => setFormData(prev => ({ ...prev, blockDatacenter: checked }))}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-card/50 border border-border">
+                        <div className="space-y-0.5">
+                          <Label className="text-sm font-medium flex items-center gap-2">
+                            <Ban className="h-4 w-4" />
+                            Bloquear TOR
+                          </Label>
+                        </div>
+                        <Switch
+                          checked={formData.blockTor}
+                          onCheckedChange={checked => setFormData(prev => ({ ...prev, blockTor: checked }))}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Lock className="h-4 w-4" />
+                        IPs Whitelist (1 por linha)
+                      </Label>
+                      <Textarea
+                        placeholder="192.168.1.1&#10;10.0.0.1"
+                        value={formData.whitelistIps}
+                        onChange={e => setFormData(prev => ({ ...prev, whitelistIps: e.target.value }))}
+                        rows={3}
+                      />
+                      <p className="text-xs text-muted-foreground">Sempre permitir esses IPs</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Unlock className="h-4 w-4" />
+                        IPs Blacklist (1 por linha)
+                      </Label>
+                      <Textarea
+                        placeholder="1.2.3.4&#10;5.6.7.8"
+                        value={formData.blacklistIps}
+                        onChange={e => setFormData(prev => ({ ...prev, blacklistIps: e.target.value }))}
+                        rows={3}
+                      />
+                      <p className="text-xs text-muted-foreground">Sempre bloquear esses IPs</p>
+                    </div>
+                  </TabsContent>
+
+                  {/* TAB: Limites */}
+                  <TabsContent value="limits" className="space-y-4 mt-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="maxClicksDaily">Limite diário de cliques</Label>
+                        <Input
+                          id="maxClicksDaily"
+                          type="number"
+                          placeholder="Ilimitado"
+                          value={formData.maxClicksDaily ?? ""}
+                          onChange={e => setFormData(prev => ({ 
+                            ...prev, 
+                            maxClicksDaily: e.target.value ? parseInt(e.target.value) : null 
+                          }))}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="maxClicksTotal">Limite total de cliques</Label>
+                        <Input
+                          id="maxClicksTotal"
+                          type="number"
+                          placeholder="Ilimitado"
+                          value={formData.maxClicksTotal ?? ""}
+                          onChange={e => setFormData(prev => ({ 
+                            ...prev, 
+                            maxClicksTotal: e.target.value ? parseInt(e.target.value) : null 
+                          }))}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Horário permitido</Label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="hoursStart" className="text-xs">Hora início (0-23)</Label>
+                          <Input
+                            id="hoursStart"
+                            type="number"
+                            min={0}
+                            max={23}
+                            placeholder="Qualquer"
+                            value={formData.allowedHoursStart ?? ""}
+                            onChange={e => setFormData(prev => ({ 
+                              ...prev, 
+                              allowedHoursStart: e.target.value ? parseInt(e.target.value) : null 
+                            }))}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="hoursEnd" className="text-xs">Hora fim (0-23)</Label>
+                          <Input
+                            id="hoursEnd"
+                            type="number"
+                            min={0}
+                            max={23}
+                            placeholder="Qualquer"
+                            value={formData.allowedHoursEnd ?? ""}
+                            onChange={e => setFormData(prev => ({ 
+                              ...prev, 
+                              allowedHoursEnd: e.target.value ? parseInt(e.target.value) : null 
+                            }))}
+                          />
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Fora deste horário, redireciona para URL segura</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="rateLimit">Rate limit por IP (cliques/hora)</Label>
+                      <Input
+                        id="rateLimit"
+                        type="number"
+                        placeholder="Ilimitado"
+                        value={formData.rateLimitPerIp ?? ""}
+                        onChange={e => setFormData(prev => ({ 
+                          ...prev, 
+                          rateLimitPerIp: e.target.value ? parseInt(e.target.value) : null 
+                        }))}
+                      />
+                      <p className="text-xs text-muted-foreground">Limite de cliques por IP por hora</p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label className="flex items-center gap-2">
+                        <Timer className="h-4 w-4" />
+                        Delay de redirecionamento: {formData.redirectDelayMs}ms
+                      </Label>
+                      <Slider
+                        value={[formData.redirectDelayMs]}
+                        onValueChange={([value]) => setFormData(prev => ({ ...prev, redirectDelayMs: value }))}
+                        min={0}
+                        max={5000}
+                        step={100}
+                      />
+                      <p className="text-xs text-muted-foreground">Tempo antes de redirecionar (0 = instantâneo)</p>
+                    </div>
+                  </TabsContent>
+
+                  {/* TAB: Webhook */}
+                  <TabsContent value="webhook" className="space-y-4 mt-4">
+                    <div className="p-4 rounded-lg border border-border bg-card/50">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Webhook className="h-5 w-5 text-primary" />
+                        <div>
+                          <h4 className="font-medium">Notificações Webhook</h4>
+                          <p className="text-xs text-muted-foreground">Receba alertas quando bots ou tráfego suspeito for detectado</p>
+                        </div>
+                      </div>
+                      
+                      <p className="text-sm text-muted-foreground">
+                        Configure webhooks após criar o link, na opção de editar.
+                      </p>
+                    </div>
+                  </TabsContent>
+
+                  {/* TAB: Avançado */}
                   <TabsContent value="advanced" className="space-y-4 mt-4">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
