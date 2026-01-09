@@ -286,7 +286,9 @@ export function useCloakedLinks() {
 }
 
 export function useCloakerVisitors(linkId: string | null) {
-  return useQuery({
+  const queryClient = useQueryClient();
+  
+  const query = useQuery({
     queryKey: ["cloaker-visitors", linkId],
     queryFn: async () => {
       if (!linkId) return [];
@@ -303,6 +305,37 @@ export function useCloakerVisitors(linkId: string | null) {
     },
     enabled: !!linkId,
   });
+
+  const clearVisitorsMutation = useMutation({
+    mutationFn: async (targetLinkId: string) => {
+      // Delete all visitors for this link
+      const { error: visitorsError } = await supabase
+        .from("cloaker_visitors")
+        .delete()
+        .eq("link_id", targetLinkId);
+      
+      if (visitorsError) throw visitorsError;
+
+      // Reset clicks count on the link
+      const { error: linkError } = await supabase
+        .from("cloaked_links")
+        .update({ clicks_count: 0, clicks_today: 0 })
+        .eq("id", targetLinkId);
+      
+      if (linkError) throw linkError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cloaker-visitors", linkId] });
+      queryClient.invalidateQueries({ queryKey: ["cloaker-stats", linkId] });
+      queryClient.invalidateQueries({ queryKey: ["cloaked-links"] });
+    },
+  });
+
+  return {
+    ...query,
+    clearVisitors: clearVisitorsMutation.mutateAsync,
+    isClearing: clearVisitorsMutation.isPending,
+  };
 }
 
 export function useCloakerStats(linkId: string | null) {

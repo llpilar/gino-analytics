@@ -14,7 +14,8 @@ import {
   Plus, Link2, Trash2, Copy, ExternalLink, Shield, Globe, Smartphone, Bot, 
   MousePointerClick, ToggleRight, Eye, Fingerprint, Activity, ChartBar,
   Users, AlertTriangle, CheckCircle, XCircle, Clock, Pencil, Timer, Zap,
-  Ban, Server, Wifi, Network, Lock, Unlock, Languages, LinkIcon, Filter, Bell, Webhook
+  Ban, Server, Wifi, Network, Lock, Unlock, Languages, LinkIcon, Filter, Bell, Webhook,
+  RotateCcw
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCloakedLinks, useCloakerVisitors, useCloakerStats } from "@/hooks/useCloakedLinks";
@@ -255,7 +256,7 @@ export default function Cloaker() {
     blockedLanguages: [] as string[],
   });
 
-  const { data: visitors, isLoading: visitorsLoading } = useCloakerVisitors(selectedLinkId);
+  const { data: visitors, isLoading: visitorsLoading, clearVisitors, isClearing } = useCloakerVisitors(selectedLinkId);
   const { data: stats } = useCloakerStats(selectedLinkId);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -399,6 +400,17 @@ export default function Cloaker() {
       toast.success("Link excluído");
     } catch (error) {
       toast.error("Erro ao excluir link");
+    }
+  };
+
+  const handleClearVisitors = async () => {
+    if (!selectedLinkId) return;
+    
+    try {
+      await clearVisitors(selectedLinkId);
+      toast.success("Histórico de visitantes limpo com sucesso");
+    } catch (error) {
+      toast.error("Erro ao limpar visitantes");
     }
   };
 
@@ -1412,11 +1424,31 @@ export default function Cloaker() {
                     <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                       Últimos acessos
                     </span>
-                    {visitors && visitors.length > 0 && (
-                      <Badge variant="outline" className="text-[10px]">
-                        {visitors.length} registros
-                      </Badge>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {visitors && visitors.length > 0 && (
+                        <>
+                          <Badge variant="outline" className="text-[10px]">
+                            {visitors.length} registros
+                          </Badge>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                                onClick={handleClearVisitors}
+                                disabled={isClearing}
+                              >
+                                <RotateCcw className={`h-3.5 w-3.5 ${isClearing ? "animate-spin" : ""}`} />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="left">
+                              <p>Limpar histórico e reiniciar contagem</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </>
+                      )}
+                    </div>
                   </div>
 
                   {/* Visitors list */}
