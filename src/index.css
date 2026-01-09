@@ -6,66 +6,66 @@
 
 @layer base {
   /* ===== THEME 1: Cyber Neon (Dark Only) ===== */
-  /* Premium dark theme with neon accents - futuristic and bold */
+  /* Elegant dark theme with subtle green accents */
   :root,
   [data-theme="cyber-neon"] {
-    --background: 240 15% 3%;
-    --foreground: 160 10% 95%;
-    --card: 240 15% 6%;
-    --card-foreground: 160 10% 95%;
-    --popover: 240 15% 5%;
-    --popover-foreground: 160 10% 95%;
-    --primary: 155 100% 50%;
-    --primary-foreground: 240 15% 3%;
-    --secondary: 185 100% 45%;
-    --secondary-foreground: 240 15% 3%;
-    --muted: 240 10% 12%;
-    --muted-foreground: 240 5% 50%;
-    --accent: 185 100% 45%;
-    --accent-foreground: 240 15% 3%;
-    --destructive: 0 85% 60%;
+    --background: 0 0% 4%;
+    --foreground: 0 0% 92%;
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 92%;
+    --popover: 0 0% 6%;
+    --popover-foreground: 0 0% 92%;
+    --primary: 145 45% 38%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 75%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 50%;
+    --accent: 0 0% 14%;
+    --accent-foreground: 0 0% 90%;
+    --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;
-    --border: 240 10% 14%;
-    --input: 240 10% 10%;
-    --ring: 155 100% 50%;
-    --radius: 0.75rem;
+    --border: 0 0% 14%;
+    --input: 0 0% 10%;
+    --ring: 145 45% 38%;
+    --radius: 0.625rem;
     
-    --chart-1: 155 100% 50%;
-    --chart-2: 185 100% 50%;
-    --chart-3: 280 100% 65%;
-    --chart-4: 45 100% 55%;
-    --chart-5: 320 100% 60%;
+    --chart-1: 145 45% 45%;
+    --chart-2: 180 50% 45%;
+    --chart-3: 270 50% 55%;
+    --chart-4: 40 80% 50%;
+    --chart-5: 320 60% 55%;
     
-    --neon-cyan: 185 100% 50%;
-    --neon-cyan-light: 185 100% 65%;
-    --neon-purple: 280 100% 65%;
-    --neon-purple-light: 280 100% 75%;
-    --neon-pink: 320 100% 60%;
-    --neon-pink-light: 320 100% 70%;
-    --neon-green: 155 100% 50%;
-    --neon-green-light: 155 100% 65%;
-    --neon-orange: 35 100% 55%;
-    --neon-orange-light: 35 100% 65%;
-    --neon-blue: 210 100% 60%;
-    --neon-blue-light: 210 100% 70%;
+    --neon-cyan: 180 50% 45%;
+    --neon-cyan-light: 180 50% 55%;
+    --neon-purple: 270 50% 55%;
+    --neon-purple-light: 270 50% 65%;
+    --neon-pink: 320 60% 55%;
+    --neon-pink-light: 320 60% 65%;
+    --neon-green: 145 45% 45%;
+    --neon-green-light: 145 45% 55%;
+    --neon-orange: 40 80% 50%;
+    --neon-orange-light: 40 80% 60%;
+    --neon-blue: 210 60% 50%;
+    --neon-blue-light: 210 60% 60%;
     
-    --status-success: 155 100% 50%;
-    --status-warning: 35 100% 55%;
-    --status-error: 0 85% 60%;
-    --status-info: 185 100% 50%;
+    --status-success: 145 50% 45%;
+    --status-warning: 40 80% 50%;
+    --status-error: 0 70% 50%;
+    --status-info: 210 60% 50%;
     
-    --surface-elevated: 240 15% 8%;
-    --surface-overlay: 240 15% 2%;
+    --surface-elevated: 0 0% 9%;
+    --surface-overlay: 0 0% 3%;
     
-    --sidebar-background: 240 15% 4%;
-    --sidebar: 240 15% 4%;
-    --sidebar-foreground: 160 10% 95%;
-    --sidebar-primary: 155 100% 50%;
-    --sidebar-primary-foreground: 240 15% 3%;
-    --sidebar-accent: 185 100% 45%;
-    --sidebar-accent-foreground: 240 15% 3%;
-    --sidebar-border: 240 10% 14%;
-    --sidebar-ring: 155 100% 50%;
+    --sidebar-background: 0 0% 5%;
+    --sidebar: 0 0% 5%;
+    --sidebar-foreground: 0 0% 92%;
+    --sidebar-primary: 145 45% 38%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 12%;
+    --sidebar-accent-foreground: 0 0% 90%;
+    --sidebar-border: 0 0% 14%;
+    --sidebar-ring: 145 45% 38%;
   }
 
   /* ===== THEME 2: Clean Blue (Light Mode) ===== */
@@ -452,11 +452,7 @@
   /* Cyber Neon - Always dark with gradient */
   :root body,
   [data-theme="cyber-neon"] body {
-    background: linear-gradient(145deg, 
-      hsl(240, 15%, 3%) 0%, 
-      hsl(240, 18%, 5%) 35%, 
-      hsl(250, 20%, 6%) 70%, 
-      hsl(240, 15%, 4%) 100%);
+    background: hsl(0, 0%, 4%);
   }
 
   /* Clean Blue */
@@ -612,55 +608,29 @@
   }
 
   /* ===== CYBER NEON THEME CARDS ===== */
+  /* Elegant dark cards with subtle green accents */
   [data-theme="cyber-neon"] .glass-card,
   [data-theme="cyber-neon"] .standard-card {
-    background: hsl(240, 15%, 6% / 0.9);
-    border: 1px solid hsl(var(--primary) / 0.15);
-    box-shadow: 
-      0 0 1px hsl(var(--primary) / 0.3),
-      0 4px 20px hsl(240, 15%, 0% / 0.5),
-      inset 0 1px 0 hsl(var(--primary) / 0.1);
+    background: hsl(0, 0%, 7%);
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 1px 3px hsl(0, 0%, 0% / 0.3);
   }
   
   [data-theme="cyber-neon"] .glass-card:hover,
   [data-theme="cyber-neon"] .standard-card:hover {
     border-color: hsl(var(--primary) / 0.4);
-    box-shadow: 
-      0 0 20px hsl(var(--primary) / 0.2),
-      0 8px 30px hsl(240, 15%, 0% / 0.6),
-      inset 0 1px 0 hsl(var(--primary) / 0.15);
+    box-shadow: 0 4px 16px hsl(var(--primary) / 0.08);
   }
 
   [data-theme="cyber-neon"] .metric-card {
-    background: hsl(240, 15%, 6% / 0.85);
+    background: hsl(0, 0%, 7%);
   }
 
-  [data-theme="cyber-neon"] .standard-card-cyan {
-    border-color: hsl(var(--neon-cyan) / 0.3) !important;
-    box-shadow: 
-      0 0 20px hsl(var(--neon-cyan) / 0.15),
-      0 8px 30px hsl(240, 15%, 0% / 0.5) !important;
-  }
-
-  [data-theme="cyber-neon"] .standard-card-purple {
-    border-color: hsl(var(--neon-purple) / 0.3) !important;
-    box-shadow: 
-      0 0 20px hsl(var(--neon-purple) / 0.15),
-      0 8px 30px hsl(240, 15%, 0% / 0.5) !important;
-  }
-
-  [data-theme="cyber-neon"] .standard-card-green {
-    border-color: hsl(var(--neon-green) / 0.3) !important;
-    box-shadow: 
-      0 0 20px hsl(var(--neon-green) / 0.15),
-      0 8px 30px hsl(240, 15%, 0% / 0.5) !important;
-  }
-
+  [data-theme="cyber-neon"] .standard-card-cyan,
+  [data-theme="cyber-neon"] .standard-card-purple,
+  [data-theme="cyber-neon"] .standard-card-green,
   [data-theme="cyber-neon"] .standard-card-orange {
-    border-color: hsl(var(--neon-orange) / 0.3) !important;
-    box-shadow: 
-      0 0 20px hsl(var(--neon-orange) / 0.15),
-      0 8px 30px hsl(240, 15%, 0% / 0.5) !important;
+    background: hsl(0, 0%, 7%);
   }
 
   /* ===== CLEAN BLUE THEME CARDS ===== */
@@ -1194,19 +1164,17 @@
     background: hsl(var(--muted-foreground) / 0.5);
   }
 
-  /* Cyber Neon scrollbar */
+  /* Cyber Neon scrollbar - subtle green accent */
   [data-theme="cyber-neon"] ::-webkit-scrollbar-track {
-    background: hsl(240, 15%, 4%);
+    background: hsl(0, 0%, 5%);
   }
   
   [data-theme="cyber-neon"] ::-webkit-scrollbar-thumb {
-    background: hsl(var(--primary) / 0.3);
-    border: 1px solid hsl(var(--primary) / 0.2);
+    background: hsl(var(--primary) / 0.25);
   }
 
   [data-theme="cyber-neon"] ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--primary) / 0.5);
-    box-shadow: 0 0 6px hsl(var(--primary) / 0.4);
+    background: hsl(var(--primary) / 0.4);
   }
 
   /* Clean Blue dark scrollbar */
