@@ -1340,76 +1340,226 @@ export default function Cloaker() {
           <div>
             <SectionCard title="Visitantes" icon={Users} color="cyan">
               {!selectedLinkId ? (
-                <div className="text-center py-8 text-muted-foreground text-sm">
-                  Selecione um link para ver os visitantes
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="w-14 h-14 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+                    <Eye className="h-7 w-7 text-muted-foreground" />
+                  </div>
+                  <p className="text-muted-foreground text-sm">
+                    Selecione um link para ver os visitantes
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {/* Stats for selected link */}
                   {stats && (
-                    <div className="grid grid-cols-2 gap-2 mb-4">
-                      <div className="p-3 rounded-lg bg-card/50 border border-border">
-                        <div className="text-lg font-bold text-foreground">{stats.total}</div>
-                        <div className="text-xs text-muted-foreground">Total</div>
+                    <div className="space-y-3">
+                      {/* Main stats row */}
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="relative overflow-hidden p-3 rounded-xl bg-gradient-to-br from-muted/80 to-muted/40 border border-border/50">
+                          <div className="relative z-10">
+                            <div className="text-2xl font-bold text-foreground">{stats.total}</div>
+                            <div className="text-xs text-muted-foreground font-medium">Total</div>
+                          </div>
+                          <Users className="absolute -right-1 -bottom-1 h-10 w-10 text-muted-foreground/10" />
+                        </div>
+                        <div className="relative overflow-hidden p-3 rounded-xl bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 border border-emerald-500/20">
+                          <div className="relative z-10">
+                            <div className="text-2xl font-bold text-emerald-500">{stats.allowed}</div>
+                            <div className="text-xs text-muted-foreground font-medium">Permitidos</div>
+                          </div>
+                          <CheckCircle className="absolute -right-1 -bottom-1 h-10 w-10 text-emerald-500/10" />
+                        </div>
                       </div>
-                      <div className="p-3 rounded-lg bg-card/50 border border-border">
-                        <div className="text-lg font-bold text-chart-4">{stats.allowed}</div>
-                        <div className="text-xs text-muted-foreground">Permitidos</div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="relative overflow-hidden p-3 rounded-xl bg-gradient-to-br from-destructive/10 to-destructive/5 border border-destructive/20">
+                          <div className="relative z-10">
+                            <div className="text-2xl font-bold text-destructive">{stats.blocked}</div>
+                            <div className="text-xs text-muted-foreground font-medium">Bloqueados</div>
+                          </div>
+                          <XCircle className="absolute -right-1 -bottom-1 h-10 w-10 text-destructive/10" />
+                        </div>
+                        <div className="relative overflow-hidden p-3 rounded-xl bg-gradient-to-br from-amber-500/10 to-amber-500/5 border border-amber-500/20">
+                          <div className="relative z-10">
+                            <div className="text-2xl font-bold text-amber-500">{stats.bots}</div>
+                            <div className="text-xs text-muted-foreground font-medium">Bots</div>
+                          </div>
+                          <Bot className="absolute -right-1 -bottom-1 h-10 w-10 text-amber-500/10" />
+                        </div>
                       </div>
-                      <div className="p-3 rounded-lg bg-card/50 border border-border">
-                        <div className="text-lg font-bold text-destructive">{stats.blocked}</div>
-                        <div className="text-xs text-muted-foreground">Bloqueados</div>
-                      </div>
-                      <div className="p-3 rounded-lg bg-card/50 border border-border">
-                        <div className="text-lg font-bold text-yellow-500">{stats.bots}</div>
-                        <div className="text-xs text-muted-foreground">Bots</div>
-                      </div>
+                      
+                      {/* Conversion rate bar */}
+                      {stats.total > 0 && (
+                        <div className="p-3 rounded-xl bg-muted/30 border border-border/50 space-y-2">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground font-medium">Taxa de aprovação</span>
+                            <span className="font-bold text-emerald-500">
+                              {((stats.allowed / stats.total) * 100).toFixed(1)}%
+                            </span>
+                          </div>
+                          <div className="h-2 bg-muted rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-500"
+                              style={{ width: `${(stats.allowed / stats.total) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 
+                  {/* Visitors list header */}
+                  <div className="flex items-center justify-between pt-2">
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Últimos acessos
+                    </span>
+                    {visitors && visitors.length > 0 && (
+                      <Badge variant="outline" className="text-[10px]">
+                        {visitors.length} registros
+                      </Badge>
+                    )}
+                  </div>
+
                   {/* Visitors list */}
-                  <ScrollArea className="h-[400px]">
+                  <ScrollArea className="h-[350px]">
                     {visitorsLoading ? (
                       <div className="space-y-2">
                         {[...Array(5)].map((_, i) => (
-                          <Skeleton key={i} className="h-16 rounded-lg" />
+                          <Skeleton key={i} className="h-20 rounded-xl" />
                         ))}
                       </div>
                     ) : visitors && visitors.length > 0 ? (
                       <div className="space-y-2 pr-4">
                         {visitors.map(visitor => (
-                          <div key={visitor.id} className="p-3 rounded-lg bg-card/50 border border-border">
+                          <div 
+                            key={visitor.id} 
+                            className={`group relative p-3 rounded-xl border transition-all duration-200 hover:shadow-md ${
+                              visitor.decision === "allow" 
+                                ? "bg-gradient-to-r from-emerald-500/5 to-transparent border-emerald-500/20 hover:border-emerald-500/40" 
+                                : visitor.decision === "safe"
+                                ? "bg-gradient-to-r from-amber-500/5 to-transparent border-amber-500/20 hover:border-amber-500/40"
+                                : "bg-gradient-to-r from-destructive/5 to-transparent border-destructive/20 hover:border-destructive/40"
+                            }`}
+                          >
+                            {/* Header row */}
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center gap-2">
-                                {getDecisionIcon(visitor.decision)}
-                                <span className={`text-sm font-medium ${getDecisionColor(visitor.decision)}`}>
-                                  {visitor.decision === "allow" ? "Permitido" : visitor.decision === "safe" ? "Safe" : "Bloqueado"}
-                                </span>
+                                <div className={`p-1.5 rounded-lg ${
+                                  visitor.decision === "allow" 
+                                    ? "bg-emerald-500/10" 
+                                    : visitor.decision === "safe"
+                                    ? "bg-amber-500/10"
+                                    : "bg-destructive/10"
+                                }`}>
+                                  {getDecisionIcon(visitor.decision)}
+                                </div>
+                                <div className="flex flex-col">
+                                  <span className={`text-sm font-semibold ${getDecisionColor(visitor.decision)}`}>
+                                    {visitor.decision === "allow" ? "Permitido" : visitor.decision === "safe" ? "Safe" : "Bloqueado"}
+                                  </span>
+                                  <span className="text-[10px] text-muted-foreground">
+                                    {format(new Date(visitor.created_at), "dd/MM HH:mm:ss", { locale: ptBR })}
+                                  </span>
+                                </div>
                               </div>
-                              <span className={`text-sm font-bold ${getScoreColor(visitor.score)}`}>
+                              
+                              {/* Score badge */}
+                              <div className={`px-2.5 py-1 rounded-lg text-sm font-bold ${
+                                visitor.score >= 70 
+                                  ? "bg-emerald-500/10 text-emerald-500" 
+                                  : visitor.score >= 40 
+                                  ? "bg-amber-500/10 text-amber-500" 
+                                  : "bg-destructive/10 text-destructive"
+                              }`}>
                                 {visitor.score}
-                              </span>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                            
+                            {/* Info row */}
+                            <div className="flex items-center gap-1.5 flex-wrap">
                               {visitor.country_code && (
-                                <span className="flex items-center gap-1">
-                                  <Globe className="h-3 w-3" />
+                                <Badge variant="outline" className="text-[10px] h-5 gap-1 bg-background/50">
+                                  <Globe className="h-2.5 w-2.5" />
                                   {visitor.country_code}
-                                </span>
+                                  {visitor.city && ` • ${visitor.city}`}
+                                </Badge>
                               )}
-                              {visitor.is_bot && <Badge variant="destructive" className="text-[10px] h-4">Bot</Badge>}
-                              {visitor.is_headless && <Badge variant="outline" className="text-[10px] h-4">Headless</Badge>}
+                              {visitor.is_bot && (
+                                <Badge className="text-[10px] h-5 bg-amber-500/20 text-amber-500 border-amber-500/30">
+                                  <Bot className="h-2.5 w-2.5 mr-0.5" />
+                                  Bot
+                                </Badge>
+                              )}
+                              {visitor.is_headless && (
+                                <Badge variant="outline" className="text-[10px] h-5 border-amber-500/30 text-amber-500">
+                                  Headless
+                                </Badge>
+                              )}
+                              {visitor.is_vpn && (
+                                <Badge variant="outline" className="text-[10px] h-5 gap-1 border-purple-500/30 text-purple-400">
+                                  <Wifi className="h-2.5 w-2.5" />
+                                  VPN
+                                </Badge>
+                              )}
+                              {visitor.is_proxy && (
+                                <Badge variant="outline" className="text-[10px] h-5 gap-1 border-orange-500/30 text-orange-400">
+                                  <Network className="h-2.5 w-2.5" />
+                                  Proxy
+                                </Badge>
+                              )}
+                              {visitor.is_datacenter && (
+                                <Badge variant="outline" className="text-[10px] h-5 gap-1 border-blue-500/30 text-blue-400">
+                                  <Server className="h-2.5 w-2.5" />
+                                  DC
+                                </Badge>
+                              )}
+                              {visitor.is_tor && (
+                                <Badge variant="outline" className="text-[10px] h-5 border-red-500/30 text-red-400">
+                                  TOR
+                                </Badge>
+                              )}
                             </div>
-                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                              <Clock className="h-3 w-3" />
-                              {format(new Date(visitor.created_at), "dd/MM HH:mm", { locale: ptBR })}
-                            </div>
+                            
+                            {/* Score breakdown - expandable on hover */}
+                            {(visitor.score_network !== null || visitor.score_fingerprint !== null) && (
+                              <div className="mt-2 pt-2 border-t border-border/50 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                                  {visitor.score_network !== null && (
+                                    <span className="flex items-center gap-1">
+                                      <div className={`w-1.5 h-1.5 rounded-full ${visitor.score_network >= 20 ? "bg-emerald-500" : visitor.score_network >= 10 ? "bg-amber-500" : "bg-destructive"}`} />
+                                      Rede: {visitor.score_network}
+                                    </span>
+                                  )}
+                                  {visitor.score_fingerprint !== null && (
+                                    <span className="flex items-center gap-1">
+                                      <div className={`w-1.5 h-1.5 rounded-full ${visitor.score_fingerprint >= 20 ? "bg-emerald-500" : visitor.score_fingerprint >= 10 ? "bg-amber-500" : "bg-destructive"}`} />
+                                      FP: {visitor.score_fingerprint}
+                                    </span>
+                                  )}
+                                  {visitor.score_behavior !== null && (
+                                    <span className="flex items-center gap-1">
+                                      <div className={`w-1.5 h-1.5 rounded-full ${visitor.score_behavior >= 20 ? "bg-emerald-500" : visitor.score_behavior >= 10 ? "bg-amber-500" : "bg-destructive"}`} />
+                                      Comp: {visitor.score_behavior}
+                                    </span>
+                                  )}
+                                  {visitor.score_automation !== null && (
+                                    <span className="flex items-center gap-1">
+                                      <div className={`w-1.5 h-1.5 rounded-full ${visitor.score_automation >= 20 ? "bg-emerald-500" : visitor.score_automation >= 10 ? "bg-amber-500" : "bg-destructive"}`} />
+                                      Auto: {visitor.score_automation}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center py-8 text-muted-foreground text-sm">
-                        Nenhum visitante ainda
+                      <div className="flex flex-col items-center justify-center py-12 text-center">
+                        <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mb-3">
+                          <Activity className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                        <p className="text-muted-foreground text-sm">Nenhum visitante ainda</p>
+                        <p className="text-muted-foreground/60 text-xs mt-1">Os visitantes aparecerão aqui em tempo real</p>
                       </div>
                     )}
                   </ScrollArea>
