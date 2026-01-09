@@ -106,6 +106,94 @@ setInterval(() => {
   }
 }, 300000);
 
+// ==================== WEBHOOK NOTIFICATION SYSTEM ====================
+
+interface WebhookPayload {
+  event: string;
+  link_name: string;
+  link_slug: string;
+  timestamp: string;
+  visitor: {
+    ip: string;
+    country: string | null;
+    city: string | null;
+    user_agent: string;
+    score: number;
+    is_bot: boolean;
+    is_vpn: boolean;
+    is_proxy: boolean;
+    is_datacenter: boolean;
+    is_tor: boolean;
+    isp: string | null;
+    referer: string | null;
+  };
+  reason?: string;
+}
+
+async function sendWebhook(link: any, event: string, visitorData: Partial<WebhookPayload["visitor"]>, reason?: string): Promise<void> {
+  // Check if webhook is enabled and URL is set
+  if (!link.webhook_enabled || !link.webhook_url) return;
+  
+  // Check if this event type should trigger webhook
+  const events = link.webhook_events || ["bot_blocked", "vpn_blocked", "suspicious_score"];
+  if (!events.includes(event)) return;
+  
+  const payload: WebhookPayload = {
+    event,
+    link_name: link.name,
+    link_slug: link.slug,
+    timestamp: new Date().toISOString(),
+    visitor: {
+      ip: visitorData.ip || "unknown",
+      country: visitorData.country || null,
+      city: visitorData.city || null,
+      user_agent: visitorData.user_agent || "unknown",
+      score: visitorData.score || 0,
+      is_bot: visitorData.is_bot || false,
+      is_vpn: visitorData.is_vpn || false,
+      is_proxy: visitorData.is_proxy || false,
+      is_datacenter: visitorData.is_datacenter || false,
+      is_tor: visitorData.is_tor || false,
+      isp: visitorData.isp || null,
+      referer: visitorData.referer || null,
+    },
+    reason,
+  };
+  
+  try {
+    const response = await fetch(link.webhook_url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Cloaker-Event": event,
+        "X-Cloaker-Signature": crypto.randomUUID(), // Simple signature for now
+      },
+      body: JSON.stringify(payload),
+    });
+    
+    if (!response.ok) {
+      console.error(`[Webhook] Failed to send: ${response.status} ${response.statusText}`);
+    } else {
+      console.log(`[Webhook] Sent ${event} to ${link.webhook_url}`);
+    }
+  } catch (error) {
+    console.error(`[Webhook] Error sending webhook:`, error);
+  }
+}
+
+// Determine webhook event type based on block reason
+function getWebhookEvent(reason: string, visitorData: any): string {
+  if (reason.includes("bot") || visitorData.is_bot) return "bot_blocked";
+  if (reason.includes("vpn") || visitorData.is_vpn) return "vpn_blocked";
+  if (reason.includes("proxy") || visitorData.is_proxy) return "proxy_blocked";
+  if (reason.includes("datacenter") || visitorData.is_datacenter) return "datacenter_blocked";
+  if (reason.includes("tor") || visitorData.is_tor) return "tor_blocked";
+  if (reason.includes("rate")) return "rate_limited";
+  if (reason.includes("country")) return "country_blocked";
+  if (reason.includes("score") || reason.includes("suspicious")) return "suspicious_score";
+  return "bot_blocked"; // default
+}
+
 // ==================== ML ADAPTIVE LEARNING SYSTEM ====================
 
 // Get pattern key for caching
@@ -1820,6 +1908,10 @@ Deno.serve(async (req) => {
       const rateCheck = checkRateLimit(cfIp, link.rate_limit_per_ip, link.rate_limit_window_minutes || 60);
       if (!rateCheck.allowed) {
         console.log(`[Cloaker] BLOCKED: rate_limit IP=${cfIp}`);
+        // Send rate limit webhook
+        queueMicrotask(() => {
+          sendWebhook(link, "rate_limited", { ip: cfIp, country: cfCountry, user_agent: userAgent, score: 0, is_bot: false, is_vpn: false, is_proxy: false, is_datacenter: false, is_tor: false, isp: cfIsp, referer }, "rate_limit_exceeded");
+        });
         return Response.redirect(link.safe_url, 302);
       }
     }
@@ -1827,10 +1919,16 @@ Deno.serve(async (req) => {
     // Country filters
     if (link.allowed_countries?.length > 0 && cfCountry && !link.allowed_countries.includes(cfCountry)) {
       console.log(`[Cloaker] BLOCKED: country_not_allowed ${cfCountry}`);
+      queueMicrotask(() => {
+        sendWebhook(link, "country_blocked", { ip: cfIp, country: cfCountry, user_agent: userAgent, score: 0, is_bot: false, is_vpn: false, is_proxy: false, is_datacenter: false, is_tor: false, isp: cfIsp, referer }, "country_not_allowed");
+      });
       return Response.redirect(link.safe_url, 302);
     }
     if (link.blocked_countries?.length > 0 && cfCountry && link.blocked_countries.includes(cfCountry)) {
       console.log(`[Cloaker] BLOCKED: country_blocked ${cfCountry}`);
+      queueMicrotask(() => {
+        sendWebhook(link, "country_blocked", { ip: cfIp, country: cfCountry, user_agent: userAgent, score: 0, is_bot: false, is_vpn: false, is_proxy: false, is_datacenter: false, is_tor: false, isp: cfIsp, referer }, "country_blocked");
+      });
       return Response.redirect(link.safe_url, 302);
     }
     
@@ -1916,7 +2014,30 @@ Deno.serve(async (req) => {
     
     if (shouldBlock) {
       const processingTime = Date.now() - startTime;
-      console.log(`[Cloaker] BLOCKED: ${botResult.botType || "bot"} platform=${botResult.platform || "unknown"} spy=${botResult.isSpyTool} ref=${refererAnalysis.platform || "none"} conf=${botResult.confidence}% threat=${botResult.threatLevel} (${processingTime}ms)`);
+      const blockReason = botResult.botType || "bot";
+      console.log(`[Cloaker] BLOCKED: ${blockReason} platform=${botResult.platform || "unknown"} spy=${botResult.isSpyTool} ref=${refererAnalysis.platform || "none"} conf=${botResult.confidence}% threat=${botResult.threatLevel} (${processingTime}ms)`);
+      
+      // Prepare visitor data for webhook
+      const visitorData = {
+        ip: cfIp,
+        country: cfCountry,
+        city: null as string | null,
+        user_agent: userAgent,
+        score: 0,
+        is_bot: botResult.isBot,
+        is_vpn: link.block_vpn && (isDatacenterIP(cfIp) || isVpnProviderIP(cfIp)),
+        is_proxy: botResult.reasons.includes("PROXY_ASN"),
+        is_datacenter: isDatacenterIP(cfIp),
+        is_tor: botResult.reasons.includes("TOR_EXIT_SUSPECTED"),
+        isp: cfIsp,
+        referer,
+      };
+      
+      // Send webhook notification
+      const webhookEvent = getWebhookEvent(blockReason, visitorData);
+      queueMicrotask(() => {
+        sendWebhook(link, webhookEvent, visitorData, blockReason);
+      });
       
       queueMicrotask(() => {
         supabase.from("cloaker_visitors").insert({

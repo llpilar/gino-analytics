@@ -86,6 +86,9 @@ export type Database = {
           target_urls: Json | null
           updated_at: string
           user_id: string
+          webhook_enabled: boolean | null
+          webhook_events: string[] | null
+          webhook_url: string | null
           whitelist_ips: string[] | null
         }
         Insert: {
@@ -132,6 +135,9 @@ export type Database = {
           target_urls?: Json | null
           updated_at?: string
           user_id: string
+          webhook_enabled?: boolean | null
+          webhook_events?: string[] | null
+          webhook_url?: string | null
           whitelist_ips?: string[] | null
         }
         Update: {
@@ -178,6 +184,9 @@ export type Database = {
           target_urls?: Json | null
           updated_at?: string
           user_id?: string
+          webhook_enabled?: boolean | null
+          webhook_events?: string[] | null
+          webhook_url?: string | null
           whitelist_ips?: string[] | null
         }
         Relationships: []

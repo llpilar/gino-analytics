@@ -54,6 +54,10 @@ interface CloakedLink {
   blocked_url_params: Record<string, string> | null;
   allowed_languages: string[] | null;
   blocked_languages: string[] | null;
+  // Webhook fields
+  webhook_url: string | null;
+  webhook_enabled: boolean;
+  webhook_events: string[] | null;
 }
 
 interface CloakerVisitor {
@@ -123,6 +127,10 @@ interface CreateLinkData {
   blocked_url_params?: Record<string, string> | null;
   allowed_languages?: string[] | null;
   blocked_languages?: string[] | null;
+  // Webhook fields
+  webhook_url?: string | null;
+  webhook_enabled?: boolean;
+  webhook_events?: string[] | null;
 }
 
 interface UpdateLinkData extends Partial<CreateLinkData> {
@@ -239,6 +247,10 @@ export function useCloakedLinks() {
       if (data.blocked_url_params !== undefined) updateData.blocked_url_params = data.blocked_url_params;
       if (data.allowed_languages !== undefined) updateData.allowed_languages = data.allowed_languages;
       if (data.blocked_languages !== undefined) updateData.blocked_languages = data.blocked_languages;
+      // Webhook fields
+      if (data.webhook_url !== undefined) updateData.webhook_url = data.webhook_url;
+      if (data.webhook_enabled !== undefined) updateData.webhook_enabled = data.webhook_enabled;
+      if (data.webhook_events !== undefined) updateData.webhook_events = data.webhook_events;
       
       const { error } = await supabase
         .from("cloaked_links")
