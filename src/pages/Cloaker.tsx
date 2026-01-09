@@ -14,7 +14,7 @@ import {
   Plus, Link2, Trash2, Copy, ExternalLink, Shield, Globe, Smartphone, Bot, 
   MousePointerClick, ToggleRight, Eye, Fingerprint, Activity, ChartBar,
   Users, AlertTriangle, CheckCircle, XCircle, Clock, Pencil, Timer, Zap,
-  Ban, Server, Wifi, Network, Lock, Unlock, Languages, LinkIcon, Filter
+  Ban, Server, Wifi, Network, Lock, Unlock, Languages, LinkIcon, Filter, Bell, Webhook
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCloakedLinks, useCloakerVisitors, useCloakerStats } from "@/hooks/useCloakedLinks";
@@ -94,6 +94,10 @@ export default function Cloaker() {
     blockedUrlParams: string;
     allowedLanguages: string[];
     blockedLanguages: string[];
+    // Webhook fields
+    webhookUrl: string;
+    webhookEnabled: boolean;
+    webhookEvents: string[];
   } | null>(null);
   const [selectedLinkId, setSelectedLinkId] = useState<string | null>(null);
   // Configurações pré-otimizadas para Facebook e Google Ads
@@ -286,6 +290,10 @@ export default function Cloaker() {
       blockedUrlParams: link.blocked_url_params ? Object.entries(link.blocked_url_params).map(([k, v]) => `${k}=${v}`).join("\n") : "",
       allowedLanguages: link.allowed_languages || [],
       blockedLanguages: link.blocked_languages || [],
+      // Webhook fields
+      webhookUrl: (link as any).webhook_url || "",
+      webhookEnabled: (link as any).webhook_enabled ?? false,
+      webhookEvents: (link as any).webhook_events || ["bot_blocked", "vpn_blocked", "suspicious_score"],
     });
     setIsEditDialogOpen(true);
   };
@@ -344,6 +352,10 @@ export default function Cloaker() {
         blocked_url_params: parseUrlParams(editingLink.blockedUrlParams),
         allowed_languages: editingLink.allowedLanguages.length > 0 ? editingLink.allowedLanguages : null,
         blocked_languages: editingLink.blockedLanguages.length > 0 ? editingLink.blockedLanguages : null,
+        // Webhook fields
+        webhook_url: editingLink.webhookUrl || null,
+        webhook_enabled: editingLink.webhookEnabled,
+        webhook_events: editingLink.webhookEvents.length > 0 ? editingLink.webhookEvents : null,
       });
       setIsEditDialogOpen(false);
       setEditingLink(null);
@@ -897,12 +909,13 @@ export default function Cloaker() {
             {editingLink && (
               <div className="space-y-6">
                 <Tabs defaultValue="basic" className="w-full">
-                  <TabsList className="grid w-full grid-cols-6">
+                  <TabsList className="grid w-full grid-cols-7">
                     <TabsTrigger value="basic">Básico</TabsTrigger>
                     <TabsTrigger value="filters">Filtros</TabsTrigger>
                     <TabsTrigger value="referer">Referência</TabsTrigger>
                     <TabsTrigger value="security">Segurança</TabsTrigger>
                     <TabsTrigger value="limits">Limites</TabsTrigger>
+                    <TabsTrigger value="webhook">Webhook</TabsTrigger>
                     <TabsTrigger value="advanced">Avançado</TabsTrigger>
                   </TabsList>
 
@@ -1291,6 +1304,95 @@ export default function Cloaker() {
                         step={100}
                       />
                     </div>
+                  </TabsContent>
+
+                  {/* WEBHOOK TAB */}
+                  <TabsContent value="webhook" className="space-y-4 mt-4">
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-card/50 border border-border">
+                      <div className="space-y-0.5">
+                        <Label className="text-sm font-medium flex items-center gap-2">
+                          <Bell className="h-4 w-4" />
+                          Ativar Webhooks
+                        </Label>
+                        <p className="text-xs text-muted-foreground">Receba notificações quando bots ou tráfego suspeito for detectado</p>
+                      </div>
+                      <Switch
+                        checked={editingLink.webhookEnabled}
+                        onCheckedChange={checked => setEditingLink(prev => prev ? { ...prev, webhookEnabled: checked } : null)}
+                      />
+                    </div>
+
+                    {editingLink.webhookEnabled && (
+                      <>
+                        <div className="space-y-2">
+                          <Label htmlFor="webhookUrl" className="flex items-center gap-2">
+                            <Webhook className="h-4 w-4" />
+                            URL do Webhook
+                          </Label>
+                          <Input
+                            id="webhookUrl"
+                            type="url"
+                            placeholder="https://seu-servidor.com/webhook"
+                            value={editingLink.webhookUrl}
+                            onChange={e => setEditingLink(prev => prev ? { ...prev, webhookUrl: e.target.value } : null)}
+                          />
+                          <p className="text-xs text-muted-foreground">Endpoint que receberá os eventos via POST</p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Eventos para notificar</Label>
+                          <div className="flex flex-wrap gap-2">
+                            {[
+                              { value: "bot_blocked", label: "Bot Bloqueado" },
+                              { value: "vpn_blocked", label: "VPN Bloqueado" },
+                              { value: "proxy_blocked", label: "Proxy Bloqueado" },
+                              { value: "datacenter_blocked", label: "Datacenter Bloqueado" },
+                              { value: "tor_blocked", label: "Tor Bloqueado" },
+                              { value: "suspicious_score", label: "Score Suspeito" },
+                              { value: "rate_limited", label: "Rate Limited" },
+                              { value: "country_blocked", label: "País Bloqueado" },
+                            ].map(event => (
+                              <Badge
+                                key={event.value}
+                                variant={editingLink.webhookEvents.includes(event.value) ? "default" : "outline"}
+                                className="cursor-pointer transition-all hover:scale-105"
+                                onClick={() => {
+                                  const events = editingLink.webhookEvents;
+                                  if (events.includes(event.value)) {
+                                    setEditingLink(prev => prev ? { ...prev, webhookEvents: events.filter(e => e !== event.value) } : null);
+                                  } else {
+                                    setEditingLink(prev => prev ? { ...prev, webhookEvents: [...events, event.value] } : null);
+                                  }
+                                }}
+                              >
+                                {event.label}
+                              </Badge>
+                            ))}
+                          </div>
+                          <p className="text-xs text-muted-foreground">Selecione quais eventos devem disparar o webhook</p>
+                        </div>
+
+                        <div className="p-3 rounded-lg bg-muted/50 border border-border">
+                          <Label className="text-sm font-medium mb-2 block">Exemplo de Payload</Label>
+                          <pre className="text-xs bg-background p-2 rounded overflow-x-auto">
+{`{
+  "event": "bot_blocked",
+  "link_name": "${editingLink.name}",
+  "link_slug": "${editingLink.slug}",
+  "timestamp": "2024-01-09T12:00:00Z",
+  "visitor": {
+    "ip": "xxx.xxx.xxx.xxx",
+    "country": "BR",
+    "user_agent": "...",
+    "score": 25,
+    "is_bot": true,
+    "is_vpn": false
+  }
+}`}
+                          </pre>
+                        </div>
+                      </>
+                    )}
                   </TabsContent>
 
                   <TabsContent value="advanced" className="space-y-4 mt-4">
