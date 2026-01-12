@@ -14,7 +14,8 @@ import {
   Eye, TrendingUp, Shield, AlertTriangle, Search, CalendarIcon, 
   Download, RefreshCw, Globe, Smartphone, Bot, User, Clock, 
   MapPin, Wifi, Server, Lock, FileText, CheckCircle, XCircle,
-  ChevronDown, Filter, Zap
+  ChevronDown, Filter, Zap, Monitor, Mouse, Keyboard, Video, 
+  Network, Fingerprint, Activity, Ban
 } from "lucide-react";
 import { format, subDays, startOfDay, endOfDay, isWithinInterval, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -41,6 +42,7 @@ interface CloakerVisitorLog {
   is_datacenter: boolean | null;
   is_tor: boolean | null;
   is_automated: boolean | null;
+  is_blacklisted: boolean | null;
   isp: string | null;
   asn: string | null;
   platform: string | null;
@@ -55,6 +57,15 @@ interface CloakerVisitorLog {
   score_behavior: number | null;
   score_network: number | null;
   score_automation: number | null;
+  // Elite detection scores
+  score_device_consistency: number | null;
+  score_webrtc: number | null;
+  score_mouse_pattern: number | null;
+  score_keyboard: number | null;
+  score_session_replay: number | null;
+  detection_details: Record<string, unknown> | null;
+  webrtc_local_ip: string | null;
+  webrtc_public_ip: string | null;
   created_at: string;
 }
 
@@ -819,25 +830,115 @@ function LogRow({ visitor, links }: { visitor: CloakerVisitorLog; links: { id: s
             </div>
           )}
           
-          {/* Detailed Scores */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 bg-muted/30 rounded-lg p-4">
-            <div>
-              <p className="text-xs text-muted-foreground">Score Fingerprint</p>
-              <p className="font-medium">{visitor.score_fingerprint ?? 0}</p>
+          {/* Elite Detection Scores */}
+          <div className="mt-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Fingerprint className="h-4 w-4 text-primary" />
+              <h4 className="font-semibold text-foreground text-sm">Scores de Detecção Elite</h4>
             </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Score Behavior</p>
-              <p className="font-medium">{visitor.score_behavior ?? 0}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Score Network</p>
-              <p className="font-medium">{visitor.score_network ?? 0}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Score Automation</p>
-              <p className="font-medium">{visitor.score_automation ?? 0}</p>
+            <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
+              <EliteScoreItem 
+                label="Device Consistency" 
+                score={visitor.score_device_consistency} 
+                icon={Monitor}
+                tooltip="Validação de consistência de hardware/software"
+              />
+              <EliteScoreItem 
+                label="WebRTC Leak" 
+                score={visitor.score_webrtc} 
+                icon={Network}
+                tooltip="Detecção de VPN/Proxy via WebRTC"
+              />
+              <EliteScoreItem 
+                label="Mouse Pattern" 
+                score={visitor.score_mouse_pattern} 
+                icon={Mouse}
+                tooltip="Análise de padrões de movimento do mouse"
+              />
+              <EliteScoreItem 
+                label="Keyboard" 
+                score={visitor.score_keyboard} 
+                icon={Keyboard}
+                tooltip="Análise de padrões de digitação"
+              />
+              <EliteScoreItem 
+                label="Session Replay" 
+                score={visitor.score_session_replay} 
+                icon={Video}
+                tooltip="Detecção de gravadores de sessão"
+              />
             </div>
           </div>
+
+          {/* Basic Scores */}
+          <div className="mt-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Activity className="h-4 w-4 text-muted-foreground" />
+              <h4 className="font-semibold text-foreground text-sm">Scores Básicos</h4>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <EliteScoreItem 
+                label="Fingerprint" 
+                score={visitor.score_fingerprint} 
+                icon={Fingerprint}
+              />
+              <EliteScoreItem 
+                label="Behavior" 
+                score={visitor.score_behavior} 
+                icon={Activity}
+              />
+              <EliteScoreItem 
+                label="Network" 
+                score={visitor.score_network} 
+                icon={Wifi}
+              />
+              <EliteScoreItem 
+                label="Automation" 
+                score={visitor.score_automation} 
+                icon={Bot}
+              />
+            </div>
+          </div>
+
+          {/* WebRTC Details */}
+          {(visitor.webrtc_local_ip || visitor.webrtc_public_ip) && (
+            <div className="mt-3 p-3 rounded-lg border border-purple-500/30 bg-purple-500/10">
+              <div className="flex items-center gap-2 mb-2">
+                <Network className="h-4 w-4 text-purple-400" />
+                <h4 className="font-semibold text-purple-400 text-sm">WebRTC Leak Detection</h4>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-muted-foreground">IP Local (WebRTC)</p>
+                  <p className="font-mono text-sm">{visitor.webrtc_local_ip || "N/A"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">IP Público (WebRTC)</p>
+                  <p className="font-mono text-sm">{visitor.webrtc_public_ip || "N/A"}</p>
+                </div>
+              </div>
+              {visitor.webrtc_public_ip && visitor.ip_address && visitor.webrtc_public_ip !== visitor.ip_address && (
+                <div className="mt-2 p-2 rounded bg-red-500/20 border border-red-500/30">
+                  <p className="text-xs text-red-400 flex items-center gap-1">
+                    <AlertTriangle className="h-3 w-3" />
+                    IP Real vazado via WebRTC! O usuário provavelmente está usando VPN.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Detection Details JSON */}
+          {visitor.detection_details && Object.keys(visitor.detection_details).length > 0 && (
+            <details className="mt-3">
+              <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
+                Ver detalhes da detecção (JSON)
+              </summary>
+              <pre className="mt-2 p-3 bg-muted/50 rounded-lg text-xs font-mono overflow-auto max-h-48">
+                {JSON.stringify(visitor.detection_details, null, 2)}
+              </pre>
+            </details>
+          )}
           
           {/* Network Info */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3 bg-muted/30 rounded-lg p-4">
@@ -869,7 +970,8 @@ function LogRow({ visitor, links }: { visitor: CloakerVisitorLog; links: { id: s
             {visitor.is_proxy && <Badge variant="outline" className="text-xs">🌐 Proxy</Badge>}
             {visitor.is_datacenter && <Badge variant="outline" className="text-xs">🖥️ Datacenter</Badge>}
             {visitor.is_tor && <Badge variant="outline" className="text-xs">🧅 TOR</Badge>}
-            {!visitor.is_bot && !visitor.is_vpn && !visitor.is_proxy && !visitor.is_datacenter && !visitor.is_tor && !visitor.is_headless && !visitor.is_automated && (
+            {visitor.is_blacklisted && <Badge variant="outline" className="text-xs bg-red-500/10 text-red-500">🚫 Blacklisted</Badge>}
+            {!visitor.is_bot && !visitor.is_vpn && !visitor.is_proxy && !visitor.is_datacenter && !visitor.is_tor && !visitor.is_headless && !visitor.is_automated && !visitor.is_blacklisted && (
               <Badge variant="outline" className="text-xs bg-emerald-500/10 text-emerald-500">✅ Nenhuma flag</Badge>
             )}
           </div>
@@ -893,6 +995,51 @@ function LogRow({ visitor, links }: { visitor: CloakerVisitorLog; links: { id: s
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// Elite Score Item Component
+function EliteScoreItem({ 
+  label, 
+  score, 
+  icon: Icon,
+  tooltip 
+}: { 
+  label: string; 
+  score: number | null; 
+  icon: React.ComponentType<{ className?: string }>;
+  tooltip?: string;
+}) {
+  const displayScore = score ?? 0;
+  
+  const getScoreColor = (s: number) => {
+    if (s >= 70) return "text-emerald-500";
+    if (s >= 40) return "text-yellow-500";
+    return "text-red-500";
+  };
+
+  const getBgColor = (s: number) => {
+    if (s >= 70) return "bg-emerald-500/10 border-emerald-500/30";
+    if (s >= 40) return "bg-yellow-500/10 border-yellow-500/30";
+    return "bg-red-500/10 border-red-500/30";
+  };
+
+  return (
+    <div 
+      className={cn(
+        "p-3 rounded-lg border transition-all hover:scale-105",
+        score !== null ? getBgColor(displayScore) : "bg-muted/50 border-border"
+      )}
+      title={tooltip}
+    >
+      <div className="flex items-center gap-2 mb-1">
+        <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+        <span className="text-xs text-muted-foreground truncate">{label}</span>
+      </div>
+      <div className={cn("text-xl font-bold", score !== null ? getScoreColor(displayScore) : "text-muted-foreground")}>
+        {score !== null ? displayScore : "—"}
+      </div>
     </div>
   );
 }
