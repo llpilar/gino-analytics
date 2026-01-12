@@ -11,6 +11,10 @@ import {
   type Decision,
   DECISION_THRESHOLDS 
 } from "@/lib/cloaker/progressiveScoring";
+import {
+  performEliteDetection,
+  type EliteDetectionResult,
+} from "@/lib/cloaker/eliteDetection";
 
 interface FingerprintData {
   // Core fingerprint
@@ -150,6 +154,14 @@ interface FingerprintData {
   
   // Fingerprint analysis (NEW)
   fingerprintAnalysis: FingerprintAnalysis;
+  
+  // Elite detection (NEW)
+  eliteDetection?: EliteDetectionResult;
+  
+  // WebRTC data
+  webrtcLocalIP?: string;
+  webrtcPublicIP?: string;
+  webrtcVPNDetected?: boolean;
 }
 
 // Proof of work - computational challenge
@@ -1317,6 +1329,37 @@ export default function CloakerRedirect() {
       // Ultra-fast fingerprint collection - no delay
       const fingerprint = await collectFingerprint();
       
+      // Run elite detection in parallel
+      const eliteResult = await performEliteDetection({
+        userAgent: fingerprint.userAgent,
+        platform: fingerprint.platform,
+        hardwareConcurrency: fingerprint.hardwareConcurrency,
+        deviceMemory: fingerprint.deviceMemory,
+        screenResolution: fingerprint.screenResolution,
+        maxTouchPoints: fingerprint.maxTouchPoints,
+        touchSupport: fingerprint.touchSupport,
+        webglRenderer: fingerprint.webglRenderer,
+        webglVendor: fingerprint.webglVendor,
+        colorDepth: fingerprint.colorDepth,
+        languages: fingerprint.languages,
+        timezone: fingerprint.timezone,
+        mouseMovements: fingerprint.mouseMovements,
+        mouseVelocities: fingerprint.mouseVelocities,
+        mouseAccelerations: fingerprint.mouseAccelerations,
+        mousePath: fingerprint.mousePath,
+        keypressEvents: fingerprint.keypressEvents,
+        timeOnPage: fingerprint.timeOnPage,
+      });
+      
+      // Attach elite detection to fingerprint
+      const enhancedFingerprint = {
+        ...fingerprint,
+        eliteDetection: eliteResult,
+        webrtcLocalIP: eliteResult.webrtc.localIPs[0],
+        webrtcPublicIP: eliteResult.webrtc.publicIP,
+        webrtcVPNDetected: eliteResult.webrtc.isVPNDetected,
+      };
+      
       // Calculate progressive score client-side for quick decision preview
       const clientScore = calculateProgressiveScore({
         uaAnalysis: fingerprint.uaAnalysis,
@@ -1326,11 +1369,12 @@ export default function CloakerRedirect() {
       });
       
       console.log('[Cloaker] Client-side score:', clientScore.finalScore, clientScore.decision);
+      console.log('[Cloaker] Elite detection:', eliteResult.score, 'bot:', eliteResult.isBot, 'suspicious:', eliteResult.isSuspicious);
 
       const { data, error: fnError } = await supabase.functions.invoke("cloaker-redirect", {
         body: { 
           slug, 
-          fingerprint,
+          fingerprint: enhancedFingerprint,
           clientScore: {
             finalScore: clientScore.finalScore,
             decision: clientScore.decision,
@@ -1338,6 +1382,18 @@ export default function CloakerRedirect() {
             isBot: clientScore.isBot,
             isCrawler: clientScore.isCrawler,
             isHeadless: clientScore.isHeadless,
+          },
+          eliteScore: {
+            score: eliteResult.score,
+            isBot: eliteResult.isBot,
+            isSuspicious: eliteResult.isSuspicious,
+            reasons: eliteResult.reasons,
+            deviceConsistencyScore: eliteResult.deviceConsistency.score,
+            webrtcScore: eliteResult.webrtc.score,
+            mousePatternScore: eliteResult.mousePattern.score,
+            keyboardScore: eliteResult.keyboard.score,
+            sessionReplayScore: eliteResult.sessionReplay.score,
+            sessionReplayTools: eliteResult.sessionReplay.detectedTools,
           }
         },
       });

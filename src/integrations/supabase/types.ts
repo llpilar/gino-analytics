@@ -50,6 +50,8 @@ export type Database = {
           allowed_hours_start: number | null
           allowed_languages: string[] | null
           allowed_referers: string[] | null
+          auto_blacklist_enabled: boolean | null
+          auto_blacklist_threshold: number | null
           behavior_time_ms: number | null
           blacklist_ips: string[] | null
           block_bots: boolean
@@ -100,6 +102,8 @@ export type Database = {
           allowed_hours_start?: number | null
           allowed_languages?: string[] | null
           allowed_referers?: string[] | null
+          auto_blacklist_enabled?: boolean | null
+          auto_blacklist_threshold?: number | null
           behavior_time_ms?: number | null
           blacklist_ips?: string[] | null
           block_bots?: boolean
@@ -150,6 +154,8 @@ export type Database = {
           allowed_hours_start?: number | null
           allowed_languages?: string[] | null
           allowed_referers?: string[] | null
+          auto_blacklist_enabled?: boolean | null
+          auto_blacklist_threshold?: number | null
           behavior_time_ms?: number | null
           blacklist_ips?: string[] | null
           block_bots?: boolean
@@ -193,6 +199,56 @@ export type Database = {
           whitelist_ips?: string[] | null
         }
         Relationships: []
+      }
+      cloaker_blacklist: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          fail_count: number | null
+          first_seen_at: string | null
+          id: string
+          ip_address: string
+          last_seen_at: string | null
+          link_id: string | null
+          metadata: Json | null
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          fail_count?: number | null
+          first_seen_at?: string | null
+          id?: string
+          ip_address: string
+          last_seen_at?: string | null
+          link_id?: string | null
+          metadata?: Json | null
+          reason: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          fail_count?: number | null
+          first_seen_at?: string | null
+          id?: string
+          ip_address?: string
+          last_seen_at?: string | null
+          link_id?: string | null
+          metadata?: Json | null
+          reason?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloaker_blacklist_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "cloaked_links"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cloaker_ml_feedback: {
         Row: {
@@ -353,6 +409,7 @@ export type Database = {
           country_code: string | null
           created_at: string
           decision: string
+          detection_details: Json | null
           device_memory: number | null
           fingerprint_hash: string
           focus_changes: number | null
@@ -365,6 +422,7 @@ export type Database = {
           id: string
           ip_address: string | null
           is_automated: boolean | null
+          is_blacklisted: boolean | null
           is_bot: boolean | null
           is_datacenter: boolean | null
           is_headless: boolean | null
@@ -384,8 +442,13 @@ export type Database = {
           score: number
           score_automation: number | null
           score_behavior: number | null
+          score_device_consistency: number | null
           score_fingerprint: number | null
+          score_keyboard: number | null
+          score_mouse_pattern: number | null
           score_network: number | null
+          score_session_replay: number | null
+          score_webrtc: number | null
           screen_resolution: string | null
           scroll_events: number | null
           time_on_page: number | null
@@ -399,6 +462,8 @@ export type Database = {
           utm_term: string | null
           webgl_renderer: string | null
           webgl_vendor: string | null
+          webrtc_local_ip: string | null
+          webrtc_public_ip: string | null
         }
         Insert: {
           asn?: string | null
@@ -409,6 +474,7 @@ export type Database = {
           country_code?: string | null
           created_at?: string
           decision: string
+          detection_details?: Json | null
           device_memory?: number | null
           fingerprint_hash: string
           focus_changes?: number | null
@@ -421,6 +487,7 @@ export type Database = {
           id?: string
           ip_address?: string | null
           is_automated?: boolean | null
+          is_blacklisted?: boolean | null
           is_bot?: boolean | null
           is_datacenter?: boolean | null
           is_headless?: boolean | null
@@ -440,8 +507,13 @@ export type Database = {
           score?: number
           score_automation?: number | null
           score_behavior?: number | null
+          score_device_consistency?: number | null
           score_fingerprint?: number | null
+          score_keyboard?: number | null
+          score_mouse_pattern?: number | null
           score_network?: number | null
+          score_session_replay?: number | null
+          score_webrtc?: number | null
           screen_resolution?: string | null
           scroll_events?: number | null
           time_on_page?: number | null
@@ -455,6 +527,8 @@ export type Database = {
           utm_term?: string | null
           webgl_renderer?: string | null
           webgl_vendor?: string | null
+          webrtc_local_ip?: string | null
+          webrtc_public_ip?: string | null
         }
         Update: {
           asn?: string | null
@@ -465,6 +539,7 @@ export type Database = {
           country_code?: string | null
           created_at?: string
           decision?: string
+          detection_details?: Json | null
           device_memory?: number | null
           fingerprint_hash?: string
           focus_changes?: number | null
@@ -477,6 +552,7 @@ export type Database = {
           id?: string
           ip_address?: string | null
           is_automated?: boolean | null
+          is_blacklisted?: boolean | null
           is_bot?: boolean | null
           is_datacenter?: boolean | null
           is_headless?: boolean | null
@@ -496,8 +572,13 @@ export type Database = {
           score?: number
           score_automation?: number | null
           score_behavior?: number | null
+          score_device_consistency?: number | null
           score_fingerprint?: number | null
+          score_keyboard?: number | null
+          score_mouse_pattern?: number | null
           score_network?: number | null
+          score_session_replay?: number | null
+          score_webrtc?: number | null
           screen_resolution?: string | null
           scroll_events?: number | null
           time_on_page?: number | null
@@ -511,6 +592,8 @@ export type Database = {
           utm_term?: string | null
           webgl_renderer?: string | null
           webgl_vendor?: string | null
+          webrtc_local_ip?: string | null
+          webrtc_public_ip?: string | null
         }
         Relationships: [
           {
@@ -518,6 +601,57 @@ export type Database = {
             columns: ["link_id"]
             isOneToOne: false
             referencedRelation: "cloaked_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cloaker_webhooks_log: {
+        Row: {
+          event_type: string
+          id: string
+          link_id: string | null
+          payload: Json
+          response_body: string | null
+          response_status: number | null
+          sent_at: string | null
+          success: boolean | null
+          visitor_id: string | null
+        }
+        Insert: {
+          event_type: string
+          id?: string
+          link_id?: string | null
+          payload: Json
+          response_body?: string | null
+          response_status?: number | null
+          sent_at?: string | null
+          success?: boolean | null
+          visitor_id?: string | null
+        }
+        Update: {
+          event_type?: string
+          id?: string
+          link_id?: string | null
+          payload?: Json
+          response_body?: string | null
+          response_status?: number | null
+          sent_at?: string | null
+          success?: boolean | null
+          visitor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloaker_webhooks_log_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "cloaked_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cloaker_webhooks_log_visitor_id_fkey"
+            columns: ["visitor_id"]
+            isOneToOne: false
+            referencedRelation: "cloaker_visitors"
             referencedColumns: ["id"]
           },
         ]
