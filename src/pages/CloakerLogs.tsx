@@ -80,22 +80,37 @@ type ActionFilter = "all" | "allow" | "block" | "safe";
 type PeriodFilter = "today" | "yesterday" | "week" | "month" | "custom";
 type TabFilter = "campaign" | "requests" | "charts";
 
-// Country flag emoji mapping
-const countryFlags: Record<string, string> = {
-  BR: "🇧🇷", US: "🇺🇸", CO: "🇨🇴", MX: "🇲🇽", AR: "🇦🇷", CL: "🇨🇱", PE: "🇵🇪", 
-  EC: "🇪🇨", VE: "🇻🇪", UY: "🇺🇾", PY: "🇵🇾", BO: "🇧🇴", PT: "🇵🇹", ES: "🇪🇸",
-  FR: "🇫🇷", DE: "🇩🇪", IT: "🇮🇹", GB: "🇬🇧", CA: "🇨🇦", AU: "🇦🇺", JP: "🇯🇵",
-  CN: "🇨🇳", IN: "🇮🇳", RU: "🇷🇺", ZA: "🇿🇦", NL: "🇳🇱", BE: "🇧🇪", CH: "🇨🇭",
-  AT: "🇦🇹", PL: "🇵🇱", CZ: "🇨🇿", SE: "🇸🇪", NO: "🇳🇴", DK: "🇩🇰", FI: "🇫🇮",
-  IE: "🇮🇪", NZ: "🇳🇿", SG: "🇸🇬", HK: "🇭🇰", KR: "🇰🇷", TW: "🇹🇼", TH: "🇹🇭",
-  PH: "🇵🇭", ID: "🇮🇩", MY: "🇲🇾", VN: "🇻🇳", NG: "🇳🇬", EG: "🇪🇬", KE: "🇰🇪",
-  MA: "🇲🇦", GH: "🇬🇭", AE: "🇦🇪", SA: "🇸🇦", IL: "🇮🇱", TR: "🇹🇷", GR: "🇬🇷",
-  RO: "🇷🇴", HU: "🇭🇺", SK: "🇸🇰", BG: "🇧🇬", HR: "🇭🇷", UA: "🇺🇦", BY: "🇧🇾"
-};
-
-const getCountryFlag = (code: string | null) => {
-  if (!code) return "🌍";
-  return countryFlags[code.toUpperCase()] || "🏳️";
+// Country flag component using flagcdn.com
+const CountryFlag = ({ code }: { code: string | null }) => {
+  if (!code) {
+    return (
+      <div className="flex items-center gap-2">
+        <Globe className="h-4 w-4 text-muted-foreground" />
+        <span className="text-muted-foreground">--</span>
+      </div>
+    );
+  }
+  
+  const countryCode = code.toUpperCase();
+  
+  return (
+    <div className="flex items-center gap-2">
+      <img 
+        src={`https://flagcdn.com/16x12/${countryCode.toLowerCase()}.png`}
+        srcSet={`https://flagcdn.com/32x24/${countryCode.toLowerCase()}.png 2x`}
+        width="16" 
+        height="12" 
+        alt={countryCode}
+        className="rounded-[2px] object-cover"
+        onError={(e) => {
+          e.currentTarget.style.display = 'none';
+          e.currentTarget.nextElementSibling?.classList.remove('hidden');
+        }}
+      />
+      <Globe className="h-4 w-4 text-muted-foreground hidden" />
+      <span className="text-foreground font-medium">{countryCode}</span>
+    </div>
+  );
 };
 
 const getDeviceInfo = (ua: string | null): { type: "mobile" | "tablet" | "desktop"; label: string } => {
@@ -547,7 +562,6 @@ export default function CloakerLogs() {
                     {paginatedVisitors.map((visitor) => {
                       const linkName = links.find(l => l.id === visitor.link_id)?.name || "Link removido";
                       const deviceInfo = getDeviceInfo(visitor.user_agent);
-                      const flag = getCountryFlag(visitor.country_code);
                       
                       return (
                         <Dialog key={visitor.id}>
@@ -575,10 +589,7 @@ export default function CloakerLogs() {
                                 </code>
                               </TableCell>
                               <TableCell>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xl">{flag}</span>
-                                  <span className="text-muted-foreground text-sm">{visitor.country_code || "??"}</span>
-                                </div>
+                                <CountryFlag code={visitor.country_code} />
                               </TableCell>
                               <TableCell>
                                 <code className="text-sm text-muted-foreground font-mono">
@@ -608,7 +619,7 @@ export default function CloakerLogs() {
                           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
                               <DialogTitle className="flex items-center gap-3">
-                                <span className="text-2xl">{flag}</span>
+                                <CountryFlag code={visitor.country_code} />
                                 <span>Detalhes do Visitante</span>
                                 <Badge 
                                   className={cn(
