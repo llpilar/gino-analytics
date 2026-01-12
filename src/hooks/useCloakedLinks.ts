@@ -19,6 +19,7 @@ interface CloakedLink {
   blocked_countries: string[] | null;
   allowed_devices: string[] | null;
   block_bots: boolean;
+  allow_social_previews: boolean;
   clicks_count: number;
   min_score: number;
   collect_fingerprint: boolean;
@@ -99,6 +100,7 @@ interface CreateLinkData {
   blocked_countries?: string[] | null;
   allowed_devices?: string[] | null;
   block_bots?: boolean;
+  allow_social_previews?: boolean;
   min_score?: number;
   collect_fingerprint?: boolean;
   require_behavior?: boolean;

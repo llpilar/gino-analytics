@@ -2490,6 +2490,79 @@ function detectAdPlatform(userAgent: string, ip: string, headers: Headers, refer
   return { detected: platform !== null, platform, botType, confidence: Math.min(100, confidence), reasons, isDefinitive };
 }
 
+// ==================== SOCIAL MEDIA PREVIEW DETECTION ====================
+interface SocialPreviewResult {
+  isSocialPreview: boolean;
+  platform: string | null;
+  botName: string | null;
+}
+
+function detectSocialPreview(userAgent: string): SocialPreviewResult {
+  const ua = userAgent.toLowerCase();
+  
+  // WhatsApp link preview
+  if (/whatsapp/i.test(userAgent)) {
+    return { isSocialPreview: true, platform: "whatsapp", botName: "WhatsApp Preview" };
+  }
+  
+  // Telegram link preview
+  if (/telegrambot/i.test(userAgent)) {
+    return { isSocialPreview: true, platform: "telegram", botName: "Telegram Preview" };
+  }
+  
+  // Facebook/Meta link preview (facebookexternalhit, NOT in-app browser)
+  if (/facebookexternalhit|facebot|facebookcatalog|meta-external/i.test(userAgent)) {
+    return { isSocialPreview: true, platform: "facebook", botName: "Facebook Preview" };
+  }
+  
+  // Twitter/X link preview
+  if (/twitterbot/i.test(userAgent)) {
+    return { isSocialPreview: true, platform: "twitter", botName: "Twitter/X Preview" };
+  }
+  
+  // LinkedIn link preview
+  if (/linkedinbot/i.test(userAgent)) {
+    return { isSocialPreview: true, platform: "linkedin", botName: "LinkedIn Preview" };
+  }
+  
+  // Discord link preview
+  if (/discordbot/i.test(userAgent)) {
+    return { isSocialPreview: true, platform: "discord", botName: "Discord Preview" };
+  }
+  
+  // Slack link preview
+  if (/slackbot/i.test(userAgent)) {
+    return { isSocialPreview: true, platform: "slack", botName: "Slack Preview" };
+  }
+  
+  // Skype link preview
+  if (/skypeuripreview/i.test(userAgent)) {
+    return { isSocialPreview: true, platform: "skype", botName: "Skype Preview" };
+  }
+  
+  // Pinterest link preview
+  if (/pinterest/i.test(userAgent) && /bot/i.test(userAgent)) {
+    return { isSocialPreview: true, platform: "pinterest", botName: "Pinterest Preview" };
+  }
+  
+  // Viber link preview
+  if (/viber/i.test(userAgent)) {
+    return { isSocialPreview: true, platform: "viber", botName: "Viber Preview" };
+  }
+  
+  // Signal link preview
+  if (/signal/i.test(userAgent) && /linkpreview/i.test(userAgent)) {
+    return { isSocialPreview: true, platform: "signal", botName: "Signal Preview" };
+  }
+  
+  // iMessage/Apple link preview
+  if (/applebot/i.test(userAgent) || /apple-touch-icon/i.test(userAgent)) {
+    return { isSocialPreview: true, platform: "imessage", botName: "iMessage Preview" };
+  }
+  
+  return { isSocialPreview: false, platform: null, botName: null };
+}
+
 // ==================== GENERIC BOT DETECTION ====================
 interface BotDetectionResult {
   isBot: boolean;
@@ -2499,6 +2572,8 @@ interface BotDetectionResult {
   platform?: string;
   isAdPlatform: boolean;
   isSpyTool: boolean;
+  isSocialPreview: boolean;
+  socialPlatform?: string;
   threatLevel: "none" | "low" | "medium" | "high" | "critical";
 }
 
@@ -2508,15 +2583,26 @@ function detectBot(userAgent: string, ip: string, headers: Headers, referer: str
   let botType: string | null = null;
   const ua = userAgent.toLowerCase();
   
+  // ===== SOCIAL MEDIA PREVIEW CHECK (First - these are legitimate) =====
+  const socialResult = detectSocialPreview(userAgent);
+  if (socialResult.isSocialPreview) {
+    return {
+      isBot: true, botType: socialResult.botName, confidence: 100,
+      reasons: ["SOCIAL_PREVIEW_BOT"], platform: socialResult.platform || undefined,
+      isAdPlatform: false, isSpyTool: false, isSocialPreview: true,
+      socialPlatform: socialResult.platform || undefined, threatLevel: "none",
+    };
+  }
+  
   // ===== SPY TOOLS (High Priority) =====
   if (isSpyToolUA(userAgent)) {
-    return { isBot: true, botType: "Spy Tool", confidence: 100, reasons: ["SPY_TOOL_UA"], isAdPlatform: false, isSpyTool: true, threatLevel: "critical" };
+    return { isBot: true, botType: "Spy Tool", confidence: 100, reasons: ["SPY_TOOL_UA"], isAdPlatform: false, isSpyTool: true, isSocialPreview: false, threatLevel: "critical" };
   }
   if (isSpyToolIP(ip)) {
-    return { isBot: true, botType: "Spy Tool", confidence: 95, reasons: ["SPY_TOOL_IP"], isAdPlatform: false, isSpyTool: true, threatLevel: "critical" };
+    return { isBot: true, botType: "Spy Tool", confidence: 95, reasons: ["SPY_TOOL_IP"], isAdPlatform: false, isSpyTool: true, isSocialPreview: false, threatLevel: "critical" };
   }
   if (isSpyToolReferer(referer)) {
-    return { isBot: true, botType: "Spy Tool", confidence: 98, reasons: ["SPY_TOOL_REFERER"], isAdPlatform: false, isSpyTool: true, threatLevel: "critical" };
+    return { isBot: true, botType: "Spy Tool", confidence: 98, reasons: ["SPY_TOOL_REFERER"], isAdPlatform: false, isSpyTool: true, isSocialPreview: false, threatLevel: "critical" };
   }
 
   // ===== AD PLATFORM CHECK =====
@@ -2525,33 +2611,33 @@ function detectBot(userAgent: string, ip: string, headers: Headers, referer: str
     return {
       isBot: true, botType: adResult.botType, confidence: adResult.confidence,
       reasons: adResult.reasons, platform: adResult.platform || undefined,
-      isAdPlatform: true, isSpyTool: false, threatLevel: "none",
+      isAdPlatform: true, isSpyTool: false, isSocialPreview: false, threatLevel: "none",
     };
   }
 
   // ===== SEO TOOLS =====
   if (/semrush|ahrefsbot|mj12bot|dotbot|petalbot|rogerbot|seokicks|sistrix|dataforseo|serpstat|spyfu/i.test(userAgent)) {
-    return { isBot: true, botType: "SEO Tool", confidence: 95, reasons: ["SEO_TOOL_BOT"], isAdPlatform: false, isSpyTool: false, threatLevel: "low" };
+    return { isBot: true, botType: "SEO Tool", confidence: 95, reasons: ["SEO_TOOL_BOT"], isAdPlatform: false, isSpyTool: false, isSocialPreview: false, threatLevel: "low" };
   }
 
   // ===== AI CRAWLERS =====
   if (/gptbot|chatgpt|claude|anthropic|perplexity|cohere|ccbot|diffbot|openai/i.test(userAgent)) {
-    return { isBot: true, botType: "AI Crawler", confidence: 95, reasons: ["AI_CRAWLER"], isAdPlatform: false, isSpyTool: false, threatLevel: "low" };
+    return { isBot: true, botType: "AI Crawler", confidence: 95, reasons: ["AI_CRAWLER"], isAdPlatform: false, isSpyTool: false, isSocialPreview: false, threatLevel: "low" };
   }
 
   // ===== AUTOMATION FRAMEWORKS =====
   if (/headless|phantomjs|selenium|puppeteer|playwright|cypress|webdriver|nightmare|casperjs/i.test(userAgent)) {
-    return { isBot: true, botType: "Automation", confidence: 100, reasons: ["AUTOMATION_FRAMEWORK"], isAdPlatform: false, isSpyTool: false, threatLevel: "critical" };
+    return { isBot: true, botType: "Automation", confidence: 100, reasons: ["AUTOMATION_FRAMEWORK"], isAdPlatform: false, isSpyTool: false, isSocialPreview: false, threatLevel: "critical" };
   }
 
   // ===== HTTP CLIENTS =====
   if (/curl|wget|python|java\/|axios|node-fetch|go-http|libwww|scrapy|httpx|okhttp|guzzle|urllib|aiohttp/i.test(userAgent)) {
-    return { isBot: true, botType: "HTTP Client", confidence: 90, reasons: ["HTTP_CLIENT"], isAdPlatform: false, isSpyTool: false, threatLevel: "high" };
+    return { isBot: true, botType: "HTTP Client", confidence: 90, reasons: ["HTTP_CLIENT"], isAdPlatform: false, isSpyTool: false, isSocialPreview: false, threatLevel: "high" };
   }
 
   // ===== SEARCH ENGINES =====
   if (/yandexbot|baiduspider|duckduckbot|sogou|exabot|ia_archiver/i.test(userAgent)) {
-    return { isBot: true, botType: "Search Engine", confidence: 95, reasons: ["SEARCH_ENGINE_BOT"], isAdPlatform: false, isSpyTool: false, threatLevel: "low" };
+    return { isBot: true, botType: "Search Engine", confidence: 95, reasons: ["SEARCH_ENGINE_BOT"], isAdPlatform: false, isSpyTool: false, isSocialPreview: false, threatLevel: "low" };
   }
 
   // ===== DATACENTER/VPN =====
@@ -2589,7 +2675,7 @@ function detectBot(userAgent: string, ip: string, headers: Headers, referer: str
   else if (confidence >= 40) threatLevel = "medium";
   else if (confidence >= 20) threatLevel = "low";
 
-  return { isBot: botType !== null || confidence >= 55, botType, confidence: Math.min(100, confidence), reasons, isAdPlatform: false, isSpyTool: false, threatLevel };
+  return { isBot: botType !== null || confidence >= 55, botType, confidence: Math.min(100, confidence), reasons, isAdPlatform: false, isSpyTool: false, isSocialPreview: false, threatLevel };
 }
 
 // ==================== UTILITY FUNCTIONS ====================
@@ -3026,9 +3112,36 @@ Deno.serve(async (req) => {
     // === BOT DETECTION ===
     const botResult = detectBot(userAgent, cfIp, req.headers, referer);
     
+    // === SOCIAL PREVIEW BYPASS ===
+    // If allow_social_previews is enabled and this is a social preview bot, let it through
+    const allowSocialPreviews = link.allow_social_previews !== false; // Default to true
+    if (allowSocialPreviews && botResult.isSocialPreview) {
+      const processingTime = Date.now() - startTime;
+      console.log(`[Cloaker] ALLOW (social-preview) ${botResult.botType} platform=${botResult.socialPlatform} (${processingTime}ms)`);
+      
+      // Log the social preview visit but don't block
+      queueMicrotask(() => {
+        supabase.from("cloaker_visitors").insert({
+          link_id: link.id, fingerprint_hash: "social-preview", score: 100, decision: "allow",
+          user_agent: userAgent.substring(0, 500), ip_address: cfIp, country_code: cfCountry,
+          city: cfCity || null, isp: cfIsp, asn: cfAsn, is_bot: true,
+          platform: botResult.socialPlatform || "social",
+          referer, ...utmParams, processing_time_ms: processingTime,
+        }).then(() => {});
+        supabase.from("cloaked_links").update({ clicks_count: (link.clicks_count || 0) + 1, clicks_today: (link.clicks_today || 0) + 1 }).eq("id", link.id).then(() => {});
+      });
+      
+      // Redirect social preview to target URL so they can generate the preview
+      let targetUrl = selectTargetUrl(link);
+      if (link.passthrough_utm) targetUrl = applyUtmPassthrough(targetUrl, req);
+      
+      if (zrcMode) return await fetchAndProxy(targetUrl, req);
+      return Response.redirect(targetUrl, 302);
+    }
+    
     // === ENHANCED BLOCKING WITH GEOIP DATA ===
     const shouldBlock = link.block_bots && (
-      botResult.isBot ||
+      (botResult.isBot && !botResult.isSocialPreview) || // Block bots but not social previews
       botResult.isSpyTool ||
       (link.block_vpn && (isDatacenterIP(cfIp) || isVpnProviderIP(cfIp))) ||
       (link.block_datacenter && (isDatacenterIP(cfIp) || isHostingFromGeoIP)) ||

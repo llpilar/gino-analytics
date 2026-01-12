@@ -43,6 +43,7 @@ export type Database = {
       }
       cloaked_links: {
         Row: {
+          allow_social_previews: boolean | null
           allowed_countries: string[] | null
           allowed_devices: string[] | null
           allowed_hours_end: number | null
@@ -92,6 +93,7 @@ export type Database = {
           whitelist_ips: string[] | null
         }
         Insert: {
+          allow_social_previews?: boolean | null
           allowed_countries?: string[] | null
           allowed_devices?: string[] | null
           allowed_hours_end?: number | null
@@ -141,6 +143,7 @@ export type Database = {
           whitelist_ips?: string[] | null
         }
         Update: {
+          allow_social_previews?: boolean | null
           allowed_countries?: string[] | null
           allowed_devices?: string[] | null
           allowed_hours_end?: number | null
