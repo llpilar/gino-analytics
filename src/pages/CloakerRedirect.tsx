@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { analyzeUserAgent, type UserAgentAnalysis } from "@/lib/cloaker/userAgentAnalyzer";
 import { analyzeHeaders, type HeadersAnalysis, type HeadersData } from "@/lib/cloaker/headersAnalyzer";
 import { analyzeBehavior, type BehaviorAnalysis, type BehaviorData } from "@/lib/cloaker/behaviorAnalyzer";
+import { analyzeFingerprint, type FingerprintAnalysis, type FingerprintInput } from "@/lib/cloaker/fingerprintAnalyzer";
 
 interface FingerprintData {
   // Core fingerprint
@@ -138,8 +139,11 @@ interface FingerprintData {
   // Headers analysis
   headersAnalysis: HeadersAnalysis;
   
-  // Behavior analysis (NEW)
+  // Behavior analysis
   behaviorAnalysis: BehaviorAnalysis;
+  
+  // Fingerprint analysis (NEW)
+  fingerprintAnalysis: FingerprintAnalysis;
 }
 
 // Proof of work - computational challenge
@@ -1167,6 +1171,38 @@ export default function CloakerRedirect() {
     };
     const behaviorResult = analyzeBehavior(behaviorData);
     
+    // Collect fingerprint analysis
+    const fingerprintInput: FingerprintInput = {
+      canvasHash: canvasResult.hash,
+      canvasNoise: canvasResult.hasNoise,
+      webglVendor: webgl.vendor,
+      webglRenderer: webgl.renderer,
+      webglVersion: webgl.version,
+      webglExtensions: webgl.extensions,
+      webglHash: webgl.hash,
+      hardwareAcceleration: webgl.hasAcceleration,
+      audioHash: audioResult.hash,
+      audioNoise: audioResult.hasNoise,
+      fontsHash: fontsResult.hash,
+      fontsList: fontsResult.fonts,
+      screenResolution: `${screen.width}x${screen.height}`,
+      availableScreenResolution: `${screen.availWidth}x${screen.availHeight}`,
+      colorDepth: screen.colorDepth,
+      devicePixelRatio: window.devicePixelRatio || 1,
+      platform: navigator.platform,
+      hardwareConcurrency: navigator.hardwareConcurrency || 0,
+      deviceMemory: (navigator as any).deviceMemory || 0,
+      maxTouchPoints: navigator.maxTouchPoints || 0,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      timezoneOffset: new Date().getTimezoneOffset(),
+      language: navigator.language,
+      languages: Array.from(navigator.languages || []),
+      userAgent: navigator.userAgent,
+      pluginsCount: pluginsResult.count,
+      pluginsHash: pluginsResult.hash,
+    };
+    const fingerprintResult = analyzeFingerprint(fingerprintInput);
+    
     return {
       userAgent: navigator.userAgent,
       language: navigator.language,
@@ -1261,6 +1297,7 @@ export default function CloakerRedirect() {
       uaAnalysis: consistency.uaAnalysis,
       headersAnalysis: headersResult,
       behaviorAnalysis: behaviorResult,
+      fingerprintAnalysis: fingerprintResult,
     };
   }, []);
 
