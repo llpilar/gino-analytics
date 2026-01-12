@@ -34,6 +34,216 @@ const sessionCache = new Map<string, { firstSeen: number; visits: number; scores
 const fingerprintReputation = new Map<string, { score: number; lastSeen: number; decisionHistory: string[] }>();
 const approvedSessions = new Map<string, { ip: string; fingerprintHash: string; approvedAt: number; score: number }>();
 
+// ==================== GEOIP CACHE (ip-api.com) ====================
+interface GeoIPData {
+  ip: string;
+  country: string;
+  countryCode: string;
+  region: string;
+  regionName: string;
+  city: string;
+  zip: string;
+  lat: number;
+  lon: number;
+  timezone: string;
+  isp: string;
+  org: string;
+  as: string; // ASN with name
+  asn: string; // Just ASN number
+  mobile: boolean;
+  proxy: boolean;
+  hosting: boolean;
+  timestamp: number;
+}
+
+const geoIpCache = new Map<string, GeoIPData>();
+const GEOIP_CACHE_TTL = 3600000; // 1 hour
+const GEOIP_BATCH_QUEUE: string[] = [];
+let geoIpBatchTimer: number | null = null;
+
+// Fetch GeoIP data from ip-api.com (free, 45 requests/min)
+async function fetchGeoIP(ip: string): Promise<GeoIPData | null> {
+  // Check cache first
+  const cached = geoIpCache.get(ip);
+  if (cached && Date.now() - cached.timestamp < GEOIP_CACHE_TTL) {
+    return cached;
+  }
+  
+  // Skip private/local IPs
+  if (!ip || ip === "127.0.0.1" || ip.startsWith("10.") || ip.startsWith("192.168.") || ip.startsWith("172.")) {
+    return null;
+  }
+  
+  try {
+    // ip-api.com free tier: 45 requests/min, no API key needed
+    // Fields: status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,asname,mobile,proxy,hosting,query
+    const response = await fetch(
+      `http://ip-api.com/json/${ip}?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,mobile,proxy,hosting,query`,
+      { 
+        headers: { "Accept": "application/json" },
+        signal: AbortSignal.timeout(3000), // 3 second timeout
+      }
+    );
+    
+    if (!response.ok) return null;
+    
+    const data = await response.json();
+    
+    if (data.status !== "success") {
+      console.log(`[GeoIP] Failed for ${ip}: ${data.message}`);
+      return null;
+    }
+    
+    // Extract ASN number from "AS" field (format: "AS12345 Company Name")
+    const asnMatch = data.as?.match(/^(AS\d+)/);
+    const asnNumber = asnMatch ? asnMatch[1] : "";
+    
+    const geoData: GeoIPData = {
+      ip: data.query || ip,
+      country: data.country || "",
+      countryCode: data.countryCode || "",
+      region: data.region || "",
+      regionName: data.regionName || "",
+      city: data.city || "",
+      zip: data.zip || "",
+      lat: data.lat || 0,
+      lon: data.lon || 0,
+      timezone: data.timezone || "",
+      isp: data.isp || "",
+      org: data.org || "",
+      as: data.as || "",
+      asn: asnNumber,
+      mobile: data.mobile || false,
+      proxy: data.proxy || false,
+      hosting: data.hosting || false,
+      timestamp: Date.now(),
+    };
+    
+    // Cache it
+    geoIpCache.set(ip, geoData);
+    
+    // Cleanup old cache entries if too many
+    if (geoIpCache.size > 5000) {
+      const oldestKey = geoIpCache.keys().next().value;
+      if (oldestKey) geoIpCache.delete(oldestKey);
+    }
+    
+    console.log(`[GeoIP] ${ip} -> ${geoData.countryCode}/${geoData.city} ISP=${geoData.isp} ASN=${geoData.asn} proxy=${geoData.proxy} hosting=${geoData.hosting}`);
+    
+    return geoData;
+  } catch (error) {
+    console.error(`[GeoIP] Error fetching ${ip}:`, error);
+    return null;
+  }
+}
+
+// Batch fetch GeoIP for multiple IPs (uses ip-api.com batch endpoint)
+async function fetchGeoIPBatch(ips: string[]): Promise<Map<string, GeoIPData>> {
+  const results = new Map<string, GeoIPData>();
+  
+  // Filter out cached IPs
+  const uncachedIps = ips.filter(ip => {
+    const cached = geoIpCache.get(ip);
+    if (cached && Date.now() - cached.timestamp < GEOIP_CACHE_TTL) {
+      results.set(ip, cached);
+      return false;
+    }
+    return true;
+  });
+  
+  if (uncachedIps.length === 0) return results;
+  
+  // ip-api.com batch endpoint: POST up to 100 IPs at once
+  const batch = uncachedIps.slice(0, 100);
+  
+  try {
+    const response = await fetch("http://ip-api.com/batch?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,mobile,proxy,hosting,query", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(batch),
+      signal: AbortSignal.timeout(5000),
+    });
+    
+    if (!response.ok) return results;
+    
+    const dataList = await response.json();
+    
+    for (const data of dataList) {
+      if (data.status !== "success") continue;
+      
+      const asnMatch = data.as?.match(/^(AS\d+)/);
+      const asnNumber = asnMatch ? asnMatch[1] : "";
+      
+      const geoData: GeoIPData = {
+        ip: data.query,
+        country: data.country || "",
+        countryCode: data.countryCode || "",
+        region: data.region || "",
+        regionName: data.regionName || "",
+        city: data.city || "",
+        zip: data.zip || "",
+        lat: data.lat || 0,
+        lon: data.lon || 0,
+        timezone: data.timezone || "",
+        isp: data.isp || "",
+        org: data.org || "",
+        as: data.as || "",
+        asn: asnNumber,
+        mobile: data.mobile || false,
+        proxy: data.proxy || false,
+        hosting: data.hosting || false,
+        timestamp: Date.now(),
+      };
+      
+      geoIpCache.set(data.query, geoData);
+      results.set(data.query, geoData);
+    }
+    
+    console.log(`[GeoIP] Batch fetched ${results.size}/${batch.length} IPs`);
+  } catch (error) {
+    console.error("[GeoIP] Batch error:", error);
+  }
+  
+  return results;
+}
+
+// Get cached GeoIP or return null (fast path)
+function getCachedGeoIP(ip: string): GeoIPData | null {
+  const cached = geoIpCache.get(ip);
+  if (cached && Date.now() - cached.timestamp < GEOIP_CACHE_TTL) {
+    return cached;
+  }
+  return null;
+}
+
+// Enhanced network analysis using GeoIP data
+function enhanceNetworkAnalysis(ip: string, existingAnalysis: any, geoData: GeoIPData | null): any {
+  if (!geoData) return existingAnalysis;
+  
+  const enhanced = { ...existingAnalysis };
+  
+  // ip-api.com provides direct proxy/hosting detection
+  if (geoData.proxy && !enhanced.isProxy) {
+    enhanced.isProxy = true;
+    enhanced.reasons.push("IPAPI_PROXY_DETECTED");
+    enhanced.score += 35;
+  }
+  
+  if (geoData.hosting && !enhanced.isDatacenter) {
+    enhanced.isDatacenter = true;
+    enhanced.datacenterProvider = geoData.org || geoData.isp;
+    enhanced.reasons.push("IPAPI_HOSTING_DETECTED");
+    enhanced.score += 30;
+  }
+  
+  // Update risk level
+  if (enhanced.score >= 80) enhanced.riskLevel = "critical";
+  else if (enhanced.score >= 50) enhanced.riskLevel = "high";
+  else if (enhanced.score >= 25) enhanced.riskLevel = "medium";
+  
+  return enhanced;
+}
+
 // ==================== ML ADAPTIVE CACHES ====================
 interface MLPattern {
   patternType: string;
@@ -2641,12 +2851,37 @@ Deno.serve(async (req) => {
     
     const userAgent = req.headers.get("user-agent") || "";
     const cfIp = req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "";
-    const cfCountry = req.headers.get("cf-ipcountry") || req.headers.get("x-vercel-ip-country") || "";
-    const cfIsp = req.headers.get("cf-isp") || req.headers.get("x-isp") || "";
-    const cfAsn = req.headers.get("cf-asn") || req.headers.get("x-asn") || "";
     const referer = req.headers.get("referer") || "";
     const cookieHeader = req.headers.get("cookie");
     const existingSessionId = parseSessionCookie(cookieHeader);
+    
+    // === GEOIP ENRICHMENT ===
+    // Try to get cached GeoIP first (fast path), fetch async if not cached
+    let geoData = getCachedGeoIP(cfIp);
+    let cfCountry = req.headers.get("cf-ipcountry") || req.headers.get("x-vercel-ip-country") || "";
+    let cfCity = "";
+    let cfIsp = req.headers.get("cf-isp") || req.headers.get("x-isp") || "";
+    let cfAsn = req.headers.get("cf-asn") || req.headers.get("x-asn") || "";
+    let isProxyFromGeoIP = false;
+    let isHostingFromGeoIP = false;
+    let isMobileFromGeoIP = false;
+    
+    // If we have cached GeoIP data, use it immediately
+    if (geoData) {
+      cfCountry = geoData.countryCode || cfCountry;
+      cfCity = geoData.city || "";
+      cfIsp = geoData.isp || cfIsp;
+      cfAsn = geoData.asn || cfAsn;
+      isProxyFromGeoIP = geoData.proxy;
+      isHostingFromGeoIP = geoData.hosting;
+      isMobileFromGeoIP = geoData.mobile;
+    } else {
+      // Fetch GeoIP in background (non-blocking) for next request
+      queueMicrotask(async () => {
+        const data = await fetchGeoIP(cfIp);
+        if (data) geoIpCache.set(cfIp, data);
+      });
+    }
     
     let link = getCachedLink(slug);
     
@@ -2791,32 +3026,32 @@ Deno.serve(async (req) => {
     // === BOT DETECTION ===
     const botResult = detectBot(userAgent, cfIp, req.headers, referer);
     
-    // Block bots and spy tools
+    // === ENHANCED BLOCKING WITH GEOIP DATA ===
     const shouldBlock = link.block_bots && (
       botResult.isBot ||
       botResult.isSpyTool ||
       (link.block_vpn && (isDatacenterIP(cfIp) || isVpnProviderIP(cfIp))) ||
-      (link.block_datacenter && isDatacenterIP(cfIp)) ||
-      (link.block_proxy && botResult.reasons.includes("PROXY_ASN")) ||
+      (link.block_datacenter && (isDatacenterIP(cfIp) || isHostingFromGeoIP)) ||
+      (link.block_proxy && (botResult.reasons.includes("PROXY_ASN") || isProxyFromGeoIP)) ||
       (link.block_tor && botResult.reasons.includes("TOR_EXIT_SUSPECTED"))
     );
     
     if (shouldBlock) {
       const processingTime = Date.now() - startTime;
-      const blockReason = botResult.botType || "bot";
-      console.log(`[Cloaker] BLOCKED: ${blockReason} platform=${botResult.platform || "unknown"} spy=${botResult.isSpyTool} ref=${refererAnalysis.platform || "none"} conf=${botResult.confidence}% threat=${botResult.threatLevel} (${processingTime}ms)`);
+      const blockReason = botResult.botType || (isProxyFromGeoIP ? "proxy" : isHostingFromGeoIP ? "datacenter" : "bot");
+      console.log(`[Cloaker] BLOCKED: ${blockReason} platform=${botResult.platform || "unknown"} spy=${botResult.isSpyTool} ref=${refererAnalysis.platform || "none"} conf=${botResult.confidence}% threat=${botResult.threatLevel} geoProxy=${isProxyFromGeoIP} geoHosting=${isHostingFromGeoIP} city=${cfCity} (${processingTime}ms)`);
       
-      // Prepare visitor data for webhook
+      // Prepare visitor data for webhook with GeoIP enrichment
       const visitorData = {
         ip: cfIp,
         country: cfCountry,
-        city: null as string | null,
+        city: cfCity || null,
         user_agent: userAgent,
         score: 0,
         is_bot: botResult.isBot,
         is_vpn: link.block_vpn && (isDatacenterIP(cfIp) || isVpnProviderIP(cfIp)),
-        is_proxy: botResult.reasons.includes("PROXY_ASN"),
-        is_datacenter: isDatacenterIP(cfIp),
+        is_proxy: botResult.reasons.includes("PROXY_ASN") || isProxyFromGeoIP,
+        is_datacenter: isDatacenterIP(cfIp) || isHostingFromGeoIP,
         is_tor: botResult.reasons.includes("TOR_EXIT_SUSPECTED"),
         isp: cfIsp,
         referer,
@@ -2832,7 +3067,9 @@ Deno.serve(async (req) => {
         supabase.from("cloaker_visitors").insert({
           link_id: link.id, fingerprint_hash: "fast-block", score: 0, decision: "block",
           user_agent: userAgent.substring(0, 500), ip_address: cfIp, country_code: cfCountry,
-          isp: cfIsp, asn: cfAsn, is_bot: true, referer, ...utmParams, processing_time_ms: processingTime,
+          city: cfCity || null,
+          isp: cfIsp, asn: cfAsn, is_bot: true, is_proxy: isProxyFromGeoIP, is_datacenter: isHostingFromGeoIP,
+          referer, ...utmParams, processing_time_ms: processingTime,
         }).then(() => {});
         supabase.from("cloaked_links").update({ clicks_count: (link.clicks_count || 0) + 1, clicks_today: (link.clicks_today || 0) + 1 }).eq("id", link.id).then(() => {});
       });
