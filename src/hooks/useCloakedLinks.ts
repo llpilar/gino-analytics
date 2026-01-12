@@ -7,7 +7,7 @@ interface TargetUrl {
   weight: number;
 }
 
-interface CloakedLink {
+export interface CloakedLink {
   id: string;
   user_id: string;
   name: string;
