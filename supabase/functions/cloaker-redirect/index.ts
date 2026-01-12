@@ -4228,10 +4228,10 @@ Deno.serve(async (req) => {
     }
     
     // === GEOIP ENRICHMENT ===
-    // Try to get cached GeoIP first (fast path), fetch async if not cached
+    // Try to get cached GeoIP first, then headers, then fetch synchronously
     let geoData = getCachedGeoIP(cfIp);
     let cfCountry = req.headers.get("cf-ipcountry") || req.headers.get("x-vercel-ip-country") || "";
-    let cfCity = "";
+    let cfCity = req.headers.get("cf-city") || "";
     let cfIsp = req.headers.get("cf-isp") || req.headers.get("x-isp") || "";
     let cfAsn = req.headers.get("cf-asn") || req.headers.get("x-asn") || "";
     let isProxyFromGeoIP = false;
@@ -4241,18 +4241,30 @@ Deno.serve(async (req) => {
     // If we have cached GeoIP data, use it immediately
     if (geoData) {
       cfCountry = geoData.countryCode || cfCountry;
-      cfCity = geoData.city || "";
+      cfCity = geoData.city || cfCity;
       cfIsp = geoData.isp || cfIsp;
       cfAsn = geoData.asn || cfAsn;
       isProxyFromGeoIP = geoData.proxy;
       isHostingFromGeoIP = geoData.hosting;
       isMobileFromGeoIP = geoData.mobile;
-    } else {
-      // Fetch GeoIP in background (non-blocking) for next request
-      queueMicrotask(async () => {
-        const data = await fetchGeoIP(cfIp);
-        if (data) geoIpCache.set(cfIp, data);
-      });
+    } else if (!cfCountry && cfIp && cfIp !== "0.0.0.0") {
+      // No country from headers and no cache - fetch GeoIP synchronously
+      // This ensures we always have country data for accurate logging
+      try {
+        geoData = await fetchGeoIP(cfIp);
+        if (geoData) {
+          cfCountry = geoData.countryCode || cfCountry;
+          cfCity = geoData.city || cfCity;
+          cfIsp = geoData.isp || cfIsp;
+          cfAsn = geoData.asn || cfAsn;
+          isProxyFromGeoIP = geoData.proxy;
+          isHostingFromGeoIP = geoData.hosting;
+          isMobileFromGeoIP = geoData.mobile;
+          console.log(`[GeoIP-Sync] ${cfIp} -> ${cfCountry}/${cfCity}`);
+        }
+      } catch (e) {
+        console.log(`[GeoIP-Sync] Error for ${cfIp}:`, e);
+      }
     }
     
     let link = getCachedLink(slug);
@@ -4750,12 +4762,32 @@ Deno.serve(async (req) => {
     // === SECURE IP EXTRACTION FOR POST ===
     const ipResult = getClientIp(req);
     const cfIp = ipResult.ip;
-    const cfCountry = req.headers.get("cf-ipcountry") || "";
-    const cfCity = req.headers.get("cf-city") || "";
-    const cfIsp = req.headers.get("cf-isp") || "";
-    const cfAsn = req.headers.get("cf-asn") || "";
+    let cfCountry = req.headers.get("cf-ipcountry") || "";
+    let cfCity = req.headers.get("cf-city") || "";
+    let cfIsp = req.headers.get("cf-isp") || "";
+    let cfAsn = req.headers.get("cf-asn") || "";
     const referer = req.headers.get("referer") || "";
     const utmParams = extractUtmParams(req);
+    
+    // === GEOIP ENRICHMENT FOR POST ===
+    // If no country from headers, fetch GeoIP synchronously
+    if (!cfCountry && cfIp && cfIp !== "0.0.0.0") {
+      let geoData = getCachedGeoIP(cfIp);
+      if (!geoData) {
+        try {
+          geoData = await fetchGeoIP(cfIp);
+        } catch (e) {
+          console.log(`[GeoIP-POST] Error for ${cfIp}:`, e);
+        }
+      }
+      if (geoData) {
+        cfCountry = geoData.countryCode || cfCountry;
+        cfCity = geoData.city || cfCity;
+        cfIsp = geoData.isp || cfIsp;
+        cfAsn = geoData.asn || cfAsn;
+        console.log(`[GeoIP-POST] ${cfIp} -> ${cfCountry}/${cfCity}`);
+      }
+    }
     
     const { data: link, error } = await supabase.from("cloaked_links").select("*").eq("slug", slug).eq("is_active", true).maybeSingle();
     if (error || !link) {
