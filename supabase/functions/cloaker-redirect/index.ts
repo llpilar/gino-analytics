@@ -4744,7 +4744,7 @@ Deno.serve(async (req) => {
   // === POST: Fingerprint analysis ===
   try {
     const body = await req.json();
-    const { slug, fingerprint } = body;
+    const { slug, fingerprint, clientScore, eliteScore } = body;
     
     const ua = req.headers.get("user-agent") || "";
     // === SECURE IP EXTRACTION FOR POST ===
@@ -4760,6 +4760,37 @@ Deno.serve(async (req) => {
     const { data: link, error } = await supabase.from("cloaked_links").select("*").eq("slug", slug).eq("is_active", true).maybeSingle();
     if (error || !link) {
       return new Response(JSON.stringify({ error: "Link not found" }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 });
+    }
+    
+    // === CHECK AUTO-BLACKLIST ===
+    const autoBlacklistEnabled = (link as any).auto_blacklist_enabled !== false;
+    if (autoBlacklistEnabled && cfIp) {
+      const { data: blacklistEntry } = await supabase
+        .from("cloaker_blacklist")
+        .select("*")
+        .eq("user_id", link.user_id)
+        .eq("ip_address", cfIp)
+        .maybeSingle();
+      
+      if (blacklistEntry) {
+        // Check if expired
+        if (!blacklistEntry.expires_at || new Date(blacklistEntry.expires_at) > new Date()) {
+          console.log(`[Cloaker] IP ${cfIp} is auto-blacklisted. Reason: ${blacklistEntry.reason}`);
+          
+          // Send webhook if enabled
+          await sendWebhookNotification(link, "ip_blacklisted", {
+            ip: cfIp,
+            reason: blacklistEntry.reason,
+            fail_count: blacklistEntry.fail_count,
+          });
+          
+          return new Response(JSON.stringify({ 
+            redirectUrl: link.safe_url, 
+            decision: "blocked_blacklist",
+            reason: blacklistEntry.reason,
+          }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+      }
     }
     
     // Pre-checks
@@ -4790,11 +4821,31 @@ Deno.serve(async (req) => {
     // Block high-confidence bots and spy tools
     if (link.block_bots && ((botResult.isBot && botResult.confidence >= 85 && !botResult.isAdPlatform) || botResult.isSpyTool)) {
       console.log(`[Cloaker] POST BLOCKED: ${botResult.botType} spy=${botResult.isSpyTool} conf=${botResult.confidence}%`);
+      
+      // Auto-blacklist if enabled
+      await updateAutoBlacklist(supabase, link, cfIp, `bot_${botResult.botType}`, autoBlacklistEnabled);
+      
+      // Send webhook
+      await sendWebhookNotification(link, "bot_blocked", {
+        ip: cfIp,
+        bot_type: botResult.botType,
+        confidence: botResult.confidence,
+        country: cfCountry,
+      });
+      
       return new Response(JSON.stringify({ redirectUrl: link.safe_url, decision: `blocked_${botResult.botType?.toLowerCase().replace(/\s+/g, "_") || "bot"}` }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
     
     if (botResult.isAdPlatform) {
       console.log(`[Cloaker] POST BLOCKED: Ad Platform ${botResult.platform} ${botResult.botType}`);
+      
+      await sendWebhookNotification(link, "ad_reviewer_blocked", {
+        ip: cfIp,
+        platform: botResult.platform,
+        bot_type: botResult.botType,
+        country: cfCountry,
+      });
+      
       return new Response(JSON.stringify({ redirectUrl: link.safe_url, decision: `blocked_${botResult.platform}_bot` }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -4832,6 +4883,37 @@ Deno.serve(async (req) => {
     
     let finalScore = adaptiveScore;
     
+    // === APPLY ELITE DETECTION SCORES ===
+    if (eliteScore) {
+      // Weight elite detection at 30% of final score
+      const eliteWeight = 0.3;
+      finalScore = Math.round(finalScore * (1 - eliteWeight) + eliteScore.score * eliteWeight);
+      
+      // Apply penalties for elite detections
+      if (eliteScore.isBot) {
+        finalScore -= 25;
+        flags.push("ELITE_BOT_DETECTED");
+      }
+      if (eliteScore.isSuspicious) {
+        finalScore -= 10;
+        flags.push("ELITE_SUSPICIOUS");
+      }
+      
+      // Session replay detection penalty
+      if (eliteScore.sessionReplayTools && eliteScore.sessionReplayTools.length > 0) {
+        finalScore -= 15;
+        flags.push(`SESSION_REPLAY_${eliteScore.sessionReplayTools.join("_").toUpperCase()}`);
+      }
+      
+      // WebRTC VPN detection
+      if (fingerprint.webrtcVPNDetected) {
+        finalScore -= 20;
+        flags.push("WEBRTC_VPN_DETECTED");
+      }
+      
+      console.log(`[Cloaker] Elite: deviceConsistency=${eliteScore.deviceConsistencyScore} webrtc=${eliteScore.webrtcScore} mouse=${eliteScore.mousePatternScore} keyboard=${eliteScore.keyboardScore} sessionReplay=${eliteScore.sessionReplayScore}`);
+    }
+    
     // Apply reputation adjustments
     if (reputation.trustLevel === "trusted") finalScore = Math.min(100, finalScore + 15);
     else if (reputation.trustLevel === "suspicious") finalScore -= 10;
@@ -4848,7 +4930,7 @@ Deno.serve(async (req) => {
     else if (link.blocked_countries?.length > 0 && cfCountry && link.blocked_countries.includes(cfCountry)) { decision = "block"; targetUrl = link.safe_url; }
     else if (checkIspBlock(cfIsp, link)) { decision = "block"; targetUrl = link.safe_url; }
     else if (checkAsnBlock(cfAsn, link)) { decision = "block"; targetUrl = link.safe_url; }
-    else if (flags.some(f => ["WEBDRIVER", "PUPPETEER", "SELENIUM", "PHANTOM", "HEADLESS_AUTOMATED"].includes(f))) { decision = "block"; targetUrl = link.safe_url; }
+    else if (flags.some(f => ["WEBDRIVER", "PUPPETEER", "SELENIUM", "PHANTOM", "HEADLESS_AUTOMATED", "ELITE_BOT_DETECTED"].includes(f))) { decision = "block"; targetUrl = link.safe_url; }
     else if (finalScore >= minScore) {
       decision = "allow";
       targetUrl = selectTargetUrl(link);
@@ -4856,6 +4938,12 @@ Deno.serve(async (req) => {
     } else { decision = "block"; targetUrl = link.safe_url; }
 
     updateFingerprintReputation(fingerprintHash, decision, finalScore);
+    
+    // === AUTO-BLACKLIST IF BLOCKED ===
+    if (decision === "block" && autoBlacklistEnabled) {
+      const blockReason = flags.length > 0 ? flags[0] : "low_score";
+      await updateAutoBlacklist(supabase, link, cfIp, blockReason, autoBlacklistEnabled);
+    }
     
     // Approve session if allowed
     let sessionCookie = "";
@@ -4866,12 +4954,12 @@ Deno.serve(async (req) => {
     }
 
     const processingTime = Date.now() - startTime;
-    console.log(`[Cloaker] POST Decision=${decision} Score=${finalScore}/${minScore} Base=${baseScore} ML=${mlApplied} Risk=${riskLevel} Trust=${reputation.trustLevel} (${processingTime}ms)`);
+    console.log(`[Cloaker] POST Decision=${decision} Score=${finalScore}/${minScore} Base=${baseScore} Elite=${eliteScore?.score || "N/A"} ML=${mlApplied} Risk=${riskLevel} Trust=${reputation.trustLevel} (${processingTime}ms)`);
 
     // Background: Log visitor and learn from decision
     queueMicrotask(async () => {
       try {
-        // Insert visitor log
+        // Insert visitor log with elite detection data
         const { data: visitorData } = await supabase.from("cloaker_visitors").insert({
           link_id: link.id, fingerprint_hash: fingerprintHash, score: finalScore, decision,
           user_agent: (fingerprint.userAgent || ua).substring(0, 500), language: fingerprint.language, timezone: fingerprint.timezone,
@@ -4880,10 +4968,24 @@ Deno.serve(async (req) => {
           webgl_renderer: fingerprint.webglRenderer, canvas_hash: fingerprint.canvasHash, plugins_count: fingerprint.pluginsCount,
           touch_support: fingerprint.touchSupport, mouse_movements: fingerprint.mouseMovements, scroll_events: fingerprint.scrollEvents,
           keypress_events: fingerprint.keypressEvents, time_on_page: fingerprint.timeOnPage, focus_changes: fingerprint.focusChanges,
-          is_bot: botResult.isBot, is_headless: fingerprint.isHeadless, is_automated: fingerprint.isAutomated,
+          is_bot: botResult.isBot || eliteScore?.isBot, is_headless: fingerprint.isHeadless, is_automated: fingerprint.isAutomated,
           has_webdriver: fingerprint.hasWebdriver, has_phantom: fingerprint.hasPhantom, has_selenium: fingerprint.hasSelenium,
           has_puppeteer: fingerprint.hasPuppeteer, ip_address: cfIp, country_code: cfCountry, city: cfCity, isp: cfIsp, asn: cfAsn,
           referer, redirect_url: targetUrl, ...utmParams, processing_time_ms: processingTime,
+          // Elite detection scores
+          score_device_consistency: eliteScore?.deviceConsistencyScore,
+          score_webrtc: eliteScore?.webrtcScore,
+          score_mouse_pattern: eliteScore?.mousePatternScore,
+          score_keyboard: eliteScore?.keyboardScore,
+          score_session_replay: eliteScore?.sessionReplayScore,
+          webrtc_local_ip: fingerprint.webrtcLocalIP,
+          webrtc_public_ip: fingerprint.webrtcPublicIP,
+          detection_details: {
+            eliteReasons: eliteScore?.reasons,
+            sessionReplayTools: eliteScore?.sessionReplayTools,
+            flags,
+            clientScore: clientScore?.finalScore,
+          },
         }).select("id").maybeSingle();
         
         // Update click counts
@@ -4903,6 +5005,28 @@ Deno.serve(async (req) => {
           visitorData?.id
         );
         
+        // Send webhook notification
+        if (decision === "block") {
+          await sendWebhookNotification(link, "visitor_blocked", {
+            ip: cfIp,
+            score: finalScore,
+            min_score: minScore,
+            country: cfCountry,
+            city: cfCity,
+            flags,
+            elite_score: eliteScore?.score,
+            visitor_id: visitorData?.id,
+          });
+        } else {
+          await sendWebhookNotification(link, "visitor_allowed", {
+            ip: cfIp,
+            score: finalScore,
+            country: cfCountry,
+            city: cfCity,
+            visitor_id: visitorData?.id,
+          });
+        }
+        
       } catch (e) { console.error("[Cloaker] Log/ML error:", e); }
     });
 
@@ -4919,6 +5043,7 @@ Deno.serve(async (req) => {
       delayMs: decision === "allow" ? (link.redirect_delay_ms || 0) : 0,
       mlApplied,
       adjustments: mlApplied ? adjustments : undefined,
+      eliteScore: eliteScore?.score,
     }), { headers: responseHeaders });
 
   } catch (error) {
@@ -4926,3 +5051,133 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: "Internal server error" }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 });
   }
 });
+
+// ==================== AUTO-BLACKLIST FUNCTION ====================
+async function updateAutoBlacklist(
+  supabase: any,
+  link: any,
+  ip: string,
+  reason: string,
+  enabled: boolean
+): Promise<void> {
+  if (!enabled || !ip) return;
+  
+  const threshold = (link as any).auto_blacklist_threshold || 3;
+  
+  try {
+    // Check if IP already has failures
+    const { data: existing } = await supabase
+      .from("cloaker_blacklist")
+      .select("*")
+      .eq("user_id", link.user_id)
+      .eq("ip_address", ip)
+      .maybeSingle();
+    
+    if (existing) {
+      // Increment fail count
+      const newCount = (existing.fail_count || 1) + 1;
+      await supabase
+        .from("cloaker_blacklist")
+        .update({
+          fail_count: newCount,
+          last_seen_at: new Date().toISOString(),
+          reason: reason,
+          metadata: {
+            ...existing.metadata,
+            last_reason: reason,
+            link_id: link.id,
+          },
+        })
+        .eq("id", existing.id);
+      
+      console.log(`[Blacklist] Updated IP ${ip}, fail_count=${newCount}/${threshold}`);
+    } else {
+      // First failure - create entry
+      await supabase
+        .from("cloaker_blacklist")
+        .insert({
+          user_id: link.user_id,
+          ip_address: ip,
+          reason: reason,
+          fail_count: 1,
+          link_id: link.id,
+          expires_at: null, // Permanent after threshold reached
+          metadata: {
+            first_link: link.id,
+            first_reason: reason,
+          },
+        });
+      
+      console.log(`[Blacklist] Added IP ${ip} (1/${threshold})`);
+    }
+  } catch (err) {
+    console.error("[Blacklist] Error:", err);
+  }
+}
+
+// ==================== WEBHOOK NOTIFICATION FUNCTION ====================
+async function sendWebhookNotification(
+  link: any,
+  eventType: string,
+  payload: Record<string, any>
+): Promise<void> {
+  const webhookEnabled = (link as any).webhook_enabled;
+  const webhookUrl = (link as any).webhook_url;
+  const webhookEvents = (link as any).webhook_events || ["bot_blocked"];
+  
+  if (!webhookEnabled || !webhookUrl) return;
+  if (!webhookEvents.includes(eventType) && !webhookEvents.includes("all")) return;
+  
+  try {
+    const webhookPayload = {
+      event: eventType,
+      timestamp: new Date().toISOString(),
+      link_id: link.id,
+      link_name: link.name,
+      link_slug: link.slug,
+      ...payload,
+    };
+    
+    const response = await fetch(webhookUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Cloaker-Event": eventType,
+        "X-Cloaker-Signature": generateWebhookSignature(JSON.stringify(webhookPayload)),
+      },
+      body: JSON.stringify(webhookPayload),
+    });
+    
+    // Log webhook result (fire and forget in background)
+    queueMicrotask(async () => {
+      try {
+        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+        const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        
+        await supabase.from("cloaker_webhooks_log").insert({
+          link_id: link.id,
+          event_type: eventType,
+          payload: webhookPayload,
+          response_status: response.status,
+          success: response.ok,
+        });
+      } catch {}
+    });
+    
+    console.log(`[Webhook] Sent ${eventType} to ${webhookUrl.substring(0, 30)}... status=${response.status}`);
+  } catch (err) {
+    console.error("[Webhook] Error:", err);
+  }
+}
+
+function generateWebhookSignature(payload: string): string {
+  // Simple signature for webhook verification
+  let hash = 0;
+  const str = payload + "cloaker-secret";
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash = hash & hash;
+  }
+  return Math.abs(hash).toString(16);
+}
