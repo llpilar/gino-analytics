@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { analyzeUserAgent, type UserAgentAnalysis } from "@/lib/cloaker/userAgentAnalyzer";
 
 interface FingerprintData {
   // Core fingerprint
@@ -128,6 +129,9 @@ interface FingerprintData {
   // Browser consistency checks
   consistencyScore: number;
   inconsistencies: string[];
+  
+  // User-Agent analysis (NEW)
+  uaAnalysis: UserAgentAnalysis;
 }
 
 // Proof of work - computational challenge
@@ -346,12 +350,58 @@ function getMemoryUsage(): number {
   return -1;
 }
 
-// Browser consistency checker
-function checkBrowserConsistency(fp: Partial<FingerprintData>): { score: number; issues: string[] } {
+// Browser consistency checker - now uses advanced UA analysis
+function checkBrowserConsistency(fp: Partial<FingerprintData>): { score: number; issues: string[]; uaAnalysis: UserAgentAnalysis } {
   const issues: string[] = [];
   let score = 100;
   
   const ua = fp.userAgent || "";
+  
+  // Run advanced User-Agent analysis
+  const uaAnalysis = analyzeUserAgent(ua);
+  
+  // Apply UA analysis penalties
+  if (uaAnalysis.isCrawler) {
+    issues.push("crawler_detected");
+    score -= 50;
+  }
+  
+  if (uaAnalysis.isBot) {
+    issues.push("bot_detected");
+    score -= 40;
+  }
+  
+  if (uaAnalysis.isHeadless) {
+    issues.push("headless_ua");
+    score -= 35;
+  }
+  
+  if (uaAnalysis.isHttpLibrary) {
+    issues.push("http_library");
+    score -= 50;
+  }
+  
+  if (uaAnalysis.isAdVerification) {
+    issues.push("ad_verification_bot");
+    score -= 60;
+  }
+  
+  if (uaAnalysis.isEmpty) {
+    issues.push("empty_ua");
+    score -= 50;
+  }
+  
+  if (uaAnalysis.isGeneric) {
+    issues.push("generic_ua");
+    score -= 30;
+  }
+  
+  // Add UA inconsistencies
+  for (const inconsistency of uaAnalysis.inconsistencies) {
+    issues.push(`ua_${inconsistency}`);
+    score -= 10;
+  }
+  
   const isMobile = /mobile|android|iphone|ipad/i.test(ua);
   const isChrome = /chrome/i.test(ua) && !/edge|edg/i.test(ua);
   const isFirefox = /firefox/i.test(ua);
@@ -431,7 +481,7 @@ function checkBrowserConsistency(fp: Partial<FingerprintData>): { score: number;
     }
   }
   
-  return { score: Math.max(0, score), issues };
+  return { score: Math.max(0, score), issues, uaAnalysis };
 }
 
 // Canvas fingerprint with advanced detection
@@ -1175,6 +1225,7 @@ export default function CloakerRedirect() {
       
       consistencyScore: consistency.score,
       inconsistencies: consistency.issues,
+      uaAnalysis: consistency.uaAnalysis,
     };
   }, []);
 
