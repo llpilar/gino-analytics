@@ -497,10 +497,160 @@ export default function CloakerLogs() {
   );
 }
 
+// Analyze User Agent to detect bot type
+function analyzeUserAgent(ua: string | null): { 
+  type: string; 
+  name: string; 
+  isBot: boolean; 
+  isLegitimateBot: boolean;
+  description: string;
+  icon: string;
+} {
+  if (!ua) return { type: "unknown", name: "Desconhecido", isBot: false, isLegitimateBot: false, description: "User Agent não fornecido", icon: "❓" };
+  
+  const uaLower = ua.toLowerCase();
+  
+  // WhatsApp/Telegram/Messenger link previews
+  if (/whatsapp/i.test(ua)) {
+    return { type: "link-preview", name: "WhatsApp Preview", isBot: true, isLegitimateBot: true, description: "Bot de preview de link do WhatsApp. É seguro - gera a prévia quando alguém compartilha seu link.", icon: "💬" };
+  }
+  if (/telegram/i.test(ua)) {
+    return { type: "link-preview", name: "Telegram Preview", isBot: true, isLegitimateBot: true, description: "Bot de preview de link do Telegram. É seguro.", icon: "📱" };
+  }
+  if (/facebookexternalhit|facebot/i.test(ua)) {
+    return { type: "link-preview", name: "Facebook Crawler", isBot: true, isLegitimateBot: true, description: "Bot do Facebook/Meta para gerar previews de links. É seguro.", icon: "📘" };
+  }
+  if (/twitterbot/i.test(ua)) {
+    return { type: "link-preview", name: "Twitter/X Preview", isBot: true, isLegitimateBot: true, description: "Bot do Twitter/X para gerar cards de links. É seguro.", icon: "🐦" };
+  }
+  if (/linkedinbot/i.test(ua)) {
+    return { type: "link-preview", name: "LinkedIn Preview", isBot: true, isLegitimateBot: true, description: "Bot do LinkedIn para gerar previews de links. É seguro.", icon: "💼" };
+  }
+  if (/slackbot/i.test(ua)) {
+    return { type: "link-preview", name: "Slack Preview", isBot: true, isLegitimateBot: true, description: "Bot do Slack para gerar previews de links. É seguro.", icon: "💼" };
+  }
+  if (/discordbot/i.test(ua)) {
+    return { type: "link-preview", name: "Discord Preview", isBot: true, isLegitimateBot: true, description: "Bot do Discord para gerar previews de links. É seguro.", icon: "🎮" };
+  }
+  
+  // Search engines
+  if (/googlebot/i.test(ua)) {
+    return { type: "search-engine", name: "Googlebot", isBot: true, isLegitimateBot: true, description: "Crawler do Google para indexação. Bom para SEO.", icon: "🔍" };
+  }
+  if (/bingbot/i.test(ua)) {
+    return { type: "search-engine", name: "Bingbot", isBot: true, isLegitimateBot: true, description: "Crawler do Bing para indexação.", icon: "🔎" };
+  }
+  
+  // Ad platform bots (should be blocked)
+  if (/adsbot/i.test(ua)) {
+    return { type: "ad-bot", name: "Google AdsBot", isBot: true, isLegitimateBot: false, description: "Bot do Google Ads verificando sua página. BLOQUEAR - pode reprovar seus anúncios.", icon: "🤖" };
+  }
+  if (/lighthouse|pagespeed/i.test(ua)) {
+    return { type: "ad-bot", name: "Google Lighthouse", isBot: true, isLegitimateBot: false, description: "Ferramenta de análise do Google. Pode ser revisão de anúncios.", icon: "🔦" };
+  }
+  
+  // Spy tools (definitely block)
+  if (/adspy|anstrex|bigspy|dropispy|pipiads|semrush|ahrefs|similarweb/i.test(ua)) {
+    return { type: "spy-tool", name: "Spy Tool", isBot: true, isLegitimateBot: false, description: "Ferramenta de espionagem de anúncios! Concorrentes monitorando sua campanha.", icon: "🕵️" };
+  }
+  
+  // Automation tools (definitely block)
+  if (/headlesschrome|phantomjs|selenium|puppeteer|playwright/i.test(ua)) {
+    return { type: "automation", name: "Browser Automatizado", isBot: true, isLegitimateBot: false, description: "Browser automatizado para scraping ou testes. Provavelmente malicioso.", icon: "⚠️" };
+  }
+  
+  // Generic bots
+  if (/bot|crawler|spider|scraper|curl|wget|python|java|http|axios|fetch/i.test(ua)) {
+    return { type: "generic-bot", name: "Bot Genérico", isBot: true, isLegitimateBot: false, description: "Bot ou script automatizado.", icon: "🤖" };
+  }
+  
+  // In-app browsers (legitimate users!)
+  if (/fbav|fban|instagram|fb_iab/i.test(ua)) {
+    return { type: "in-app", name: "Facebook/Instagram App", isBot: false, isLegitimateBot: false, description: "Usuário real navegando dentro do app do Facebook/Instagram. Tráfego legítimo!", icon: "✅" };
+  }
+  if (/tiktok/i.test(ua) && !/bytespider/i.test(ua)) {
+    return { type: "in-app", name: "TikTok App", isBot: false, isLegitimateBot: false, description: "Usuário real navegando dentro do app do TikTok. Tráfego legítimo!", icon: "✅" };
+  }
+  
+  // Regular browsers
+  if (/chrome|safari|firefox|edge|opera/i.test(ua)) {
+    if (/mobile|android|iphone|ipad/i.test(ua)) {
+      return { type: "mobile-browser", name: "Browser Mobile", isBot: false, isLegitimateBot: false, description: "Usuário real em dispositivo móvel.", icon: "📱" };
+    }
+    return { type: "desktop-browser", name: "Browser Desktop", isBot: false, isLegitimateBot: false, description: "Usuário real em computador.", icon: "💻" };
+  }
+  
+  return { type: "unknown", name: "Desconhecido", isBot: false, isLegitimateBot: false, description: "User Agent não reconhecido.", icon: "❓" };
+}
+
+// Get blocking reason in Portuguese
+function getBlockReason(visitor: CloakerVisitorLog): { reason: string; severity: "low" | "medium" | "high"; details: string } {
+  const reasons: string[] = [];
+  const details: string[] = [];
+  let severity: "low" | "medium" | "high" = "low";
+  
+  if (visitor.is_bot) {
+    reasons.push("Bot detectado");
+    severity = "high";
+    details.push("User Agent identificado como bot");
+  }
+  if (visitor.is_vpn) {
+    reasons.push("VPN");
+    severity = "medium";
+    details.push("IP de provedor de VPN conhecido");
+  }
+  if (visitor.is_proxy) {
+    reasons.push("Proxy");
+    severity = "medium";
+    details.push("IP de serviço de proxy");
+  }
+  if (visitor.is_datacenter) {
+    reasons.push("Datacenter");
+    severity = "medium";
+    details.push("IP de datacenter/hosting (AWS, Google Cloud, etc)");
+  }
+  if (visitor.is_tor) {
+    reasons.push("TOR");
+    severity = "high";
+    details.push("IP de nó de saída TOR");
+  }
+  if (visitor.is_headless) {
+    reasons.push("Headless");
+    severity = "high";
+    details.push("Browser sem interface gráfica (automação)");
+  }
+  if (visitor.is_automated) {
+    reasons.push("Automatizado");
+    severity = "high";
+    details.push("Comportamento automatizado detectado");
+  }
+  if (visitor.fingerprint_hash === "fast-block") {
+    reasons.push("Bloqueio rápido");
+    details.push("Bloqueado antes da coleta de fingerprint (detecção por UA/IP)");
+  }
+  if (visitor.score === 0 && visitor.decision === "block") {
+    details.push("Score zero indica detecção definitiva de bot/automação");
+  }
+  
+  if (reasons.length === 0) {
+    reasons.push("Score baixo");
+    details.push(`Score ${visitor.score} abaixo do mínimo configurado`);
+  }
+  
+  return { 
+    reason: reasons.join(" + "), 
+    severity, 
+    details: details.join(". ") + "."
+  };
+}
+
 // Individual log row component
 function LogRow({ visitor, links }: { visitor: CloakerVisitorLog; links: { id: string; name: string }[] }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const linkName = links.find(l => l.id === visitor.link_id)?.name || "Link removido";
+  
+  const uaAnalysis = analyzeUserAgent(visitor.user_agent);
+  const blockReason = visitor.decision === "block" ? getBlockReason(visitor) : null;
 
   const getDecisionBadge = () => {
     switch (visitor.decision) {
@@ -587,6 +737,11 @@ function LogRow({ visitor, links }: { visitor: CloakerVisitorLog; links: { id: s
                 <Server className="h-3 w-3 mr-1" /> DC
               </Badge>
             )}
+            {visitor.is_proxy && (
+              <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/30">
+                <Wifi className="h-3 w-3 mr-1" /> Proxy
+              </Badge>
+            )}
           </div>
 
           {/* Score */}
@@ -612,49 +767,125 @@ function LogRow({ visitor, links }: { visitor: CloakerVisitorLog; links: { id: s
       {/* Expanded details */}
       {isExpanded && (
         <div className="px-4 pb-4 pt-0 border-t border-border">
+          {/* User Agent Analysis - Most Important */}
+          <div className="mt-4 p-4 rounded-lg border border-border bg-background">
+            <div className="flex items-start gap-3">
+              <div className="text-2xl">{uaAnalysis.icon}</div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h4 className="font-semibold text-foreground">{uaAnalysis.name}</h4>
+                  {uaAnalysis.isBot && (
+                    <Badge className={uaAnalysis.isLegitimateBot ? "bg-blue-500/20 text-blue-500" : "bg-red-500/20 text-red-500"}>
+                      {uaAnalysis.isLegitimateBot ? "Bot Legítimo" : "Bot Malicioso"}
+                    </Badge>
+                  )}
+                  {!uaAnalysis.isBot && (
+                    <Badge className="bg-emerald-500/20 text-emerald-500">Usuário Real</Badge>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground mt-1">{uaAnalysis.description}</p>
+                <p className="text-xs text-muted-foreground mt-2 font-mono bg-muted/50 p-2 rounded truncate">
+                  {visitor.user_agent || "Sem User Agent"}
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          {/* Block Reason - If blocked */}
+          {blockReason && (
+            <div className={cn(
+              "mt-3 p-4 rounded-lg border",
+              blockReason.severity === "high" ? "bg-red-500/10 border-red-500/30" : 
+              blockReason.severity === "medium" ? "bg-orange-500/10 border-orange-500/30" : 
+              "bg-yellow-500/10 border-yellow-500/30"
+            )}>
+              <div className="flex items-start gap-3">
+                <AlertTriangle className={cn(
+                  "h-5 w-5 mt-0.5",
+                  blockReason.severity === "high" ? "text-red-500" : 
+                  blockReason.severity === "medium" ? "text-orange-500" : "text-yellow-500"
+                )} />
+                <div>
+                  <h4 className="font-semibold text-foreground">Motivo do Bloqueio: {blockReason.reason}</h4>
+                  <p className="text-sm text-muted-foreground mt-1">{blockReason.details}</p>
+                  {uaAnalysis.isLegitimateBot && (
+                    <p className="text-sm text-blue-500 mt-2">
+                      💡 <strong>Dica:</strong> Este é um bot legítimo (preview de link). Se não quiser bloquear previews, 
+                      desative "Bloquear Bots" ou reduza o score mínimo para esta campanha.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Detailed Scores */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 bg-muted/30 rounded-lg p-4">
             <div>
               <p className="text-xs text-muted-foreground">Score Fingerprint</p>
-              <p className="font-medium">{visitor.score_fingerprint ?? "-"}</p>
+              <p className="font-medium">{visitor.score_fingerprint ?? 0}</p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Score Behavior</p>
-              <p className="font-medium">{visitor.score_behavior ?? "-"}</p>
+              <p className="font-medium">{visitor.score_behavior ?? 0}</p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Score Network</p>
-              <p className="font-medium">{visitor.score_network ?? "-"}</p>
+              <p className="font-medium">{visitor.score_network ?? 0}</p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Score Automation</p>
-              <p className="font-medium">{visitor.score_automation ?? "-"}</p>
+              <p className="font-medium">{visitor.score_automation ?? 0}</p>
             </div>
+          </div>
+          
+          {/* Network Info */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3 bg-muted/30 rounded-lg p-4">
             <div>
-              <p className="text-xs text-muted-foreground">ISP</p>
-              <p className="font-medium truncate">{visitor.isp || "-"}</p>
+              <p className="text-xs text-muted-foreground">ISP (Provedor)</p>
+              <p className="font-medium text-sm truncate">{visitor.isp || "Não disponível"}</p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground">ASN</p>
-              <p className="font-medium">{visitor.asn || "-"}</p>
+              <p className="font-medium text-sm">{visitor.asn || "Não disponível"}</p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Tempo de Processamento</p>
-              <p className="font-medium">{visitor.processing_time_ms ?? "-"}ms</p>
+              <p className="font-medium text-sm">{visitor.processing_time_ms ?? 0}ms</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Fingerprint</p>
+              <p className="text-xs text-muted-foreground">Fingerprint Hash</p>
               <p className="font-medium font-mono text-xs truncate">{visitor.fingerprint_hash}</p>
             </div>
-            <div className="col-span-2">
+          </div>
+          
+          {/* Detection Flags */}
+          <div className="mt-3 flex flex-wrap gap-2">
+            <span className="text-xs text-muted-foreground mr-2">Detecções:</span>
+            {visitor.is_bot && <Badge variant="outline" className="text-xs">🤖 Bot</Badge>}
+            {visitor.is_headless && <Badge variant="outline" className="text-xs">👻 Headless</Badge>}
+            {visitor.is_automated && <Badge variant="outline" className="text-xs">⚙️ Automatizado</Badge>}
+            {visitor.is_vpn && <Badge variant="outline" className="text-xs">🔒 VPN</Badge>}
+            {visitor.is_proxy && <Badge variant="outline" className="text-xs">🌐 Proxy</Badge>}
+            {visitor.is_datacenter && <Badge variant="outline" className="text-xs">🖥️ Datacenter</Badge>}
+            {visitor.is_tor && <Badge variant="outline" className="text-xs">🧅 TOR</Badge>}
+            {!visitor.is_bot && !visitor.is_vpn && !visitor.is_proxy && !visitor.is_datacenter && !visitor.is_tor && !visitor.is_headless && !visitor.is_automated && (
+              <Badge variant="outline" className="text-xs bg-emerald-500/10 text-emerald-500">✅ Nenhuma flag</Badge>
+            )}
+          </div>
+          
+          {/* Additional Info */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 bg-muted/30 rounded-lg p-4">
+            <div>
               <p className="text-xs text-muted-foreground">Referer</p>
-              <p className="font-medium text-xs truncate">{visitor.referer || "Direto"}</p>
+              <p className="font-medium text-xs truncate">{visitor.referer || "Acesso Direto"}</p>
             </div>
-            <div className="col-span-2">
-              <p className="text-xs text-muted-foreground">User Agent</p>
-              <p className="font-medium text-xs truncate">{visitor.user_agent || "-"}</p>
+            <div>
+              <p className="text-xs text-muted-foreground">Idioma</p>
+              <p className="font-medium text-xs">{visitor.language || "Não informado"}</p>
             </div>
             {visitor.redirect_url && (
-              <div className="col-span-4">
+              <div className="col-span-2">
                 <p className="text-xs text-muted-foreground">Redirecionado para</p>
                 <p className="font-medium text-xs truncate text-primary">{visitor.redirect_url}</p>
               </div>
