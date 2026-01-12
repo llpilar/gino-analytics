@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { 
   Table,
@@ -31,6 +31,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCloakedLinks } from "@/hooks/useCloakedLinks";
 import { cn } from "@/lib/utils";
 import { VisitorDetailsDialog } from "@/components/cloaker/VisitorDetailsDialog";
+import { CampaignTab } from "@/components/cloaker/CampaignTab";
+import { ChartsTab } from "@/components/cloaker/ChartsTab";
 
 interface CloakerVisitorLog {
   id: string;
@@ -403,312 +405,323 @@ export default function CloakerLogs() {
               CHARTS
             </TabsTrigger>
           </TabsList>
-        </Tabs>
 
-        {/* Filters Panel */}
-        {showFilters && (
-          <Card className="p-4 bg-card border-border animate-in slide-in-from-top-2 duration-200">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              {/* Search */}
-              <div className="lg:col-span-2">
-                <label className="text-xs text-muted-foreground mb-1 block">Buscar</label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    placeholder="IP, país, campanha, hash..." 
-                    value={searchQuery}
-                    onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-                    className="pl-10 bg-background"
-                  />
-                  {searchQuery && (
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6"
-                      onClick={() => setSearchQuery("")}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  )}
-                </div>
-              </div>
-
-              {/* Period */}
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Período</label>
-                <Select value={periodFilter} onValueChange={(v) => { setPeriodFilter(v as PeriodFilter); setCurrentPage(1); }}>
-                  <SelectTrigger className="bg-background">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="today">Hoje</SelectItem>
-                    <SelectItem value="yesterday">Ontem</SelectItem>
-                    <SelectItem value="week">Últimos 7 dias</SelectItem>
-                    <SelectItem value="month">Últimos 30 dias</SelectItem>
-                    <SelectItem value="custom">Personalizado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Action */}
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Ação</label>
-                <Select value={actionFilter} onValueChange={(v) => { setActionFilter(v as ActionFilter); setCurrentPage(1); }}>
-                  <SelectTrigger className="bg-background">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas</SelectItem>
-                    <SelectItem value="allow">Aprovado</SelectItem>
-                    <SelectItem value="safe">Safe Page</SelectItem>
-                    <SelectItem value="block">Bloqueado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Campaign */}
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Campanha</label>
-                <Select value={selectedCampaign} onValueChange={(v) => { setSelectedCampaign(v); setCurrentPage(1); }}>
-                  <SelectTrigger className="bg-background">
-                    <SelectValue placeholder="Todas" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas</SelectItem>
-                    {links.map(link => (
-                      <SelectItem key={link.id} value={link.id}>{link.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Custom date range */}
-            {periodFilter === "custom" && (
-              <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-border">
-                <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Data Inicial</label>
-                  <Popover open={isStartDateOpen} onOpenChange={setIsStartDateOpen}>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start bg-background">
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {format(startDate, "dd/MM/yyyy")}
+          {/* Filters Panel */}
+          {showFilters && (
+            <Card className="p-4 bg-card border-border animate-in slide-in-from-top-2 duration-200 mt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                {/* Search */}
+                <div className="lg:col-span-2">
+                  <label className="text-xs text-muted-foreground mb-1 block">Buscar</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      placeholder="IP, país, campanha, hash..." 
+                      value={searchQuery}
+                      onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                      className="pl-10 bg-background"
+                    />
+                    {searchQuery && (
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6"
+                        onClick={() => setSearchQuery("")}
+                      >
+                        <X className="h-3 w-3" />
                       </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={startDate}
-                        onSelect={(date) => { if (date) setStartDate(date); setIsStartDateOpen(false); setCurrentPage(1); }}
-                        locale={ptBR}
-                      />
-                    </PopoverContent>
-                  </Popover>
+                    )}
+                  </div>
                 </div>
+
+                {/* Period */}
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Data Final</label>
-                  <Popover open={isEndDateOpen} onOpenChange={setIsEndDateOpen}>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start bg-background">
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {format(endDate, "dd/MM/yyyy")}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={endDate}
-                        onSelect={(date) => { if (date) setEndDate(date); setIsEndDateOpen(false); setCurrentPage(1); }}
-                        locale={ptBR}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-            )}
-          </Card>
-        )}
-
-        {/* Data Table */}
-        <Card className="bg-card border-border overflow-hidden">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-64">
-              <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : filteredVisitors.length === 0 ? (
-            <div className="p-12 text-center">
-              <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                <Eye className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground">Nenhum log encontrado</h3>
-              <p className="text-muted-foreground mt-1">Tente ajustar os filtros ou selecione outro período.</p>
-            </div>
-          ) : (
-            <>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="hover:bg-transparent border-border">
-                      <TableHead className="text-muted-foreground font-medium">Created in</TableHead>
-                      <TableHead className="text-muted-foreground font-medium">Campaign Name</TableHead>
-                      <TableHead className="text-muted-foreground font-medium">Hash</TableHead>
-                      <TableHead className="text-muted-foreground font-medium">Country</TableHead>
-                      <TableHead className="text-muted-foreground font-medium">IP</TableHead>
-                      <TableHead className="text-muted-foreground font-medium">Score</TableHead>
-                      <TableHead className="text-muted-foreground font-medium text-right">Device</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paginatedVisitors.map((visitor) => {
-                      const linkName = links.find(l => l.id === visitor.link_id)?.name || "Link removido";
-                      const deviceInfo = getDeviceInfo(visitor.user_agent);
-                      
-                      return (
-                        <Dialog key={visitor.id}>
-                          <DialogTrigger asChild>
-                            <TableRow 
-                              className="cursor-pointer hover:bg-muted/50 border-border transition-colors group"
-                              onClick={() => setSelectedVisitor(visitor)}
-                            >
-                              <TableCell className="font-medium text-foreground whitespace-nowrap">
-                                {format(parseISO(visitor.created_at), "EEE, dd MMM yyyy HH:mm:ss 'GMT'", { locale: ptBR })}
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-foreground font-medium truncate max-w-[200px]">{linkName}</span>
-                                  {visitor.is_blacklisted && (
-                                    <Badge variant="outline" className="text-xs bg-red-500/10 text-red-500 border-red-500/30">
-                                      Blacklist
-                                    </Badge>
-                                  )}
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <code className="text-sm text-muted-foreground font-mono">
-                                  {visitor.fingerprint_hash?.slice(0, 10) || "—"}
-                                </code>
-                              </TableCell>
-                              <TableCell>
-                                <CountryFlag code={visitor.country_code} />
-                              </TableCell>
-                              <TableCell>
-                                <code className="text-sm text-muted-foreground font-mono">
-                                  {visitor.ip_address || "—"}
-                                </code>
-                              </TableCell>
-                              <TableCell>
-                                <Badge 
-                                  className={cn(
-                                    "font-bold",
-                                    visitor.score >= 70 ? "bg-emerald-500/20 text-emerald-500 border-emerald-500/30" :
-                                    visitor.score >= 40 ? "bg-yellow-500/20 text-yellow-500 border-yellow-500/30" :
-                                    "bg-red-500/20 text-red-500 border-red-500/30"
-                                  )}
-                                >
-                                  {visitor.score}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <div className="flex items-center justify-end gap-2 text-muted-foreground group-hover:text-foreground transition-colors">
-                                  <DeviceIcon type={deviceInfo.type} />
-                                  <span className="text-sm">{deviceInfo.label}</span>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                            <DialogHeader>
-                              <DialogTitle className="flex items-center gap-3">
-                                <CountryFlag code={visitor.country_code} />
-                                <span>Detalhes do Visitante</span>
-                                <Badge 
-                                  className={cn(
-                                    visitor.decision === "allow" ? "bg-emerald-500/20 text-emerald-500" :
-                                    visitor.decision === "safe" ? "bg-yellow-500/20 text-yellow-500" :
-                                    "bg-red-500/20 text-red-500"
-                                  )}
-                                >
-                                  {visitor.decision === "allow" ? "Aprovado" : visitor.decision === "safe" ? "Safe Page" : "Bloqueado"}
-                                </Badge>
-                              </DialogTitle>
-                            </DialogHeader>
-                            <VisitorDetailsDialog visitor={visitor as any} />
-                          </DialogContent>
-                        </Dialog>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-
-              {/* Pagination */}
-              <div className="flex items-center justify-between px-4 py-4 border-t border-border bg-muted/30">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span>Items per page:</span>
-                  <Select 
-                    value={itemsPerPage.toString()} 
-                    onValueChange={(v) => { setItemsPerPage(parseInt(v)); setCurrentPage(1); }}
-                  >
-                    <SelectTrigger className="w-[70px] h-8 bg-background">
+                  <label className="text-xs text-muted-foreground mb-1 block">Período</label>
+                  <Select value={periodFilter} onValueChange={(v) => { setPeriodFilter(v as PeriodFilter); setCurrentPage(1); }}>
+                    <SelectTrigger className="bg-background">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="25">25</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
-                      <SelectItem value="100">100</SelectItem>
+                      <SelectItem value="today">Hoje</SelectItem>
+                      <SelectItem value="yesterday">Ontem</SelectItem>
+                      <SelectItem value="week">Últimos 7 dias</SelectItem>
+                      <SelectItem value="month">Últimos 30 dias</SelectItem>
+                      <SelectItem value="custom">Personalizado</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div className="flex items-center gap-4">
-                  <span className="text-sm text-muted-foreground">
-                    {startItem}-{endItem} of {filteredVisitors.length.toLocaleString()}
-                  </span>
-                  
-                  <div className="flex items-center gap-1">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-8 w-8"
-                      onClick={() => setCurrentPage(1)}
-                      disabled={currentPage === 1}
-                    >
-                      <ChevronsLeft className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-8 w-8"
-                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-8 w-8"
-                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                      disabled={currentPage === totalPages}
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-8 w-8"
-                      onClick={() => setCurrentPage(totalPages)}
-                      disabled={currentPage === totalPages}
-                    >
-                      <ChevronsRight className="h-4 w-4" />
-                    </Button>
-                  </div>
+                {/* Action */}
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Ação</label>
+                  <Select value={actionFilter} onValueChange={(v) => { setActionFilter(v as ActionFilter); setCurrentPage(1); }}>
+                    <SelectTrigger className="bg-background">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas</SelectItem>
+                      <SelectItem value="allow">Aprovado</SelectItem>
+                      <SelectItem value="safe">Safe Page</SelectItem>
+                      <SelectItem value="block">Bloqueado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Campaign */}
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Campanha</label>
+                  <Select value={selectedCampaign} onValueChange={(v) => { setSelectedCampaign(v); setCurrentPage(1); }}>
+                    <SelectTrigger className="bg-background">
+                      <SelectValue placeholder="Todas" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas</SelectItem>
+                      {links.map(link => (
+                        <SelectItem key={link.id} value={link.id}>{link.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-            </>
+
+              {/* Custom date range */}
+              {periodFilter === "custom" && (
+                <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-border">
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">Data Inicial</label>
+                    <Popover open={isStartDateOpen} onOpenChange={setIsStartDateOpen}>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="w-full justify-start bg-background">
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {format(startDate, "dd/MM/yyyy")}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={startDate}
+                          onSelect={(date) => { if (date) setStartDate(date); setIsStartDateOpen(false); setCurrentPage(1); }}
+                          locale={ptBR}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">Data Final</label>
+                    <Popover open={isEndDateOpen} onOpenChange={setIsEndDateOpen}>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="w-full justify-start bg-background">
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {format(endDate, "dd/MM/yyyy")}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={endDate}
+                          onSelect={(date) => { if (date) setEndDate(date); setIsEndDateOpen(false); setCurrentPage(1); }}
+                          locale={ptBR}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+              )}
+            </Card>
           )}
-        </Card>
+
+          {/* Tab Contents */}
+          <TabsContent value="campaign" className="mt-6">
+            <CampaignTab links={links} visitors={filteredVisitors} />
+          </TabsContent>
+
+          <TabsContent value="requests" className="mt-6">
+            {/* Data Table */}
+            <Card className="bg-card border-border overflow-hidden">
+              {isLoading ? (
+                <div className="flex items-center justify-center h-64">
+                  <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : filteredVisitors.length === 0 ? (
+                <div className="p-12 text-center">
+                  <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                    <Eye className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground">Nenhum log encontrado</h3>
+                  <p className="text-muted-foreground mt-1">Tente ajustar os filtros ou selecione outro período.</p>
+                </div>
+              ) : (
+                <>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="hover:bg-transparent border-border">
+                          <TableHead className="text-muted-foreground font-medium">Created in</TableHead>
+                          <TableHead className="text-muted-foreground font-medium">Campaign Name</TableHead>
+                          <TableHead className="text-muted-foreground font-medium">Hash</TableHead>
+                          <TableHead className="text-muted-foreground font-medium">Country</TableHead>
+                          <TableHead className="text-muted-foreground font-medium">IP</TableHead>
+                          <TableHead className="text-muted-foreground font-medium">Score</TableHead>
+                          <TableHead className="text-muted-foreground font-medium text-right">Device</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {paginatedVisitors.map((visitor) => {
+                          const linkName = links.find(l => l.id === visitor.link_id)?.name || "Link removido";
+                          const deviceInfo = getDeviceInfo(visitor.user_agent);
+                          
+                          return (
+                            <Dialog key={visitor.id}>
+                              <DialogTrigger asChild>
+                                <TableRow 
+                                  className="cursor-pointer hover:bg-muted/50 border-border transition-colors group"
+                                  onClick={() => setSelectedVisitor(visitor)}
+                                >
+                                  <TableCell className="font-medium text-foreground whitespace-nowrap">
+                                    {format(parseISO(visitor.created_at), "EEE, dd MMM yyyy HH:mm:ss 'GMT'", { locale: ptBR })}
+                                  </TableCell>
+                                  <TableCell>
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-foreground font-medium truncate max-w-[200px]">{linkName}</span>
+                                      {visitor.is_blacklisted && (
+                                        <Badge variant="outline" className="text-xs bg-red-500/10 text-red-500 border-red-500/30">
+                                          Blacklist
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    <code className="text-sm text-muted-foreground font-mono">
+                                      {visitor.fingerprint_hash?.slice(0, 10) || "—"}
+                                    </code>
+                                  </TableCell>
+                                  <TableCell>
+                                    <CountryFlag code={visitor.country_code} />
+                                  </TableCell>
+                                  <TableCell>
+                                    <code className="text-sm text-muted-foreground font-mono">
+                                      {visitor.ip_address || "—"}
+                                    </code>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge 
+                                      className={cn(
+                                        "font-bold",
+                                        visitor.score >= 70 ? "bg-emerald-500/20 text-emerald-500 border-emerald-500/30" :
+                                        visitor.score >= 40 ? "bg-yellow-500/20 text-yellow-500 border-yellow-500/30" :
+                                        "bg-red-500/20 text-red-500 border-red-500/30"
+                                      )}
+                                    >
+                                      {visitor.score}
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell className="text-right">
+                                    <div className="flex items-center justify-end gap-2 text-muted-foreground group-hover:text-foreground transition-colors">
+                                      <DeviceIcon type={deviceInfo.type} />
+                                      <span className="text-sm">{deviceInfo.label}</span>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                                <DialogHeader>
+                                  <DialogTitle className="flex items-center gap-3">
+                                    <CountryFlag code={visitor.country_code} />
+                                    <span>Detalhes do Visitante</span>
+                                    <Badge 
+                                      className={cn(
+                                        visitor.decision === "allow" ? "bg-emerald-500/20 text-emerald-500" :
+                                        visitor.decision === "safe" ? "bg-yellow-500/20 text-yellow-500" :
+                                        "bg-red-500/20 text-red-500"
+                                      )}
+                                    >
+                                      {visitor.decision === "allow" ? "Aprovado" : visitor.decision === "safe" ? "Safe Page" : "Bloqueado"}
+                                    </Badge>
+                                  </DialogTitle>
+                                </DialogHeader>
+                                <VisitorDetailsDialog visitor={visitor as any} />
+                              </DialogContent>
+                            </Dialog>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  {/* Pagination */}
+                  <div className="flex items-center justify-between px-4 py-4 border-t border-border bg-muted/30">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <span>Items per page:</span>
+                      <Select 
+                        value={itemsPerPage.toString()} 
+                        onValueChange={(v) => { setItemsPerPage(parseInt(v)); setCurrentPage(1); }}
+                      >
+                        <SelectTrigger className="w-[70px] h-8 bg-background">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="25">25</SelectItem>
+                          <SelectItem value="50">50</SelectItem>
+                          <SelectItem value="100">100</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      <span className="text-sm text-muted-foreground">
+                        {startItem}-{endItem} of {filteredVisitors.length.toLocaleString()}
+                      </span>
+                      
+                      <div className="flex items-center gap-1">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8"
+                          onClick={() => setCurrentPage(1)}
+                          disabled={currentPage === 1}
+                        >
+                          <ChevronsLeft className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8"
+                          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                          disabled={currentPage === 1}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8"
+                          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                          disabled={currentPage === totalPages}
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8"
+                          onClick={() => setCurrentPage(totalPages)}
+                          disabled={currentPage === totalPages}
+                        >
+                          <ChevronsRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="charts" className="mt-6">
+            <ChartsTab visitors={filteredVisitors} />
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardWrapper>
   );
