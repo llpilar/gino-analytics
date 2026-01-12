@@ -64,6 +64,7 @@ const PRESETS = {
     description: "Otimizado para FB/Instagram Ads",
     config: {
       blockBots: true,
+      allowSocialPreviews: true, // Permite WhatsApp, Messenger, etc
       minScore: 25, // Baixo - in-app browsers têm fingerprints estranhos
       collectFingerprint: true,
       requireBehavior: false, // NUNCA em mobile - mata conversão
@@ -85,6 +86,7 @@ const PRESETS = {
     description: "Otimizado para Google Ads",
     config: {
       blockBots: true,
+      allowSocialPreviews: true,
       minScore: 35, // Médio - tráfego Google é mais "limpo"
       collectFingerprint: true,
       requireBehavior: false, // Desativado para não prejudicar conversão
@@ -106,6 +108,7 @@ const PRESETS = {
     description: "Otimizado para TikTok Ads",
     config: {
       blockBots: true,
+      allowSocialPreviews: true, // Permite previews do TikTok
       minScore: 20, // MUITO baixo - público jovem, mobile, impulso
       collectFingerprint: true,
       requireBehavior: false, // NUNCA - TikTok é 100% mobile
@@ -127,6 +130,7 @@ const PRESETS = {
     description: "SEO, direto, redes sociais",
     config: {
       blockBots: true, // Bloqueia crawlers maliciosos
+      allowSocialPreviews: true, // Permite previews de redes sociais
       minScore: 15, // BEM permissivo
       collectFingerprint: true,
       requireBehavior: false,
@@ -148,6 +152,7 @@ const PRESETS = {
     description: "Para ofertas sensíveis/blackhat",
     config: {
       blockBots: true,
+      allowSocialPreviews: false, // NÃO permite - máxima proteção
       minScore: 45, // Alto - só passa quem for muito humano
       collectFingerprint: true,
       requireBehavior: true, // ATIVADO - filtra ao máximo
@@ -221,6 +226,8 @@ export default function Cloaker() {
     allowedDevices: [] as string[],
     // === PROTEÇÃO ATIVADA POR PADRÃO ===
     blockBots: true,
+    // Permitir previews de redes sociais (WhatsApp, Telegram, Facebook, etc)
+    allowSocialPreviews: true,
     // Score 35 = balanceado (não muito agressivo, não muito permissivo)
     minScore: 35,
     // Fingerprint ativo = melhor detecção de bots/automação
@@ -287,6 +294,7 @@ export default function Cloaker() {
         blocked_countries: formData.blockedCountries.length > 0 ? formData.blockedCountries : null,
         allowed_devices: formData.allowedDevices.length > 0 ? formData.allowedDevices : null,
         block_bots: formData.blockBots,
+        allow_social_previews: formData.allowSocialPreviews,
         min_score: formData.minScore,
         collect_fingerprint: formData.collectFingerprint,
         require_behavior: formData.requireBehavior,
@@ -334,6 +342,7 @@ export default function Cloaker() {
       blockedCountries: [],
       allowedDevices: [],
       blockBots: true,
+      allowSocialPreviews: true,
       minScore: 35,
       collectFingerprint: true,
       requireBehavior: true,
