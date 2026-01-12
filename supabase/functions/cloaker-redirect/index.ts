@@ -1239,48 +1239,630 @@ const SNAPCHAT_BOT_UA_PATTERNS = [/Snapchat/i, /SnapBot/i];
 const TWITTER_BOT_UA_PATTERNS = [/Twitterbot/i, /Twitter/i];
 const LINKEDIN_BOT_UA_PATTERNS = [/LinkedInBot/i, /LinkedIn/i];
 
-// ==================== DATACENTER/CLOUD IPs ====================
-const DATACENTER_IP_RANGES = [
-  // AWS
+// ==================== DATACENTER/CLOUD IPs (ULTRA COMPREHENSIVE) ====================
+const AWS_IP_RANGES = [
+  // AWS Global ranges
   { start: "3.0.0.0", end: "3.255.255.255" },
+  { start: "13.32.0.0", end: "13.35.255.255" },
+  { start: "13.52.0.0", end: "13.59.255.255" },
+  { start: "13.112.0.0", end: "13.115.255.255" },
+  { start: "13.124.0.0", end: "13.127.255.255" },
+  { start: "13.208.0.0", end: "13.215.255.255" },
+  { start: "13.224.0.0", end: "13.227.255.255" },
+  { start: "13.228.0.0", end: "13.235.255.255" },
+  { start: "13.236.0.0", end: "13.239.255.255" },
+  { start: "13.244.0.0", end: "13.251.255.255" },
+  { start: "15.160.0.0", end: "15.161.255.255" },
+  { start: "15.164.0.0", end: "15.165.255.255" },
+  { start: "15.177.0.0", end: "15.177.255.255" },
+  { start: "15.188.0.0", end: "15.189.255.255" },
+  { start: "15.197.0.0", end: "15.197.255.255" },
+  { start: "15.200.0.0", end: "15.201.255.255" },
+  { start: "15.206.0.0", end: "15.207.255.255" },
+  { start: "16.0.0.0", end: "16.63.255.255" },
+  { start: "18.0.0.0", end: "18.255.255.255" },
+  { start: "23.20.0.0", end: "23.23.255.255" },
+  { start: "34.192.0.0", end: "34.255.255.255" },
+  { start: "35.152.0.0", end: "35.183.255.255" },
+  { start: "44.192.0.0", end: "44.255.255.255" },
+  { start: "50.16.0.0", end: "50.19.255.255" },
   { start: "52.0.0.0", end: "52.255.255.255" },
   { start: "54.0.0.0", end: "54.255.255.255" },
-  { start: "18.0.0.0", end: "18.255.255.255" },
-  // DigitalOcean
+  { start: "63.32.0.0", end: "63.35.255.255" },
+  { start: "64.252.0.0", end: "64.252.255.255" },
+  { start: "67.202.0.0", end: "67.202.63.255" },
+  { start: "72.21.192.0", end: "72.21.223.255" },
+  { start: "75.2.0.0", end: "75.2.255.255" },
+  { start: "76.223.0.0", end: "76.223.255.255" },
+  { start: "99.77.0.0", end: "99.86.255.255" },
+  { start: "99.150.0.0", end: "99.152.255.255" },
+  { start: "100.20.0.0", end: "100.27.255.255" },
+  { start: "107.20.0.0", end: "107.23.255.255" },
+  { start: "174.129.0.0", end: "174.129.255.255" },
+  { start: "176.32.96.0", end: "176.32.127.255" },
+  { start: "184.72.0.0", end: "184.73.255.255" },
+  { start: "184.169.128.0", end: "184.169.255.255" },
+  { start: "185.143.16.0", end: "185.143.19.255" },
+  { start: "204.236.128.0", end: "204.236.255.255" },
+  { start: "205.251.192.0", end: "205.251.255.255" },
+  { start: "207.171.160.0", end: "207.171.191.255" },
+  { start: "216.182.224.0", end: "216.182.239.255" },
+];
+
+const GCP_IP_RANGES = [
+  // Google Cloud Platform
+  { start: "8.34.208.0", end: "8.34.255.255" },
+  { start: "23.236.48.0", end: "23.236.63.255" },
+  { start: "23.251.128.0", end: "23.251.191.255" },
+  { start: "34.0.0.0", end: "34.255.255.255" },
+  { start: "35.184.0.0", end: "35.247.255.255" },
+  { start: "104.154.0.0", end: "104.155.255.255" },
+  { start: "104.196.0.0", end: "104.199.255.255" },
+  { start: "107.167.160.0", end: "107.167.191.255" },
+  { start: "107.178.192.0", end: "107.178.255.255" },
+  { start: "108.59.80.0", end: "108.59.95.255" },
+  { start: "130.211.0.0", end: "130.211.255.255" },
+  { start: "146.148.0.0", end: "146.148.127.255" },
+  { start: "162.216.148.0", end: "162.216.151.255" },
+  { start: "162.222.176.0", end: "162.222.191.255" },
+  { start: "173.255.112.0", end: "173.255.127.255" },
+  { start: "192.158.28.0", end: "192.158.31.255" },
+  { start: "199.192.112.0", end: "199.192.127.255" },
+  { start: "199.223.232.0", end: "199.223.239.255" },
+  { start: "208.68.108.0", end: "208.68.111.255" },
+];
+
+const AZURE_IP_RANGES = [
+  // Microsoft Azure
+  { start: "13.64.0.0", end: "13.107.255.255" },
+  { start: "20.0.0.0", end: "20.255.255.255" },
+  { start: "23.96.0.0", end: "23.103.255.255" },
+  { start: "40.64.0.0", end: "40.125.255.255" },
+  { start: "51.4.0.0", end: "51.5.255.255" },
+  { start: "51.8.0.0", end: "51.8.255.255" },
+  { start: "51.10.0.0", end: "51.13.255.255" },
+  { start: "51.18.0.0", end: "51.22.255.255" },
+  { start: "51.103.0.0", end: "51.107.255.255" },
+  { start: "51.116.0.0", end: "51.145.255.255" },
+  { start: "52.0.0.0", end: "52.255.255.255" },
+  { start: "65.52.0.0", end: "65.55.255.255" },
+  { start: "70.37.0.0", end: "70.37.159.255" },
+  { start: "94.245.64.0", end: "94.245.127.255" },
+  { start: "104.40.0.0", end: "104.47.255.255" },
+  { start: "104.208.0.0", end: "104.215.255.255" },
+  { start: "137.116.0.0", end: "137.117.255.255" },
+  { start: "137.135.0.0", end: "137.135.255.255" },
+  { start: "157.55.0.0", end: "157.60.255.255" },
+  { start: "168.61.0.0", end: "168.63.255.255" },
+  { start: "191.232.0.0", end: "191.239.255.255" },
+  { start: "207.46.0.0", end: "207.46.255.255" },
+  { start: "213.199.128.0", end: "213.199.191.255" },
+];
+
+const DIGITALOCEAN_IP_RANGES = [
+  { start: "64.225.0.0", end: "64.227.255.255" },
+  { start: "67.205.128.0", end: "67.207.255.255" },
+  { start: "68.183.0.0", end: "68.183.255.255" },
+  { start: "104.131.0.0", end: "104.131.255.255" },
+  { start: "104.236.0.0", end: "104.236.255.255" },
+  { start: "128.199.0.0", end: "128.199.255.255" },
+  { start: "134.209.0.0", end: "134.209.255.255" },
+  { start: "137.184.0.0", end: "137.184.255.255" },
+  { start: "138.68.0.0", end: "138.68.255.255" },
+  { start: "138.197.0.0", end: "138.197.255.255" },
+  { start: "139.59.0.0", end: "139.59.255.255" },
+  { start: "142.93.0.0", end: "142.93.255.255" },
+  { start: "143.110.0.0", end: "143.110.255.255" },
+  { start: "143.198.0.0", end: "143.198.255.255" },
+  { start: "144.126.192.0", end: "144.126.255.255" },
+  { start: "146.190.0.0", end: "146.190.255.255" },
+  { start: "147.182.0.0", end: "147.182.255.255" },
+  { start: "157.230.0.0", end: "157.230.255.255" },
+  { start: "159.65.0.0", end: "159.65.255.255" },
   { start: "159.89.0.0", end: "159.89.255.255" },
+  { start: "159.203.0.0", end: "159.203.255.255" },
+  { start: "161.35.0.0", end: "161.35.255.255" },
+  { start: "162.243.0.0", end: "162.243.255.255" },
+  { start: "164.90.0.0", end: "164.90.255.255" },
+  { start: "164.92.0.0", end: "164.92.255.255" },
+  { start: "165.22.0.0", end: "165.22.255.255" },
+  { start: "165.227.0.0", end: "165.227.255.255" },
+  { start: "165.232.0.0", end: "165.232.255.255" },
+  { start: "167.71.0.0", end: "167.71.255.255" },
   { start: "167.99.0.0", end: "167.99.255.255" },
+  { start: "167.172.0.0", end: "167.172.255.255" },
+  { start: "170.64.0.0", end: "170.64.255.255" },
+  { start: "174.138.0.0", end: "174.138.127.255" },
+  { start: "178.62.0.0", end: "178.62.255.255" },
+  { start: "178.128.0.0", end: "178.128.255.255" },
+  { start: "188.166.0.0", end: "188.166.255.255" },
+  { start: "192.81.208.0", end: "192.81.223.255" },
+  { start: "198.199.64.0", end: "198.199.127.255" },
+  { start: "206.81.0.0", end: "206.81.31.255" },
   { start: "206.189.0.0", end: "206.189.255.255" },
-  // Vultr
-  { start: "45.32.0.0", end: "45.77.255.255" },
-  { start: "149.28.0.0", end: "149.28.255.255" },
-  // Linode
-  { start: "45.33.0.0", end: "45.79.255.255" },
-  { start: "139.162.0.0", end: "139.162.255.255" },
-  // Hetzner
+  { start: "209.97.128.0", end: "209.97.191.255" },
+  { start: "45.55.0.0", end: "45.55.255.255" },
+  { start: "46.101.0.0", end: "46.101.255.255" },
+  { start: "82.196.0.0", end: "82.196.15.255" },
+  { start: "95.85.0.0", end: "95.85.63.255" },
+  { start: "107.170.0.0", end: "107.170.255.255" },
+];
+
+const HETZNER_IP_RANGES = [
+  { start: "5.9.0.0", end: "5.9.255.255" },
+  { start: "5.75.128.0", end: "5.75.255.255" },
+  { start: "23.88.0.0", end: "23.88.127.255" },
+  { start: "37.27.0.0", end: "37.27.255.255" },
+  { start: "46.4.0.0", end: "46.4.255.255" },
+  { start: "49.12.0.0", end: "49.13.255.255" },
+  { start: "65.108.0.0", end: "65.109.255.255" },
+  { start: "65.21.0.0", end: "65.21.255.255" },
+  { start: "78.46.0.0", end: "78.47.255.255" },
+  { start: "85.10.192.0", end: "85.10.255.255" },
+  { start: "88.198.0.0", end: "88.198.255.255" },
+  { start: "88.99.0.0", end: "88.99.255.255" },
+  { start: "91.107.128.0", end: "91.107.255.255" },
+  { start: "94.130.0.0", end: "94.130.255.255" },
   { start: "95.216.0.0", end: "95.217.255.255" },
+  { start: "116.202.0.0", end: "116.203.255.255" },
+  { start: "128.140.0.0", end: "128.140.127.255" },
   { start: "135.181.0.0", end: "135.181.255.255" },
-  // OVH
-  { start: "51.38.0.0", end: "51.91.255.255" },
-  // Cloudflare Workers
-  { start: "172.64.0.0", end: "172.71.255.255" },
+  { start: "136.243.0.0", end: "136.243.255.255" },
+  { start: "138.201.0.0", end: "138.201.255.255" },
+  { start: "142.132.128.0", end: "142.132.255.255" },
+  { start: "144.76.0.0", end: "144.76.255.255" },
+  { start: "148.251.0.0", end: "148.251.255.255" },
+  { start: "157.90.0.0", end: "157.90.255.255" },
+  { start: "159.69.0.0", end: "159.69.255.255" },
+  { start: "162.55.0.0", end: "162.55.255.255" },
+  { start: "167.235.0.0", end: "167.235.255.255" },
+  { start: "168.119.0.0", end: "168.119.255.255" },
+  { start: "176.9.0.0", end: "176.9.255.255" },
+  { start: "178.63.0.0", end: "178.63.255.255" },
+  { start: "188.34.128.0", end: "188.34.191.255" },
+  { start: "188.40.0.0", end: "188.40.255.255" },
+  { start: "195.201.0.0", end: "195.201.255.255" },
+  { start: "213.133.96.0", end: "213.133.111.255" },
+  { start: "213.239.192.0", end: "213.239.255.255" },
+];
+
+const OVH_IP_RANGES = [
+  { start: "5.39.0.0", end: "5.39.255.255" },
+  { start: "5.135.0.0", end: "5.135.255.255" },
+  { start: "5.196.0.0", end: "5.196.255.255" },
+  { start: "37.59.0.0", end: "37.59.255.255" },
+  { start: "37.187.0.0", end: "37.187.255.255" },
+  { start: "46.105.0.0", end: "46.105.255.255" },
+  { start: "51.38.0.0", end: "51.38.255.255" },
+  { start: "51.68.0.0", end: "51.68.255.255" },
+  { start: "51.75.0.0", end: "51.75.255.255" },
+  { start: "51.77.0.0", end: "51.79.255.255" },
+  { start: "51.83.0.0", end: "51.83.255.255" },
+  { start: "51.89.0.0", end: "51.91.255.255" },
+  { start: "51.161.0.0", end: "51.161.255.255" },
+  { start: "51.178.0.0", end: "51.178.255.255" },
+  { start: "51.195.0.0", end: "51.195.255.255" },
+  { start: "51.210.0.0", end: "51.210.255.255" },
+  { start: "51.254.0.0", end: "51.255.255.255" },
+  { start: "54.36.0.0", end: "54.39.255.255" },
+  { start: "57.128.0.0", end: "57.128.255.255" },
+  { start: "79.137.0.0", end: "79.137.127.255" },
+  { start: "87.98.128.0", end: "87.98.255.255" },
+  { start: "91.121.0.0", end: "91.121.255.255" },
+  { start: "92.222.0.0", end: "92.222.255.255" },
+  { start: "94.23.0.0", end: "94.23.255.255" },
+  { start: "135.125.0.0", end: "135.125.255.255" },
+  { start: "137.74.0.0", end: "137.74.255.255" },
+  { start: "139.99.0.0", end: "139.99.255.255" },
+  { start: "141.94.0.0", end: "141.95.255.255" },
+  { start: "145.239.0.0", end: "145.239.255.255" },
+  { start: "147.135.0.0", end: "147.135.255.255" },
+  { start: "149.202.0.0", end: "149.202.255.255" },
+  { start: "151.80.0.0", end: "151.80.255.255" },
+  { start: "158.69.0.0", end: "158.69.255.255" },
+  { start: "164.132.0.0", end: "164.132.255.255" },
+  { start: "167.114.0.0", end: "167.114.255.255" },
+  { start: "176.31.0.0", end: "176.31.255.255" },
+  { start: "178.32.0.0", end: "178.33.255.255" },
+  { start: "185.12.32.0", end: "185.12.35.255" },
+  { start: "188.165.0.0", end: "188.165.255.255" },
+  { start: "192.95.0.0", end: "192.95.63.255" },
+  { start: "193.70.0.0", end: "193.70.127.255" },
+  { start: "198.27.64.0", end: "198.27.127.255" },
+  { start: "198.50.128.0", end: "198.50.255.255" },
+  { start: "198.100.144.0", end: "198.100.159.255" },
+  { start: "198.245.48.0", end: "198.245.63.255" },
+  { start: "213.186.32.0", end: "213.186.63.255" },
+  { start: "213.251.128.0", end: "213.251.191.255" },
+  { start: "217.182.0.0", end: "217.182.255.255" },
+];
+
+const LINODE_IP_RANGES = [
+  { start: "23.92.16.0", end: "23.92.31.255" },
+  { start: "45.33.0.0", end: "45.33.127.255" },
+  { start: "45.56.64.0", end: "45.56.127.255" },
+  { start: "45.79.0.0", end: "45.79.255.255" },
+  { start: "50.116.0.0", end: "50.116.63.255" },
+  { start: "66.175.208.0", end: "66.175.223.255" },
+  { start: "69.164.192.0", end: "69.164.223.255" },
+  { start: "72.14.176.0", end: "72.14.191.255" },
+  { start: "74.207.224.0", end: "74.207.255.255" },
+  { start: "96.126.96.0", end: "96.126.127.255" },
+  { start: "97.107.128.0", end: "97.107.143.255" },
+  { start: "139.162.0.0", end: "139.162.255.255" },
+  { start: "172.104.0.0", end: "172.105.255.255" },
+  { start: "173.230.128.0", end: "173.230.159.255" },
+  { start: "173.255.192.0", end: "173.255.255.255" },
+  { start: "176.58.88.0", end: "176.58.127.255" },
+  { start: "178.79.128.0", end: "178.79.191.255" },
+  { start: "192.155.80.0", end: "192.155.95.255" },
+  { start: "194.195.112.0", end: "194.195.127.255" },
+  { start: "198.58.96.0", end: "198.58.127.255" },
+  { start: "212.71.232.0", end: "212.71.255.255" },
+  { start: "212.111.32.0", end: "212.111.47.255" },
+];
+
+const VULTR_IP_RANGES = [
+  { start: "45.32.0.0", end: "45.32.255.255" },
+  { start: "45.63.0.0", end: "45.63.127.255" },
+  { start: "45.76.0.0", end: "45.77.255.255" },
+  { start: "64.176.0.0", end: "64.176.255.255" },
+  { start: "64.237.32.0", end: "64.237.47.255" },
+  { start: "66.42.32.0", end: "66.42.127.255" },
+  { start: "78.141.192.0", end: "78.141.255.255" },
+  { start: "95.179.128.0", end: "95.179.255.255" },
+  { start: "104.156.224.0", end: "104.156.255.255" },
+  { start: "104.207.128.0", end: "104.207.159.255" },
+  { start: "108.61.0.0", end: "108.61.255.255" },
+  { start: "136.244.64.0", end: "136.244.127.255" },
+  { start: "140.82.0.0", end: "140.82.63.255" },
+  { start: "144.202.0.0", end: "144.202.127.255" },
+  { start: "149.28.0.0", end: "149.28.255.255" },
+  { start: "149.248.0.0", end: "149.248.63.255" },
+  { start: "155.138.128.0", end: "155.138.255.255" },
+  { start: "158.247.192.0", end: "158.247.255.255" },
+  { start: "167.179.0.0", end: "167.179.127.255" },
+  { start: "185.92.220.0", end: "185.92.223.255" },
+  { start: "192.248.144.0", end: "192.248.191.255" },
+  { start: "199.247.0.0", end: "199.247.31.255" },
+  { start: "207.148.64.0", end: "207.148.127.255" },
+  { start: "208.167.224.0", end: "208.167.255.255" },
+  { start: "209.222.0.0", end: "209.222.31.255" },
+  { start: "216.128.128.0", end: "216.128.191.255" },
+  { start: "217.163.0.0", end: "217.163.31.255" },
+];
+
+const OTHER_DATACENTER_IP_RANGES = [
+  // Cloudflare Workers / CDN
+  { start: "103.21.244.0", end: "103.21.247.255" },
+  { start: "103.22.200.0", end: "103.22.203.255" },
+  { start: "103.31.4.0", end: "103.31.7.255" },
   { start: "104.16.0.0", end: "104.31.255.255" },
+  { start: "108.162.192.0", end: "108.162.255.255" },
+  { start: "131.0.72.0", end: "131.0.79.255" },
+  { start: "141.101.64.0", end: "141.101.127.255" },
+  { start: "162.158.0.0", end: "162.159.255.255" },
+  { start: "172.64.0.0", end: "172.71.255.255" },
+  { start: "173.245.48.0", end: "173.245.63.255" },
+  { start: "188.114.96.0", end: "188.114.111.255" },
+  { start: "190.93.240.0", end: "190.93.247.255" },
+  { start: "197.234.240.0", end: "197.234.243.255" },
+  { start: "198.41.128.0", end: "198.41.255.255" },
+  // Scaleway
+  { start: "51.15.0.0", end: "51.15.255.255" },
+  { start: "51.158.0.0", end: "51.159.255.255" },
+  { start: "62.210.0.0", end: "62.210.255.255" },
+  { start: "163.172.0.0", end: "163.172.255.255" },
+  { start: "195.154.0.0", end: "195.154.255.255" },
+  { start: "212.47.224.0", end: "212.47.255.255" },
+  // UpCloud
+  { start: "94.237.0.0", end: "94.237.127.255" },
+  { start: "185.70.196.0", end: "185.70.199.255" },
+  // Contabo
+  { start: "62.171.128.0", end: "62.171.191.255" },
+  { start: "167.86.64.0", end: "167.86.127.255" },
+  { start: "173.212.192.0", end: "173.212.255.255" },
+  { start: "178.238.224.0", end: "178.238.255.255" },
+  { start: "193.26.156.0", end: "193.26.159.255" },
+  { start: "193.164.128.0", end: "193.164.159.255" },
+  { start: "207.180.192.0", end: "207.180.255.255" },
 ];
 
-// ==================== VPN/PROXY DETECTION ====================
-const VPN_ASN_PATTERNS = [
-  /express\s*vpn/i, /nord\s*vpn/i, /surfshark/i, /cyberghost/i,
-  /private\s*internet\s*access/i, /mullvad/i, /proton\s*vpn/i,
-  /ipvanish/i, /purevpn/i, /windscribe/i, /hide\.me/i,
+// Merge all datacenter ranges
+const DATACENTER_IP_RANGES = [
+  ...AWS_IP_RANGES,
+  ...GCP_IP_RANGES,
+  ...AZURE_IP_RANGES,
+  ...DIGITALOCEAN_IP_RANGES,
+  ...HETZNER_IP_RANGES,
+  ...OVH_IP_RANGES,
+  ...LINODE_IP_RANGES,
+  ...VULTR_IP_RANGES,
+  ...OTHER_DATACENTER_IP_RANGES,
 ];
 
-const VPN_PROVIDER_IPS = [
-  { start: "194.35.232.0", end: "194.35.239.255" },
+// ==================== VPN/PROXY/TOR DETECTION (ULTRA COMPREHENSIVE) ====================
+const VPN_PROVIDER_IP_RANGES = [
+  // ExpressVPN
+  { start: "193.148.16.0", end: "193.148.19.255" },
+  { start: "149.34.244.0", end: "149.34.247.255" },
+  { start: "45.92.160.0", end: "45.92.163.255" },
+  // NordVPN
+  { start: "89.36.76.0", end: "89.36.79.255" },
+  { start: "104.200.64.0", end: "104.200.79.255" },
+  { start: "185.93.180.0", end: "185.93.183.255" },
+  { start: "212.102.36.0", end: "212.102.39.255" },
+  { start: "217.138.192.0", end: "217.138.223.255" },
+  // Surfshark
+  { start: "45.89.52.0", end: "45.89.55.255" },
+  { start: "185.212.168.0", end: "185.212.171.255" },
+  { start: "194.187.248.0", end: "194.187.251.255" },
+  // CyberGhost
+  { start: "89.187.160.0", end: "89.187.191.255" },
+  { start: "37.120.208.0", end: "37.120.223.255" },
+  { start: "193.37.252.0", end: "193.37.255.255" },
+  // Private Internet Access
+  { start: "185.253.160.0", end: "185.253.163.255" },
+  { start: "91.219.236.0", end: "91.219.239.255" },
+  // ProtonVPN
+  { start: "146.70.0.0", end: "146.70.255.255" },
   { start: "185.159.156.0", end: "185.159.159.255" },
+  { start: "45.134.140.0", end: "45.134.143.255" },
+  // Mullvad
+  { start: "185.213.152.0", end: "185.213.155.255" },
+  { start: "193.138.218.0", end: "193.138.219.255" },
   { start: "198.54.128.0", end: "198.54.135.255" },
+  { start: "45.83.220.0", end: "45.83.223.255" },
+  // IPVanish
+  { start: "209.95.50.0", end: "209.95.63.255" },
+  { start: "198.18.0.0", end: "198.19.255.255" },
+  // PureVPN
+  { start: "109.92.48.0", end: "109.92.63.255" },
+  { start: "194.35.232.0", end: "194.35.239.255" },
+  // Windscribe
+  { start: "89.45.68.0", end: "89.45.71.255" },
+  { start: "185.212.168.0", end: "185.212.171.255" },
+  // Hide.me
+  { start: "185.204.1.0", end: "185.204.3.255" },
+  // VyprVPN
+  { start: "209.95.42.0", end: "209.95.49.255" },
+  // TunnelBear
+  { start: "209.209.224.0", end: "209.209.255.255" },
+  // Hotspot Shield
+  { start: "74.115.0.0", end: "74.115.7.255" },
+  // Various commercial VPN ranges
+  { start: "185.220.100.0", end: "185.220.103.255" },
+  { start: "185.220.101.0", end: "185.220.101.255" },
+  { start: "194.99.104.0", end: "194.99.111.255" },
 ];
 
-const PROXY_ASNS = ["AS47846", "AS206264", "AS9009", "AS29073"];
-const DATACENTER_ASNS = ["AS16509", "AS14618", "AS13335", "AS14061", "AS20473", "AS63949", "AS24940", "AS16276"];
+const TOR_EXIT_IP_RANGES = [
+  // Known TOR exit node IP blocks (partial list)
+  { start: "185.220.100.0", end: "185.220.103.255" },
+  { start: "185.220.101.0", end: "185.220.101.255" },
+  { start: "185.220.102.0", end: "185.220.102.255" },
+  { start: "45.154.255.0", end: "45.154.255.255" },
+  { start: "185.129.60.0", end: "185.129.63.255" },
+  { start: "109.70.100.0", end: "109.70.100.255" },
+  { start: "199.249.230.0", end: "199.249.230.255" },
+  { start: "204.85.191.0", end: "204.85.191.255" },
+  { start: "209.127.0.0", end: "209.127.31.255" },
+  { start: "192.42.116.0", end: "192.42.119.255" },
+  { start: "176.10.99.0", end: "176.10.99.255" },
+  { start: "162.247.72.0", end: "162.247.75.255" },
+  { start: "23.129.64.0", end: "23.129.95.255" },
+  { start: "198.98.48.0", end: "198.98.63.255" },
+];
+
+const ICLOUD_PRIVATE_RELAY_IP_RANGES = [
+  // Apple iCloud Private Relay ranges
+  { start: "104.28.0.0", end: "104.28.255.255" },
+  { start: "172.224.0.0", end: "172.225.255.255" },
+  { start: "17.0.0.0", end: "17.255.255.255" },
+  // Known iCloud Private Relay egress ranges
+  { start: "104.28.0.0", end: "104.28.127.255" },
+  { start: "172.224.224.0", end: "172.224.255.255" },
+  { start: "172.225.0.0", end: "172.225.127.255" },
+];
+
+const PROXY_IP_RANGES = [
+  // Known proxy service providers
+  { start: "103.214.20.0", end: "103.214.23.255" },
+  { start: "185.244.192.0", end: "185.244.195.255" },
+  { start: "45.67.228.0", end: "45.67.231.255" },
+  { start: "185.181.60.0", end: "185.181.63.255" },
+  { start: "194.99.104.0", end: "194.99.111.255" },
+  { start: "91.132.136.0", end: "91.132.139.255" },
+  // Luminati/Bright Data
+  { start: "45.8.104.0", end: "45.8.111.255" },
+  { start: "185.193.124.0", end: "185.193.127.255" },
+  // Oxylabs
+  { start: "185.62.188.0", end: "185.62.191.255" },
+  // GeoSurf
+  { start: "45.67.228.0", end: "45.67.231.255" },
+  // Smartproxy
+  { start: "195.158.24.0", end: "195.158.31.255" },
+];
+
+// VPN/Proxy ASN patterns for ISP name matching
+const VPN_ISP_PATTERNS = [
+  /expressvpn/i, /nordvpn/i, /surfshark/i, /cyberghost/i,
+  /private\s*internet\s*access/i, /mullvad/i, /protonvpn/i, /proton\s*ag/i,
+  /ipvanish/i, /purevpn/i, /windscribe/i, /hide\.me/i, /vyprvpn/i,
+  /tunnelbear/i, /hotspot\s*shield/i, /anchorfree/i, /strongvpn/i,
+  /hidemyass/i, /hma/i, /privateinternetaccess/i, /pia/i,
+  /ghost\s*path/i, /torguard/i, /perfect\s*privacy/i, /airvpn/i,
+  /ovpn/i, /ivpn/i, /astrill/i, /trust\.zone/i, /safervpn/i,
+];
+
+const PROXY_ISP_PATTERNS = [
+  /luminati/i, /bright\s*data/i, /oxylabs/i, /geosurf/i, /smartproxy/i,
+  /microleaves/i, /storm\s*proxies/i, /soax/i, /proxy-?seller/i,
+  /instantproxies/i, /shifter/i, /netnut/i, /infatica/i, /iproyal/i,
+  /proxy\s*rack/i, /high\s*proxies/i, /blazing\s*seo/i, /sslprivate/i,
+];
+
+const HOSTING_ISP_PATTERNS = [
+  /amazon/i, /aws/i, /google\s*cloud/i, /microsoft\s*azure/i,
+  /digitalocean/i, /vultr/i, /linode/i, /hetzner/i, /ovh/i,
+  /scaleway/i, /upcloud/i, /contabo/i, /hostinger/i, /godaddy/i,
+  /namecheap/i, /bluehost/i, /hostgator/i, /ionos/i, /1&1/i,
+  /rackspace/i, /softlayer/i, /choopa/i, /colocrossing/i,
+  /quadranet/i, /psychz/i, /leaseweb/i, /serverius/i, /m247/i,
+  /datacamp/i, /colocation/i, /hosting/i, /datacenter/i, /cloud\s*services/i,
+];
+
+// ==================== ASN DATABASE (COMPREHENSIVE) ====================
+// ASNs organized by category for faster lookups
+const DATACENTER_ASNS = [
+  // AWS
+  "AS16509", "AS14618", "AS39111", "AS8987",
+  // Google Cloud
+  "AS15169", "AS396982", "AS36492", "AS139070", "AS36040", "AS395973",
+  // Azure / Microsoft
+  "AS8075", "AS3598", "AS8068", "AS8069", "AS12076",
+  // DigitalOcean
+  "AS14061", "AS393406", "AS202018",
+  // Vultr
+  "AS20473", "AS136429",
+  // Linode / Akamai
+  "AS63949", "AS21844",
+  // Hetzner
+  "AS24940", "AS213230",
+  // OVH
+  "AS16276", "AS35540",
+  // Cloudflare
+  "AS13335", "AS209242",
+  // Scaleway
+  "AS12876", "AS62000",
+  // UpCloud
+  "AS25697",
+  // Contabo
+  "AS51167", "AS40676",
+  // Other major hosting
+  "AS46606", // Unified Layer
+  "AS26496", // GoDaddy
+  "AS22612", // Namecheap
+  "AS14618", // Amazon Data Services
+  "AS36351", // SoftLayer
+  "AS20454", // Secured Servers
+  "AS30633", // Leaseweb
+  "AS43350", // NForce
+  "AS8560",  // IONOS / 1&1
+  "AS21409", // Ikoula
+  "AS29066", // velia.net
+  "AS12586", // GHOSTnet
+  "AS31034", // Aruba
+  "AS197540", // Netcup
+  "AS60729", // Zwiesel
+];
+
+const VPN_ASNS = [
+  // ExpressVPN
+  "AS394711", "AS48025",
+  // NordVPN
+  "AS394354", "AS212238", "AS208366", "AS210210",
+  // Surfshark
+  "AS394711", "AS212238",
+  // CyberGhost
+  "AS57169", "AS9009",
+  // ProtonVPN / Proton AG
+  "AS62014", "AS209103",
+  // Mullvad
+  "AS198093", "AS63166",
+  // Private Internet Access
+  "AS47846", "AS29073",
+  // IPVanish
+  "AS32751", "AS6939",
+  // VyprVPN
+  "AS32751",
+  // Windscribe
+  "AS394556",
+  // Hide.me
+  "AS47814",
+  // TorGuard
+  "AS47846",
+  // Perfect Privacy
+  "AS60068",
+  // AirVPN
+  "AS51396",
+  // iVPN
+  "AS51396",
+  // Generic VPN-related
+  "AS9009", "AS60068", "AS51396", "AS41378", "AS203775",
+];
+
+const TOR_ASNS = [
+  "AS53667", // TOR Project
+  "AS204094", // ChaosComputerClub
+  "AS35619", // riseup
+  "AS206264", // Calyx Institute
+  "AS396073", // DFRI
+  "AS398089", // Quintex
+];
+
+const PROXY_ASNS = [
+  // Luminati / Bright Data
+  "AS62240", "AS206092",
+  // Oxylabs
+  "AS201133",
+  // SmartProxy
+  "AS62240",
+  // Generic proxy services
+  "AS29073", "AS47846", "AS206264", "AS9009",
+];
+
+// Meta (Facebook, Instagram, WhatsApp) ASNs
+const META_ASNS = ["AS32934", "AS63293", "AS54115"];
+
+// ByteDance (TikTok, Douyin) ASNs
+const BYTEDANCE_ASNS = ["AS138699", "AS396986", "AS131139", "AS136907"];
+
+// OpenAI ASNs
+const OPENAI_ASNS = ["AS397417", "AS14618", "AS16509"]; // Uses AWS infrastructure
+
+// Amazon (non-AWS) ASNs
+const AMAZON_ASNS = ["AS16509", "AS14618", "AS39111", "AS8987"];
+
+// ==================== DYNAMIC SUSPICIOUS IP TRACKING ====================
+const suspiciousIPCache = new Map<string, { count: number; lastSeen: number; reasons: string[] }>();
+const SUSPICIOUS_IP_THRESHOLD = 3; // Block after 3 suspicious visits
+const SUSPICIOUS_IP_WINDOW = 3600000; // 1 hour window
+
+function trackSuspiciousIP(ip: string, reason: string): boolean {
+  const now = Date.now();
+  const entry = suspiciousIPCache.get(ip);
+  
+  if (!entry || (now - entry.lastSeen) > SUSPICIOUS_IP_WINDOW) {
+    suspiciousIPCache.set(ip, { count: 1, lastSeen: now, reasons: [reason] });
+    return false;
+  }
+  
+  entry.count++;
+  entry.lastSeen = now;
+  if (!entry.reasons.includes(reason)) entry.reasons.push(reason);
+  suspiciousIPCache.set(ip, entry);
+  
+  return entry.count >= SUSPICIOUS_IP_THRESHOLD;
+}
+
+function isSuspiciousIP(ip: string): { suspicious: boolean; count: number; reasons: string[] } {
+  const entry = suspiciousIPCache.get(ip);
+  if (!entry || (Date.now() - entry.lastSeen) > SUSPICIOUS_IP_WINDOW) {
+    return { suspicious: false, count: 0, reasons: [] };
+  }
+  return { suspicious: entry.count >= SUSPICIOUS_IP_THRESHOLD, count: entry.count, reasons: entry.reasons };
+}
+
+// Cleanup old suspicious IP entries
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, entry] of suspiciousIPCache.entries()) {
+    if (now - entry.lastSeen > SUSPICIOUS_IP_WINDOW * 2) {
+      suspiciousIPCache.delete(ip);
+    }
+  }
+}, 600000); // Clean every 10 minutes
 
 // ==================== IP UTILITY FUNCTIONS ====================
 function ipToNumber(ip: string): number {
@@ -1304,7 +1886,199 @@ function isMicrosoftIP(ip: string): boolean { return isInIpRanges(ip, MICROSOFT_
 function isFacebookIP(ip: string): boolean { return isInIpRanges(ip, FACEBOOK_IP_RANGES); }
 function isTikTokIP(ip: string): boolean { return isInIpRanges(ip, TIKTOK_IP_RANGES); }
 function isDatacenterIP(ip: string): boolean { return isInIpRanges(ip, DATACENTER_IP_RANGES); }
-function isVpnProviderIP(ip: string): boolean { return isInIpRanges(ip, VPN_PROVIDER_IPS); }
+function isVpnProviderIP(ip: string): boolean { return isInIpRanges(ip, VPN_PROVIDER_IP_RANGES); }
+function isTorExitIP(ip: string): boolean { return isInIpRanges(ip, TOR_EXIT_IP_RANGES); }
+function isICloudRelayIP(ip: string): boolean { return isInIpRanges(ip, ICLOUD_PRIVATE_RELAY_IP_RANGES); }
+function isProxyIP(ip: string): boolean { return isInIpRanges(ip, PROXY_IP_RANGES); }
+function isAWSIP(ip: string): boolean { return isInIpRanges(ip, AWS_IP_RANGES); }
+function isGCPIP(ip: string): boolean { return isInIpRanges(ip, GCP_IP_RANGES); }
+function isAzureIP(ip: string): boolean { return isInIpRanges(ip, AZURE_IP_RANGES); }
+function isDigitalOceanIP(ip: string): boolean { return isInIpRanges(ip, DIGITALOCEAN_IP_RANGES); }
+function isHetznerIP(ip: string): boolean { return isInIpRanges(ip, HETZNER_IP_RANGES); }
+function isOVHIP(ip: string): boolean { return isInIpRanges(ip, OVH_IP_RANGES); }
+function isLinodeIP(ip: string): boolean { return isInIpRanges(ip, LINODE_IP_RANGES); }
+function isVultrIP(ip: string): boolean { return isInIpRanges(ip, VULTR_IP_RANGES); }
+
+// Check ASN against known categories
+function isDatacenterASN(asn: string): boolean {
+  if (!asn) return false;
+  const asnUpper = asn.toUpperCase();
+  return DATACENTER_ASNS.some(a => asnUpper.includes(a));
+}
+
+function isVpnASN(asn: string): boolean {
+  if (!asn) return false;
+  const asnUpper = asn.toUpperCase();
+  return VPN_ASNS.some(a => asnUpper.includes(a));
+}
+
+function isTorASN(asn: string): boolean {
+  if (!asn) return false;
+  const asnUpper = asn.toUpperCase();
+  return TOR_ASNS.some(a => asnUpper.includes(a));
+}
+
+function isProxyASN(asn: string): boolean {
+  if (!asn) return false;
+  const asnUpper = asn.toUpperCase();
+  return PROXY_ASNS.some(a => asnUpper.includes(a));
+}
+
+function isMetaASN(asn: string): boolean {
+  if (!asn) return false;
+  const asnUpper = asn.toUpperCase();
+  return META_ASNS.some(a => asnUpper.includes(a));
+}
+
+function isByteDanceASN(asn: string): boolean {
+  if (!asn) return false;
+  const asnUpper = asn.toUpperCase();
+  return BYTEDANCE_ASNS.some(a => asnUpper.includes(a));
+}
+
+function isOpenAIASN(asn: string): boolean {
+  if (!asn) return false;
+  const asnUpper = asn.toUpperCase();
+  return OPENAI_ASNS.some(a => asnUpper.includes(a));
+}
+
+function isAmazonASN(asn: string): boolean {
+  if (!asn) return false;
+  const asnUpper = asn.toUpperCase();
+  return AMAZON_ASNS.some(a => asnUpper.includes(a));
+}
+
+// Check ISP name against known patterns
+function matchesISPPattern(isp: string, patterns: RegExp[]): boolean {
+  if (!isp) return false;
+  return patterns.some(p => p.test(isp));
+}
+
+function isVpnISP(isp: string): boolean { return matchesISPPattern(isp, VPN_ISP_PATTERNS); }
+function isProxyISP(isp: string): boolean { return matchesISPPattern(isp, PROXY_ISP_PATTERNS); }
+function isHostingISP(isp: string): boolean { return matchesISPPattern(isp, HOSTING_ISP_PATTERNS); }
+
+// Comprehensive network analysis
+interface NetworkAnalysis {
+  isDatacenter: boolean;
+  isVPN: boolean;
+  isProxy: boolean;
+  isTor: boolean;
+  isICloudRelay: boolean;
+  datacenterProvider: string | null;
+  riskLevel: "low" | "medium" | "high" | "critical";
+  reasons: string[];
+  score: number;
+}
+
+function analyzeNetwork(ip: string, asn: string, isp: string): NetworkAnalysis {
+  const reasons: string[] = [];
+  let score = 0;
+  let isDatacenter = false;
+  let isVPN = false;
+  let isProxy = false;
+  let isTor = false;
+  let isICloudRelay = false;
+  let datacenterProvider: string | null = null;
+
+  // TOR detection (highest priority)
+  if (isTorExitIP(ip)) {
+    isTor = true; score += 50; reasons.push("TOR_EXIT_IP");
+  }
+  if (isTorASN(asn)) {
+    isTor = true; score += 45; reasons.push("TOR_ASN");
+  }
+
+  // VPN detection
+  if (isVpnProviderIP(ip)) {
+    isVPN = true; score += 40; reasons.push("VPN_PROVIDER_IP");
+  }
+  if (isVpnASN(asn)) {
+    isVPN = true; score += 35; reasons.push("VPN_ASN");
+  }
+  if (isVpnISP(isp)) {
+    isVPN = true; score += 30; reasons.push("VPN_ISP_NAME");
+  }
+
+  // Proxy detection
+  if (isProxyIP(ip)) {
+    isProxy = true; score += 40; reasons.push("PROXY_IP");
+  }
+  if (isProxyASN(asn)) {
+    isProxy = true; score += 35; reasons.push("PROXY_ASN");
+  }
+  if (isProxyISP(isp)) {
+    isProxy = true; score += 30; reasons.push("PROXY_ISP_NAME");
+  }
+
+  // iCloud Private Relay
+  if (isICloudRelayIP(ip)) {
+    isICloudRelay = true; score += 20; reasons.push("ICLOUD_PRIVATE_RELAY");
+  }
+
+  // Datacenter detection with provider identification
+  if (isAWSIP(ip)) {
+    isDatacenter = true; datacenterProvider = "AWS"; score += 35; reasons.push("AWS_IP");
+  } else if (isGCPIP(ip)) {
+    isDatacenter = true; datacenterProvider = "GCP"; score += 35; reasons.push("GCP_IP");
+  } else if (isAzureIP(ip)) {
+    isDatacenter = true; datacenterProvider = "Azure"; score += 35; reasons.push("AZURE_IP");
+  } else if (isDigitalOceanIP(ip)) {
+    isDatacenter = true; datacenterProvider = "DigitalOcean"; score += 30; reasons.push("DIGITALOCEAN_IP");
+  } else if (isHetznerIP(ip)) {
+    isDatacenter = true; datacenterProvider = "Hetzner"; score += 30; reasons.push("HETZNER_IP");
+  } else if (isOVHIP(ip)) {
+    isDatacenter = true; datacenterProvider = "OVH"; score += 30; reasons.push("OVH_IP");
+  } else if (isLinodeIP(ip)) {
+    isDatacenter = true; datacenterProvider = "Linode"; score += 30; reasons.push("LINODE_IP");
+  } else if (isVultrIP(ip)) {
+    isDatacenter = true; datacenterProvider = "Vultr"; score += 30; reasons.push("VULTR_IP");
+  } else if (isDatacenterIP(ip)) {
+    isDatacenter = true; datacenterProvider = "Unknown"; score += 25; reasons.push("DATACENTER_IP");
+  }
+
+  // ASN-based datacenter detection
+  if (!isDatacenter && isDatacenterASN(asn)) {
+    isDatacenter = true; score += 25; reasons.push("DATACENTER_ASN");
+  }
+
+  // ISP-based hosting detection
+  if (!isDatacenter && isHostingISP(isp)) {
+    isDatacenter = true; score += 20; reasons.push("HOSTING_ISP_NAME");
+  }
+
+  // Known ad platform ASNs (these should be blocked)
+  if (isMetaASN(asn)) {
+    score += 40; reasons.push("META_ASN");
+  }
+  if (isByteDanceASN(asn)) {
+    score += 40; reasons.push("BYTEDANCE_ASN");
+  }
+  if (isOpenAIASN(asn)) {
+    score += 45; reasons.push("OPENAI_ASN");
+  }
+  if (isAmazonASN(asn) && isDatacenter) {
+    score += 10; reasons.push("AMAZON_DATACENTER");
+  }
+
+  // Determine risk level
+  let riskLevel: "low" | "medium" | "high" | "critical" = "low";
+  if (score >= 80 || isTor) riskLevel = "critical";
+  else if (score >= 50 || isVPN || isProxy) riskLevel = "high";
+  else if (score >= 25 || isDatacenter) riskLevel = "medium";
+
+  return {
+    isDatacenter,
+    isVPN,
+    isProxy,
+    isTor,
+    isICloudRelay,
+    datacenterProvider,
+    riskLevel,
+    reasons,
+    score,
+  };
+}
 
 // ==================== AD PLATFORM DETECTION ====================
 interface AdPlatformResult {
@@ -1577,8 +2351,8 @@ function detectBot(userAgent: string, ip: string, headers: Headers, referer: str
   const cfAsn = headers.get("cf-asn") || headers.get("x-asn") || "";
   const cfIsp = headers.get("cf-isp") || headers.get("x-isp") || "";
   
-  for (const pattern of VPN_ASN_PATTERNS) {
-    if (pattern.test(cfIsp) || pattern.test(cfAsn)) { confidence += 45; reasons.push("VPN_ASN_MATCH"); break; }
+  for (const pattern of VPN_ISP_PATTERNS) {
+    if (pattern.test(cfIsp) || pattern.test(cfAsn)) { confidence += 45; reasons.push("VPN_ISP_MATCH"); break; }
   }
   if (PROXY_ASNS.some(asn => cfAsn.toUpperCase().includes(asn))) { confidence += 50; reasons.push("PROXY_ASN"); }
   if (DATACENTER_ASNS.some(asn => cfAsn.toUpperCase().includes(asn))) { confidence += 35; reasons.push("DATACENTER_ASN"); }
