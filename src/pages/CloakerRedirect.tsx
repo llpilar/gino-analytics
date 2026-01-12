@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { analyzeUserAgent, type UserAgentAnalysis } from "@/lib/cloaker/userAgentAnalyzer";
 import { analyzeHeaders, type HeadersAnalysis, type HeadersData } from "@/lib/cloaker/headersAnalyzer";
+import { analyzeBehavior, type BehaviorAnalysis, type BehaviorData } from "@/lib/cloaker/behaviorAnalyzer";
 
 interface FingerprintData {
   // Core fingerprint
@@ -134,8 +135,11 @@ interface FingerprintData {
   // User-Agent analysis
   uaAnalysis: UserAgentAnalysis;
   
-  // Headers analysis (NEW)
+  // Headers analysis
   headersAnalysis: HeadersAnalysis;
+  
+  // Behavior analysis (NEW)
+  behaviorAnalysis: BehaviorAnalysis;
 }
 
 // Proof of work - computational challenge
@@ -1148,6 +1152,21 @@ export default function CloakerRedirect() {
     };
     const headersResult = analyzeHeaders(headersData, navigator.userAgent);
     
+    // Collect behavior analysis
+    const behaviorData: BehaviorData = {
+      mouseMovements: mouseMovements.current,
+      mouseVelocities: mouseVelocities.current.slice(-100),
+      mouseAccelerations: mouseAccelerations.current.slice(-100),
+      mousePath: mousePath.current.slice(-100),
+      scrollEvents: scrollEvents.current,
+      scrollDepth: maxScrollDepth.current,
+      keypressEvents: keypressEvents.current,
+      clickEvents: clickEvents.current,
+      focusChanges: focusChanges.current,
+      timeOnPage: Date.now() - startTime.current,
+    };
+    const behaviorResult = analyzeBehavior(behaviorData);
+    
     return {
       userAgent: navigator.userAgent,
       language: navigator.language,
@@ -1241,6 +1260,7 @@ export default function CloakerRedirect() {
       inconsistencies: consistency.issues,
       uaAnalysis: consistency.uaAnalysis,
       headersAnalysis: headersResult,
+      behaviorAnalysis: behaviorResult,
     };
   }, []);
 
