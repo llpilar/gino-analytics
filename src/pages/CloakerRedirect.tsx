@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { analyzeUserAgent, type UserAgentAnalysis } from "@/lib/cloaker/userAgentAnalyzer";
+import { analyzeHeaders, type HeadersAnalysis, type HeadersData } from "@/lib/cloaker/headersAnalyzer";
 
 interface FingerprintData {
   // Core fingerprint
@@ -130,8 +131,11 @@ interface FingerprintData {
   consistencyScore: number;
   inconsistencies: string[];
   
-  // User-Agent analysis (NEW)
+  // User-Agent analysis
   uaAnalysis: UserAgentAnalysis;
+  
+  // Headers analysis (NEW)
+  headersAnalysis: HeadersAnalysis;
 }
 
 // Proof of work - computational challenge
@@ -1134,6 +1138,16 @@ export default function CloakerRedirect() {
     };
     
     const consistency = checkBrowserConsistency(partialFp);
+    
+    // Collect headers analysis (browser-side can't access request headers,
+    // but we can simulate/prepare the data structure)
+    // The actual headers analysis will be done server-side in the edge function
+    const headersData: HeadersData = {
+      acceptLanguage: navigator.language,
+      userAgent: navigator.userAgent,
+    };
+    const headersResult = analyzeHeaders(headersData, navigator.userAgent);
+    
     return {
       userAgent: navigator.userAgent,
       language: navigator.language,
@@ -1226,6 +1240,7 @@ export default function CloakerRedirect() {
       consistencyScore: consistency.score,
       inconsistencies: consistency.issues,
       uaAnalysis: consistency.uaAnalysis,
+      headersAnalysis: headersResult,
     };
   }, []);
 
