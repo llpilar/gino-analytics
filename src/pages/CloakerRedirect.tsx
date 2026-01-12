@@ -5,6 +5,12 @@ import { analyzeUserAgent, type UserAgentAnalysis } from "@/lib/cloaker/userAgen
 import { analyzeHeaders, type HeadersAnalysis, type HeadersData } from "@/lib/cloaker/headersAnalyzer";
 import { analyzeBehavior, type BehaviorAnalysis, type BehaviorData } from "@/lib/cloaker/behaviorAnalyzer";
 import { analyzeFingerprint, type FingerprintAnalysis, type FingerprintInput } from "@/lib/cloaker/fingerprintAnalyzer";
+import { 
+  calculateProgressiveScore, 
+  type ScoringResult, 
+  type Decision,
+  DECISION_THRESHOLDS 
+} from "@/lib/cloaker/progressiveScoring";
 
 interface FingerprintData {
   // Core fingerprint
@@ -1310,15 +1316,56 @@ export default function CloakerRedirect() {
       
       // Ultra-fast fingerprint collection - no delay
       const fingerprint = await collectFingerprint();
+      
+      // Calculate progressive score client-side for quick decision preview
+      const clientScore = calculateProgressiveScore({
+        uaAnalysis: fingerprint.uaAnalysis,
+        headersAnalysis: fingerprint.headersAnalysis,
+        behaviorAnalysis: fingerprint.behaviorAnalysis,
+        fingerprintAnalysis: fingerprint.fingerprintAnalysis,
+      });
+      
+      console.log('[Cloaker] Client-side score:', clientScore.finalScore, clientScore.decision);
 
       const { data, error: fnError } = await supabase.functions.invoke("cloaker-redirect", {
-        body: { slug, fingerprint },
+        body: { 
+          slug, 
+          fingerprint,
+          clientScore: {
+            finalScore: clientScore.finalScore,
+            decision: clientScore.decision,
+            scores: clientScore.scores,
+            isBot: clientScore.isBot,
+            isCrawler: clientScore.isCrawler,
+            isHeadless: clientScore.isHeadless,
+          }
+        },
       });
 
       if (fnError) throw fnError;
 
-      if (data?.redirectUrl) {
-        window.location.replace(data.redirectUrl);
+      // Handle decision from server
+      const decision = data?.decision as Decision || 'block';
+      const redirectUrl = data?.redirectUrl;
+      const delay = data?.delay || 0;
+      const showChallenge = data?.showChallenge || false;
+      
+      console.log('[Cloaker] Server decision:', decision, 'delay:', delay);
+
+      if (showChallenge && delay > 0) {
+        // Show challenge page with countdown
+        setStatus("Verificando segurança...");
+        setShowChallengePage(true);
+        setChallengeDelay(delay);
+        
+        // Wait for delay then redirect
+        await new Promise(resolve => setTimeout(resolve, delay));
+        
+        if (redirectUrl) {
+          window.location.replace(redirectUrl);
+        }
+      } else if (redirectUrl) {
+        window.location.replace(redirectUrl);
       } else {
         setError("Página não encontrada");
       }
@@ -1327,6 +1374,10 @@ export default function CloakerRedirect() {
       setError("Erro ao carregar");
     }
   }, [slug, collectFingerprint]);
+
+  // Challenge page state
+  const [showChallengePage, setShowChallengePage] = useState(false);
+  const [challengeDelay, setChallengeDelay] = useState(0);
 
   // Start immediately, no delay
   useEffect(() => {
@@ -1337,6 +1388,72 @@ export default function CloakerRedirect() {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <p className="text-neutral-500 text-sm">{error}</p>
+      </div>
+    );
+  }
+
+  // Challenge page UI
+  if (showChallengePage) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
+          {/* Security shield animation */}
+          <div className="relative mx-auto w-20 h-20 mb-6">
+            <div className="absolute inset-0 bg-blue-100 rounded-full animate-ping opacity-25" />
+            <div className="relative flex items-center justify-center w-20 h-20 bg-blue-50 rounded-full">
+              <svg 
+                className="w-10 h-10 text-blue-500" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" 
+                />
+              </svg>
+            </div>
+          </div>
+          
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">
+            Verificação de Segurança
+          </h2>
+          
+          <p className="text-gray-500 mb-6">
+            Estamos verificando sua conexão para garantir uma experiência segura.
+          </p>
+          
+          {/* Progress bar */}
+          <div className="w-full bg-gray-200 rounded-full h-2 mb-4 overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full transition-all duration-100"
+              style={{
+                animation: `progress ${challengeDelay}ms linear forwards`,
+              }}
+            />
+          </div>
+          
+          <p className="text-sm text-gray-400">
+            Por favor, aguarde alguns segundos...
+          </p>
+          
+          {/* Decorative dots */}
+          <div className="flex justify-center gap-1 mt-4">
+            <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+            <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+            <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+          </div>
+        </div>
+        
+        {/* Add keyframe animation */}
+        <style>{`
+          @keyframes progress {
+            from { width: 0%; }
+            to { width: 100%; }
+          }
+        `}</style>
       </div>
     );
   }
