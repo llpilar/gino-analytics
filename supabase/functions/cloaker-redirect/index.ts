@@ -8,6 +8,192 @@ const corsHeaders = {
   "Cache-Control": "no-store, no-cache, must-revalidate",
 };
 
+// ==================== TRUSTED PROXY IP RANGES (Anti-Spoof) ====================
+// Cloudflare IP Ranges - https://www.cloudflare.com/ips/
+const CLOUDFLARE_IPV4_RANGES = [
+  "173.245.48.0/20", "103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22",
+  "141.101.64.0/18", "108.162.192.0/18", "190.93.240.0/20", "188.114.96.0/20",
+  "197.234.240.0/22", "198.41.128.0/17", "162.158.0.0/15", "104.16.0.0/13",
+  "104.24.0.0/14", "172.64.0.0/13", "131.0.72.0/22",
+];
+
+// Vercel IP Ranges (approximate, they use AWS)
+const VERCEL_IPV4_RANGES = [
+  "76.76.21.0/24", "76.223.0.0/16",
+];
+
+// Supabase Edge Functions run on Deno Deploy / Fly.io
+const SUPABASE_EDGE_RANGES = [
+  "66.241.124.0/22", "66.241.125.0/24",
+];
+
+// Convert CIDR to check function
+function ipToInt(ip: string): number {
+  const parts = ip.split('.').map(Number);
+  return ((parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8) | parts[3]) >>> 0;
+}
+
+function isIpInCidrRange(ip: string, cidr: string): boolean {
+  try {
+    const [range, bits] = cidr.split('/');
+    const mask = ~((1 << (32 - parseInt(bits))) - 1) >>> 0;
+    const ipInt = ipToInt(ip);
+    const rangeInt = ipToInt(range);
+    return (ipInt & mask) === (rangeInt & mask);
+  } catch {
+    return false;
+  }
+}
+
+function isTrustedProxy(ip: string): boolean {
+  // Check all trusted proxy ranges
+  const allRanges = [...CLOUDFLARE_IPV4_RANGES, ...VERCEL_IPV4_RANGES, ...SUPABASE_EDGE_RANGES];
+  return allRanges.some(cidr => isIpInCidrRange(ip, cidr));
+}
+
+// ==================== SECURE IP EXTRACTION (Anti-Spoof Elite) ====================
+interface ClientIPResult {
+  ip: string;
+  trusted: boolean;
+  source: "cf-connecting-ip" | "x-real-ip" | "x-forwarded-for" | "direct" | "unknown";
+  proxyChain: string[];
+  spoofAttempt: boolean;
+}
+
+function getClientIp(req: Request): ClientIPResult {
+  const headers = req.headers;
+  const proxyChain: string[] = [];
+  let spoofAttempt = false;
+  
+  // 1. Cloudflare's trusted header (always accurate when from CF)
+  const cfConnectingIp = headers.get("cf-connecting-ip");
+  
+  // 2. Check if request came through Cloudflare
+  const cfRay = headers.get("cf-ray");
+  const cfIpCountry = headers.get("cf-ipcountry");
+  const isFromCloudflare = !!(cfRay && cfIpCountry);
+  
+  // 3. X-Forwarded-For chain
+  const xForwardedFor = headers.get("x-forwarded-for");
+  if (xForwardedFor) {
+    proxyChain.push(...xForwardedFor.split(',').map(ip => ip.trim()));
+  }
+  
+  // 4. X-Real-IP (some proxies use this)
+  const xRealIp = headers.get("x-real-ip");
+  
+  // STRATEGY: Trust only headers from verified proxies
+  
+  // Case 1: Request from Cloudflare (has CF-Ray) - trust CF-Connecting-IP
+  if (isFromCloudflare && cfConnectingIp) {
+    // Validate IP format
+    if (/^(\d{1,3}\.){3}\d{1,3}$/.test(cfConnectingIp)) {
+      return {
+        ip: cfConnectingIp,
+        trusted: true,
+        source: "cf-connecting-ip",
+        proxyChain,
+        spoofAttempt: false,
+      };
+    }
+  }
+  
+  // Case 2: X-Forwarded-For exists - validate proxy chain
+  if (xForwardedFor && proxyChain.length > 0) {
+    // The rightmost IP should be from a trusted proxy
+    // The leftmost IP is the original client (but could be spoofed if proxy not trusted)
+    
+    // Get the last proxy in chain (the one that connected to us)
+    const lastProxy = proxyChain[proxyChain.length - 1];
+    
+    // If last proxy is trusted, we can trust the chain
+    if (lastProxy && isTrustedProxy(lastProxy)) {
+      // Get first non-proxy IP in chain (the real client)
+      const clientIp = proxyChain.find(ip => !isTrustedProxy(ip));
+      if (clientIp && /^(\d{1,3}\.){3}\d{1,3}$/.test(clientIp)) {
+        return {
+          ip: clientIp,
+          trusted: true,
+          source: "x-forwarded-for",
+          proxyChain,
+          spoofAttempt: false,
+        };
+      }
+    } else {
+      // Untrusted proxy - possible spoof attempt
+      // Use the LAST IP (direct connection) as it's harder to spoof
+      spoofAttempt = true;
+      console.log(`[IP-Security] Untrusted proxy detected. Chain: ${proxyChain.join(' -> ')}`);
+    }
+  }
+  
+  // Case 3: X-Real-IP from Cloudflare
+  if (isFromCloudflare && xRealIp && /^(\d{1,3}\.){3}\d{1,3}$/.test(xRealIp)) {
+    return {
+      ip: xRealIp,
+      trusted: true,
+      source: "x-real-ip",
+      proxyChain,
+      spoofAttempt: false,
+    };
+  }
+  
+  // Case 4: Fallback - use first IP from XFF but mark as untrusted
+  if (proxyChain.length > 0) {
+    const firstIp = proxyChain[0];
+    if (firstIp && /^(\d{1,3}\.){3}\d{1,3}$/.test(firstIp)) {
+      return {
+        ip: firstIp,
+        trusted: false, // Can't verify
+        source: "x-forwarded-for",
+        proxyChain,
+        spoofAttempt,
+      };
+    }
+  }
+  
+  // Case 5: No proxy headers - direct connection (rare for edge functions)
+  return {
+    ip: "0.0.0.0",
+    trusted: false,
+    source: "unknown",
+    proxyChain,
+    spoofAttempt,
+  };
+}
+
+// Rate limit with spoof protection
+function checkRateLimitSecure(
+  ipResult: ClientIPResult,
+  sessionId: string | null,
+  fingerprintHash: string | null,
+  route: string,
+  limit: number,
+  windowMinutes: number
+): { allowed: boolean; remaining: number; reason?: string } {
+  // If IP is untrusted or spoofed, be more aggressive
+  let effectiveLimit = limit;
+  
+  if (!ipResult.trusted) {
+    effectiveLimit = Math.floor(limit * 0.5); // 50% limit for untrusted
+  }
+  
+  if (ipResult.spoofAttempt) {
+    effectiveLimit = Math.floor(limit * 0.25); // 25% limit for suspected spoof
+    console.log(`[IP-Security] Spoof attempt from ${ipResult.ip}, reduced limit to ${effectiveLimit}`);
+  }
+  
+  // Use the multi-factor rate limit with secure IP
+  return checkRateLimitMultiFactor(
+    ipResult.ip,
+    sessionId,
+    fingerprintHash,
+    route,
+    effectiveLimit,
+    windowMinutes
+  );
+}
+
 // ==================== SESSION COOKIE CONFIG ====================
 const SESSION_COOKIE_NAME = "clk_session";
 const SESSION_COOKIE_MAX_AGE = 86400 * 7; // 7 days
@@ -3167,10 +3353,18 @@ Deno.serve(async (req) => {
     if (!slug) return new Response("Missing slug. Use: /cloaker-redirect/{slug} or ?s={slug}", { status: 400 });
     
     const userAgent = req.headers.get("user-agent") || "";
-    const cfIp = req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "";
     const referer = req.headers.get("referer") || "";
     const cookieHeader = req.headers.get("cookie");
     const existingSessionId = parseSessionCookie(cookieHeader);
+    
+    // === SECURE IP EXTRACTION (Anti-Spoof Elite) ===
+    const ipResult = getClientIp(req);
+    const cfIp = ipResult.ip;
+    
+    // Log spoof attempts
+    if (ipResult.spoofAttempt) {
+      console.log(`[IP-Security] Spoof attempt detected! Chain: ${ipResult.proxyChain.join(' -> ')} Source: ${ipResult.source} Trusted: ${ipResult.trusted}`);
+    }
     
     // === GEOIP ENRICHMENT ===
     // Try to get cached GeoIP first (fast path), fetch async if not cached
@@ -3245,10 +3439,10 @@ Deno.serve(async (req) => {
       return Response.redirect(link.safe_url, 302);
     }
     
-    // === RATE LIMIT MULTI-FATOR (Elite) ===
+    // === RATE LIMIT SECURE (Anti-Spoof Elite) ===
     if (link.rate_limit_per_ip > 0) {
-      const rateCheck = checkRateLimitMultiFactor(
-        cfIp, 
+      const rateCheck = checkRateLimitSecure(
+        ipResult,
         existingSessionId, 
         null, // fingerprint will be added later if collected
         slug,
@@ -3256,9 +3450,9 @@ Deno.serve(async (req) => {
         link.rate_limit_window_minutes || 60
       );
       if (!rateCheck.allowed) {
-        console.log(`[Cloaker] BLOCKED: rate_limit_${rateCheck.reason} IP=${cfIp}`);
+        console.log(`[Cloaker] BLOCKED: rate_limit_${rateCheck.reason} IP=${cfIp} trusted=${ipResult.trusted} spoof=${ipResult.spoofAttempt}`);
         queueMicrotask(() => {
-          sendWebhook(link, "rate_limited", { ip: cfIp, country: cfCountry, user_agent: userAgent, score: 0, is_bot: false, is_vpn: false, is_proxy: false, is_datacenter: false, is_tor: false, isp: cfIsp, referer }, `rate_limit_${rateCheck.reason}`);
+          sendWebhook(link, "rate_limited", { ip: cfIp, country: cfCountry, user_agent: userAgent, score: 0, is_bot: false, is_vpn: false, is_proxy: ipResult.spoofAttempt, is_datacenter: false, is_tor: false, isp: cfIsp, referer }, `rate_limit_${rateCheck.reason}`);
         });
         return Response.redirect(link.safe_url, 302);
       }
@@ -3612,7 +3806,9 @@ Deno.serve(async (req) => {
     const { slug, fingerprint } = body;
     
     const ua = req.headers.get("user-agent") || "";
-    const cfIp = req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "";
+    // === SECURE IP EXTRACTION FOR POST ===
+    const ipResult = getClientIp(req);
+    const cfIp = ipResult.ip;
     const cfCountry = req.headers.get("cf-ipcountry") || "";
     const cfCity = req.headers.get("cf-city") || "";
     const cfIsp = req.headers.get("cf-isp") || "";
