@@ -29,12 +29,65 @@ function parseSessionCookie(cookieHeader: string | null): string | null {
 // ==================== IN-MEMORY CACHES ====================
 const linkCache = new Map<string, { link: any; timestamp: number }>();
 const CACHE_TTL = 60000;
-const rateLimitCache = new Map<string, { count: number; windowStart: number }>();
 const sessionCache = new Map<string, { firstSeen: number; visits: number; scores: number[]; fingerprints: string[]; approved: boolean }>();
 const fingerprintReputation = new Map<string, { score: number; lastSeen: number; decisionHistory: string[] }>();
 const approvedSessions = new Map<string, { ip: string; fingerprintHash: string; approvedAt: number; score: number }>();
 
-// ==================== GEOIP CACHE (ip-api.com) ====================
+// ==================== SMART CACHE SYSTEM (TTL por decisão) ====================
+interface DecisionCache {
+  decision: "allow" | "challenge" | "block";
+  score: number;
+  timestamp: number;
+  fingerprint?: string;
+  route?: string;
+}
+
+// TTL diferente por tipo de decisão (elite pattern)
+const DECISION_TTL = {
+  allow: 7200000,      // 2 horas - visitante confiável
+  challenge: 900000,   // 15 minutos - precisa re-avaliar
+  block: 3600000,      // 1 hora - conhecido como ruim
+};
+
+const decisionCache = new Map<string, DecisionCache>();
+
+// Chave do cache: IP + fingerprint + rota
+function getDecisionCacheKey(ip: string, fingerprint: string, route: string): string {
+  return `${ip}:${fingerprint}:${route}`;
+}
+
+function getCachedDecision(ip: string, fingerprint: string, route: string): DecisionCache | null {
+  const key = getDecisionCacheKey(ip, fingerprint, route);
+  const cached = decisionCache.get(key);
+  if (!cached) return null;
+  
+  const ttl = DECISION_TTL[cached.decision];
+  if (Date.now() - cached.timestamp > ttl) {
+    decisionCache.delete(key);
+    return null;
+  }
+  return cached;
+}
+
+function setCachedDecision(ip: string, fingerprint: string, route: string, decision: "allow" | "challenge" | "block", score: number): void {
+  const key = getDecisionCacheKey(ip, fingerprint, route);
+  
+  // Limite de cache
+  if (decisionCache.size > 50000) {
+    const oldest = decisionCache.keys().next().value;
+    if (oldest) decisionCache.delete(oldest);
+  }
+  
+  decisionCache.set(key, {
+    decision,
+    score,
+    timestamp: Date.now(),
+    fingerprint,
+    route,
+  });
+}
+
+// ==================== GEOIP CASCADING (MaxMind + ip-api fallback) ====================
 interface GeoIPData {
   ip: string;
   country: string;
@@ -48,40 +101,35 @@ interface GeoIPData {
   timezone: string;
   isp: string;
   org: string;
-  as: string; // ASN with name
-  asn: string; // Just ASN number
+  as: string;
+  asn: string;
   mobile: boolean;
   proxy: boolean;
   hosting: boolean;
   timestamp: number;
+  source: "maxmind" | "ipapi" | "cloudflare";
 }
 
 const geoIpCache = new Map<string, GeoIPData>();
-const GEOIP_CACHE_TTL = 3600000; // 1 hour
-const GEOIP_BATCH_QUEUE: string[] = [];
-let geoIpBatchTimer: number | null = null;
+const GEOIP_CACHE_TTL = 3600000; // 1 hour para GeoIP (não muda)
 
-// Fetch GeoIP data from ip-api.com (free, 45 requests/min)
-async function fetchGeoIP(ip: string): Promise<GeoIPData | null> {
-  // Check cache first
-  const cached = geoIpCache.get(ip);
-  if (cached && Date.now() - cached.timestamp < GEOIP_CACHE_TTL) {
-    return cached;
-  }
+// Tentar MaxMind GeoLite2 Web Service primeiro (mais confiável)
+async function fetchMaxMindGeoIP(ip: string): Promise<GeoIPData | null> {
+  const accountId = Deno.env.get("MAXMIND_ACCOUNT_ID");
+  const licenseKey = Deno.env.get("MAXMIND_LICENSE_KEY");
   
-  // Skip private/local IPs
-  if (!ip || ip === "127.0.0.1" || ip.startsWith("10.") || ip.startsWith("192.168.") || ip.startsWith("172.")) {
-    return null;
-  }
+  if (!accountId || !licenseKey) return null;
   
   try {
-    // ip-api.com free tier: 45 requests/min, no API key needed
-    // Fields: status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,asname,mobile,proxy,hosting,query
+    const auth = btoa(`${accountId}:${licenseKey}`);
     const response = await fetch(
-      `http://ip-api.com/json/${ip}?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,mobile,proxy,hosting,query`,
-      { 
-        headers: { "Accept": "application/json" },
-        signal: AbortSignal.timeout(3000), // 3 second timeout
+      `https://geolite.info/geoip/v2.1/city/${ip}`,
+      {
+        headers: {
+          "Authorization": `Basic ${auth}`,
+          "Accept": "application/json",
+        },
+        signal: AbortSignal.timeout(2000),
       }
     );
     
@@ -89,16 +137,57 @@ async function fetchGeoIP(ip: string): Promise<GeoIPData | null> {
     
     const data = await response.json();
     
-    if (data.status !== "success") {
-      console.log(`[GeoIP] Failed for ${ip}: ${data.message}`);
-      return null;
-    }
+    const geoData: GeoIPData = {
+      ip,
+      country: data.country?.names?.en || "",
+      countryCode: data.country?.iso_code || "",
+      region: data.subdivisions?.[0]?.iso_code || "",
+      regionName: data.subdivisions?.[0]?.names?.en || "",
+      city: data.city?.names?.en || "",
+      zip: data.postal?.code || "",
+      lat: data.location?.latitude || 0,
+      lon: data.location?.longitude || 0,
+      timezone: data.location?.time_zone || "",
+      isp: data.traits?.isp || "",
+      org: data.traits?.organization || "",
+      as: data.traits?.autonomous_system_organization || "",
+      asn: data.traits?.autonomous_system_number ? `AS${data.traits.autonomous_system_number}` : "",
+      mobile: data.traits?.connection_type === "Cellular",
+      proxy: data.traits?.is_anonymous_proxy || false,
+      hosting: data.traits?.is_hosting_provider || false,
+      timestamp: Date.now(),
+      source: "maxmind",
+    };
     
-    // Extract ASN number from "AS" field (format: "AS12345 Company Name")
+    console.log(`[GeoIP-MaxMind] ${ip} -> ${geoData.countryCode}/${geoData.city}`);
+    return geoData;
+  } catch (error) {
+    console.log(`[GeoIP-MaxMind] Fallback to ip-api for ${ip}`);
+    return null;
+  }
+}
+
+// Fallback para ip-api.com (grátis, 45 req/min)
+async function fetchIpApiGeoIP(ip: string): Promise<GeoIPData | null> {
+  try {
+    const response = await fetch(
+      `http://ip-api.com/json/${ip}?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,mobile,proxy,hosting,query`,
+      { 
+        headers: { "Accept": "application/json" },
+        signal: AbortSignal.timeout(3000),
+      }
+    );
+    
+    if (!response.ok) return null;
+    
+    const data = await response.json();
+    
+    if (data.status !== "success") return null;
+    
     const asnMatch = data.as?.match(/^(AS\d+)/);
     const asnNumber = asnMatch ? asnMatch[1] : "";
     
-    const geoData: GeoIPData = {
+    return {
       ip: data.query || ip,
       country: data.country || "",
       countryCode: data.countryCode || "",
@@ -117,94 +206,46 @@ async function fetchGeoIP(ip: string): Promise<GeoIPData | null> {
       proxy: data.proxy || false,
       hosting: data.hosting || false,
       timestamp: Date.now(),
+      source: "ipapi",
     };
-    
-    // Cache it
-    geoIpCache.set(ip, geoData);
-    
-    // Cleanup old cache entries if too many
-    if (geoIpCache.size > 5000) {
-      const oldestKey = geoIpCache.keys().next().value;
-      if (oldestKey) geoIpCache.delete(oldestKey);
-    }
-    
-    console.log(`[GeoIP] ${ip} -> ${geoData.countryCode}/${geoData.city} ISP=${geoData.isp} ASN=${geoData.asn} proxy=${geoData.proxy} hosting=${geoData.hosting}`);
-    
-    return geoData;
   } catch (error) {
-    console.error(`[GeoIP] Error fetching ${ip}:`, error);
     return null;
   }
 }
 
-// Batch fetch GeoIP for multiple IPs (uses ip-api.com batch endpoint)
-async function fetchGeoIPBatch(ips: string[]): Promise<Map<string, GeoIPData>> {
-  const results = new Map<string, GeoIPData>();
-  
-  // Filter out cached IPs
-  const uncachedIps = ips.filter(ip => {
-    const cached = geoIpCache.get(ip);
-    if (cached && Date.now() - cached.timestamp < GEOIP_CACHE_TTL) {
-      results.set(ip, cached);
-      return false;
-    }
-    return true;
-  });
-  
-  if (uncachedIps.length === 0) return results;
-  
-  // ip-api.com batch endpoint: POST up to 100 IPs at once
-  const batch = uncachedIps.slice(0, 100);
-  
-  try {
-    const response = await fetch("http://ip-api.com/batch?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,mobile,proxy,hosting,query", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(batch),
-      signal: AbortSignal.timeout(5000),
-    });
-    
-    if (!response.ok) return results;
-    
-    const dataList = await response.json();
-    
-    for (const data of dataList) {
-      if (data.status !== "success") continue;
-      
-      const asnMatch = data.as?.match(/^(AS\d+)/);
-      const asnNumber = asnMatch ? asnMatch[1] : "";
-      
-      const geoData: GeoIPData = {
-        ip: data.query,
-        country: data.country || "",
-        countryCode: data.countryCode || "",
-        region: data.region || "",
-        regionName: data.regionName || "",
-        city: data.city || "",
-        zip: data.zip || "",
-        lat: data.lat || 0,
-        lon: data.lon || 0,
-        timezone: data.timezone || "",
-        isp: data.isp || "",
-        org: data.org || "",
-        as: data.as || "",
-        asn: asnNumber,
-        mobile: data.mobile || false,
-        proxy: data.proxy || false,
-        hosting: data.hosting || false,
-        timestamp: Date.now(),
-      };
-      
-      geoIpCache.set(data.query, geoData);
-      results.set(data.query, geoData);
-    }
-    
-    console.log(`[GeoIP] Batch fetched ${results.size}/${batch.length} IPs`);
-  } catch (error) {
-    console.error("[GeoIP] Batch error:", error);
+// GeoIP Cascading: MaxMind -> ip-api -> Headers fallback
+async function fetchGeoIP(ip: string): Promise<GeoIPData | null> {
+  // Check cache first
+  const cached = geoIpCache.get(ip);
+  if (cached && Date.now() - cached.timestamp < GEOIP_CACHE_TTL) {
+    return cached;
   }
   
-  return results;
+  // Skip private/local IPs
+  if (!ip || ip === "127.0.0.1" || ip.startsWith("10.") || ip.startsWith("192.168.") || ip.startsWith("172.16.") || ip.startsWith("172.17.") || ip.startsWith("172.18.") || ip.startsWith("172.19.") || ip.startsWith("172.2") || ip.startsWith("172.30.") || ip.startsWith("172.31.")) {
+    return null;
+  }
+  
+  // Cascade: MaxMind primeiro (mais preciso), ip-api como fallback
+  let geoData = await fetchMaxMindGeoIP(ip);
+  
+  if (!geoData) {
+    geoData = await fetchIpApiGeoIP(ip);
+  }
+  
+  if (geoData) {
+    geoIpCache.set(ip, geoData);
+    
+    // Cleanup
+    if (geoIpCache.size > 10000) {
+      const oldest = geoIpCache.keys().next().value;
+      if (oldest) geoIpCache.delete(oldest);
+    }
+    
+    console.log(`[GeoIP-${geoData.source}] ${ip} -> ${geoData.countryCode}/${geoData.city} ISP=${geoData.isp} proxy=${geoData.proxy} hosting=${geoData.hosting}`);
+  }
+  
+  return geoData;
 }
 
 // Get cached GeoIP or return null (fast path)
@@ -216,27 +257,215 @@ function getCachedGeoIP(ip: string): GeoIPData | null {
   return null;
 }
 
+// ==================== RATE LIMIT MULTI-FATOR ====================
+interface RateLimitEntry {
+  count: number;
+  windowStart: number;
+  routes: Map<string, number>;
+  fingerprints: Set<string>;
+  sessions: Set<string>;
+}
+
+const rateLimitMulti = new Map<string, RateLimitEntry>();
+
+// Elite rate limit: IP + session + fingerprint + rota
+function checkRateLimitMultiFactor(
+  ip: string, 
+  sessionId: string | null, 
+  fingerprintHash: string | null, 
+  route: string,
+  limit: number, 
+  windowMinutes: number
+): { allowed: boolean; remaining: number; reason?: string } {
+  const now = Date.now();
+  const windowMs = windowMinutes * 60 * 1000;
+  
+  let entry = rateLimitMulti.get(ip);
+  
+  // Reset window if expired
+  if (!entry || (now - entry.windowStart) > windowMs) {
+    entry = {
+      count: 0,
+      windowStart: now,
+      routes: new Map(),
+      fingerprints: new Set(),
+      sessions: new Set(),
+    };
+    rateLimitMulti.set(ip, entry);
+  }
+  
+  // Track unique fingerprints/sessions por IP (detecta NAT abuse)
+  if (fingerprintHash) entry.fingerprints.add(fingerprintHash);
+  if (sessionId) entry.sessions.add(sessionId);
+  
+  // Track requests por rota
+  const routeCount = entry.routes.get(route) || 0;
+  entry.routes.set(route, routeCount + 1);
+  
+  // Check: Muitos fingerprints únicos de mesmo IP = NAT/Coworking
+  // Aumenta limite para esses casos
+  const uniqueFingerprints = entry.fingerprints.size;
+  const adjustedLimit = uniqueFingerprints > 5 ? Math.floor(limit * 1.5) : limit;
+  
+  // Check: Mesmo fingerprint muitas vezes na mesma rota = suspicious
+  if (routeCount > limit * 2) {
+    return { allowed: false, remaining: 0, reason: "route_abuse" };
+  }
+  
+  // Check global count
+  entry.count++;
+  if (entry.count > adjustedLimit) {
+    return { 
+      allowed: false, 
+      remaining: 0, 
+      reason: uniqueFingerprints > 5 ? "nat_rate_limit" : "ip_rate_limit" 
+    };
+  }
+  
+  return { allowed: true, remaining: adjustedLimit - entry.count };
+}
+
+// ==================== EARLY-EXIT SCORING ====================
+interface EarlyExitResult {
+  shouldBlock: boolean;
+  shouldAllow: boolean;
+  confidence: number;
+  reason?: string;
+  skipFingerprint: boolean;
+  skipBehavior: boolean;
+}
+
+// Caps por categoria para early-exit
+const CATEGORY_CAPS = {
+  automation: 60,    // Se automation score > 60, já é bot
+  network: 50,       // Se network score > 50, muito suspeito
+  userAgent: 40,     // Se UA score > 40, claramente bot
+};
+
+// Fast early-exit: não rodar checks pesados se já tem sinal forte
+function checkEarlyExit(
+  userAgent: string,
+  ip: string,
+  botResult: any,
+  geoData: GeoIPData | null
+): EarlyExitResult {
+  let totalSignal = 0;
+  let skipFingerprint = false;
+  let skipBehavior = false;
+  
+  // 1. Automation signals (webdriver, selenium, etc) - INSTANT BLOCK
+  if (botResult.hasWebdriver || botResult.hasSelenium || botResult.hasPuppeteer || botResult.hasPhantom) {
+    return {
+      shouldBlock: true,
+      shouldAllow: false,
+      confidence: 100,
+      reason: "automation_detected",
+      skipFingerprint: true,
+      skipBehavior: true,
+    };
+  }
+  
+  // 2. Known bot UA - INSTANT BLOCK (skip heavy checks)
+  if (botResult.isBot && botResult.confidence >= 95 && !botResult.isAdPlatform && !botResult.isSocialPreview) {
+    return {
+      shouldBlock: true,
+      shouldAllow: false,
+      confidence: botResult.confidence,
+      reason: `known_bot_${botResult.botType}`,
+      skipFingerprint: true,
+      skipBehavior: true,
+    };
+  }
+  
+  // 3. Spy tool - INSTANT BLOCK
+  if (botResult.isSpyTool) {
+    return {
+      shouldBlock: true,
+      shouldAllow: false,
+      confidence: 99,
+      reason: "spy_tool",
+      skipFingerprint: true,
+      skipBehavior: true,
+    };
+  }
+  
+  // 4. GeoIP signals - HIGH CONFIDENCE
+  if (geoData) {
+    if (geoData.hosting) totalSignal += 40;
+    if (geoData.proxy) totalSignal += 45;
+    
+    if (totalSignal >= 60) {
+      return {
+        shouldBlock: true,
+        shouldAllow: false,
+        confidence: 85,
+        reason: geoData.proxy ? "proxy_geoip" : "datacenter_geoip",
+        skipFingerprint: true,
+        skipBehavior: true,
+      };
+    }
+  }
+  
+  // 5. Ad platform reviewer - INSTANT BLOCK (mas não skip tudo)
+  if (botResult.isAdPlatform) {
+    return {
+      shouldBlock: true,
+      shouldAllow: false,
+      confidence: 95,
+      reason: `ad_platform_${botResult.platform}`,
+      skipFingerprint: false, // Log fingerprint for analysis
+      skipBehavior: true,
+    };
+  }
+  
+  // 6. Social preview - INSTANT ALLOW (skip all heavy checks)
+  if (botResult.isSocialPreview) {
+    return {
+      shouldBlock: false,
+      shouldAllow: true,
+      confidence: 100,
+      reason: `social_preview_${botResult.socialPlatform}`,
+      skipFingerprint: true,
+      skipBehavior: true,
+    };
+  }
+  
+  // 7. Very clean UA + no signals = likely human, but verify
+  if (botResult.confidence < 20 && totalSignal < 10) {
+    // Can skip some heavy checks
+    skipBehavior = true;
+  }
+  
+  // No early exit - continue with full analysis
+  return {
+    shouldBlock: false,
+    shouldAllow: false,
+    confidence: botResult.confidence,
+    reason: undefined,
+    skipFingerprint,
+    skipBehavior,
+  };
+}
+
 // Enhanced network analysis using GeoIP data
 function enhanceNetworkAnalysis(ip: string, existingAnalysis: any, geoData: GeoIPData | null): any {
   if (!geoData) return existingAnalysis;
   
   const enhanced = { ...existingAnalysis };
   
-  // ip-api.com provides direct proxy/hosting detection
   if (geoData.proxy && !enhanced.isProxy) {
     enhanced.isProxy = true;
-    enhanced.reasons.push("IPAPI_PROXY_DETECTED");
+    enhanced.reasons.push(`${geoData.source.toUpperCase()}_PROXY`);
     enhanced.score += 35;
   }
   
   if (geoData.hosting && !enhanced.isDatacenter) {
     enhanced.isDatacenter = true;
     enhanced.datacenterProvider = geoData.org || geoData.isp;
-    enhanced.reasons.push("IPAPI_HOSTING_DETECTED");
+    enhanced.reasons.push(`${geoData.source.toUpperCase()}_HOSTING`);
     enhanced.score += 30;
   }
   
-  // Update risk level
   if (enhanced.score >= 80) enhanced.riskLevel = "critical";
   else if (enhanced.score >= 50) enhanced.riskLevel = "high";
   else if (enhanced.score >= 25) enhanced.riskLevel = "medium";
@@ -840,7 +1069,9 @@ async function recordFeedback(
   
   console.log(`[ML] Recorded ${feedbackType} feedback for visitor ${visitorId.substring(0, 8)}`);
 }
-// ==================== RATE LIMITING ====================
+// ==================== RATE LIMITING (Legacy - mantido para compatibilidade) ====================
+const rateLimitCache = new Map<string, { count: number; windowStart: number }>();
+
 function checkRateLimit(ip: string, limit: number, windowMinutes: number): { allowed: boolean; remaining: number } {
   const now = Date.now();
   const windowMs = windowMinutes * 60 * 1000;
@@ -3014,13 +3245,20 @@ Deno.serve(async (req) => {
       return Response.redirect(link.safe_url, 302);
     }
     
+    // === RATE LIMIT MULTI-FATOR (Elite) ===
     if (link.rate_limit_per_ip > 0) {
-      const rateCheck = checkRateLimit(cfIp, link.rate_limit_per_ip, link.rate_limit_window_minutes || 60);
+      const rateCheck = checkRateLimitMultiFactor(
+        cfIp, 
+        existingSessionId, 
+        null, // fingerprint will be added later if collected
+        slug,
+        link.rate_limit_per_ip, 
+        link.rate_limit_window_minutes || 60
+      );
       if (!rateCheck.allowed) {
-        console.log(`[Cloaker] BLOCKED: rate_limit IP=${cfIp}`);
-        // Send rate limit webhook
+        console.log(`[Cloaker] BLOCKED: rate_limit_${rateCheck.reason} IP=${cfIp}`);
         queueMicrotask(() => {
-          sendWebhook(link, "rate_limited", { ip: cfIp, country: cfCountry, user_agent: userAgent, score: 0, is_bot: false, is_vpn: false, is_proxy: false, is_datacenter: false, is_tor: false, isp: cfIsp, referer }, "rate_limit_exceeded");
+          sendWebhook(link, "rate_limited", { ip: cfIp, country: cfCountry, user_agent: userAgent, score: 0, is_bot: false, is_vpn: false, is_proxy: false, is_datacenter: false, is_tor: false, isp: cfIsp, referer }, `rate_limit_${rateCheck.reason}`);
         });
         return Response.redirect(link.safe_url, 302);
       }
@@ -3112,14 +3350,98 @@ Deno.serve(async (req) => {
     // === BOT DETECTION ===
     const botResult = detectBot(userAgent, cfIp, req.headers, referer);
     
-    // === SOCIAL PREVIEW BYPASS ===
-    // If allow_social_previews is enabled and this is a social preview bot, let it through
-    const allowSocialPreviews = link.allow_social_previews !== false; // Default to true
+    // === EARLY-EXIT CHECK (Elite - skip heavy checks if signal is strong) ===
+    const earlyExit = checkEarlyExit(userAgent, cfIp, botResult, geoData);
+    
+    if (earlyExit.shouldAllow && link.allow_social_previews !== false) {
+      // Social preview - immediate allow
+      const processingTime = Date.now() - startTime;
+      console.log(`[Cloaker] ALLOW (early-exit) ${earlyExit.reason} conf=${earlyExit.confidence}% (${processingTime}ms)`);
+      
+      queueMicrotask(() => {
+        supabase.from("cloaker_visitors").insert({
+          link_id: link.id, fingerprint_hash: "early-allow", score: 100, decision: "allow",
+          user_agent: userAgent.substring(0, 500), ip_address: cfIp, country_code: cfCountry,
+          city: cfCity || null, isp: cfIsp, asn: cfAsn, is_bot: true,
+          platform: botResult.socialPlatform || "social",
+          referer, ...utmParams, processing_time_ms: processingTime,
+        }).then(() => {});
+        supabase.from("cloaked_links").update({ clicks_count: (link.clicks_count || 0) + 1, clicks_today: (link.clicks_today || 0) + 1 }).eq("id", link.id).then(() => {});
+      });
+      
+      let targetUrl = selectTargetUrl(link);
+      if (link.passthrough_utm) targetUrl = applyUtmPassthrough(targetUrl, req);
+      
+      if (zrcMode) return await fetchAndProxy(targetUrl, req);
+      return Response.redirect(targetUrl, 302);
+    }
+    
+    if (earlyExit.shouldBlock && link.block_bots) {
+      // Early block - skip heavy fingerprint/behavior checks
+      const processingTime = Date.now() - startTime;
+      console.log(`[Cloaker] BLOCKED (early-exit) ${earlyExit.reason} conf=${earlyExit.confidence}% geoSrc=${geoData?.source || "headers"} (${processingTime}ms)`);
+      
+      const visitorData = {
+        ip: cfIp,
+        country: cfCountry,
+        city: cfCity || null,
+        user_agent: userAgent,
+        score: 0,
+        is_bot: botResult.isBot,
+        is_vpn: link.block_vpn && (isDatacenterIP(cfIp) || isVpnProviderIP(cfIp)),
+        is_proxy: isProxyFromGeoIP,
+        is_datacenter: isHostingFromGeoIP,
+        is_tor: botResult.reasons.includes("TOR_EXIT_SUSPECTED"),
+        isp: cfIsp,
+        referer,
+      };
+      
+      const webhookEvent = getWebhookEvent(earlyExit.reason || "bot", visitorData);
+      queueMicrotask(() => {
+        sendWebhook(link, webhookEvent, visitorData, earlyExit.reason || "early_exit_block");
+      });
+      
+      queueMicrotask(() => {
+        supabase.from("cloaker_visitors").insert({
+          link_id: link.id, fingerprint_hash: "early-block", score: 0, decision: "block",
+          user_agent: userAgent.substring(0, 500), ip_address: cfIp, country_code: cfCountry,
+          city: cfCity || null, isp: cfIsp, asn: cfAsn, is_bot: true, 
+          is_proxy: isProxyFromGeoIP, is_datacenter: isHostingFromGeoIP,
+          referer, ...utmParams, processing_time_ms: processingTime,
+        }).then(() => {});
+        supabase.from("cloaked_links").update({ clicks_count: (link.clicks_count || 0) + 1, clicks_today: (link.clicks_today || 0) + 1 }).eq("id", link.id).then(() => {});
+        
+        // Cache this decision
+        setCachedDecision(cfIp, "early-block", slug, "block", 0);
+      });
+      
+      if (zrcMode) return await fetchAndProxy(link.safe_url, req);
+      return Response.redirect(link.safe_url, 302);
+    }
+    
+    // === CHECK DECISION CACHE (Smart TTL per decision type) ===
+    const cachedDecision = getCachedDecision(cfIp, existingSessionId || "none", slug);
+    if (cachedDecision) {
+      const processingTime = Date.now() - startTime;
+      console.log(`[Cloaker] ${cachedDecision.decision.toUpperCase()} (cached) score=${cachedDecision.score} (${processingTime}ms)`);
+      
+      if (cachedDecision.decision === "allow") {
+        let targetUrl = selectTargetUrl(link);
+        if (link.passthrough_utm) targetUrl = applyUtmPassthrough(targetUrl, req);
+        if (zrcMode) return await fetchAndProxy(targetUrl, req);
+        return Response.redirect(targetUrl, 302);
+      } else {
+        if (zrcMode) return await fetchAndProxy(link.safe_url, req);
+        return Response.redirect(link.safe_url, 302);
+      }
+    }
+    
+    // === LEGACY BLOCKING (for cases that didn't early-exit) ===
+    const allowSocialPreviews = link.allow_social_previews !== false;
     if (allowSocialPreviews && botResult.isSocialPreview) {
       const processingTime = Date.now() - startTime;
       console.log(`[Cloaker] ALLOW (social-preview) ${botResult.botType} platform=${botResult.socialPlatform} (${processingTime}ms)`);
       
-      // Log the social preview visit but don't block
       queueMicrotask(() => {
         supabase.from("cloaker_visitors").insert({
           link_id: link.id, fingerprint_hash: "social-preview", score: 100, decision: "allow",
@@ -3131,7 +3453,6 @@ Deno.serve(async (req) => {
         supabase.from("cloaked_links").update({ clicks_count: (link.clicks_count || 0) + 1, clicks_today: (link.clicks_today || 0) + 1 }).eq("id", link.id).then(() => {});
       });
       
-      // Redirect social preview to target URL so they can generate the preview
       let targetUrl = selectTargetUrl(link);
       if (link.passthrough_utm) targetUrl = applyUtmPassthrough(targetUrl, req);
       
@@ -3141,7 +3462,7 @@ Deno.serve(async (req) => {
     
     // === ENHANCED BLOCKING WITH GEOIP DATA ===
     const shouldBlock = link.block_bots && (
-      (botResult.isBot && !botResult.isSocialPreview) || // Block bots but not social previews
+      (botResult.isBot && !botResult.isSocialPreview) ||
       botResult.isSpyTool ||
       (link.block_vpn && (isDatacenterIP(cfIp) || isVpnProviderIP(cfIp))) ||
       (link.block_datacenter && (isDatacenterIP(cfIp) || isHostingFromGeoIP)) ||
@@ -3152,9 +3473,8 @@ Deno.serve(async (req) => {
     if (shouldBlock) {
       const processingTime = Date.now() - startTime;
       const blockReason = botResult.botType || (isProxyFromGeoIP ? "proxy" : isHostingFromGeoIP ? "datacenter" : "bot");
-      console.log(`[Cloaker] BLOCKED: ${blockReason} platform=${botResult.platform || "unknown"} spy=${botResult.isSpyTool} ref=${refererAnalysis.platform || "none"} conf=${botResult.confidence}% threat=${botResult.threatLevel} geoProxy=${isProxyFromGeoIP} geoHosting=${isHostingFromGeoIP} city=${cfCity} (${processingTime}ms)`);
+      console.log(`[Cloaker] BLOCKED: ${blockReason} platform=${botResult.platform || "unknown"} spy=${botResult.isSpyTool} ref=${refererAnalysis.platform || "none"} conf=${botResult.confidence}% threat=${botResult.threatLevel} geoProxy=${isProxyFromGeoIP} geoHosting=${isHostingFromGeoIP} geoSrc=${geoData?.source || "headers"} city=${cfCity} (${processingTime}ms)`);
       
-      // Prepare visitor data for webhook with GeoIP enrichment
       const visitorData = {
         ip: cfIp,
         country: cfCountry,
@@ -3170,7 +3490,6 @@ Deno.serve(async (req) => {
         referer,
       };
       
-      // Send webhook notification
       const webhookEvent = getWebhookEvent(blockReason, visitorData);
       queueMicrotask(() => {
         sendWebhook(link, webhookEvent, visitorData, blockReason);
@@ -3185,17 +3504,18 @@ Deno.serve(async (req) => {
           referer, ...utmParams, processing_time_ms: processingTime,
         }).then(() => {});
         supabase.from("cloaked_links").update({ clicks_count: (link.clicks_count || 0) + 1, clicks_today: (link.clicks_today || 0) + 1 }).eq("id", link.id).then(() => {});
+        
+        // Cache this block decision
+        setCachedDecision(cfIp, "fast-block", slug, "block", 0);
       });
       
-      // For ZRC mode, serve safe page content
       if (zrcMode) return await fetchAndProxy(link.safe_url, req);
       return Response.redirect(link.safe_url, 302);
     }
     
-    // === FINGERPRINT COLLECTION MODE ===
-    if (link.collect_fingerprint && link.require_behavior) {
+    // === FINGERPRINT COLLECTION MODE (skip if early-exit said to) ===
+    if (link.collect_fingerprint && link.require_behavior && !earlyExit.skipBehavior) {
       const behaviorTime = link.behavior_time_ms || 2000;
-      // Use dynamic function URL from request
       const functionUrl = `${supabaseUrl}/functions/v1/cloaker-redirect`;
       console.log(`[Cloaker] CHALLENGE: Skipping fingerprint due to CSP, redirecting directly`);
       
