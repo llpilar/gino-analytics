@@ -162,6 +162,867 @@ function getClientIp(req: Request): ClientIPResult {
   };
 }
 
+// ==================== TLS/JA3 FINGERPRINT ANALYSIS (No external API) ====================
+interface TLSAnalysisResult {
+  score: number;
+  isSuspicious: boolean;
+  reasons: string[];
+  ja3Like: string;
+  tlsVersion: string;
+  cipherSuites: string;
+}
+
+// Known bot TLS fingerprint patterns (JA3-like signatures)
+const BOT_TLS_PATTERNS = [
+  // Headless Chrome patterns
+  "769,47-53-5-10-49161-49162-49171-49172-50-56-19-4",
+  "769,47-53-5-10-49171-49172-50-56-19-4",
+  // Puppeteer/Playwright patterns
+  "771,4865-4866-4867-49195-49196-49197-49198-49199-49200-52393-52392",
+  // Python requests patterns
+  "769,47-53-5-10-49161-49162-49171-49172-50-56-19-4-255",
+  // Curl patterns
+  "769,49195-49196-52393-49199-49200-52392-49161-49162-49171-49172-156-157-47-53-10",
+  // Go http client patterns
+  "771,49195-49199-49196-49200-52393-52392-49171-49172-156-157-47-53",
+  // Node.js patterns
+  "771,4865-4867-4866-49195-49199-52393-52392-49196-49200-49162-49161-49171-49172-51-57-47-53-10",
+];
+
+// Browser-specific TLS fingerprints (legitimate browsers)
+const BROWSER_TLS_PATTERNS = {
+  chrome: ["771,4865-4866-4867-49195-49199-49196-49200-52393-52392-49171-49172-156-157-47-53"],
+  firefox: ["771,4865-4867-4866-49195-49199-52393-52392-49196-49200-49162-49161-49171-49172-51-57-47-53-10"],
+  safari: ["771,4865-4866-4867-49196-49200-52393-52392-49171-49172-157-49195-49199-156"],
+  edge: ["771,4865-4866-4867-49195-49199-49196-49200-52393-52392-49171-49172-156-157-47-53"],
+};
+
+function analyzeTLSFingerprint(headers: Headers, userAgent: string): TLSAnalysisResult {
+  const reasons: string[] = [];
+  let score = 100;
+  let isSuspicious = false;
+  
+  // Extract TLS info from Cloudflare headers (if available)
+  const cfTlsVersion = headers.get("cf-tls-version") || headers.get("x-tls-version") || "";
+  const cfCipherSuite = headers.get("cf-cipher-suite") || headers.get("x-cipher-suite") || "";
+  const cfJa3Hash = headers.get("cf-ja3-hash") || headers.get("x-ja3-hash") || "";
+  
+  // Build JA3-like signature from available info
+  const ja3Like = `${cfTlsVersion}-${cfCipherSuite}`.toLowerCase();
+  
+  // 1. Check TLS version - old versions are suspicious
+  if (cfTlsVersion) {
+    if (cfTlsVersion === "TLSv1" || cfTlsVersion === "TLSv1.0") {
+      score -= 40;
+      reasons.push("TLS_V1_DEPRECATED");
+      isSuspicious = true;
+    } else if (cfTlsVersion === "TLSv1.1") {
+      score -= 25;
+      reasons.push("TLS_V1_1_OLD");
+      isSuspicious = true;
+    } else if (cfTlsVersion === "SSLv3") {
+      score -= 60;
+      reasons.push("SSL_V3_ANCIENT");
+      isSuspicious = true;
+    }
+    // TLSv1.2 or TLSv1.3 are good
+  }
+  
+  // 2. Check for cipher suite anomalies
+  if (cfCipherSuite) {
+    // Weak ciphers used by bots
+    const weakCiphers = ["RC4", "DES", "MD5", "NULL", "EXPORT", "anon"];
+    for (const weak of weakCiphers) {
+      if (cfCipherSuite.includes(weak)) {
+        score -= 30;
+        reasons.push(`WEAK_CIPHER_${weak}`);
+        isSuspicious = true;
+        break;
+      }
+    }
+  }
+  
+  // 3. Check JA3 hash against known bots (if available)
+  if (cfJa3Hash) {
+    for (const pattern of BOT_TLS_PATTERNS) {
+      if (pattern.includes(cfJa3Hash) || cfJa3Hash.includes(pattern.substring(0, 20))) {
+        score -= 50;
+        reasons.push("BOT_TLS_FINGERPRINT");
+        isSuspicious = true;
+        break;
+      }
+    }
+  }
+  
+  // 4. Cross-reference with claimed browser
+  const ua = userAgent.toLowerCase();
+  if (cfTlsVersion && cfCipherSuite) {
+    // Chrome claims but old TLS
+    if (/chrome\/[89]\d|chrome\/1[0-4]\d/i.test(userAgent) && cfTlsVersion !== "TLSv1.3") {
+      score -= 15;
+      reasons.push("MODERN_BROWSER_OLD_TLS");
+    }
+    
+    // Mobile claiming desktop TLS patterns (and vice versa)
+    if (/android|iphone|mobile/i.test(userAgent)) {
+      // Mobile browsers have specific TLS behaviors
+      if (cfCipherSuite.includes("GREASE") && !/chrome|safari/i.test(userAgent)) {
+        score -= 10;
+        reasons.push("TLS_UA_MISMATCH");
+      }
+    }
+  }
+  
+  // 5. Missing expected security features for modern browsers
+  const isModernBrowser = /chrome\/[89]\d|chrome\/1[0-4]\d|firefox\/1[0-2]\d|safari\/1[5-7]/i.test(userAgent);
+  if (isModernBrowser && cfTlsVersion && !["TLSv1.2", "TLSv1.3"].includes(cfTlsVersion)) {
+    score -= 25;
+    reasons.push("MODERN_UA_LEGACY_TLS");
+    isSuspicious = true;
+  }
+  
+  return {
+    score: Math.max(0, score),
+    isSuspicious,
+    reasons,
+    ja3Like,
+    tlsVersion: cfTlsVersion,
+    cipherSuites: cfCipherSuite,
+  };
+}
+
+// ==================== REQUEST TIMING ANALYSIS (Pattern Detection) ====================
+interface RequestTimingEntry {
+  timestamps: number[];
+  intervals: number[];
+  avgInterval: number;
+  stdDeviation: number;
+  burstCount: number;
+  roboticScore: number;
+}
+
+const requestTimingCache = new Map<string, RequestTimingEntry>();
+const TIMING_WINDOW = 600000; // 10 minutes
+const MIN_SAMPLES_FOR_ANALYSIS = 3;
+
+interface TimingAnalysisResult {
+  score: number;
+  isSuspicious: boolean;
+  isRobotic: boolean;
+  reasons: string[];
+  pattern: string;
+  avgInterval: number;
+  burstDetected: boolean;
+}
+
+function analyzeRequestTiming(ip: string, fingerprintHash: string): TimingAnalysisResult {
+  const key = `${ip}:${fingerprintHash}`;
+  const now = Date.now();
+  const reasons: string[] = [];
+  let score = 100;
+  let isRobotic = false;
+  let burstDetected = false;
+  let pattern = "unknown";
+  
+  // Get or create entry
+  let entry = requestTimingCache.get(key);
+  if (!entry) {
+    entry = { timestamps: [], intervals: [], avgInterval: 0, stdDeviation: 0, burstCount: 0, roboticScore: 0 };
+    requestTimingCache.set(key, entry);
+  }
+  
+  // Clean old timestamps
+  entry.timestamps = entry.timestamps.filter(t => now - t < TIMING_WINDOW);
+  
+  // Add current timestamp
+  const lastTimestamp = entry.timestamps[entry.timestamps.length - 1];
+  entry.timestamps.push(now);
+  
+  // Calculate interval
+  if (lastTimestamp) {
+    const interval = now - lastTimestamp;
+    entry.intervals.push(interval);
+    
+    // Keep only last 20 intervals
+    if (entry.intervals.length > 20) {
+      entry.intervals.shift();
+    }
+  }
+  
+  // Analyze patterns if we have enough samples
+  if (entry.intervals.length >= MIN_SAMPLES_FOR_ANALYSIS) {
+    const intervals = entry.intervals;
+    
+    // Calculate average and standard deviation
+    const sum = intervals.reduce((a, b) => a + b, 0);
+    entry.avgInterval = sum / intervals.length;
+    
+    const variance = intervals.reduce((acc, val) => acc + Math.pow(val - entry.avgInterval, 2), 0) / intervals.length;
+    entry.stdDeviation = Math.sqrt(variance);
+    
+    // 1. TOO REGULAR INTERVALS (robotic behavior)
+    // Coefficient of variation (CV) - low CV means very consistent timing
+    const cv = entry.stdDeviation / entry.avgInterval;
+    if (cv < 0.05 && intervals.length >= 5) {
+      // CV < 5% is EXTREMELY consistent - almost certainly a bot
+      score -= 50;
+      reasons.push("ROBOTIC_TIMING_PRECISE");
+      isRobotic = true;
+      pattern = "robotic_precise";
+    } else if (cv < 0.1 && intervals.length >= 5) {
+      // CV < 10% is very consistent
+      score -= 30;
+      reasons.push("ROBOTIC_TIMING_CONSISTENT");
+      isRobotic = true;
+      pattern = "robotic_consistent";
+    } else if (cv < 0.2 && intervals.length >= 7) {
+      // CV < 20% with many samples is still suspicious
+      score -= 15;
+      reasons.push("TIMING_SUSPICIOUSLY_REGULAR");
+      pattern = "regular";
+    }
+    
+    // 2. BURST DETECTION (many requests in short time)
+    const recentIntervals = intervals.slice(-5);
+    const avgRecentInterval = recentIntervals.reduce((a, b) => a + b, 0) / recentIntervals.length;
+    
+    if (avgRecentInterval < 500) { // Less than 500ms between requests
+      entry.burstCount++;
+      burstDetected = true;
+      if (entry.burstCount >= 3) {
+        score -= 40;
+        reasons.push("BURST_ATTACK_DETECTED");
+        pattern = "burst";
+      } else {
+        score -= 20;
+        reasons.push("RAPID_REQUESTS");
+      }
+    } else if (entry.burstCount > 0) {
+      entry.burstCount = Math.max(0, entry.burstCount - 1); // Decay burst count
+    }
+    
+    // 3. EXACT INTERVAL PATTERN (e.g., exactly 1000ms every time)
+    const roundIntervals = intervals.filter(i => i % 1000 < 50 || i % 1000 > 950);
+    if (roundIntervals.length / intervals.length > 0.7) {
+      score -= 25;
+      reasons.push("ROUND_NUMBER_INTERVALS");
+      isRobotic = true;
+      pattern = "scripted";
+    }
+    
+    // 4. TOO FAST FOR HUMAN
+    if (entry.avgInterval < 200 && intervals.length >= 3) {
+      score -= 60;
+      reasons.push("INHUMAN_SPEED");
+      isRobotic = true;
+      pattern = "automated";
+    }
+    
+    // 5. FIBONACCI/EXPONENTIAL PATTERN (some scrapers use this)
+    const ratios = intervals.slice(1).map((v, i) => v / intervals[i]);
+    const constantRatios = ratios.filter(r => Math.abs(r - 1.618) < 0.2 || Math.abs(r - 2) < 0.2);
+    if (constantRatios.length / ratios.length > 0.6) {
+      score -= 20;
+      reasons.push("ALGORITHMIC_TIMING_PATTERN");
+      isRobotic = true;
+      pattern = "algorithmic";
+    }
+    
+    // Calculate robotic score for future reference
+    entry.roboticScore = isRobotic ? 100 - score : 0;
+  } else {
+    pattern = "insufficient_data";
+  }
+  
+  // Cache cleanup
+  if (requestTimingCache.size > 50000) {
+    const oldest = requestTimingCache.keys().next().value;
+    if (oldest) requestTimingCache.delete(oldest);
+  }
+  
+  return {
+    score: Math.max(0, score),
+    isSuspicious: score < 70,
+    isRobotic,
+    reasons,
+    pattern,
+    avgInterval: entry.avgInterval,
+    burstDetected,
+  };
+}
+
+// ==================== CANVAS NOISE DETECTION (Fingerprint Randomizers) ====================
+interface CanvasNoiseResult {
+  score: number;
+  isRandomized: boolean;
+  reasons: string[];
+  noiseLevel: "none" | "low" | "medium" | "high";
+  consistency: number;
+}
+
+// Known canvas hash patterns from fingerprint randomizers
+const RANDOMIZER_CANVAS_PATTERNS = [
+  // Canvas Defender patterns
+  /^[a-f0-9]{8}$/i,
+  // Privacy Badger patterns
+  /^(0{8}|f{8})$/i,
+  // Chameleon extension patterns
+  /^[a-f0-9]{32}$/i,
+];
+
+// Canvas hash cache for consistency checking
+const canvasHashHistory = new Map<string, { hashes: string[]; timestamps: number[] }>();
+
+function analyzeCanvasNoise(fingerprint: any, ip: string): CanvasNoiseResult {
+  const reasons: string[] = [];
+  let score = 100;
+  let isRandomized = false;
+  let noiseLevel: "none" | "low" | "medium" | "high" = "none";
+  let consistency = 100;
+  
+  const canvasHash = fingerprint?.canvasHash || "";
+  const audioHash = fingerprint?.audioHash || "";
+  const webglRenderer = fingerprint?.webglRenderer || "";
+  const webglVendor = fingerprint?.webglVendor || "";
+  
+  // Get history for this IP
+  const historyKey = ip;
+  let history = canvasHashHistory.get(historyKey);
+  if (!history) {
+    history = { hashes: [], timestamps: [] };
+    canvasHashHistory.set(historyKey, history);
+  }
+  
+  // 1. CHECK FOR KNOWN RANDOMIZER PATTERNS
+  if (canvasHash) {
+    // Empty or null canvas - suspicious
+    if (canvasHash === "0" || canvasHash === "null" || canvasHash === "undefined") {
+      score -= 40;
+      reasons.push("CANVAS_BLOCKED");
+      isRandomized = true;
+      noiseLevel = "high";
+    }
+    
+    // Very short hash - likely blocked/modified
+    else if (canvasHash.length < 5) {
+      score -= 30;
+      reasons.push("CANVAS_HASH_TOO_SHORT");
+      isRandomized = true;
+      noiseLevel = "medium";
+    }
+    
+    // Check against known randomizer patterns
+    for (const pattern of RANDOMIZER_CANVAS_PATTERNS) {
+      if (pattern.test(canvasHash)) {
+        score -= 35;
+        reasons.push("KNOWN_RANDOMIZER_PATTERN");
+        isRandomized = true;
+        noiseLevel = "high";
+        break;
+      }
+    }
+    
+    // 2. CHECK CANVAS CONSISTENCY OVER TIME
+    history.hashes.push(canvasHash);
+    history.timestamps.push(Date.now());
+    
+    // Keep only last 10 entries within 1 hour
+    const oneHourAgo = Date.now() - 3600000;
+    const validIndices = history.timestamps.map((t, i) => t > oneHourAgo ? i : -1).filter(i => i >= 0);
+    history.hashes = validIndices.map(i => history!.hashes[i]);
+    history.timestamps = validIndices.map(i => history!.timestamps[i]);
+    
+    if (history.hashes.length >= 2) {
+      const uniqueHashes = new Set(history.hashes);
+      
+      // Multiple different canvas hashes from same IP = randomizer
+      if (uniqueHashes.size > 1 && uniqueHashes.size === history.hashes.length) {
+        // Every visit has different canvas - definitely randomized
+        score -= 50;
+        reasons.push("CANVAS_HASH_CHANGES_EVERY_VISIT");
+        isRandomized = true;
+        noiseLevel = "high";
+        consistency = 0;
+      } else if (uniqueHashes.size > 1) {
+        // Some variation - might be randomized
+        consistency = ((history.hashes.length - uniqueHashes.size + 1) / history.hashes.length) * 100;
+        if (consistency < 50) {
+          score -= 30;
+          reasons.push("CANVAS_HASH_INCONSISTENT");
+          isRandomized = true;
+          noiseLevel = "medium";
+        }
+      } else {
+        // All same - consistent, good
+        consistency = 100;
+      }
+    }
+  } else {
+    // No canvas hash at all - suspicious
+    score -= 25;
+    reasons.push("NO_CANVAS_HASH");
+    noiseLevel = "medium";
+  }
+  
+  // 3. CHECK AUDIO FINGERPRINT CONSISTENCY
+  if (audioHash) {
+    // Audio hash blocked
+    if (audioHash === "0" || audioHash === "null" || audioHash.length < 5) {
+      score -= 20;
+      reasons.push("AUDIO_FINGERPRINT_BLOCKED");
+      noiseLevel = noiseLevel === "high" ? "high" : "medium";
+    }
+  }
+  
+  // 4. CHECK WEBGL CONSISTENCY WITH USER AGENT
+  if (webglRenderer && webglVendor) {
+    // Generic/blocked WebGL
+    if (webglRenderer === "WebGL 1.0" || webglVendor === "WebKit" || webglRenderer.includes("Mesa")) {
+      // Could be legitimate Linux user, but check UA
+      const ua = (fingerprint?.userAgent || "").toLowerCase();
+      if (!ua.includes("linux") && webglRenderer.includes("Mesa")) {
+        score -= 20;
+        reasons.push("WEBGL_UA_MISMATCH");
+        noiseLevel = noiseLevel === "high" ? "high" : "low";
+      }
+    }
+    
+    // Completely generic WebGL (likely spoofed)
+    if (webglRenderer === "WebGL Renderer" || webglVendor === "WebGL Vendor") {
+      score -= 35;
+      reasons.push("WEBGL_SPOOFED");
+      isRandomized = true;
+      noiseLevel = "high";
+    }
+    
+    // ANGLE on Linux (Chrome on Linux uses Mesa, not ANGLE)
+    const ua = (fingerprint?.userAgent || "").toLowerCase();
+    if (ua.includes("linux") && !ua.includes("android") && webglRenderer.includes("ANGLE")) {
+      score -= 15;
+      reasons.push("WEBGL_ENVIRONMENT_MISMATCH");
+    }
+  }
+  
+  // 5. CHECK FOR EXTENSION INTERFERENCE PATTERNS
+  if (fingerprint?.extensionsDetected) {
+    // Too many privacy extensions = likely fingerprint spoofing
+    const privacyExtensions = ["canvas blocker", "privacy badger", "canvas defender", "chameleon"];
+    const detected = (fingerprint.extensionsDetected || "").toLowerCase();
+    const privacyCount = privacyExtensions.filter(ext => detected.includes(ext)).length;
+    
+    if (privacyCount >= 2) {
+      score -= 25;
+      reasons.push("MULTIPLE_PRIVACY_EXTENSIONS");
+      isRandomized = true;
+      noiseLevel = "medium";
+    }
+  }
+  
+  // Cache cleanup
+  if (canvasHashHistory.size > 30000) {
+    const oldest = canvasHashHistory.keys().next().value;
+    if (oldest) canvasHashHistory.delete(oldest);
+  }
+  
+  return {
+    score: Math.max(0, score),
+    isRandomized,
+    reasons,
+    noiseLevel,
+    consistency,
+  };
+}
+
+// ==================== FACEBOOK ADS ENHANCED DETECTION ====================
+// Additional Facebook-specific patterns and behaviors
+
+const FACEBOOK_IN_APP_BROWSER_PATTERNS = [
+  // Facebook In-App Browser (REAL USERS - should ALLOW)
+  /\[FB_IAB\/FB4A/i,           // Facebook for Android in-app
+  /\[FBAN\/FBIOS/i,            // Facebook for iOS in-app  
+  /\[FB_IAB\/Messenger/i,      // Messenger in-app
+  /Instagram.*IABMV/i,         // Instagram in-app
+];
+
+const FACEBOOK_REVIEWER_BEHAVIORS = {
+  // Typical Facebook ad reviewer behaviors
+  rapidPageSwitching: true,      // They switch pages fast
+  noScrolling: true,             // Often don't scroll
+  shortVisitDuration: true,      // Short visits
+  multipleAdsInSession: true,    // View many ads quickly
+  specificResolutions: ["1024x768", "1280x800", "1920x1080"], // Common VM resolutions
+};
+
+interface FacebookAnalysisResult {
+  isRealUser: boolean;
+  isReviewer: boolean;
+  isCrawler: boolean;
+  confidence: number;
+  reasons: string[];
+  inAppBrowser: boolean;
+}
+
+function analyzeFacebookTraffic(
+  userAgent: string,
+  ip: string,
+  referer: string,
+  fingerprint: any,
+  headers: Headers
+): FacebookAnalysisResult {
+  const reasons: string[] = [];
+  let isRealUser = false;
+  let isReviewer = false;
+  let isCrawler = false;
+  let confidence = 50;
+  let inAppBrowser = false;
+  
+  const ua = userAgent.toLowerCase();
+  
+  // 1. CHECK FOR IN-APP BROWSER (Real users!)
+  for (const pattern of FACEBOOK_IN_APP_BROWSER_PATTERNS) {
+    if (pattern.test(userAgent)) {
+      inAppBrowser = true;
+      isRealUser = true;
+      confidence = 90;
+      reasons.push("FACEBOOK_IN_APP_BROWSER");
+      break;
+    }
+  }
+  
+  // 2. CHECK FOR FACEBOOK CRAWLER (Block)
+  if (/facebookexternalhit|facebot|facebookcatalog|meta-external/i.test(userAgent)) {
+    isCrawler = true;
+    isRealUser = false;
+    confidence = 100;
+    reasons.push("FACEBOOK_CRAWLER_UA");
+  }
+  
+  // 3. CHECK REFERER FOR ADS MANAGER (Reviewer)
+  if (/adsmanager\.facebook\.com|business\.facebook\.com\/adsmanager/i.test(referer)) {
+    // Coming from Ads Manager - could be advertiser OR reviewer
+    // Real advertisers usually have consistent fingerprints
+    // Reviewers have VM-like fingerprints
+    
+    if (fingerprint?.screenResolution) {
+      const res = fingerprint.screenResolution;
+      if (FACEBOOK_REVIEWER_BEHAVIORS.specificResolutions.includes(res)) {
+        // Common VM resolution
+        isReviewer = true;
+        confidence = 75;
+        reasons.push("FACEBOOK_REVIEWER_VM_RESOLUTION");
+      }
+    }
+    
+    // Check for behavior patterns
+    if (fingerprint?.mouseMovements === 0 && fingerprint?.timeOnPage < 2000) {
+      isReviewer = true;
+      confidence += 15;
+      reasons.push("FACEBOOK_REVIEWER_NO_INTERACTION");
+    }
+  }
+  
+  // 4. CHECK FOR FBCLID (Real ad click)
+  const url = headers.get("x-original-url") || "";
+  if (/fbclid=/.test(url) || /fbclid=/.test(referer)) {
+    if (!isCrawler && !isReviewer) {
+      isRealUser = true;
+      confidence = 85;
+      reasons.push("HAS_FBCLID_TRACKING");
+    }
+  }
+  
+  // 5. INSTAGRAM SPECIFIC
+  if (/instagram/i.test(referer) || /instagram/i.test(userAgent)) {
+    if (/Instagram.*IABMV|Instagram.*wv/i.test(userAgent)) {
+      // Instagram in-app browser with WebView - real user
+      isRealUser = true;
+      inAppBrowser = true;
+      confidence = 88;
+      reasons.push("INSTAGRAM_IN_APP_BROWSER");
+    }
+  }
+  
+  // 6. FACEBOOK IP RANGE CHECK
+  // Only block if also has crawler UA (real users access from FB network)
+  if (isFacebookIP(ip)) {
+    if (isCrawler) {
+      confidence = 100;
+      reasons.push("FACEBOOK_IP_WITH_CRAWLER_UA");
+    } else if (!isRealUser && !inAppBrowser) {
+      // Could be VPN via Facebook or actual FB network
+      isReviewer = true;
+      confidence = 60;
+      reasons.push("FACEBOOK_IP_NO_INAPP");
+    }
+  }
+  
+  return {
+    isRealUser,
+    isReviewer,
+    isCrawler,
+    confidence,
+    reasons,
+    inAppBrowser,
+  };
+}
+
+// ==================== GOOGLE ADS ENHANCED DETECTION ====================
+// Additional Google-specific patterns and behaviors
+
+const GOOGLE_AD_CLICK_PATTERNS = [
+  // GCLID tracking parameter
+  /gclid=[a-zA-Z0-9_-]+/,
+  // Google Ads redirect patterns
+  /googleads\.g\.doubleclick\.net/i,
+  /adservice\.google\./i,
+  /pagead2\.googlesyndication\.com/i,
+];
+
+const GOOGLE_REVIEWER_SIGNALS = {
+  // Google Quality Score reviewers typically use
+  specificUserAgents: [
+    /Chrome\/\d+.*Google Web Preview/i,
+    /Google-Ads-Quality/i,
+    /Google-Safety/i,
+    /Google-adtte/i,
+  ],
+  // Common Google datacenter ASNs
+  datacenterASNs: ["AS15169", "AS396982", "AS36492"],
+};
+
+interface GoogleAnalysisResult {
+  isRealUser: boolean;
+  isReviewer: boolean;
+  isCrawler: boolean;
+  confidence: number;
+  reasons: string[];
+  hasGclid: boolean;
+  isQualityReview: boolean;
+}
+
+function analyzeGoogleTraffic(
+  userAgent: string,
+  ip: string,
+  referer: string,
+  url: string,
+  headers: Headers
+): GoogleAnalysisResult {
+  const reasons: string[] = [];
+  let isRealUser = false;
+  let isReviewer = false;
+  let isCrawler = false;
+  let confidence = 50;
+  let hasGclid = false;
+  let isQualityReview = false;
+  
+  // 1. CHECK FOR GCLID (Real ad click)
+  if (/gclid=|gbraid=|wbraid=/i.test(url) || /gclid=|gbraid=|wbraid=/i.test(referer)) {
+    hasGclid = true;
+    isRealUser = true;
+    confidence = 85;
+    reasons.push("HAS_GOOGLE_TRACKING_PARAM");
+  }
+  
+  // 2. CHECK FOR GOOGLE BOTS
+  for (const pattern of GOOGLE_BOT_UA_PATTERNS) {
+    if (pattern.test(userAgent)) {
+      isCrawler = true;
+      isRealUser = false;
+      confidence = 100;
+      reasons.push("GOOGLE_BOT_UA_DETECTED");
+      
+      // Check if it's a quality review bot
+      if (/Google-Ads-Quality|Google-Safety|Google-adtte/i.test(userAgent)) {
+        isQualityReview = true;
+        isReviewer = true;
+        reasons.push("GOOGLE_QUALITY_REVIEWER");
+      }
+      break;
+    }
+  }
+  
+  // 3. CHECK FOR GOOGLE REFERER
+  if (/google\.com\/search|google\.[a-z.]+\/search/i.test(referer)) {
+    if (!isCrawler) {
+      isRealUser = true;
+      confidence = 80;
+      reasons.push("GOOGLE_SEARCH_REFERER");
+    }
+  }
+  
+  // 4. CHECK GOOGLE ADS REFERER
+  if (/ads\.google\.com|adwords\.google\.com/i.test(referer)) {
+    // Coming from Google Ads interface - could be advertiser OR reviewer
+    isReviewer = true;
+    confidence = 70;
+    reasons.push("GOOGLE_ADS_INTERFACE_REFERER");
+  }
+  
+  // 5. CHECK GOOGLE IP RANGES
+  if (isGoogleIP(ip)) {
+    if (isCrawler) {
+      confidence = 100;
+      reasons.push("GOOGLE_IP_WITH_BOT_UA");
+    } else {
+      // Could be Google employee or reviewer
+      isReviewer = true;
+      confidence = 65;
+      reasons.push("GOOGLE_IP_RANGE");
+    }
+  }
+  
+  // 6. CHECK ASN FOR GOOGLE DATACENTER
+  const cfAsn = headers.get("cf-asn") || headers.get("x-asn") || "";
+  for (const asn of GOOGLE_REVIEWER_SIGNALS.datacenterASNs) {
+    if (cfAsn.toUpperCase().includes(asn)) {
+      if (!hasGclid && !isRealUser) {
+        isReviewer = true;
+        confidence = 75;
+        reasons.push("GOOGLE_DATACENTER_ASN");
+      }
+      break;
+    }
+  }
+  
+  // 7. QUALITY REVIEW DETECTION - ads viewed but no engagement
+  // This is typically when Google reviews your landing page
+  if (/adspreview\.googleapis\.com|adssettings\.google\.com/i.test(referer)) {
+    isQualityReview = true;
+    isReviewer = true;
+    isCrawler = true;
+    confidence = 95;
+    reasons.push("GOOGLE_ADS_PREVIEW_TOOL");
+  }
+  
+  return {
+    isRealUser,
+    isReviewer,
+    isCrawler,
+    confidence,
+    reasons,
+    hasGclid,
+    isQualityReview,
+  };
+}
+
+// ==================== COMBINED ELITE ANALYSIS ====================
+interface EliteAnalysisResult {
+  score: number;
+  decision: "allow" | "challenge" | "block";
+  reasons: string[];
+  tlsScore: number;
+  timingScore: number;
+  canvasScore: number;
+  facebookAnalysis: FacebookAnalysisResult | null;
+  googleAnalysis: GoogleAnalysisResult | null;
+  isFacebookRealUser: boolean;
+  isGoogleRealUser: boolean;
+  isAdReviewer: boolean;
+}
+
+function performEliteAnalysis(
+  headers: Headers,
+  userAgent: string,
+  ip: string,
+  referer: string,
+  url: string,
+  fingerprint: any
+): EliteAnalysisResult {
+  const reasons: string[] = [];
+  let baseScore = 100;
+  
+  // 1. TLS Analysis
+  const tlsResult = analyzeTLSFingerprint(headers, userAgent);
+  if (tlsResult.isSuspicious) {
+    baseScore -= (100 - tlsResult.score) * 0.3; // 30% weight
+    reasons.push(...tlsResult.reasons);
+  }
+  
+  // 2. Request Timing Analysis
+  const fingerprintHash = fingerprint?.canvasHash || hashString(userAgent + ip);
+  const timingResult = analyzeRequestTiming(ip, fingerprintHash);
+  if (timingResult.isRobotic) {
+    baseScore -= (100 - timingResult.score) * 0.25; // 25% weight
+    reasons.push(...timingResult.reasons);
+  }
+  
+  // 3. Canvas Noise Detection
+  let canvasResult: CanvasNoiseResult = { score: 100, isRandomized: false, reasons: [], noiseLevel: "none", consistency: 100 };
+  if (fingerprint) {
+    canvasResult = analyzeCanvasNoise(fingerprint, ip);
+    if (canvasResult.isRandomized) {
+      baseScore -= (100 - canvasResult.score) * 0.2; // 20% weight
+      reasons.push(...canvasResult.reasons);
+    }
+  }
+  
+  // 4. Facebook-specific Analysis
+  let facebookAnalysis: FacebookAnalysisResult | null = null;
+  const isFacebookTraffic = /facebook|instagram|fb_|fbclid|FBAN|FB_IAB/i.test(userAgent + referer + url);
+  if (isFacebookTraffic) {
+    facebookAnalysis = analyzeFacebookTraffic(userAgent, ip, referer, fingerprint, headers);
+    
+    if (facebookAnalysis.isRealUser && facebookAnalysis.inAppBrowser) {
+      // Real Facebook user in in-app browser - BOOST score
+      baseScore = Math.min(100, baseScore + 20);
+      reasons.push("FACEBOOK_REAL_USER_DETECTED");
+    } else if (facebookAnalysis.isCrawler) {
+      // Facebook crawler - significant penalty
+      baseScore -= 60;
+      reasons.push(...facebookAnalysis.reasons);
+    } else if (facebookAnalysis.isReviewer) {
+      // Possible reviewer - moderate penalty
+      baseScore -= 30;
+      reasons.push(...facebookAnalysis.reasons);
+    }
+  }
+  
+  // 5. Google-specific Analysis
+  let googleAnalysis: GoogleAnalysisResult | null = null;
+  const isGoogleTraffic = /google|gclid|gbraid|wbraid|doubleclick|googlesyndication/i.test(userAgent + referer + url);
+  if (isGoogleTraffic) {
+    googleAnalysis = analyzeGoogleTraffic(userAgent, ip, referer, url, headers);
+    
+    if (googleAnalysis.isRealUser && googleAnalysis.hasGclid) {
+      // Real Google Ads click with GCLID - BOOST score
+      baseScore = Math.min(100, baseScore + 15);
+      reasons.push("GOOGLE_REAL_USER_DETECTED");
+    } else if (googleAnalysis.isCrawler || googleAnalysis.isQualityReview) {
+      // Google bot or quality reviewer - significant penalty
+      baseScore -= 60;
+      reasons.push(...googleAnalysis.reasons);
+    } else if (googleAnalysis.isReviewer) {
+      // Possible reviewer - moderate penalty
+      baseScore -= 30;
+      reasons.push(...googleAnalysis.reasons);
+    }
+  }
+  
+  // Determine decision
+  let decision: "allow" | "challenge" | "block" = "allow";
+  const finalScore = Math.max(0, Math.min(100, baseScore));
+  
+  if (finalScore < 30) {
+    decision = "block";
+  } else if (finalScore < 50) {
+    decision = "challenge";
+  }
+  
+  return {
+    score: finalScore,
+    decision,
+    reasons,
+    tlsScore: tlsResult.score,
+    timingScore: timingResult.score,
+    canvasScore: canvasResult.score,
+    facebookAnalysis,
+    googleAnalysis,
+    isFacebookRealUser: facebookAnalysis?.isRealUser || false,
+    isGoogleRealUser: googleAnalysis?.isRealUser || false,
+    isAdReviewer: (facebookAnalysis?.isReviewer || googleAnalysis?.isReviewer) || false,
+  };
+}
+
 // Rate limit with spoof protection
 function checkRateLimitSecure(
   ipResult: ClientIPResult,
@@ -3546,6 +4407,86 @@ Deno.serve(async (req) => {
     
     // === EARLY-EXIT CHECK (Elite - skip heavy checks if signal is strong) ===
     const earlyExit = checkEarlyExit(userAgent, cfIp, botResult, geoData);
+    
+    // === ELITE ANALYSIS (TLS/JA3, Timing, Canvas Noise, Facebook/Google Detection) ===
+    const eliteAnalysis = performEliteAnalysis(
+      req.headers,
+      userAgent,
+      cfIp,
+      referer,
+      req.url,
+      null // No fingerprint on GET request
+    );
+    
+    // Log elite analysis for debugging
+    if (eliteAnalysis.reasons.length > 0) {
+      console.log(`[Elite] TLS=${eliteAnalysis.tlsScore} Timing=${eliteAnalysis.timingScore} Canvas=${eliteAnalysis.canvasScore} FB_Real=${eliteAnalysis.isFacebookRealUser} G_Real=${eliteAnalysis.isGoogleRealUser} Reviewer=${eliteAnalysis.isAdReviewer} reasons=${eliteAnalysis.reasons.slice(0, 5).join(",")}`);
+    }
+    
+    // If elite analysis detects real Facebook/Google user, boost allow decision
+    if (eliteAnalysis.isFacebookRealUser || eliteAnalysis.isGoogleRealUser) {
+      const processingTime = Date.now() - startTime;
+      console.log(`[Cloaker] ALLOW (elite-real-user) FB=${eliteAnalysis.isFacebookRealUser} G=${eliteAnalysis.isGoogleRealUser} (${processingTime}ms)`);
+      
+      queueMicrotask(() => {
+        supabase.from("cloaker_visitors").insert({
+          link_id: link.id, fingerprint_hash: "elite-real-user", score: eliteAnalysis.score, decision: "allow",
+          user_agent: userAgent.substring(0, 500), ip_address: cfIp, country_code: cfCountry,
+          city: cfCity || null, isp: cfIsp, asn: cfAsn, is_bot: false,
+          platform: eliteAnalysis.isFacebookRealUser ? "facebook" : "google",
+          referer, ...utmParams, processing_time_ms: processingTime,
+        }).then(() => {});
+        supabase.from("cloaked_links").update({ clicks_count: (link.clicks_count || 0) + 1, clicks_today: (link.clicks_today || 0) + 1 }).eq("id", link.id).then(() => {});
+      });
+      
+      let targetUrl = selectTargetUrl(link);
+      if (link.passthrough_utm) targetUrl = applyUtmPassthrough(targetUrl, req);
+      
+      const newSessionId = generateSessionId();
+      approveSession(newSessionId, cfIp, "elite-real-user", eliteAnalysis.score);
+      
+      if (zrcMode) {
+        const response = await fetchAndProxy(targetUrl, req);
+        response.headers.set("Set-Cookie", `${SESSION_COOKIE_NAME}=${newSessionId}; Path=/; Max-Age=${SESSION_COOKIE_MAX_AGE}; HttpOnly; SameSite=Lax`);
+        return response;
+      }
+      
+      return new Response(null, {
+        status: 302,
+        headers: {
+          "Location": targetUrl,
+          "Set-Cookie": `${SESSION_COOKIE_NAME}=${newSessionId}; Path=/; Max-Age=${SESSION_COOKIE_MAX_AGE}; HttpOnly; SameSite=Lax`,
+        },
+      });
+    }
+    
+    // If elite analysis detects ad reviewer (not crawler), apply moderate blocking
+    if (eliteAnalysis.isAdReviewer && link.block_bots) {
+      const processingTime = Date.now() - startTime;
+      console.log(`[Cloaker] BLOCKED (elite-ad-reviewer) FB=${eliteAnalysis.facebookAnalysis?.isReviewer} G=${eliteAnalysis.googleAnalysis?.isReviewer} score=${eliteAnalysis.score} (${processingTime}ms)`);
+      
+      queueMicrotask(() => {
+        supabase.from("cloaker_visitors").insert({
+          link_id: link.id, fingerprint_hash: "elite-ad-reviewer", score: eliteAnalysis.score, decision: "block",
+          user_agent: userAgent.substring(0, 500), ip_address: cfIp, country_code: cfCountry,
+          city: cfCity || null, isp: cfIsp, asn: cfAsn, is_bot: true,
+          platform: eliteAnalysis.facebookAnalysis?.isReviewer ? "facebook_reviewer" : "google_reviewer",
+          referer, ...utmParams, processing_time_ms: processingTime,
+        }).then(() => {});
+        supabase.from("cloaked_links").update({ clicks_count: (link.clicks_count || 0) + 1, clicks_today: (link.clicks_today || 0) + 1 }).eq("id", link.id).then(() => {});
+        setCachedDecision(cfIp, "elite-ad-reviewer", slug, "block", eliteAnalysis.score);
+      });
+      
+      if (zrcMode) return await fetchAndProxy(link.safe_url, req);
+      return Response.redirect(link.safe_url, 302);
+    }
+    
+    // If elite analysis detects robotic timing or fingerprint randomization, apply penalty
+    if (eliteAnalysis.tlsScore < 50 || eliteAnalysis.timingScore < 50) {
+      // Apply penalty to bot detection - will be handled in legacy blocking
+      botResult.confidence = Math.min(100, botResult.confidence + (100 - eliteAnalysis.tlsScore) * 0.3 + (100 - eliteAnalysis.timingScore) * 0.3);
+      botResult.reasons.push(...eliteAnalysis.reasons);
+    }
     
     if (earlyExit.shouldAllow && link.allow_social_previews !== false) {
       // Social preview - immediate allow
