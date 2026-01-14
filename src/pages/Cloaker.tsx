@@ -103,25 +103,60 @@ const PRESETS = {
     }
   },
   tiktok: {
-    name: "TikTok Ads",
+    name: "🔥 TikTok Ads PRO",
     icon: "🎵",
-    description: "Otimizado para TikTok Ads",
+    description: "Otimizado para TikTok Ads com detecção avançada de crawlers e regras mobile",
     config: {
-      blockBots: true,
-      allowSocialPreviews: true, // Permite previews do TikTok
-      minScore: 20, // MUITO baixo - público jovem, mobile, impulso
-      collectFingerprint: true,
-      requireBehavior: false, // NUNCA - TikTok é 100% mobile
-      behaviorTimeMs: 1500,
-      passthroughUtm: true,
-      rateLimitPerIp: 30, // MUITO alto - TikTok gera picos de tráfego
-      blockVpn: false, // Jovens usam VPN
-      blockProxy: false,
-      blockDatacenter: true,
-      blockTor: true,
-      redirectDelayMs: 0,
-      allowedReferers: "",
-      blockedReferers: "adspy.com\nanstrex.com\nbigspy.com\npipiads.com\nadplexity.com",
+      // === CONFIGURAÇÃO CORE OTIMIZADA PARA TIKTOK ===
+      blockBots: true, // Bloqueia crawlers TikTok automaticamente detectados
+      allowSocialPreviews: true, // Permite previews do TikTok (bytedance_spider_preview)
+      
+      // === SCORE ULTRA PERMISSIVO ===
+      // TikTok = público jovem, mobile-first, decisões impulsivas
+      // Score alto demais = perda de conversões
+      minScore: 15, // MUITO baixo - prioriza conversão sobre proteção
+      
+      // === FINGERPRINTING LEVE ===
+      collectFingerprint: true, // Mantém para tracking
+      requireBehavior: false, // CRÍTICO: NUNCA ativar - TikTok é 100% mobile
+      behaviorTimeMs: 1000, // Mínimo se precisar ativar futuramente
+      
+      // === UTM E RASTREAMENTO ===
+      passthroughUtm: true, // Mantém parâmetros ttclid, etc
+      
+      // === RATE LIMIT ALTO ===
+      // TikTok gera picos virais de tráfego - limites baixos matam conversão
+      rateLimitPerIp: 50, // MUITO alto - IPs compartilhados + picos virais
+      
+      // === PROTEÇÃO DE REDE PERMISSIVA ===
+      // Público jovem = muitos usam VPN para privacidade
+      blockVpn: false, // NUNCA bloquear - Gen Z usa VPN
+      blockProxy: false, // Apps corporativos usam proxy
+      blockDatacenter: true, // Bots vêm de DCs - manter ativo
+      blockTor: true, // Manter para proteção básica
+      
+      // === REDIRECT INSTANTÂNEO ===
+      // TikTok = atenção curta - qualquer delay = abandono
+      redirectDelayMs: 0, // ZERO delay - conversão máxima
+      
+      // === FILTROS DE REFERER ===
+      allowedReferers: "", // Vazio = aceita qualquer origem (TikTok usa vários domínios)
+      // Bloqueia ferramentas de espionagem de ads
+      blockedReferers: "adspy.com\nanstrex.com\nbigspy.com\npipiads.com\nadplexity.com\ndropispy.com\nsocialadscout.com\nforeplay.co\nminea.com\nad.tiktok.com/business",
+      
+      // === DISPOSITIVOS ===
+      // TikTok é mobile-first - não restringir por device
+      allowedDevices: [], // Vazio = todos os dispositivos
+      
+      // === PAÍSES ===
+      // Deixar vazio para não restringir - configurar manualmente
+      allowedCountries: [],
+      blockedCountries: [],
+      
+      // === IDIOMAS ===
+      // Não restringir - TikTok é global
+      allowedLanguages: [],
+      blockedLanguages: [],
     }
   },
   organic: {
