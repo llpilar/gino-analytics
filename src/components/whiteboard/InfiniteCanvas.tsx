@@ -579,10 +579,30 @@ export const InfiniteCanvas = ({ initialData, onSave, boardTitle = 'Whiteboard',
     }
   };
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     const data = JSON.stringify({ elements, stickyNotes });
     onSave?.(data);
-  };
+    setLastSaved(new Date());
+  }, [elements, stickyNotes, onSave]);
+
+  // Auto-save state
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Auto-save every 30 seconds
+  useEffect(() => {
+    if (!onSave || elements.length === 0 && stickyNotes.length === 0) return;
+    
+    const interval = setInterval(() => {
+      setIsSaving(true);
+      const data = JSON.stringify({ elements, stickyNotes });
+      onSave(data);
+      setLastSaved(new Date());
+      setTimeout(() => setIsSaving(false), 1000);
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [elements, stickyNotes, onSave]);
 
   const handleUpdateNote = (updatedNote: StickyNoteData) => {
     const newNotes = stickyNotes.map(n => n.id === updatedNote.id ? updatedNote : n);
@@ -919,13 +939,30 @@ export const InfiniteCanvas = ({ initialData, onSave, boardTitle = 'Whiteboard',
             </div>
           )}
           
-          {/* Save Button */}
-          <button
-            onClick={handleSave}
-            className="px-3 py-1.5 bg-white rounded-lg shadow border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
-          >
-            Salvar
-          </button>
+          {/* Save Button with status */}
+          <div className="flex items-center gap-2">
+            {lastSaved && (
+              <span className="text-xs text-gray-400">
+                {isSaving ? 'Salvando...' : `Salvo ${lastSaved.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`}
+              </span>
+            )}
+            <button
+              onClick={() => {
+                setIsSaving(true);
+                handleSave();
+                setTimeout(() => setIsSaving(false), 1000);
+              }}
+              disabled={isSaving}
+              className={cn(
+                "px-3 py-1.5 rounded-lg shadow border text-sm transition-colors",
+                isSaving 
+                  ? "bg-green-50 border-green-200 text-green-600" 
+                  : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+              )}
+            >
+              {isSaving ? '✓ Salvo' : 'Salvar'}
+            </button>
+          </div>
         </div>
       </div>
     </TooltipProvider>
