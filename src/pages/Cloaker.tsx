@@ -25,6 +25,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Textarea } from "@/components/ui/textarea";
+import { DomainManager } from "@/components/cloaker/DomainManager";
+import { DomainSelector } from "@/components/cloaker/DomainSelector";
+import { useCloakerDomains } from "@/hooks/useCloakerDomains";
 
 const COUNTRIES = [
   { code: "BR", name: "Brasil" },
@@ -627,13 +630,16 @@ export default function Cloaker() {
             subtitle="Fingerprinting, análise comportamental e scoring dinâmico"
           />
           
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" />
-                Novo Link
-              </Button>
-            </DialogTrigger>
+          <div className="flex items-center gap-2">
+            <DomainManager />
+            
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Novo Link
+                </Button>
+              </DialogTrigger>
             <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Criar Link Protegido</DialogTitle>
@@ -1192,6 +1198,7 @@ export default function Cloaker() {
               </form>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
 
         {/* Stats Grid */}
