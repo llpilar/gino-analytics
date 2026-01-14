@@ -122,33 +122,34 @@ export const KanbanBoard = ({ board, onBack }: KanbanBoardProps) => {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-4 px-4 py-3 border-b bg-white/80 backdrop-blur-sm">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={onBack}>
-            <ArrowLeft className="w-5 h-5" />
+      {/* ClickUp-style minimal header */}
+      <div className="flex items-center justify-between px-4 py-2 bg-white border-b border-gray-100">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={onBack} className="h-8 w-8">
+            <ArrowLeft className="w-4 h-4" />
           </Button>
           <div className="flex items-center gap-2">
-            <h1 className="text-lg font-semibold">{board.title}</h1>
-            <Button variant="ghost" size="icon" className="h-7 w-7">
-              <Star className="w-4 h-4" />
+            <span className="text-lg">📋</span>
+            <h1 className="text-sm font-medium text-gray-800">{board.title}</h1>
+            <Button variant="ghost" size="icon" className="h-6 w-6">
+              <Star className="w-3.5 h-3.5 text-gray-400" />
             </Button>
           </div>
         </div>
 
-        {/* Mode Toggle */}
-        <Tabs value={mode} onValueChange={(v) => setMode(v as typeof mode)}>
-          <TabsList className="bg-muted/50">
-            <TabsTrigger value="draw" className="gap-1.5 text-xs">
-              <Pencil className="w-3.5 h-3.5" />
-              Canvas
-            </TabsTrigger>
-            <TabsTrigger value="kanban" className="gap-1.5 text-xs">
-              <LayoutList className="w-3.5 h-3.5" />
-              Kanban
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex items-center gap-2">
+          {/* Mode Toggle - minimal */}
+          <Tabs value={mode} onValueChange={(v) => setMode(v as typeof mode)}>
+            <TabsList className="h-8 bg-gray-100 p-0.5">
+              <TabsTrigger value="draw" className="h-7 px-3 text-xs data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                Canvas
+              </TabsTrigger>
+              <TabsTrigger value="kanban" className="h-7 px-3 text-xs data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                Kanban
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
       </div>
 
       {/* Content based on mode */}

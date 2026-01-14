@@ -1,34 +1,25 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { 
-  Popover, 
-  PopoverContent, 
-  PopoverTrigger 
-} from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
-  Pencil,
-  Eraser,
-  Square,
-  Circle,
+  MousePointer2,
+  Hand,
+  CheckSquare,
   Triangle,
-  Minus,
+  Square,
   ArrowUp,
-  Trash2,
+  Type,
+  Frame,
+  Spline,
+  Sparkles,
   Undo2,
   Redo2,
-  Download,
-  MousePointer2,
-  Type,
-  Hand,
-  StickyNote as StickyNoteIcon,
+  Minus,
   Plus,
-  Minus as MinusIcon,
-  ZoomIn,
-  Maximize2,
-  Image as ImageIcon,
-  Save
+  Home,
+  Pencil,
+  StickyNote as StickyNoteIcon,
+  Circle,
+  Eraser
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { StickyNote, StickyNoteData } from './StickyNote';
@@ -60,16 +51,18 @@ interface InfiniteCanvasProps {
   boardTitle?: string;
 }
 
-const COLORS = [
-  '#1e1e1e', '#ffffff', '#ef4444', '#f97316', '#eab308', 
-  '#22c55e', '#14b8a6', '#3b82f6', '#8b5cf6', '#ec4899'
-];
+type Tool = 'select' | 'pan' | 'task' | 'triangle' | 'rectangle' | 'sticky' | 'arrow' | 'text' | 'frame' | 'connector' | 'templates' | 'pencil' | 'circle' | 'eraser';
 
-const FILL_COLORS = [
-  'transparent', '#fef3c7', '#dcfce7', '#dbeafe', '#fce7f3', '#f3e8ff', '#e0e7ff'
-];
-
-type Tool = 'select' | 'pencil' | 'eraser' | 'line' | 'rectangle' | 'circle' | 'triangle' | 'arrow' | 'text' | 'pan' | 'sticky';
+interface ToolItem {
+  id: Tool;
+  icon: React.ReactNode;
+  label: string;
+  shortcut: string;
+  hasFill?: boolean;
+  fillColor?: string;
+  hasSubline?: boolean;
+  sublineColor?: string;
+}
 
 export const InfiniteCanvas = ({ initialData, onSave, boardTitle = 'Whiteboard' }: InfiniteCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -88,16 +81,12 @@ export const InfiniteCanvas = ({ initialData, onSave, boardTitle = 'Whiteboard' 
   const [zoom, setZoom] = useState(100);
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
-  const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   
-  // Sticky notes state
   const [stickyNotes, setStickyNotes] = useState<StickyNoteData[]>([]);
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
 
-  // Canvas dimensions
   const [canvasSize, setCanvasSize] = useState({ width: 3000, height: 2000 });
 
-  // Handle resize
   useEffect(() => {
     const updateSize = () => {
       if (containerRef.current) {
@@ -113,7 +102,6 @@ export const InfiniteCanvas = ({ initialData, onSave, boardTitle = 'Whiteboard' 
     return () => window.removeEventListener('resize', updateSize);
   }, []);
 
-  // Load initial data
   useEffect(() => {
     if (initialData) {
       try {
@@ -137,20 +125,20 @@ export const InfiniteCanvas = ({ initialData, onSave, boardTitle = 'Whiteboard' 
 
     const scale = zoom / 100;
 
-    // Clear canvas with white background
-    ctx.fillStyle = '#fafafa';
+    // Clear canvas with light cream/beige background like ClickUp
+    ctx.fillStyle = '#f8f7f4';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw dot grid
-    ctx.fillStyle = '#e5e5e5';
-    const gridSize = 20 * scale;
+    // Draw subtle dot grid
+    ctx.fillStyle = '#d4d3d0';
+    const gridSize = 24 * scale;
     const offsetX = (offset.x * scale) % gridSize;
     const offsetY = (offset.y * scale) % gridSize;
     
     for (let x = offsetX; x < canvas.width; x += gridSize) {
       for (let y = offsetY; y < canvas.height; y += gridSize) {
         ctx.beginPath();
-        ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+        ctx.arc(x, y, 1, 0, Math.PI * 2);
         ctx.fill();
       }
     }
@@ -200,7 +188,6 @@ export const InfiniteCanvas = ({ initialData, onSave, boardTitle = 'Whiteboard' 
           ctx.lineTo(end.x, end.y);
           ctx.stroke();
           
-          // Arrow head
           ctx.beginPath();
           ctx.moveTo(end.x, end.y);
           ctx.lineTo(
@@ -228,11 +215,6 @@ export const InfiniteCanvas = ({ initialData, onSave, boardTitle = 'Whiteboard' 
             ctx.fillRect(rectX, rectY, rectW, rectH);
           }
           ctx.strokeRect(rectX, rectY, rectW, rectH);
-          
-          // Selection handles
-          if (element.id === selectedElementId) {
-            drawSelectionHandles(ctx, rectX, rectY, rectW, rectH);
-          }
           break;
 
         case 'circle':
@@ -283,36 +265,7 @@ export const InfiniteCanvas = ({ initialData, onSave, boardTitle = 'Whiteboard' 
     });
 
     ctx.restore();
-  }, [elements, currentElement, offset, zoom, selectedElementId]);
-
-  const drawSelectionHandles = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) => {
-    const handleSize = 8;
-    ctx.fillStyle = '#3b82f6';
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 2;
-
-    // Draw dashed border
-    ctx.setLineDash([5, 5]);
-    ctx.strokeStyle = '#3b82f6';
-    ctx.strokeRect(x - 2, y - 2, w + 4, h + 4);
-    ctx.setLineDash([]);
-
-    // Corner handles
-    const handles = [
-      { x: x - handleSize/2, y: y - handleSize/2 },
-      { x: x + w - handleSize/2, y: y - handleSize/2 },
-      { x: x - handleSize/2, y: y + h - handleSize/2 },
-      { x: x + w - handleSize/2, y: y + h - handleSize/2 },
-    ];
-
-    handles.forEach(handle => {
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(handle.x, handle.y, handleSize, handleSize);
-      ctx.strokeStyle = '#3b82f6';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(handle.x, handle.y, handleSize, handleSize);
-    });
-  };
+  }, [elements, currentElement, offset, zoom]);
 
   const getCanvasPoint = useCallback((e: React.MouseEvent): Point => {
     const canvas = canvasRef.current;
@@ -329,7 +282,6 @@ export const InfiniteCanvas = ({ initialData, onSave, boardTitle = 'Whiteboard' 
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     setSelectedNoteId(null);
-    setSelectedElementId(null);
     
     if (tool === 'pan') {
       setIsPanning(true);
@@ -393,14 +345,30 @@ export const InfiniteCanvas = ({ initialData, onSave, boardTitle = 'Whiteboard' 
       return;
     }
 
-    if (tool === 'select') {
-      // Check if clicking on an element
+    if (tool === 'select' || tool === 'task' || tool === 'frame' || tool === 'connector' || tool === 'templates') {
       return;
     }
 
+    const typeMap: Record<Tool, DrawingElement['type']> = {
+      pencil: 'pencil',
+      triangle: 'triangle',
+      rectangle: 'rectangle',
+      arrow: 'arrow',
+      circle: 'circle',
+      select: 'pencil',
+      pan: 'pencil',
+      task: 'pencil',
+      sticky: 'pencil',
+      text: 'text',
+      frame: 'pencil',
+      connector: 'pencil',
+      templates: 'pencil',
+      eraser: 'pencil',
+    };
+
     const newElement: DrawingElement = {
       id: `el-${Date.now()}`,
-      type: tool as DrawingElement['type'],
+      type: typeMap[tool] || 'pencil',
       points: [point],
       color,
       strokeWidth,
@@ -498,285 +466,256 @@ export const InfiniteCanvas = ({ initialData, onSave, boardTitle = 'Whiteboard' 
     const newNotes = stickyNotes.filter(n => n.id !== id);
     setStickyNotes(newNotes);
     saveToHistory({ elements, stickyNotes: newNotes });
-    setSelectedNoteId(null);
   };
 
-  const zoomIn = () => setZoom(prev => Math.min(200, prev + 25));
-  const zoomOut = () => setZoom(prev => Math.max(25, prev - 25));
-  const zoomReset = () => { setZoom(100); setOffset({ x: 0, y: 0 }); };
-
-  const tools: { id: Tool; icon: React.ReactNode; label: string; shortcut?: string }[] = [
-    { id: 'select', icon: <MousePointer2 className="w-5 h-5" />, label: 'Selecionar', shortcut: 'V' },
-    { id: 'pan', icon: <Hand className="w-5 h-5" />, label: 'Mover', shortcut: 'H' },
-    { id: 'pencil', icon: <Pencil className="w-5 h-5" />, label: 'Caneta', shortcut: 'D' },
-    { id: 'line', icon: <Minus className="w-5 h-5" />, label: 'Linha' },
-    { id: 'arrow', icon: <ArrowUp className="w-5 h-5" />, label: 'Seta', shortcut: 'A' },
-    { id: 'rectangle', icon: <Square className="w-5 h-5" />, label: 'Retângulo', shortcut: 'R' },
-    { id: 'circle', icon: <Circle className="w-5 h-5" />, label: 'Círculo' },
-    { id: 'triangle', icon: <Triangle className="w-5 h-5" />, label: 'Triângulo' },
-    { id: 'sticky', icon: <StickyNoteIcon className="w-5 h-5" />, label: 'Nota', shortcut: 'N' },
-    { id: 'text', icon: <Type className="w-5 h-5" />, label: 'Texto', shortcut: 'T' },
-    { id: 'eraser', icon: <Eraser className="w-5 h-5" />, label: 'Borracha' },
-  ];
+  const resetView = () => {
+    setOffset({ x: 0, y: 0 });
+    setZoom(100);
+  };
 
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       
-      switch (e.key.toLowerCase()) {
-        case 'v': setTool('select'); break;
-        case 'h': setTool('pan'); break;
-        case 'd': setTool('pencil'); break;
-        case 'a': setTool('arrow'); break;
-        case 'r': setTool('rectangle'); break;
-        case 'n': setTool('sticky'); break;
-        case 't': setTool('text'); break;
-        case 'z':
-          if (e.ctrlKey || e.metaKey) {
-            e.preventDefault();
-            if (e.shiftKey) redo();
-            else undo();
-          }
-          break;
-        case 'delete':
-        case 'backspace':
-          if (selectedNoteId) {
-            handleDeleteNote(selectedNoteId);
-          }
-          break;
+      if (e.key === 'v' || e.key === 'V') setTool('select');
+      if (e.key === 'h' || e.key === 'H') setTool('pan');
+      if (e.key === 'd' || e.key === 'D') setTool('triangle');
+      if (e.key === 'r' || e.key === 'R') setTool('rectangle');
+      if (e.key === 'n' || e.key === 'N') setTool('sticky');
+      if (e.key === 'a' || e.key === 'A') setTool('arrow');
+      if (e.key === 't' || e.key === 'T') setTool('text');
+      if (e.key === 'f' || e.key === 'F') setTool('frame');
+      if (e.key === 'p' || e.key === 'P') setTool('pencil');
+      if (e.key === 'c' || e.key === 'C') setTool('circle');
+      
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) redo();
+        else undo();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        handleSave();
       }
     };
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedNoteId, historyIndex]);
+  }, [historyIndex, history]);
+
+  const tools: ToolItem[] = [
+    { id: 'select', icon: <MousePointer2 className="w-5 h-5" />, label: 'Selecionar', shortcut: 'V' },
+    { id: 'pan', icon: <Hand className="w-5 h-5" />, label: 'Mover', shortcut: 'H' },
+    { id: 'task', icon: <CheckSquare className="w-5 h-5" />, label: 'Task', shortcut: 'T', hasSubline: true, sublineColor: '#3b82f6' },
+    { id: 'triangle', icon: <Triangle className="w-5 h-5" />, label: 'Triângulo', shortcut: 'D' },
+    { id: 'rectangle', icon: <Square className="w-5 h-5 fill-current" />, label: 'Retângulo', shortcut: 'R', hasFill: true, fillColor: '#374151' },
+    { id: 'sticky', icon: <StickyNoteIcon className="w-5 h-5" />, label: 'Nota', shortcut: 'N', hasFill: true, fillColor: '#fbbf24' },
+    { id: 'arrow', icon: <ArrowUp className="w-5 h-5" />, label: 'Seta', shortcut: 'A' },
+    { id: 'text', icon: <Type className="w-5 h-5" />, label: 'Texto', shortcut: 'T' },
+    { id: 'frame', icon: <Frame className="w-5 h-5" />, label: 'Frame', shortcut: 'F' },
+    { id: 'connector', icon: <Spline className="w-5 h-5" />, label: 'Conector', shortcut: 'C' },
+    { id: 'templates', icon: <Sparkles className="w-5 h-5 text-purple-500" />, label: 'Templates', shortcut: '' },
+  ];
 
   return (
-    <div ref={containerRef} className="relative w-full h-full bg-[#fafafa] overflow-hidden">
-      {/* Canvas */}
-      <canvas
-        ref={canvasRef}
-        width={canvasSize.width}
-        height={canvasSize.height}
-        className={cn(
-          "absolute inset-0",
-          tool === 'pan' ? "cursor-grab" : tool === 'sticky' ? "cursor-copy" : "cursor-crosshair",
-          isPanning && "cursor-grabbing"
-        )}
-        style={{
-          width: canvasSize.width,
-          height: canvasSize.height,
-        }}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onWheel={handleWheel}
-      />
-      
-      {/* Sticky Notes Layer */}
+    <TooltipProvider delayDuration={200}>
       <div 
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          transform: `scale(${zoom / 100})`,
-          transformOrigin: '0 0',
-        }}
+        ref={containerRef}
+        className="relative w-full h-full overflow-hidden"
+        style={{ backgroundColor: '#f8f7f4' }}
       >
+        {/* Canvas */}
+        <canvas
+          ref={canvasRef}
+          width={canvasSize.width}
+          height={canvasSize.height}
+          className={cn(
+            'absolute top-0 left-0',
+            tool === 'pan' && 'cursor-grab',
+            isPanning && 'cursor-grabbing',
+            tool === 'pencil' && 'cursor-crosshair',
+            tool === 'text' && 'cursor-text',
+            tool === 'eraser' && 'cursor-cell'
+          )}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onWheel={handleWheel}
+        />
+
+        {/* Sticky Notes Layer */}
         <div 
-          style={{ 
-            transform: `translate(${offset.x}px, ${offset.y}px)`,
+          className="absolute top-0 left-0 pointer-events-none"
+          style={{
+            transform: `scale(${zoom / 100}) translate(${offset.x}px, ${offset.y}px)`,
+            transformOrigin: 'top left',
           }}
         >
           {stickyNotes.map((note) => (
             <div key={note.id} className="pointer-events-auto">
               <StickyNote
                 note={note}
+                isSelected={selectedNoteId === note.id}
+                onSelect={() => setSelectedNoteId(note.id)}
                 onUpdate={handleUpdateNote}
                 onDelete={handleDeleteNote}
-                isSelected={selectedNoteId === note.id}
-                onSelect={setSelectedNoteId}
               />
             </div>
           ))}
         </div>
-      </div>
 
-      {/* Zoom Controls - Bottom Left */}
-      <div className="absolute bottom-20 left-4 flex items-center gap-1 bg-white rounded-lg shadow-lg border p-1">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={zoomReset}
-          title="Resetar zoom"
-        >
-          <Maximize2 className="w-4 h-4" />
-        </Button>
-        <Separator orientation="vertical" className="h-6" />
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={zoomOut}
-          disabled={zoom <= 25}
-        >
-          <MinusIcon className="w-4 h-4" />
-        </Button>
-        <span className="w-12 text-center text-sm font-medium">{zoom}%</span>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={zoomIn}
-          disabled={zoom >= 200}
-        >
-          <Plus className="w-4 h-4" />
-        </Button>
-      </div>
+        {/* Bottom Left Zoom Controls - ClickUp style */}
+        <div className="absolute bottom-6 left-6 flex items-center gap-1 bg-white rounded-lg shadow-lg border border-gray-200 px-2 py-1.5">
+          <button 
+            onClick={resetView}
+            className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+            title="Voltar ao início"
+          >
+            <Home className="w-4 h-4 text-gray-600" />
+          </button>
+          <button 
+            onClick={() => setZoom(prev => Math.max(25, prev - 10))}
+            className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+          >
+            <Minus className="w-4 h-4 text-gray-600" />
+          </button>
+          <span className="px-2 text-sm font-medium text-gray-700 min-w-[48px] text-center">
+            {zoom}%
+          </span>
+          <button 
+            onClick={() => setZoom(prev => Math.min(200, prev + 10))}
+            className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+          >
+            <Plus className="w-4 h-4 text-gray-600" />
+          </button>
+        </div>
 
-      {/* Main Toolbar - Bottom Center */}
-      <TooltipProvider delayDuration={100}>
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-white rounded-xl shadow-xl border p-1.5">
-          {tools.map((t, index) => (
-            <div key={t.id} className="flex items-center">
-              {index === 2 && <Separator orientation="vertical" className="h-8 mx-1" />}
-              {index === 8 && <Separator orientation="vertical" className="h-8 mx-1" />}
+        {/* Bottom Center Floating Toolbar - ClickUp style */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center">
+          <div className="flex items-center bg-white rounded-2xl shadow-xl border border-gray-200 px-2 py-2 gap-0.5">
+            {tools.map((t, index) => (
+              <div key={t.id} className="relative">
+                {/* Shortcut label above */}
+                <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] text-gray-400 font-medium">
+                  {t.shortcut}
+                </span>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => setTool(t.id)}
+                      className={cn(
+                        'relative flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all',
+                        tool === t.id 
+                          ? 'bg-gray-800 text-white shadow-md' 
+                          : 'text-gray-600 hover:bg-gray-100'
+                      )}
+                    >
+                      {/* Tool icon with optional fill background */}
+                      <div 
+                        className={cn(
+                          'flex items-center justify-center',
+                          t.hasFill && t.id !== 'sticky' && 'p-1 rounded'
+                        )}
+                        style={t.hasFill && tool !== t.id ? { backgroundColor: t.fillColor } : undefined}
+                      >
+                        {t.id === 'sticky' ? (
+                          <div className="w-6 h-6 rounded bg-yellow-400 flex items-center justify-center">
+                            <svg className="w-4 h-4 text-yellow-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M4 8 Q 8 4, 12 8 T 20 8" />
+                            </svg>
+                          </div>
+                        ) : t.id === 'rectangle' ? (
+                          <div 
+                            className="w-6 h-6 rounded-sm"
+                            style={{ backgroundColor: tool === t.id ? 'white' : '#374151' }}
+                          />
+                        ) : t.id === 'task' ? (
+                          <div className="flex flex-col items-center">
+                            <div className="flex items-center gap-1">
+                              <CheckSquare className="w-4 h-4" />
+                              <span className="text-[10px] font-medium">Task</span>
+                            </div>
+                            <div className="w-8 h-0.5 bg-blue-500 mt-1 rounded-full" />
+                          </div>
+                        ) : t.id === 'templates' ? (
+                          <div className="relative">
+                            <Sparkles className="w-5 h-5 text-purple-500" />
+                            <div className="absolute -top-1 -right-1 w-2 h-2 bg-pink-500 rounded-full" />
+                          </div>
+                        ) : (
+                          t.icon
+                        )}
+                      </div>
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="bg-gray-900 text-white text-xs px-2 py-1">
+                    {t.label} {t.shortcut && `(${t.shortcut})`}
+                  </TooltipContent>
+                </Tooltip>
+
+                {/* Separator after specific tools */}
+                {(index === 1 || index === 5 || index === 8) && (
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-px h-8 bg-gray-200" />
+                )}
+              </div>
+            ))}
+
+            {/* Undo/Redo */}
+            <div className="flex items-center gap-0.5 ml-2 pl-2 border-l border-gray-200">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
-                    variant={tool === t.id ? 'default' : 'ghost'}
-                    size="icon"
+                  <button
+                    onClick={undo}
+                    disabled={historyIndex <= 0}
                     className={cn(
-                      "h-10 w-10 rounded-lg",
-                      tool === t.id && "bg-primary text-primary-foreground shadow-md"
+                      'p-2 rounded-lg transition-colors',
+                      historyIndex > 0 
+                        ? 'text-gray-600 hover:bg-gray-100' 
+                        : 'text-gray-300 cursor-not-allowed'
                     )}
-                    onClick={() => setTool(t.id)}
                   >
-                    {t.icon}
-                  </Button>
+                    <Undo2 className="w-5 h-5" />
+                  </button>
                 </TooltipTrigger>
-                <TooltipContent side="top">
-                  <p>{t.label} {t.shortcut && <span className="text-muted-foreground ml-1">({t.shortcut})</span>}</p>
+                <TooltipContent side="top" className="bg-gray-900 text-white text-xs px-2 py-1">
+                  Desfazer (Ctrl+Z)
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={redo}
+                    disabled={historyIndex >= history.length - 1}
+                    className={cn(
+                      'p-2 rounded-lg transition-colors',
+                      historyIndex < history.length - 1 
+                        ? 'text-gray-600 hover:bg-gray-100' 
+                        : 'text-gray-300 cursor-not-allowed'
+                    )}
+                  >
+                    <Redo2 className="w-5 h-5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="bg-gray-900 text-white text-xs px-2 py-1">
+                  Refazer (Ctrl+Shift+Z)
                 </TooltipContent>
               </Tooltip>
             </div>
-          ))}
-
-          <Separator orientation="vertical" className="h-8 mx-1" />
-
-          {/* Colors */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-10 w-10 rounded-lg">
-                <div 
-                  className="w-6 h-6 rounded border-2 border-gray-300"
-                  style={{ backgroundColor: color }}
-                />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-3" side="top">
-              <div className="space-y-3">
-                <div>
-                  <p className="text-xs text-muted-foreground mb-2">Cor do traço</p>
-                  <div className="grid grid-cols-5 gap-1">
-                    {COLORS.map((c) => (
-                      <button
-                        key={c}
-                        className={cn(
-                          "w-7 h-7 rounded-lg transition-all border-2",
-                          color === c ? "border-primary scale-110" : "border-transparent"
-                        )}
-                        style={{ backgroundColor: c }}
-                        onClick={() => setColor(c)}
-                      />
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground mb-2">Preenchimento</p>
-                  <div className="grid grid-cols-4 gap-1">
-                    {FILL_COLORS.map((c) => (
-                      <button
-                        key={c}
-                        className={cn(
-                          "w-7 h-7 rounded-lg transition-all border-2",
-                          fillColor === c ? "border-primary scale-110" : "border-gray-200",
-                          c === 'transparent' && "bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjUiIGhlaWdodD0iNSIgZmlsbD0iI2RkZCIvPjxyZWN0IHg9IjUiIHk9IjUiIHdpZHRoPSI1IiBoZWlnaHQ9IjUiIGZpbGw9IiNkZGQiLz48L3N2Zz4=')]"
-                        )}
-                        style={{ backgroundColor: c === 'transparent' ? undefined : c }}
-                        onClick={() => setFillColor(c)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-
-          <Separator orientation="vertical" className="h-8 mx-1" />
-
-          {/* Undo/Redo */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-10 w-10 rounded-lg"
-                onClick={undo}
-                disabled={historyIndex === 0}
-              >
-                <Undo2 className="w-5 h-5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="top">Desfazer (Ctrl+Z)</TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-10 w-10 rounded-lg"
-                onClick={redo}
-                disabled={historyIndex >= history.length - 1}
-              >
-                <Redo2 className="w-5 h-5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="top">Refazer (Ctrl+Shift+Z)</TooltipContent>
-          </Tooltip>
+          </div>
         </div>
-      </TooltipProvider>
 
-      {/* Top Right Actions */}
-      <div className="absolute top-4 right-4 flex items-center gap-2">
-        <Button variant="outline" size="sm" className="bg-white shadow-sm" onClick={() => {
-          const canvas = canvasRef.current;
-          if (!canvas) return;
-          const link = document.createElement('a');
-          link.download = 'whiteboard.png';
-          link.href = canvas.toDataURL('image/png');
-          link.click();
-        }}>
-          <Download className="w-4 h-4 mr-2" />
-          Exportar
-        </Button>
-        
-        {onSave && (
-          <Button size="sm" className="shadow-sm" onClick={handleSave}>
-            <Save className="w-4 h-4 mr-2" />
-            Salvar
-          </Button>
-        )}
+        {/* Auto-save indicator */}
+        <button
+          onClick={handleSave}
+          className="absolute top-4 right-4 px-3 py-1.5 bg-white rounded-lg shadow border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+        >
+          Salvar
+        </button>
       </div>
-
-      {/* Delete hint */}
-      {(selectedNoteId || selectedElementId) && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/80 text-white text-sm px-3 py-1.5 rounded-lg">
-          Pressione <kbd className="bg-white/20 px-1.5 py-0.5 rounded mx-1">Delete</kbd> para remover
-        </div>
-      )}
-    </div>
+    </TooltipProvider>
   );
 };
