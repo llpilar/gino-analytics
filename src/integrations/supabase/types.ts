@@ -69,6 +69,7 @@ export type Database = {
           clicks_today: number | null
           collect_fingerprint: boolean | null
           created_at: string
+          custom_domain_id: string | null
           custom_user_agents: string[] | null
           id: string
           is_active: boolean
@@ -121,6 +122,7 @@ export type Database = {
           clicks_today?: number | null
           collect_fingerprint?: boolean | null
           created_at?: string
+          custom_domain_id?: string | null
           custom_user_agents?: string[] | null
           id?: string
           is_active?: boolean
@@ -173,6 +175,7 @@ export type Database = {
           clicks_today?: number | null
           collect_fingerprint?: boolean | null
           created_at?: string
+          custom_domain_id?: string | null
           custom_user_agents?: string[] | null
           id?: string
           is_active?: boolean
@@ -198,7 +201,15 @@ export type Database = {
           webhook_url?: string | null
           whitelist_ips?: string[] | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "cloaked_links_custom_domain_id_fkey"
+            columns: ["custom_domain_id"]
+            isOneToOne: false
+            referencedRelation: "cloaker_domains"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cloaker_blacklist: {
         Row: {
@@ -249,6 +260,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      cloaker_domains: {
+        Row: {
+          created_at: string
+          dns_status: string | null
+          domain: string
+          id: string
+          is_default: boolean | null
+          is_verified: boolean | null
+          last_check_at: string | null
+          ssl_status: string | null
+          updated_at: string
+          user_id: string
+          verification_token: string
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          dns_status?: string | null
+          domain: string
+          id?: string
+          is_default?: boolean | null
+          is_verified?: boolean | null
+          last_check_at?: string | null
+          ssl_status?: string | null
+          updated_at?: string
+          user_id: string
+          verification_token?: string
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          dns_status?: string | null
+          domain?: string
+          id?: string
+          is_default?: boolean | null
+          is_verified?: boolean | null
+          last_check_at?: string | null
+          ssl_status?: string | null
+          updated_at?: string
+          user_id?: string
+          verification_token?: string
+          verified_at?: string | null
+        }
+        Relationships: []
       }
       cloaker_ml_feedback: {
         Row: {
