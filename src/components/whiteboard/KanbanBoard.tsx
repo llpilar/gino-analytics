@@ -159,6 +159,7 @@ export const KanbanBoard = ({ board, onBack }: KanbanBoardProps) => {
             initialData={drawingData} 
             onSave={handleSaveDrawing}
             boardTitle={board.title}
+            boardId={board.id}
           />
         </div>
       ) : (

@@ -19,10 +19,14 @@ import {
   Pencil,
   StickyNote as StickyNoteIcon,
   Circle,
-  Eraser
+  Eraser,
+  Users,
+  Wifi,
+  WifiOff
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { StickyNote, StickyNoteData } from './StickyNote';
+import { useRealtimeWhiteboard } from '@/hooks/useRealtimeWhiteboard';
 
 interface Point {
   x: number;
@@ -130,6 +134,7 @@ interface InfiniteCanvasProps {
   initialData?: string;
   onSave?: (data: string) => void;
   boardTitle?: string;
+  boardId?: string;
 }
 
 type Tool = 'select' | 'pan' | 'task' | 'triangle' | 'rectangle' | 'sticky' | 'arrow' | 'text' | 'frame' | 'connector' | 'templates' | 'pencil' | 'circle' | 'eraser';
@@ -145,9 +150,22 @@ interface ToolItem {
   sublineColor?: string;
 }
 
-export const InfiniteCanvas = ({ initialData, onSave, boardTitle = 'Whiteboard' }: InfiniteCanvasProps) => {
+export const InfiniteCanvas = ({ initialData, onSave, boardTitle = 'Whiteboard', boardId }: InfiniteCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Realtime collaboration
+  const {
+    collaborators,
+    isConnected,
+    myColor,
+    broadcastCursor,
+    broadcastDrawing,
+    broadcastElementAdded,
+    broadcastStickyNote,
+    remoteElements,
+    remoteStickyNotes,
+  } = useRealtimeWhiteboard(boardId || '');
   
   const [tool, setTool] = useState<Tool>('select');
   const [color, setColor] = useState('#1e1e1e');
@@ -167,6 +185,9 @@ export const InfiniteCanvas = ({ initialData, onSave, boardTitle = 'Whiteboard' 
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
 
   const [canvasSize, setCanvasSize] = useState({ width: 3000, height: 2000 });
+  
+  // Track mouse position for cursor broadcasting
+  const lastMousePosRef = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
     const updateSize = () => {
@@ -195,6 +216,15 @@ export const InfiniteCanvas = ({ initialData, onSave, boardTitle = 'Whiteboard' 
       }
     }
   }, [initialData]);
+
+  // Merge remote elements with local elements
+  const mergedElements = [...elements, ...remoteElements.filter(
+    re => !elements.some(e => e.id === re.id)
+  )];
+  
+  const mergedStickyNotes = [...stickyNotes, ...remoteStickyNotes.filter(
+    rn => !stickyNotes.some(n => n.id === rn.id)
+  )];
 
   // Redraw canvas
   useEffect(() => {
@@ -229,7 +259,7 @@ export const InfiniteCanvas = ({ initialData, onSave, boardTitle = 'Whiteboard' 
     ctx.scale(scale, scale);
     ctx.translate(offset.x, offset.y);
 
-    [...elements, currentElement].filter(Boolean).forEach((element) => {
+    [...mergedElements, currentElement].filter(Boolean).forEach((element) => {
       if (!element) return;
       
       ctx.strokeStyle = element.color;
@@ -346,7 +376,7 @@ export const InfiniteCanvas = ({ initialData, onSave, boardTitle = 'Whiteboard' 
     });
 
     ctx.restore();
-  }, [elements, currentElement, offset, zoom]);
+  }, [elements, currentElement, offset, zoom, mergedElements]);
 
   const getCanvasPoint = useCallback((e: React.MouseEvent): Point => {
     const canvas = canvasRef.current;
@@ -386,6 +416,7 @@ export const InfiniteCanvas = ({ initialData, onSave, boardTitle = 'Whiteboard' 
       setStickyNotes(newNotes);
       setSelectedNoteId(newNote.id);
       saveToHistory({ elements, stickyNotes: newNotes });
+      broadcastStickyNote(newNote, 'add');
       setTool('select');
       return;
     }
@@ -459,6 +490,11 @@ export const InfiniteCanvas = ({ initialData, onSave, boardTitle = 'Whiteboard' 
   }, [tool, color, strokeWidth, fillColor, elements, stickyNotes, getCanvasPoint, offset, zoom]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    // Broadcast cursor position for collaboration
+    const point = getCanvasPoint(e);
+    lastMousePosRef.current = point;
+    broadcastCursor(point);
+    
     if (isPanning) {
       const scale = zoom / 100;
       setOffset({
@@ -469,8 +505,6 @@ export const InfiniteCanvas = ({ initialData, onSave, boardTitle = 'Whiteboard' 
     }
 
     if (!isDrawing || !currentElement) return;
-
-    const point = getCanvasPoint(e);
 
     if (currentElement.type === 'pencil') {
       setCurrentElement({
@@ -483,7 +517,7 @@ export const InfiniteCanvas = ({ initialData, onSave, boardTitle = 'Whiteboard' 
         points: [currentElement.points[0], point],
       });
     }
-  }, [isDrawing, currentElement, getCanvasPoint, isPanning, panStart, zoom]);
+  }, [isDrawing, currentElement, getCanvasPoint, isPanning, panStart, zoom, broadcastCursor]);
 
   const handleMouseUp = useCallback(() => {
     if (isPanning) {
@@ -507,7 +541,10 @@ export const InfiniteCanvas = ({ initialData, onSave, boardTitle = 'Whiteboard' 
     setCurrentElement(null);
     setIsDrawing(false);
     saveToHistory({ elements: newElements, stickyNotes });
-  }, [isDrawing, currentElement, elements, stickyNotes]);
+    
+    // Broadcast the new element to other collaborators
+    broadcastElementAdded(finalElement);
+  }, [isDrawing, currentElement, elements, stickyNotes, broadcastElementAdded]);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     if (e.ctrlKey || e.metaKey) {
@@ -550,12 +587,15 @@ export const InfiniteCanvas = ({ initialData, onSave, boardTitle = 'Whiteboard' 
   const handleUpdateNote = (updatedNote: StickyNoteData) => {
     const newNotes = stickyNotes.map(n => n.id === updatedNote.id ? updatedNote : n);
     setStickyNotes(newNotes);
+    broadcastStickyNote(updatedNote, 'update');
   };
 
   const handleDeleteNote = (id: string) => {
+    const deletedNote = stickyNotes.find(n => n.id === id);
     const newNotes = stickyNotes.filter(n => n.id !== id);
     setStickyNotes(newNotes);
     saveToHistory({ elements, stickyNotes: newNotes });
+    if (deletedNote) broadcastStickyNote(deletedNote, 'delete');
   };
 
   const resetView = () => {
@@ -635,6 +675,43 @@ export const InfiniteCanvas = ({ initialData, onSave, boardTitle = 'Whiteboard' 
           onWheel={handleWheel}
         />
 
+        {/* Collaborators Cursors Layer */}
+        <div 
+          className="absolute top-0 left-0 pointer-events-none"
+          style={{
+            transform: `scale(${zoom / 100}) translate(${offset.x}px, ${offset.y}px)`,
+            transformOrigin: 'top left',
+          }}
+        >
+          {collaborators.map((collab) => (
+            <div
+              key={collab.id}
+              className="absolute transition-transform duration-75"
+              style={{
+                transform: `translate(${collab.cursor.x}px, ${collab.cursor.y}px)`,
+              }}
+            >
+              {/* Cursor SVG */}
+              <svg 
+                width="20" 
+                height="20" 
+                viewBox="0 0 24 24" 
+                fill={collab.color} 
+                className="drop-shadow-md"
+              >
+                <path d="M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86a.5.5 0 0 1 .35-.15h6.87c.48 0 .72-.58.38-.92L6.35 2.85a.5.5 0 0 0-.85.36Z"/>
+              </svg>
+              {/* Collaborator Name Tag */}
+              <div 
+                className="absolute left-4 top-4 px-2 py-0.5 rounded text-xs font-medium text-white whitespace-nowrap"
+                style={{ backgroundColor: collab.color }}
+              >
+                {collab.name}
+              </div>
+            </div>
+          ))}
+        </div>
+
         {/* Sticky Notes Layer */}
         <div 
           className="absolute top-0 left-0 pointer-events-none"
@@ -643,7 +720,7 @@ export const InfiniteCanvas = ({ initialData, onSave, boardTitle = 'Whiteboard' 
             transformOrigin: 'top left',
           }}
         >
-          {stickyNotes.map((note) => (
+          {mergedStickyNotes.map((note) => (
             <div key={note.id} className="pointer-events-auto">
               <StickyNote
                 note={note}
@@ -798,13 +875,58 @@ export const InfiniteCanvas = ({ initialData, onSave, boardTitle = 'Whiteboard' 
           </div>
         </div>
 
-        {/* Auto-save indicator */}
-        <button
-          onClick={handleSave}
-          className="absolute top-4 right-4 px-3 py-1.5 bg-white rounded-lg shadow border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
-        >
-          Salvar
-        </button>
+        {/* Top Right Controls - Connection status + Collaborators + Save */}
+        <div className="absolute top-4 right-4 flex items-center gap-2">
+          {/* Connection Status */}
+          <div className={cn(
+            "flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium",
+            isConnected 
+              ? "bg-green-50 text-green-700 border border-green-200" 
+              : "bg-gray-50 text-gray-500 border border-gray-200"
+          )}>
+            {isConnected ? (
+              <Wifi className="w-3 h-3" />
+            ) : (
+              <WifiOff className="w-3 h-3" />
+            )}
+            {isConnected ? 'Online' : 'Offline'}
+          </div>
+          
+          {/* Collaborators Avatars */}
+          {collaborators.length > 0 && (
+            <div className="flex items-center gap-1 px-2 py-1 bg-white rounded-lg shadow border border-gray-200">
+              <Users className="w-4 h-4 text-gray-500" />
+              <div className="flex -space-x-2">
+                {collaborators.slice(0, 5).map((collab) => (
+                  <Tooltip key={collab.id}>
+                    <TooltipTrigger asChild>
+                      <div 
+                        className="w-6 h-6 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-bold text-white"
+                        style={{ backgroundColor: collab.color }}
+                      >
+                        {collab.name.charAt(0).toUpperCase()}
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="bg-gray-900 text-white text-xs px-2 py-1">
+                      {collab.name}
+                    </TooltipContent>
+                  </Tooltip>
+                ))}
+              </div>
+              {collaborators.length > 5 && (
+                <span className="text-xs text-gray-500 ml-1">+{collaborators.length - 5}</span>
+              )}
+            </div>
+          )}
+          
+          {/* Save Button */}
+          <button
+            onClick={handleSave}
+            className="px-3 py-1.5 bg-white rounded-lg shadow border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+          >
+            Salvar
+          </button>
+        </div>
       </div>
     </TooltipProvider>
   );
