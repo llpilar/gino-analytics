@@ -1,4 +1,4 @@
-import { Home, BarChart3, Activity, Settings, LogOut, Wallet, Truck, Calculator, Shield, ShieldCheck } from "lucide-react";
+import { Home, BarChart3, Activity, Settings, LogOut, Wallet, Truck, Calculator, Shield, ShieldCheck, LayoutGrid } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation, Link } from "react-router-dom";
 import {
@@ -21,6 +21,7 @@ const menuItems = [
   { icon: Truck, label: "Envios", path: "/envios" },
   { icon: Calculator, label: "Lucro", path: "/lucratividade" },
   { icon: Shield, label: "Cloaker", path: "/cloaker" },
+  { icon: LayoutGrid, label: "Whiteboard", path: "/whiteboard" },
   { icon: Wallet, label: "Financeiro", path: "/financeiro" },
   { icon: Settings, label: "Configurações", path: "/configuracoes" },
 ];

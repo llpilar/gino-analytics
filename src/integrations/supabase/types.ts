@@ -917,6 +917,137 @@ export type Database = {
         }
         Relationships: []
       }
+      whiteboard_boards: {
+        Row: {
+          background_color: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_shared: boolean
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          background_color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_shared?: boolean
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          background_color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_shared?: boolean
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      whiteboard_cards: {
+        Row: {
+          assigned_to: string | null
+          board_id: string
+          color: string | null
+          column_id: string
+          content: string | null
+          created_at: string
+          created_by: string
+          due_date: string | null
+          id: string
+          position: number
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          board_id: string
+          color?: string | null
+          column_id: string
+          content?: string | null
+          created_at?: string
+          created_by: string
+          due_date?: string | null
+          id?: string
+          position?: number
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          board_id?: string
+          color?: string | null
+          column_id?: string
+          content?: string | null
+          created_at?: string
+          created_by?: string
+          due_date?: string | null
+          id?: string
+          position?: number
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whiteboard_cards_board_id_fkey"
+            columns: ["board_id"]
+            isOneToOne: false
+            referencedRelation: "whiteboard_boards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whiteboard_cards_column_id_fkey"
+            columns: ["column_id"]
+            isOneToOne: false
+            referencedRelation: "whiteboard_columns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whiteboard_columns: {
+        Row: {
+          board_id: string
+          color: string | null
+          created_at: string
+          id: string
+          position: number
+          title: string
+        }
+        Insert: {
+          board_id: string
+          color?: string | null
+          created_at?: string
+          id?: string
+          position?: number
+          title: string
+        }
+        Update: {
+          board_id?: string
+          color?: string | null
+          created_at?: string
+          id?: string
+          position?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whiteboard_columns_board_id_fkey"
+            columns: ["board_id"]
+            isOneToOne: false
+            referencedRelation: "whiteboard_boards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       withdrawals: {
         Row: {
           amount: number

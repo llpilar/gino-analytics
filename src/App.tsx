@@ -25,6 +25,7 @@ import Envios from "./pages/Envios";
 import Cloaker from "./pages/Cloaker";
 import CloakerLogs from "./pages/CloakerLogs";
 import CloakerRedirect from "./pages/CloakerRedirect";
+import Whiteboard from "./pages/Whiteboard";
 import Admin from "./pages/Admin";
 import AguardandoAprovacao from "./pages/AguardandoAprovacao";
 import ContaBloqueada from "./pages/ContaBloqueada";
@@ -62,6 +63,7 @@ const App = () => (
                           <Route path="/cloaker/logs" element={<ProtectedRoute><CloakerLogs /></ProtectedRoute>} />
                           <Route path="/go/:slug" element={<CloakerRedirect />} />
                           <Route path="/c/:slug" element={<CloakerRedirect />} />
+                          <Route path="/whiteboard" element={<ProtectedRoute><Whiteboard /></ProtectedRoute>} />
                           <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
                           <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
                           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
