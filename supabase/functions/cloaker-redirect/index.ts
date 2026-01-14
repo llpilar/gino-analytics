@@ -905,6 +905,186 @@ function analyzeGoogleTraffic(
   };
 }
 
+// ==================== TIKTOK ADS ENHANCED DETECTION ====================
+// TikTok-specific patterns and behaviors (mobile-first platform)
+
+const TIKTOK_IN_APP_BROWSER_PATTERNS = [
+  // TikTok In-App Browser (REAL USERS - should ALLOW)
+  /tiktok.*webview/i,
+  /bytedancewebview/i,
+  /aweme/i,                     // Internal TikTok codename
+  /musical_ly/i,                // Old TikTok name
+  /douyin/i,                    // Chinese TikTok
+];
+
+const TIKTOK_CRAWLER_PATTERNS = [
+  /bytespider/i,
+  /tiktokbot/i,
+  /ttspider/i,
+  /tiktok-discovery/i,
+  /tiktok-crawler/i,
+  /tiktok-verification/i,
+  /tiktok-preview/i,
+  /tiktok-ads/i,
+  /tiktokadsbot/i,
+];
+
+const TIKTOK_AD_TRACKING_PARAMS = [
+  /ttclid=/i,                   // TikTok Click ID
+  /tiktok_click_id=/i,
+  /tt_adv_id=/i,
+  /tt_cid=/i,
+  /ttwid=/i,
+];
+
+// Known TikTok datacenter ASNs (for ad review detection)
+const TIKTOK_DATACENTER_ASNS = [
+  "AS396986",     // ByteDance US
+  "AS138699",     // ByteDance Singapore
+  "AS45090",      // ByteDance  
+  "AS63018",      // TikTok
+];
+
+interface TikTokAnalysisResult {
+  isRealUser: boolean;
+  isReviewer: boolean;
+  isCrawler: boolean;
+  confidence: number;
+  reasons: string[];
+  inAppBrowser: boolean;
+  hasTtclid: boolean;
+  isMobile: boolean;
+}
+
+function analyzeTikTokTraffic(
+  userAgent: string,
+  ip: string,
+  referer: string,
+  url: string,
+  headers: Headers,
+  fingerprint: any
+): TikTokAnalysisResult {
+  const reasons: string[] = [];
+  let isRealUser = false;
+  let isReviewer = false;
+  let isCrawler = false;
+  let confidence = 50;
+  let inAppBrowser = false;
+  let hasTtclid = false;
+  let isMobile = false;
+  
+  const ua = userAgent.toLowerCase();
+  
+  // TikTok is MOBILE-FIRST - check if traffic is mobile
+  isMobile = /mobile|android|iphone|ipad|ipod/i.test(userAgent);
+  
+  // 1. CHECK FOR IN-APP BROWSER (Real users!)
+  for (const pattern of TIKTOK_IN_APP_BROWSER_PATTERNS) {
+    if (pattern.test(userAgent)) {
+      inAppBrowser = true;
+      isRealUser = true;
+      isMobile = true; // TikTok app is always mobile
+      confidence = 92;
+      reasons.push("TIKTOK_IN_APP_BROWSER");
+      break;
+    }
+  }
+  
+  // 2. CHECK FOR TIKTOK CRAWLERS (Block)
+  if (!isRealUser) {
+    for (const pattern of TIKTOK_CRAWLER_PATTERNS) {
+      if (pattern.test(userAgent)) {
+        isCrawler = true;
+        isRealUser = false;
+        confidence = 98;
+        reasons.push("TIKTOK_CRAWLER_UA");
+        
+        // Check if it's ad review
+        if (/ads|verification|preview/i.test(userAgent)) {
+          isReviewer = true;
+          reasons.push("TIKTOK_AD_REVIEWER");
+        }
+        break;
+      }
+    }
+  }
+  
+  // 3. CHECK FOR TTCLID (TikTok Click ID - Real ad click)
+  const fullUrl = url + referer;
+  for (const pattern of TIKTOK_AD_TRACKING_PARAMS) {
+    if (pattern.test(fullUrl)) {
+      hasTtclid = true;
+      if (!isCrawler) {
+        isRealUser = true;
+        confidence = Math.max(confidence, 88);
+        reasons.push("HAS_TIKTOK_TRACKING_PARAM");
+      }
+      break;
+    }
+  }
+  
+  // 4. CHECK REFERER FOR TIKTOK
+  if (/tiktok\.com|vm\.tiktok\.com|vt\.tiktok\.com/i.test(referer)) {
+    if (!isCrawler) {
+      isRealUser = true;
+      confidence = Math.max(confidence, 82);
+      reasons.push("TIKTOK_REFERER");
+    }
+  }
+  
+  // 5. CHECK FOR TIKTOK ADS MANAGER REFERER (Reviewer)
+  if (/ads\.tiktok\.com|business-suite\.tiktok\.com/i.test(referer)) {
+    isReviewer = true;
+    confidence = 75;
+    reasons.push("TIKTOK_ADS_MANAGER_REFERER");
+  }
+  
+  // 6. CHECK ASN FOR TIKTOK DATACENTER
+  const cfAsn = headers.get("cf-asn") || headers.get("x-asn") || "";
+  for (const asn of TIKTOK_DATACENTER_ASNS) {
+    if (cfAsn.toUpperCase().includes(asn)) {
+      if (!hasTtclid && !isRealUser && !inAppBrowser) {
+        isReviewer = true;
+        isCrawler = true;
+        confidence = 85;
+        reasons.push("TIKTOK_DATACENTER_ASN");
+      }
+      break;
+    }
+  }
+  
+  // 7. MOBILE VALIDATION FOR TIKTOK TRAFFIC
+  // TikTok users are ALWAYS on mobile - desktop traffic is suspicious
+  if (!isMobile && !isCrawler && !isReviewer) {
+    // Desktop traffic claiming to be from TikTok is suspicious
+    if (hasTtclid || /tiktok/i.test(referer)) {
+      confidence = Math.max(50, confidence - 20);
+      reasons.push("TIKTOK_DESKTOP_SUSPICIOUS");
+    }
+  }
+  
+  // 8. MOBILE BOOST - Give mobile traffic from TikTok extra trust
+  if (isMobile && !isCrawler && !isReviewer) {
+    confidence = Math.min(100, confidence + 10);
+    if (fingerprint?.touchSupport === true) {
+      // Has touch capability - definitely mobile device
+      confidence = Math.min(100, confidence + 5);
+      reasons.push("MOBILE_TOUCH_VERIFIED");
+    }
+  }
+  
+  return {
+    isRealUser,
+    isReviewer,
+    isCrawler,
+    confidence,
+    reasons,
+    inAppBrowser,
+    hasTtclid,
+    isMobile,
+  };
+}
+
 // ==================== COMBINED ELITE ANALYSIS ====================
 interface EliteAnalysisResult {
   score: number;
@@ -915,8 +1095,10 @@ interface EliteAnalysisResult {
   canvasScore: number;
   facebookAnalysis: FacebookAnalysisResult | null;
   googleAnalysis: GoogleAnalysisResult | null;
+  tiktokAnalysis: TikTokAnalysisResult | null;
   isFacebookRealUser: boolean;
   isGoogleRealUser: boolean;
+  isTikTokRealUser: boolean;
   isAdReviewer: boolean;
 }
 
@@ -998,6 +1180,37 @@ function performEliteAnalysis(
     }
   }
   
+  // 6. TikTok-specific Analysis (Mobile-First Platform)
+  let tiktokAnalysis: TikTokAnalysisResult | null = null;
+  const isTikTokTraffic = /tiktok|ttclid|bytedance|bytespider|musical_ly|aweme|douyin|tt_/i.test(userAgent + referer + url);
+  if (isTikTokTraffic) {
+    tiktokAnalysis = analyzeTikTokTraffic(userAgent, ip, referer, url, headers, fingerprint);
+    
+    if (tiktokAnalysis.isRealUser && tiktokAnalysis.inAppBrowser) {
+      // Real TikTok user in in-app browser - BOOST score significantly
+      baseScore = Math.min(100, baseScore + 25);
+      reasons.push("TIKTOK_REAL_USER_DETECTED");
+    } else if (tiktokAnalysis.isRealUser && tiktokAnalysis.hasTtclid) {
+      // Real TikTok Ads click with TTCLID - BOOST score
+      baseScore = Math.min(100, baseScore + 18);
+      reasons.push("TIKTOK_AD_CLICK_DETECTED");
+    } else if (tiktokAnalysis.isCrawler) {
+      // TikTok crawler - significant penalty
+      baseScore -= 70;
+      reasons.push(...tiktokAnalysis.reasons);
+    } else if (tiktokAnalysis.isReviewer) {
+      // Possible TikTok ad reviewer - high penalty
+      baseScore -= 50;
+      reasons.push(...tiktokAnalysis.reasons);
+    }
+    
+    // Extra mobile validation for TikTok
+    if (tiktokAnalysis.isMobile && !tiktokAnalysis.isCrawler) {
+      // Mobile traffic from TikTok is highly valuable
+      baseScore = Math.min(100, baseScore + 5);
+    }
+  }
+  
   // Determine decision
   let decision: "allow" | "challenge" | "block" = "allow";
   const finalScore = Math.max(0, Math.min(100, baseScore));
@@ -1017,9 +1230,11 @@ function performEliteAnalysis(
     canvasScore: canvasResult.score,
     facebookAnalysis,
     googleAnalysis,
+    tiktokAnalysis,
     isFacebookRealUser: facebookAnalysis?.isRealUser || false,
     isGoogleRealUser: googleAnalysis?.isRealUser || false,
-    isAdReviewer: (facebookAnalysis?.isReviewer || googleAnalysis?.isReviewer) || false,
+    isTikTokRealUser: tiktokAnalysis?.isRealUser || false,
+    isAdReviewer: (facebookAnalysis?.isReviewer || googleAnalysis?.isReviewer || tiktokAnalysis?.isReviewer) || false,
   };
 }
 

@@ -261,16 +261,60 @@ const AD_VERIFICATION_BOTS = [
   'ironsource',
 ];
 
-// ByteDance/TikTok patterns
+// ByteDance/TikTok patterns - COMPREHENSIVE LIST
 const BYTEDANCE_CRAWLERS = [
+  // TikTok official crawlers
   'bytespider',
   'bytedance',
   'tiktokbot',
+  'tiktok',
+  'tiktok-discovery',
+  'tiktok-crawler',
+  'tiktok-external',
+  // TikTok ad review bots
+  'ttspider',
+  'tiktok-ads',
+  'tiktokadsbot',
+  'tiktok-verification',
+  'tiktok-preview',
+  // TikTok in-app browsers (mark but don't block)
+  'tiktok webview',
+  'bytedancewebview',
+  'bytelocale',
+  // Petal (Huawei - often confused with TikTok)
   'petalbot',
   'petal bot',
+  // Other ByteDance products
+  'douyin', // Chinese TikTok
+  'musically', // Old TikTok name
+  'lark',
+  'feishu',
+  'bytedancewebview',
+  // Chinese crawlers often used for ad verification
   'sogou',
   'yisou',
-  'bytespider',
+  '360spider',
+  'haosou',
+  'bingbot-china',
+];
+
+// TikTok in-app browser patterns (legitimate users from TikTok app)
+const TIKTOK_INAPP_BROWSERS = [
+  'musical_ly', 
+  'tiktok', // Without "bot" suffix
+  'bytedancewebview',
+  'aweme', // Internal TikTok codename
+  'android tiktok',
+  'iphone tiktok',
+];
+
+// TikTok Ad Review IP patterns (known datacenter ranges used by TikTok)
+const TIKTOK_REVIEW_ASN_PATTERNS = [
+  'bytedance',
+  'tiktok',
+  'lark',
+  'tt-net',
+  'musical.ly',
 ];
 
 // OpenAI patterns
@@ -435,6 +479,12 @@ export interface UserAgentAnalysis {
   isGeneric: boolean;
   isSuspicious: boolean;
   
+  // TikTok specific
+  isTikTokCrawler: boolean;
+  isTikTokInApp: boolean;
+  isTikTokAdReview: boolean;
+  tikTokTrafficType: 'crawler' | 'in-app' | 'ad-review' | 'organic' | 'none';
+  
   // Detected entities
   detectedCrawler: string | null;
   detectedBrowser: string | null;
@@ -470,6 +520,10 @@ export function analyzeUserAgent(userAgent: string | null | undefined): UserAgen
     isEmpty: false,
     isGeneric: false,
     isSuspicious: false,
+    isTikTokCrawler: false,
+    isTikTokInApp: false,
+    isTikTokAdReview: false,
+    tikTokTrafficType: 'none',
     detectedCrawler: null,
     detectedBrowser: null,
     detectedBrowserVersion: null,
@@ -595,18 +649,56 @@ export function analyzeUserAgent(userAgent: string | null | undefined): UserAgen
     }
   }
   
-  // ByteDance crawlers
+  // ================ TIKTOK SPECIFIC DETECTION ================
+  
+  // 1. TikTok In-App Browser (LEGITIMATE USERS - don't block!)
+  const isTikTokApp = TIKTOK_INAPP_BROWSERS.some(pattern => 
+    ua.includes(pattern.toLowerCase()) && !ua.includes('bot') && !ua.includes('spider')
+  );
+  
+  if (isTikTokApp && !result.isCrawler) {
+    result.isTikTokInApp = true;
+    result.tikTokTrafficType = 'in-app';
+    result.isMobile = true; // TikTok is always mobile
+    result.details.push('Tráfego legítimo do app TikTok detectado');
+    // Don't penalize - these are real users from TikTok!
+  }
+  
+  // 2. TikTok Crawlers/Bots (BLOCK)
   if (!result.isCrawler) {
     for (const crawler of BYTEDANCE_CRAWLERS) {
       if (ua.includes(crawler.toLowerCase())) {
+        // Check if it's specifically TikTok
+        const isTikTokSpecific = crawler.toLowerCase().includes('tiktok') || 
+                                  crawler.toLowerCase().includes('bytespider') ||
+                                  crawler.toLowerCase().includes('ttspider');
+        
         result.isCrawler = true;
         result.isBot = true;
-        result.detectedCrawler = `ByteDance: ${crawler}`;
-        result.score -= 75;
-        result.details.push(`Crawler ByteDance/TikTok detectado: ${crawler}`);
+        result.isTikTokCrawler = isTikTokSpecific;
+        result.tikTokTrafficType = 'crawler';
+        result.detectedCrawler = `ByteDance/TikTok: ${crawler}`;
+        result.score -= 85; // Higher penalty for ad platforms
+        result.details.push(`Crawler TikTok/ByteDance detectado: ${crawler}`);
+        
+        // Check if it looks like ad review
+        if (crawler.toLowerCase().includes('ads') || 
+            crawler.toLowerCase().includes('verification') ||
+            crawler.toLowerCase().includes('preview')) {
+          result.isTikTokAdReview = true;
+          result.tikTokTrafficType = 'ad-review';
+          result.score -= 10; // Extra penalty for ad reviewers
+          result.details.push('Bot de revisão de anúncios TikTok detectado');
+        }
         break;
       }
     }
+  }
+  
+  // 3. Detect TikTok organic traffic (came from TikTok but regular browser)
+  if (!result.isTikTokInApp && !result.isTikTokCrawler && result.isMobile) {
+    // Will be detected later via referer, but mark as potential organic
+    result.tikTokTrafficType = 'organic';
   }
   
   // OpenAI crawlers
@@ -942,3 +1034,132 @@ export function getUAScore(userAgent: string | null | undefined): number {
   const analysis = analyzeUserAgent(userAgent);
   return analysis.score;
 }
+
+// ================ TIKTOK SPECIFIC FUNCTIONS ================
+
+/**
+ * Check if traffic is from TikTok in-app browser (legitimate user)
+ */
+export function isTikTokInAppBrowser(userAgent: string | null | undefined): boolean {
+  const analysis = analyzeUserAgent(userAgent);
+  return analysis.isTikTokInApp;
+}
+
+/**
+ * Check if traffic is from TikTok crawler/bot (should be blocked)
+ */
+export function isTikTokCrawler(userAgent: string | null | undefined): boolean {
+  const analysis = analyzeUserAgent(userAgent);
+  return analysis.isTikTokCrawler;
+}
+
+/**
+ * Check if traffic is from TikTok ad review system (should be blocked)
+ */
+export function isTikTokAdReview(userAgent: string | null | undefined): boolean {
+  const analysis = analyzeUserAgent(userAgent);
+  return analysis.isTikTokAdReview;
+}
+
+/**
+ * Get the type of TikTok traffic
+ */
+export function getTikTokTrafficType(userAgent: string | null | undefined): 'crawler' | 'in-app' | 'ad-review' | 'organic' | 'none' {
+  const analysis = analyzeUserAgent(userAgent);
+  return analysis.tikTokTrafficType;
+}
+
+/**
+ * Check if this is valid mobile traffic (important for TikTok since it's mobile-first)
+ */
+export function isValidMobileTraffic(userAgent: string | null | undefined): boolean {
+  const analysis = analyzeUserAgent(userAgent);
+  
+  // Must be mobile
+  if (!analysis.isMobile) return false;
+  
+  // Must not be a bot
+  if (analysis.isBot || analysis.isCrawler) return false;
+  
+  // Must have a reasonable score
+  if (analysis.score < 50) return false;
+  
+  // Must not have critical inconsistencies
+  if (analysis.inconsistencies.length > 2) return false;
+  
+  return true;
+}
+
+/**
+ * Check if traffic should be allowed for TikTok Ads campaigns
+ * This is optimized for TikTok's predominantly mobile traffic
+ */
+export function shouldAllowTikTokTraffic(userAgent: string | null | undefined): {
+  allow: boolean;
+  reason: string;
+  trafficType: string;
+  confidence: number;
+} {
+  const analysis = analyzeUserAgent(userAgent);
+  
+  // Block TikTok crawlers
+  if (analysis.isTikTokCrawler) {
+    return {
+      allow: false,
+      reason: 'TikTok crawler/bot detectado',
+      trafficType: analysis.tikTokTrafficType,
+      confidence: 95,
+    };
+  }
+  
+  // Block TikTok ad reviewers
+  if (analysis.isTikTokAdReview) {
+    return {
+      allow: false,
+      reason: 'Bot de revisão de anúncios TikTok detectado',
+      trafficType: analysis.tikTokTrafficType,
+      confidence: 98,
+    };
+  }
+  
+  // Allow TikTok in-app browser (legitimate users)
+  if (analysis.isTikTokInApp) {
+    return {
+      allow: true,
+      reason: 'Usuário legítimo do app TikTok',
+      trafficType: analysis.tikTokTrafficType,
+      confidence: 90,
+    };
+  }
+  
+  // For mobile traffic, be more lenient (TikTok is mobile-first)
+  if (analysis.isMobile && analysis.score >= 40) {
+    return {
+      allow: true,
+      reason: 'Tráfego mobile válido',
+      trafficType: 'mobile',
+      confidence: analysis.score,
+    };
+  }
+  
+  // Block any other bot/crawler
+  if (analysis.isBot || analysis.isCrawler) {
+    return {
+      allow: false,
+      reason: `Bot detectado: ${analysis.detectedCrawler || 'genérico'}`,
+      trafficType: 'bot',
+      confidence: 85,
+    };
+  }
+  
+  // Default: allow with moderate confidence
+  return {
+    allow: analysis.score >= 50,
+    reason: analysis.score >= 50 ? 'Tráfego válido' : 'Score baixo',
+    trafficType: analysis.isMobile ? 'mobile' : 'desktop',
+    confidence: analysis.score,
+  };
+}
+
+// Export ASN patterns for TikTok review detection
+export const TIKTOK_ASN_PATTERNS = TIKTOK_REVIEW_ASN_PATTERNS;
