@@ -27,6 +27,7 @@ import {
 import { cn } from '@/lib/utils';
 import { StickyNote, StickyNoteData } from './StickyNote';
 import { useRealtimeWhiteboard } from '@/hooks/useRealtimeWhiteboard';
+import { VersionHistoryPanel } from './VersionHistoryPanel';
 
 interface Point {
   x: number;
@@ -963,6 +964,23 @@ export const InfiniteCanvas = ({ initialData, onSave, boardTitle = 'Whiteboard',
               {isSaving ? '✓ Salvo' : 'Salvar'}
             </button>
           </div>
+
+          {/* Version History Panel */}
+          {boardId && (
+            <VersionHistoryPanel
+              boardId={boardId}
+              currentData={JSON.stringify({ elements, stickyNotes })}
+              onRestore={(data) => {
+                try {
+                  const parsed = JSON.parse(data);
+                  if (parsed.elements) setElements(parsed.elements);
+                  if (parsed.stickyNotes) setStickyNotes(parsed.stickyNotes);
+                } catch (e) {
+                  console.error('Error restoring version:', e);
+                }
+              }}
+            />
+          )}
         </div>
       </div>
     </TooltipProvider>
