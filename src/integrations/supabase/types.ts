@@ -1086,6 +1086,44 @@ export type Database = {
           },
         ]
       }
+      whiteboard_versions: {
+        Row: {
+          board_id: string
+          created_at: string
+          created_by: string
+          description: string | null
+          drawing_data: string
+          id: string
+          version_number: number
+        }
+        Insert: {
+          board_id: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          drawing_data: string
+          id?: string
+          version_number?: number
+        }
+        Update: {
+          board_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          drawing_data?: string
+          id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whiteboard_versions_board_id_fkey"
+            columns: ["board_id"]
+            isOneToOne: false
+            referencedRelation: "whiteboard_boards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       withdrawals: {
         Row: {
           amount: number
@@ -1124,6 +1162,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_next_version_number: { Args: { p_board_id: string }; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
