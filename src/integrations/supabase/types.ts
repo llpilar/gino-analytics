@@ -959,6 +959,7 @@ export type Database = {
           content: string | null
           created_at: string
           created_by: string
+          drawing_data: string | null
           due_date: string | null
           id: string
           position: number
@@ -974,6 +975,7 @@ export type Database = {
           content?: string | null
           created_at?: string
           created_by: string
+          drawing_data?: string | null
           due_date?: string | null
           id?: string
           position?: number
@@ -989,6 +991,7 @@ export type Database = {
           content?: string | null
           created_at?: string
           created_by?: string
+          drawing_data?: string | null
           due_date?: string | null
           id?: string
           position?: number
@@ -1041,6 +1044,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "whiteboard_columns_board_id_fkey"
+            columns: ["board_id"]
+            isOneToOne: false
+            referencedRelation: "whiteboard_boards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whiteboard_drawings: {
+        Row: {
+          board_id: string
+          created_at: string
+          drawing_data: string
+          id: string
+          thumbnail: string | null
+          updated_at: string
+        }
+        Insert: {
+          board_id: string
+          created_at?: string
+          drawing_data: string
+          id?: string
+          thumbnail?: string | null
+          updated_at?: string
+        }
+        Update: {
+          board_id?: string
+          created_at?: string
+          drawing_data?: string
+          id?: string
+          thumbnail?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whiteboard_drawings_board_id_fkey"
             columns: ["board_id"]
             isOneToOne: false
             referencedRelation: "whiteboard_boards"
