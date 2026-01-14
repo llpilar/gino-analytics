@@ -18,12 +18,13 @@ import {
   Undo2,
   Redo2,
   Download,
-  Palette,
   MousePointer,
   Type,
-  Move
+  Move,
+  StickyNote as StickyNoteIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { StickyNote, StickyNoteData } from './StickyNote';
 
 interface Point {
   x: number;
@@ -38,6 +39,11 @@ interface DrawingElement {
   text?: string;
 }
 
+interface DrawingData {
+  elements: DrawingElement[];
+  stickyNotes: StickyNoteData[];
+}
+
 interface DrawingCanvasProps {
   initialData?: string;
   onSave?: (data: string) => void;
@@ -50,7 +56,7 @@ const COLORS = [
   '#22c55e', '#14b8a6', '#3b82f6', '#8b5cf6', '#ec4899'
 ];
 
-type Tool = 'select' | 'pencil' | 'eraser' | 'line' | 'rectangle' | 'circle' | 'arrow' | 'text' | 'pan';
+type Tool = 'select' | 'pencil' | 'eraser' | 'line' | 'rectangle' | 'circle' | 'arrow' | 'text' | 'pan' | 'sticky';
 
 export const DrawingCanvas = ({ initialData, onSave, width = 1200, height = 800 }: DrawingCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -62,20 +68,25 @@ export const DrawingCanvas = ({ initialData, onSave, width = 1200, height = 800 
   const [isDrawing, setIsDrawing] = useState(false);
   const [elements, setElements] = useState<DrawingElement[]>([]);
   const [currentElement, setCurrentElement] = useState<DrawingElement | null>(null);
-  const [history, setHistory] = useState<DrawingElement[][]>([[]]);
+  const [history, setHistory] = useState<DrawingData[]>([{ elements: [], stickyNotes: [] }]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [scale, setScale] = useState(1);
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
+  
+  // Sticky notes state
+  const [stickyNotes, setStickyNotes] = useState<StickyNoteData[]>([]);
+  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
 
   // Load initial data
   useEffect(() => {
     if (initialData) {
       try {
-        const parsed = JSON.parse(initialData);
+        const parsed = JSON.parse(initialData) as DrawingData;
         setElements(parsed.elements || []);
-        setHistory([parsed.elements || []]);
+        setStickyNotes(parsed.stickyNotes || []);
+        setHistory([{ elements: parsed.elements || [], stickyNotes: parsed.stickyNotes || [] }]);
       } catch (e) {
         console.error('Failed to parse drawing data:', e);
       }
@@ -219,9 +230,37 @@ export const DrawingCanvas = ({ initialData, onSave, width = 1200, height = 800 
   }, [offset, scale]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    // Deselect sticky note when clicking on canvas
+    setSelectedNoteId(null);
+    
     if (tool === 'pan') {
       setIsPanning(true);
       setPanStart({ x: e.clientX - offset.x, y: e.clientY - offset.y });
+      return;
+    }
+
+    if (tool === 'sticky') {
+      const container = containerRef.current;
+      if (!container) return;
+      
+      const rect = container.getBoundingClientRect();
+      const x = e.clientX - rect.left - 80;
+      const y = e.clientY - rect.top - 50;
+      
+      const newNote: StickyNoteData = {
+        id: `note-${Date.now()}`,
+        x: Math.max(0, x),
+        y: Math.max(0, y),
+        text: '',
+        color: '#fef08a',
+        width: 160,
+        height: 120,
+      };
+      
+      const newNotes = [...stickyNotes, newNote];
+      setStickyNotes(newNotes);
+      setSelectedNoteId(newNote.id);
+      saveToHistory({ elements, stickyNotes: newNotes });
       return;
     }
 
@@ -240,7 +279,7 @@ export const DrawingCanvas = ({ initialData, onSave, width = 1200, height = 800 
         };
         const newElements = [...elements, newElement];
         setElements(newElements);
-        saveToHistory(newElements);
+        saveToHistory({ elements: newElements, stickyNotes });
       }
       return;
     }
@@ -255,10 +294,12 @@ export const DrawingCanvas = ({ initialData, onSave, width = 1200, height = 800 
       });
       if (filtered.length !== elements.length) {
         setElements(filtered);
-        saveToHistory(filtered);
+        saveToHistory({ elements: filtered, stickyNotes });
       }
       return;
     }
+
+    if (tool === 'select') return;
 
     const newElement: DrawingElement = {
       type: tool as DrawingElement['type'],
@@ -267,7 +308,7 @@ export const DrawingCanvas = ({ initialData, onSave, width = 1200, height = 800 
       strokeWidth,
     };
     setCurrentElement(newElement);
-  }, [tool, color, strokeWidth, elements, getCanvasPoint, offset]);
+  }, [tool, color, strokeWidth, elements, stickyNotes, getCanvasPoint, offset]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (isPanning) {
@@ -307,37 +348,42 @@ export const DrawingCanvas = ({ initialData, onSave, width = 1200, height = 800 
     setElements(newElements);
     setCurrentElement(null);
     setIsDrawing(false);
-    saveToHistory(newElements);
-  }, [isDrawing, currentElement, elements]);
+    saveToHistory({ elements: newElements, stickyNotes });
+  }, [isDrawing, currentElement, elements, stickyNotes]);
 
-  const saveToHistory = (newElements: DrawingElement[]) => {
+  const saveToHistory = (data: DrawingData) => {
     const newHistory = history.slice(0, historyIndex + 1);
-    newHistory.push(newElements);
+    newHistory.push(data);
     setHistory(newHistory);
     setHistoryIndex(newHistory.length - 1);
   };
 
   const undo = () => {
     if (historyIndex > 0) {
-      setHistoryIndex(historyIndex - 1);
-      setElements(history[historyIndex - 1]);
+      const newIndex = historyIndex - 1;
+      setHistoryIndex(newIndex);
+      setElements(history[newIndex].elements);
+      setStickyNotes(history[newIndex].stickyNotes);
     }
   };
 
   const redo = () => {
     if (historyIndex < history.length - 1) {
-      setHistoryIndex(historyIndex + 1);
-      setElements(history[historyIndex + 1]);
+      const newIndex = historyIndex + 1;
+      setHistoryIndex(newIndex);
+      setElements(history[newIndex].elements);
+      setStickyNotes(history[newIndex].stickyNotes);
     }
   };
 
   const clear = () => {
     setElements([]);
-    saveToHistory([]);
+    setStickyNotes([]);
+    saveToHistory({ elements: [], stickyNotes: [] });
   };
 
   const handleSave = () => {
-    const data = JSON.stringify({ elements });
+    const data = JSON.stringify({ elements, stickyNotes });
     onSave?.(data);
   };
 
@@ -351,6 +397,18 @@ export const DrawingCanvas = ({ initialData, onSave, width = 1200, height = 800 
     link.click();
   };
 
+  const handleUpdateNote = (updatedNote: StickyNoteData) => {
+    const newNotes = stickyNotes.map(n => n.id === updatedNote.id ? updatedNote : n);
+    setStickyNotes(newNotes);
+  };
+
+  const handleDeleteNote = (id: string) => {
+    const newNotes = stickyNotes.filter(n => n.id !== id);
+    setStickyNotes(newNotes);
+    saveToHistory({ elements, stickyNotes: newNotes });
+    setSelectedNoteId(null);
+  };
+
   const tools: { id: Tool; icon: React.ReactNode; label: string }[] = [
     { id: 'select', icon: <MousePointer className="w-4 h-4" />, label: 'Selecionar' },
     { id: 'pencil', icon: <Pencil className="w-4 h-4" />, label: 'Caneta' },
@@ -360,6 +418,7 @@ export const DrawingCanvas = ({ initialData, onSave, width = 1200, height = 800 
     { id: 'rectangle', icon: <Square className="w-4 h-4" />, label: 'Retângulo' },
     { id: 'circle', icon: <Circle className="w-4 h-4" />, label: 'Círculo' },
     { id: 'text', icon: <Type className="w-4 h-4" />, label: 'Texto' },
+    { id: 'sticky', icon: <StickyNoteIcon className="w-4 h-4" />, label: 'Nota Adesiva' },
     { id: 'pan', icon: <Move className="w-4 h-4" />, label: 'Mover' },
   ];
 
@@ -463,6 +522,13 @@ export const DrawingCanvas = ({ initialData, onSave, width = 1200, height = 800 
 
         <div className="flex-1" />
 
+        {/* Notes count */}
+        {stickyNotes.length > 0 && (
+          <span className="text-xs text-muted-foreground">
+            {stickyNotes.length} nota{stickyNotes.length !== 1 ? 's' : ''}
+          </span>
+        )}
+
         {/* Export */}
         <Button variant="outline" size="sm" onClick={downloadAsImage}>
           <Download className="w-4 h-4 mr-2" />
@@ -476,15 +542,15 @@ export const DrawingCanvas = ({ initialData, onSave, width = 1200, height = 800 
         )}
       </div>
 
-      {/* Canvas */}
-      <div className="flex-1 overflow-hidden">
+      {/* Canvas with Sticky Notes overlay */}
+      <div className="flex-1 overflow-hidden relative">
         <canvas
           ref={canvasRef}
           width={width}
           height={height}
           className={cn(
             "touch-none",
-            tool === 'pan' ? "cursor-grab" : "cursor-crosshair",
+            tool === 'pan' ? "cursor-grab" : tool === 'sticky' ? "cursor-copy" : "cursor-crosshair",
             isPanning && "cursor-grabbing"
           )}
           onMouseDown={handleMouseDown}
@@ -492,6 +558,18 @@ export const DrawingCanvas = ({ initialData, onSave, width = 1200, height = 800 
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
         />
+        
+        {/* Sticky Notes Layer */}
+        {stickyNotes.map((note) => (
+          <StickyNote
+            key={note.id}
+            note={note}
+            onUpdate={handleUpdateNote}
+            onDelete={handleDeleteNote}
+            isSelected={selectedNoteId === note.id}
+            onSelect={setSelectedNoteId}
+          />
+        ))}
       </div>
     </div>
   );
