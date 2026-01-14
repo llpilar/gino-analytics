@@ -29,6 +29,87 @@ interface Point {
   y: number;
 }
 
+// Ramer-Douglas-Peucker algorithm for point simplification
+const perpendicularDistance = (point: Point, lineStart: Point, lineEnd: Point): number => {
+  const dx = lineEnd.x - lineStart.x;
+  const dy = lineEnd.y - lineStart.y;
+  const mag = Math.sqrt(dx * dx + dy * dy);
+  
+  if (mag === 0) {
+    return Math.sqrt(Math.pow(point.x - lineStart.x, 2) + Math.pow(point.y - lineStart.y, 2));
+  }
+  
+  const u = ((point.x - lineStart.x) * dx + (point.y - lineStart.y) * dy) / (mag * mag);
+  
+  let closestX: number, closestY: number;
+  if (u < 0) {
+    closestX = lineStart.x;
+    closestY = lineStart.y;
+  } else if (u > 1) {
+    closestX = lineEnd.x;
+    closestY = lineEnd.y;
+  } else {
+    closestX = lineStart.x + u * dx;
+    closestY = lineStart.y + u * dy;
+  }
+  
+  return Math.sqrt(Math.pow(point.x - closestX, 2) + Math.pow(point.y - closestY, 2));
+};
+
+const simplifyPoints = (points: Point[], epsilon: number): Point[] => {
+  if (points.length <= 2) return points;
+  
+  let maxDistance = 0;
+  let maxIndex = 0;
+  
+  for (let i = 1; i < points.length - 1; i++) {
+    const distance = perpendicularDistance(points[i], points[0], points[points.length - 1]);
+    if (distance > maxDistance) {
+      maxDistance = distance;
+      maxIndex = i;
+    }
+  }
+  
+  if (maxDistance > epsilon) {
+    const left = simplifyPoints(points.slice(0, maxIndex + 1), epsilon);
+    const right = simplifyPoints(points.slice(maxIndex), epsilon);
+    return [...left.slice(0, -1), ...right];
+  }
+  
+  return [points[0], points[points.length - 1]];
+};
+
+// Catmull-Rom spline for smooth curves
+const getCatmullRomPoint = (p0: Point, p1: Point, p2: Point, p3: Point, t: number): Point => {
+  const t2 = t * t;
+  const t3 = t2 * t;
+  
+  return {
+    x: 0.5 * ((2 * p1.x) + (-p0.x + p2.x) * t + (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 + (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3),
+    y: 0.5 * ((2 * p1.y) + (-p0.y + p2.y) * t + (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 + (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3),
+  };
+};
+
+const smoothPoints = (points: Point[], segments: number = 6): Point[] => {
+  if (points.length < 4) return points;
+  
+  const smoothed: Point[] = [points[0]];
+  
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[Math.max(0, i - 1)];
+    const p1 = points[i];
+    const p2 = points[Math.min(points.length - 1, i + 1)];
+    const p3 = points[Math.min(points.length - 1, i + 2)];
+    
+    for (let j = 1; j <= segments; j++) {
+      const t = j / segments;
+      smoothed.push(getCatmullRomPoint(p0, p1, p2, p3, t));
+    }
+  }
+  
+  return smoothed;
+};
+
 interface DrawingElement {
   id: string;
   type: 'pencil' | 'line' | 'rectangle' | 'circle' | 'triangle' | 'arrow' | 'text';
@@ -412,7 +493,16 @@ export const InfiniteCanvas = ({ initialData, onSave, boardTitle = 'Whiteboard' 
 
     if (!isDrawing || !currentElement) return;
 
-    const newElements = [...elements, currentElement];
+    // Apply stroke smoothing for pencil tool
+    let finalElement = currentElement;
+    if (currentElement.type === 'pencil' && currentElement.points.length > 4) {
+      // First simplify to reduce noise, then smooth with Catmull-Rom spline
+      const simplified = simplifyPoints(currentElement.points, 2);
+      const smoothed = smoothPoints(simplified, 4);
+      finalElement = { ...currentElement, points: smoothed };
+    }
+
+    const newElements = [...elements, finalElement];
     setElements(newElements);
     setCurrentElement(null);
     setIsDrawing(false);
