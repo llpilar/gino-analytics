@@ -38,51 +38,22 @@ export function useFacebookConnection() {
     enabled: !!user,
   });
 
-  // Check for pending connection from OAuth callback
+  // Check URL params for success from OAuth callback
   useEffect(() => {
-    const checkPendingConnection = async () => {
-      if (!user) return;
-
-      const pendingData = localStorage.getItem('fb_pending_connection');
-      if (!pendingData) return;
-
-      try {
-        const pending = JSON.parse(pendingData);
-        localStorage.removeItem('fb_pending_connection');
-
-        // Save to database
-        const { error } = await supabase
-          .from('facebook_connections')
-          .upsert({
-            user_id: user.id,
-            access_token: pending.access_token,
-            facebook_user_id: pending.facebook_user_id,
-            facebook_user_name: pending.facebook_user_name,
-            token_expires_at: pending.token_expires_at,
-          }, {
-            onConflict: 'user_id'
-          });
-
-        if (error) throw error;
-
-        toast({
-          title: 'Facebook conectado!',
-          description: `Conta ${pending.facebook_user_name} conectada com sucesso.`,
-        });
-
-        refetch();
-      } catch (error) {
-        console.error('Error saving Facebook connection:', error);
-        toast({
-          title: 'Erro ao conectar',
-          description: 'Não foi possível salvar a conexão do Facebook.',
-          variant: 'destructive',
-        });
-      }
-    };
-
-    checkPendingConnection();
-  }, [user, toast, refetch]);
+    const params = new URLSearchParams(window.location.search);
+    const fbSuccess = params.get('fb_success');
+    const fbName = params.get('fb_name');
+    
+    if (fbSuccess === 'true') {
+      toast({
+        title: 'Facebook conectado!',
+        description: fbName ? `Conta ${decodeURIComponent(fbName)} conectada com sucesso.` : 'Conexão realizada com sucesso.',
+      });
+      // Clean URL and refetch connection
+      window.history.replaceState({}, '', window.location.pathname);
+      refetch();
+    }
+  }, [toast, refetch]);
 
   // Check URL params for success/error
   useEffect(() => {

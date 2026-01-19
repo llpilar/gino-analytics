@@ -84,47 +84,80 @@ serve(async (req) => {
   }
 
   try {
-    const { userId } = await req.json();
+    // Require authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Authentication required');
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    
+    // Create client with user's token to verify authentication
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    // Verify user is authenticated
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      throw new Error('User not authenticated');
+    }
+
+    const { userId: targetUserId } = await req.json();
+    
+    // Determine effective user ID
+    let effectiveUserId = user.id;
+    
+    // If trying to access another user's data, verify admin role
+    if (targetUserId && targetUserId !== user.id) {
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+      
+      if (roleError || !roleData) {
+        console.error('Unauthorized impersonation attempt by user:', user.id, 'for target:', targetUserId);
+        throw new Error('Unauthorized: Admin role required for impersonation');
+      }
+      
+      console.log('Admin impersonation authorized:', user.id, 'impersonating:', targetUserId);
+      effectiveUserId = targetUserId;
+    }
     
     let serviceAccountJson: string | undefined;
     let propertyId: string | undefined;
     
-    // If userId is provided, fetch credentials from user_integrations
-    if (userId) {
-      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-      const supabase = createClient(supabaseUrl, supabaseServiceKey);
-      
-      const { data: integration, error } = await supabase
-        .from('user_integrations')
-        .select('config')
-        .eq('user_id', userId)
-        .eq('integration_type', 'ga4')
-        .eq('is_active', true)
-        .maybeSingle();
-      
-      if (!error && integration?.config) {
-        serviceAccountJson = integration.config.service_account_json;
-        propertyId = integration.config.property_id;
-        console.log(`Using GA4 credentials for user ${userId}`);
-      } else {
-        // User specified but no integration found - return zero
-        console.log(`No GA4 integration found for user ${userId}, returning zero`);
-        return new Response(
-          JSON.stringify({ 
-            count: 0,
-            period: 'last5Minutes',
-            timestamp: new Date().toISOString(),
-            noIntegration: true
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
+    // Fetch credentials from user_integrations
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
+    
+    const { data: integration, error } = await serviceClient
+      .from('user_integrations')
+      .select('config')
+      .eq('user_id', effectiveUserId)
+      .eq('integration_type', 'ga4')
+      .eq('is_active', true)
+      .maybeSingle();
+    
+    if (!error && integration?.config) {
+      serviceAccountJson = integration.config.service_account_json;
+      propertyId = integration.config.property_id;
+      console.log(`Using GA4 credentials for user ${effectiveUserId}`);
     } else {
-      // No userId provided - use environment variables (legacy behavior)
-      serviceAccountJson = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_JSON');
-      propertyId = Deno.env.get('GA4_PROPERTY_ID');
-      console.log('Using default GA4 credentials from environment (no userId provided)');
+      // User has no GA4 integration - return zero
+      console.log(`No GA4 integration found for user ${effectiveUserId}, returning zero`);
+      return new Response(
+        JSON.stringify({ 
+          count: 0,
+          period: 'last5Minutes',
+          timestamp: new Date().toISOString(),
+          noIntegration: true
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     if (!serviceAccountJson) {

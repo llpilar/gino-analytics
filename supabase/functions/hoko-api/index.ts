@@ -11,15 +11,9 @@ const HOKO_BASE_URL = 'https://hoko.com.co/api';
 // Cache tokens per user
 const tokenCache = new Map<string, { token: string; expiry: number }>();
 
-async function getHokoCredentials(userId?: string): Promise<{ email: string; password: string } | null> {
-  if (!userId) return null;
-  
+async function getHokoCredentials(userId: string, serviceClient: any): Promise<{ email: string; password: string } | null> {
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-    
-    const { data, error } = await supabase
+    const { data, error } = await serviceClient
       .from('user_integrations')
       .select('config')
       .eq('user_id', userId)
@@ -44,8 +38,8 @@ async function getHokoCredentials(userId?: string): Promise<{ email: string; pas
   }
 }
 
-async function getAuthToken(userId?: string): Promise<string | null> {
-  const cacheKey = userId || 'default';
+async function getAuthToken(userId: string, serviceClient: any): Promise<string | null> {
+  const cacheKey = userId;
   const cached = tokenCache.get(cacheKey);
   
   // Check if we have a valid cached token
@@ -53,31 +47,16 @@ async function getAuthToken(userId?: string): Promise<string | null> {
     return cached.token;
   }
 
-  // Try to get user-specific credentials first
-  let email: string | undefined;
-  let password: string | undefined;
-  
-  if (userId) {
-    const userCreds = await getHokoCredentials(userId);
-    if (userCreds) {
-      email = userCreds.email;
-      password = userCreds.password;
-      console.log('Using user-specific Hoko credentials for user:', userId);
-    } else {
-      // User specified but no credentials found - return null to indicate no integration
-      console.log('No Hoko integration found for user:', userId);
-      return null;
-    }
-  } else {
-    // No userId provided - use environment variables (legacy behavior)
-    email = Deno.env.get('HOKO_EMAIL');
-    password = Deno.env.get('HOKO_PASSWORD');
-    console.log('Using default Hoko credentials from environment (no userId provided)');
+  // Get user-specific credentials
+  const userCreds = await getHokoCredentials(userId, serviceClient);
+  if (!userCreds) {
+    // User has no Hoko integration
+    console.log('No Hoko integration found for user:', userId);
+    return null;
   }
 
-  if (!email || !password) {
-    throw new Error('Missing Hoko credentials. Please configure Hoko integration.');
-  }
+  const { email, password } = userCreds;
+  console.log('Using user-specific Hoko credentials for user:', userId);
 
   console.log('Authenticating with Hoko API...');
 
@@ -113,8 +92,8 @@ async function getAuthToken(userId?: string): Promise<string | null> {
   return token;
 }
 
-async function hokoRequest(endpoint: string, userId?: string, method: string = 'GET', body?: any): Promise<any> {
-  const token = await getAuthToken(userId);
+async function hokoRequest(endpoint: string, userId: string, serviceClient: any, method: string = 'GET', body?: any): Promise<any> {
+  const token = await getAuthToken(userId, serviceClient);
   
   // If token is null, user doesn't have Hoko integration
   if (token === null) {
@@ -141,9 +120,8 @@ async function hokoRequest(endpoint: string, userId?: string, method: string = '
   // Check if token expired
   if (data.code === 'LOGIN_EXPIRED') {
     console.log('Token expired, re-authenticating...');
-    const cacheKey = userId || 'default';
-    tokenCache.delete(cacheKey);
-    return hokoRequest(endpoint, userId, method, body);
+    tokenCache.delete(userId);
+    return hokoRequest(endpoint, userId, serviceClient, method, body);
   }
 
   return data;
@@ -155,14 +133,60 @@ serve(async (req) => {
   }
 
   try {
-    const { endpoint, userId, params } = await req.json();
-    console.log(`Hoko API request: ${endpoint}, userId: ${userId}`, params);
+    // Require authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Authentication required');
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    
+    // Create client with user's token to verify authentication
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    // Verify user is authenticated
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      throw new Error('User not authenticated');
+    }
+
+    const { endpoint, userId: targetUserId, params } = await req.json();
+    
+    // Determine effective user ID
+    let effectiveUserId = user.id;
+    
+    // If trying to access another user's data, verify admin role
+    if (targetUserId && targetUserId !== user.id) {
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+      
+      if (roleError || !roleData) {
+        console.error('Unauthorized impersonation attempt by user:', user.id, 'for target:', targetUserId);
+        throw new Error('Unauthorized: Admin role required for impersonation');
+      }
+      
+      console.log('Admin impersonation authorized:', user.id, 'impersonating:', targetUserId);
+      effectiveUserId = targetUserId;
+    }
+    
+    console.log(`Hoko API request: ${endpoint}, effectiveUserId: ${effectiveUserId}`, params);
+
+    // Create service client for accessing user integrations
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
 
     let result;
 
     switch (endpoint) {
       case 'store':
-        result = await hokoRequest('/member/store', userId);
+        result = await hokoRequest('/member/store', effectiveUserId, serviceClient);
         break;
 
       case 'orders':
@@ -189,7 +213,7 @@ serve(async (req) => {
         while (hasMorePages && pagesLoaded < maxPages) {
           const queryString = buildOrdersQuery(currentPage);
           console.log(`Fetching orders with query: /member/order${queryString}`);
-          const ordersResponse = await hokoRequest(`/member/order${queryString}`, userId);
+          const ordersResponse = await hokoRequest(`/member/order${queryString}`, effectiveUserId, serviceClient);
           paginationInfo = {
             current_page: ordersResponse.current_page,
             last_page: ordersResponse.last_page,
@@ -214,7 +238,7 @@ serve(async (req) => {
         const ordersWithDetails = await Promise.all(
           allOrders.map(async (order: any) => {
             try {
-              const orderDetail = await hokoRequest(`/member/order/${order.id}`, userId);
+              const orderDetail = await hokoRequest(`/member/order/${order.id}`, effectiveUserId, serviceClient);
               // Log first order detail to see structure
               if (allOrders.indexOf(order) === 0) {
                 console.log('Order detail structure:', JSON.stringify(orderDetail, null, 2).substring(0, 2000));
@@ -239,17 +263,17 @@ serve(async (req) => {
           throw new Error('Order ID is required');
         }
         // Correct endpoint: /member/order/{id}
-        result = await hokoRequest(`/member/order/${params.orderId}`, userId);
+        result = await hokoRequest(`/member/order/${params.orderId}`, effectiveUserId, serviceClient);
         break;
 
       case 'products':
         // Correct endpoint: /member/product/list
-        result = await hokoRequest('/member/product/list', userId);
+        result = await hokoRequest('/member/product/list', effectiveUserId, serviceClient);
         break;
 
       case 'products-with-stock':
         // Correct endpoint: /member/product/list-with-stock
-        result = await hokoRequest('/member/product/list-with-stock', userId);
+        result = await hokoRequest('/member/product/list-with-stock', effectiveUserId, serviceClient);
         break;
 
       case 'product-detail':
@@ -257,13 +281,13 @@ serve(async (req) => {
           throw new Error('Product ID is required');
         }
         // Correct endpoint: /member/product/detail?id={id}
-        result = await hokoRequest(`/member/product/detail?id=${params.productId}`, userId);
+        result = await hokoRequest(`/member/product/detail?id=${params.productId}`, effectiveUserId, serviceClient);
         break;
 
       case 'guides':
         // Correct endpoint: /member/guide
         const guidesParams = params?.page ? `?page=${params.page}` : '';
-        result = await hokoRequest(`/member/guide${guidesParams}`, userId, 'POST');
+        result = await hokoRequest(`/member/guide${guidesParams}`, effectiveUserId, serviceClient, 'POST');
         break;
 
       case 'shared-stock':
@@ -272,7 +296,7 @@ serve(async (req) => {
         if (params?.search) stockParams += `search=${encodeURIComponent(params.search)}&`;
         if (params?.category) stockParams += `category=${params.category}&`;
         if (params?.sortBy) stockParams += `sortBy=${params.sortBy}&`;
-        result = await hokoRequest(`/member/shared_stock${stockParams}`, userId);
+        result = await hokoRequest(`/member/shared_stock${stockParams}`, effectiveUserId, serviceClient);
         break;
 
       case 'liquidaciones':
@@ -299,7 +323,7 @@ serve(async (req) => {
         for (const ep of possibleEndpoints) {
           console.log(`Trying liquidaciones endpoint: ${ep}`);
           try {
-            const response = await hokoRequest(ep, userId);
+            const response = await hokoRequest(ep, effectiveUserId, serviceClient);
             if (!response.exception && !response.message?.includes('could not be found')) {
               console.log(`Found working endpoint: ${ep}`);
               liquidacionesResult = response;

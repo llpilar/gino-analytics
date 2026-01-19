@@ -4,6 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { ShoppingCart, TrendingUp, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import DOMPurify from "dompurify";
 
 interface ProductNode {
   id: string;
@@ -142,7 +143,7 @@ export const ShopifyProductList = ({ searchQuery = "" }: ShopifyProductListProps
               
               <div 
                 className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem]"
-                dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.descriptionHtml || '') }}
               />
               
               {/* Price Section */}

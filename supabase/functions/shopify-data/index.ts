@@ -13,52 +13,85 @@ serve(async (req) => {
   }
 
   try {
-    const { endpoint, customDates, userId } = await req.json();
+    // Require authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Authentication required');
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    
+    // Create client with user's token to verify authentication
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    // Verify user is authenticated
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      throw new Error('User not authenticated');
+    }
+
+    const { endpoint, customDates, userId: targetUserId } = await req.json();
+    
+    // Determine effective user ID
+    let effectiveUserId = user.id;
+    
+    // If trying to access another user's data, verify admin role
+    if (targetUserId && targetUserId !== user.id) {
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+      
+      if (roleError || !roleData) {
+        console.error('Unauthorized impersonation attempt by user:', user.id, 'for target:', targetUserId);
+        throw new Error('Unauthorized: Admin role required for impersonation');
+      }
+      
+      console.log('Admin impersonation authorized:', user.id, 'impersonating:', targetUserId);
+      effectiveUserId = targetUserId;
+    }
     
     let shopifyAccessToken: string | undefined;
     let shopDomain: string | undefined;
     
-    // If userId is provided, fetch credentials from user_integrations
-    if (userId) {
-      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-      const supabase = createClient(supabaseUrl, supabaseServiceKey);
-      
-      const { data: integration, error } = await supabase
-        .from('user_integrations')
-        .select('config')
-        .eq('user_id', userId)
-        .eq('integration_type', 'shopify')
-        .eq('is_active', true)
-        .maybeSingle();
-      
-      if (error) {
-        console.error('Error fetching user integration:', error);
-      }
-      
-      if (integration?.config) {
-        shopifyAccessToken = integration.config.access_token;
-        shopDomain = integration.config.store_domain;
-        console.log(`Using Shopify credentials for user ${userId}`);
-      } else {
-        // User specified but no integration found - return empty data
-        console.log(`No Shopify integration found for user ${userId}, returning empty data`);
-        return new Response(
-          JSON.stringify({
-            data: {
-              orders: { edges: [] },
-              products: { edges: [] },
-              customers: { edges: [] }
-            }
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
+    // Fetch credentials from user_integrations using service role
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
+    
+    const { data: integration, error } = await serviceClient
+      .from('user_integrations')
+      .select('config')
+      .eq('user_id', effectiveUserId)
+      .eq('integration_type', 'shopify')
+      .eq('is_active', true)
+      .maybeSingle();
+    
+    if (error) {
+      console.error('Error fetching user integration:', error);
+    }
+    
+    if (integration?.config) {
+      shopifyAccessToken = integration.config.access_token;
+      shopDomain = integration.config.store_domain;
+      console.log(`Using Shopify credentials for user ${effectiveUserId}`);
     } else {
-      // No userId provided - use environment variables (legacy behavior)
-      shopifyAccessToken = Deno.env.get('SHOPIFY_ACCESS_TOKEN');
-      shopDomain = 'g1n0hi-gx.myshopify.com';
-      console.log('Using default Shopify credentials from environment (no userId provided)');
+      // User has no Shopify integration - return empty data
+      console.log(`No Shopify integration found for user ${effectiveUserId}, returning empty data`);
+      return new Response(
+        JSON.stringify({
+          data: {
+            orders: { edges: [] },
+            products: { edges: [] },
+            customers: { edges: [] }
+          }
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     if (!shopifyAccessToken || !shopDomain) {
@@ -508,17 +541,19 @@ serve(async (req) => {
               edges {
                 node {
                   id
+                  name
                   createdAt
-                  shippingAddress {
-                    city
-                    provinceCode
-                    countryCode
-                    country
-                  }
                   lineItems(first: 50) {
                     edges {
                       node {
+                        name
                         quantity
+                        discountedTotalSet {
+                          shopMoney {
+                            amount
+                            currencyCode
+                          }
+                        }
                         variant {
                           id
                           title
@@ -527,6 +562,10 @@ serve(async (req) => {
                           product {
                             id
                             title
+                            handle
+                            featuredImage {
+                              url
+                            }
                           }
                         }
                       }
@@ -548,7 +587,7 @@ serve(async (req) => {
         });
         
         if (!pageResponse.ok) {
-          throw new Error(`Erro na paginação products-sales: ${pageResponse.status}`);
+          throw new Error(`Erro na paginação: ${pageResponse.status}`);
         }
         
         const pageData = await pageResponse.json();
@@ -561,7 +600,7 @@ serve(async (req) => {
         console.log(`[products-sales] Página carregada: ${orders.length} pedidos. Total: ${allOrders.length}`);
       }
       
-      console.log(`[products-sales] Total de pedidos: ${allOrders.length}`);
+      console.log(`[products-sales] Total de pedidos encontrados: ${allOrders.length}`);
       
       return new Response(
         JSON.stringify({
@@ -578,27 +617,21 @@ serve(async (req) => {
           } 
         }
       );
-    } else if (endpoint === 'customers') {
+    } else {
+      // Default query - basic orders
       graphqlQuery = `
         {
-          customers(first: 100, sortKey: TOTAL_SPENT, reverse: true) {
+          orders(first: 50, reverse: true) {
             edges {
               node {
                 id
-                displayName
-                email
-                phone
+                name
                 createdAt
-                numberOfOrders
-                amountSpent {
-                  amount
-                  currencyCode
-                }
-                addresses(first: 1) {
-                  city
-                  provinceCode
-                  countryCode
-                  country
+                totalPriceSet {
+                  shopMoney {
+                    amount
+                    currencyCode
+                  }
                 }
               }
             }
@@ -606,25 +639,6 @@ serve(async (req) => {
         }
       `;
     }
-    
-    // Se não tiver graphqlQuery definido (foi processado com paginação acima), não fazer nada mais
-    if (!graphqlQuery) {
-      return new Response(
-        JSON.stringify({ error: 'Query já foi processada acima' }),
-        { 
-          status: 400,
-          headers: { 
-            ...corsHeaders, 
-            'Content-Type': 'application/json' 
-          } 
-        }
-      );
-    }
-    
-    // Remover bloco duplicado - revenue-today agora é processado apenas no bloco principal acima
-    // (linhas 152-256)
-
-    console.log('Consultando Shopify GraphQL API...');
     
     const response = await fetch(`https://${shopDomain}/admin/api/2024-01/graphql.json`, {
       method: 'POST',
@@ -636,13 +650,15 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Erro da Shopify API:', errorText);
-      throw new Error(`Shopify API retornou erro: ${response.status}`);
+      throw new Error(`Shopify API error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('Dados recebidos da Shopify:', JSON.stringify(data).substring(0, 200));
+
+    if (data.errors) {
+      console.error('GraphQL errors:', data.errors);
+      throw new Error(data.errors[0]?.message || 'GraphQL error');
+    }
 
     return new Response(
       JSON.stringify(data),
@@ -653,18 +669,13 @@ serve(async (req) => {
         } 
       }
     );
-
   } catch (error) {
-    console.error('Erro ao buscar dados da Shopify:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-    
+    console.error('Error in shopify-data:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
-      JSON.stringify({ 
-        error: errorMessage,
-        details: 'Verifique se o token e domínio da Shopify estão corretos'
-      }),
+      JSON.stringify({ error: errorMessage }),
       { 
-        status: 500,
+        status: 500, 
         headers: { 
           ...corsHeaders, 
           'Content-Type': 'application/json' 

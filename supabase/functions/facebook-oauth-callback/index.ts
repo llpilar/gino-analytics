@@ -9,8 +9,20 @@ serve(async (req) => {
     const error = url.searchParams.get('error');
     const errorDescription = url.searchParams.get('error_description');
 
-    // Get the redirect URL from state
-    const redirectUrl = state ? decodeURIComponent(state) : null;
+    // Parse state to get redirect URL and user ID
+    let redirectUrl: string | null = null;
+    let userId: string | null = null;
+    
+    if (state) {
+      try {
+        const stateData = JSON.parse(decodeURIComponent(state));
+        redirectUrl = stateData.redirectUrl || null;
+        userId = stateData.userId || null;
+      } catch {
+        // Fallback for legacy state format (just redirect URL)
+        redirectUrl = decodeURIComponent(state);
+      }
+    }
 
     if (error) {
       console.error('Facebook OAuth error:', error, errorDescription);
@@ -26,6 +38,14 @@ serve(async (req) => {
       return new Response(null, {
         status: 302,
         headers: { 'Location': `${redirectUrl || '/configuracoes'}?fb_error=No+code+received` }
+      });
+    }
+
+    if (!userId) {
+      console.error('No user ID in state');
+      return new Response(null, {
+        status: 302,
+        headers: { 'Location': `${redirectUrl || '/configuracoes'}?fb_error=Authentication+session+expired.+Please+try+again.` }
       });
     }
 
@@ -102,56 +122,39 @@ serve(async (req) => {
       });
     }
 
-    // Get the authorization header to identify the user
-    const authHeader = req.headers.get('Authorization');
-    let userId: string | null = null;
-
-    // Try to get user from the state (we'll pass it through the flow)
-    // For now, we need to use a different approach since callback doesn't have auth
-    // We'll use the service role to store with a temporary identifier and update later
-    
-    // Actually, we need to handle this differently - the callback comes from Facebook redirect
-    // So we need to extract user info from somewhere else
-    // Let's use a simpler approach: store the connection with facebook_user_id as key
-    // and update with user_id later when they load the settings page
-
-    // For now, let's create a temporary entry that will be claimed
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Store the token temporarily using Facebook user ID
-    // We'll need a way to associate this with the logged-in user
-    // For this demo, we'll use a cookie or localStorage approach
-    
     console.log('Facebook user:', userData.name, userData.id);
     console.log('Token expires at:', expiresAt);
 
-    // Create HTML page that stores the token and redirects
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Conectando Facebook...</title>
-          <script>
-            // Store token data temporarily
-            localStorage.setItem('fb_pending_connection', JSON.stringify({
-              access_token: '${accessToken}',
-              facebook_user_id: '${userData.id}',
-              facebook_user_name: '${userData.name}',
-              token_expires_at: '${expiresAt}'
-            }));
-            // Redirect to settings page
-            window.location.href = '${redirectUrl || '/configuracoes'}?fb_success=true';
-          </script>
-        </head>
-        <body>
-          <p>Conectando sua conta do Facebook...</p>
-        </body>
-      </html>
-    `;
+    // Store the connection directly in the database using service role
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    const { error: upsertError } = await supabase
+      .from('facebook_connections')
+      .upsert({
+        user_id: userId,
+        access_token: accessToken,
+        facebook_user_id: userData.id,
+        facebook_user_name: userData.name,
+        token_expires_at: expiresAt,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id'
+      });
 
-    return new Response(html, {
-      status: 200,
-      headers: { 'Content-Type': 'text/html' }
+    if (upsertError) {
+      console.error('Database upsert error:', upsertError);
+      return new Response(null, {
+        status: 302,
+        headers: { 'Location': `${redirectUrl || '/configuracoes'}?fb_error=${encodeURIComponent('Failed to save connection. Please try again.')}` }
+      });
+    }
+
+    console.log('Facebook connection saved successfully for user:', userId);
+
+    // Redirect to settings page with success indicator
+    return new Response(null, {
+      status: 302,
+      headers: { 'Location': `${redirectUrl || '/configuracoes'}?fb_success=true&fb_name=${encodeURIComponent(userData.name)}` }
     });
   } catch (error) {
     console.error('Error in facebook-oauth-callback:', error);
