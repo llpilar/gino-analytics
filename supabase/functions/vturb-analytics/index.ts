@@ -15,63 +15,95 @@ serve(async (req) => {
   }
 
   try {
-    const { endpoint, playerId, startDate, endDate, userId } = await req.json();
+    // Require authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Authentication required');
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     
-    let vturbApiKey: string | undefined;
-    let userHasIntegration = false;
+    // Create client with user's token to verify authentication
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    // Verify user is authenticated
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      throw new Error('User not authenticated');
+    }
+
+    const { endpoint, playerId, startDate, endDate, userId: targetUserId } = await req.json();
     
-    // If userId is provided, fetch credentials from user_integrations
-    if (userId) {
-      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-      const supabase = createClient(supabaseUrl, supabaseServiceKey);
-      
-      const { data: integration, error } = await supabase
-        .from('user_integrations')
-        .select('config')
-        .eq('user_id', userId)
-        .eq('integration_type', 'vturb')
-        .eq('is_active', true)
+    // Determine effective user ID
+    let effectiveUserId = user.id;
+    
+    // If trying to access another user's data, verify admin role
+    if (targetUserId && targetUserId !== user.id) {
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
         .maybeSingle();
       
-      if (!error && integration?.config?.api_key) {
-        vturbApiKey = integration.config.api_key;
-        userHasIntegration = true;
-        console.log(`Using VTurb credentials for user ${userId}`);
-      } else {
-        // User specified but no integration found - return empty data
-        console.log(`No VTurb integration found for user ${userId}, returning empty data`);
-        
-        // Return appropriate empty response based on endpoint
-        if (endpoint === 'list_players') {
-          return new Response(
-            JSON.stringify([]),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-        
+      if (roleError || !roleData) {
+        console.error('Unauthorized impersonation attempt by user:', user.id, 'for target:', targetUserId);
+        throw new Error('Unauthorized: Admin role required for impersonation');
+      }
+      
+      console.log('Admin impersonation authorized:', user.id, 'impersonating:', targetUserId);
+      effectiveUserId = targetUserId;
+    }
+    
+    let vturbApiKey: string | undefined;
+    
+    // Fetch credentials from user_integrations using service role
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
+    
+    const { data: integration, error } = await serviceClient
+      .from('user_integrations')
+      .select('config')
+      .eq('user_id', effectiveUserId)
+      .eq('integration_type', 'vturb')
+      .eq('is_active', true)
+      .maybeSingle();
+    
+    if (!error && integration?.config?.api_key) {
+      vturbApiKey = integration.config.api_key;
+      console.log(`Using VTurb credentials for user ${effectiveUserId}`);
+    } else {
+      // User has no VTurb integration - return empty data
+      console.log(`No VTurb integration found for user ${effectiveUserId}, returning empty data`);
+      
+      // Return appropriate empty response based on endpoint
+      if (endpoint === 'list_players') {
         return new Response(
-          JSON.stringify({
-            total_viewed: 0,
-            total_viewed_device_uniq: 0,
-            total_started: 0,
-            total_started_device_uniq: 0,
-            total_finished: 0,
-            total_finished_device_uniq: 0,
-            engagement_rate: 0,
-            play_rate: 0,
-            total_clicked: 0,
-            total_clicked_device_uniq: 0,
-            over_pitch_rate: 0,
-            overall_conversion_rate: 0,
-          }),
+          JSON.stringify([]),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-    } else {
-      // No userId provided - use environment variable (legacy behavior)
-      vturbApiKey = Deno.env.get('VTURB_API_KEY');
-      console.log('Using default VTurb credentials from environment (no userId provided)');
+      
+      return new Response(
+        JSON.stringify({
+          total_viewed: 0,
+          total_viewed_device_uniq: 0,
+          total_started: 0,
+          total_started_device_uniq: 0,
+          total_finished: 0,
+          total_finished_device_uniq: 0,
+          engagement_rate: 0,
+          play_rate: 0,
+          total_clicked: 0,
+          total_clicked_device_uniq: 0,
+          over_pitch_rate: 0,
+          overall_conversion_rate: 0,
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
     
     if (!vturbApiKey) {

@@ -34,13 +34,33 @@ serve(async (req) => {
     const { endpoint, accountId, startDate, endDate, userId: targetUserId } = await req.json();
     
     // Use targetUserId if provided (for admin impersonation), otherwise use authenticated user
-    const effectiveUserId = targetUserId || user.id;
-    console.log('Facebook User Ads request:', { endpoint, accountId, effectiveUserId, isImpersonating: !!targetUserId });
+    let effectiveUserId = user.id;
+    
+    // If trying to access another user's data, verify admin role
+    if (targetUserId && targetUserId !== user.id) {
+      // Check if authenticated user has admin role
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+      
+      if (roleError || !roleData) {
+        console.error('Unauthorized impersonation attempt by user:', user.id, 'for target:', targetUserId);
+        throw new Error('Unauthorized: Admin role required for impersonation');
+      }
+      
+      console.log('Admin impersonation authorized:', user.id, 'impersonating:', targetUserId);
+      effectiveUserId = targetUserId;
+    }
+    
+    console.log('Facebook User Ads request:', { endpoint, accountId, effectiveUserId, isImpersonating: effectiveUserId !== user.id });
 
     // Get Facebook connection for the effective user
     // If impersonating, we need to use service role to access other user's connection
     let connection;
-    if (targetUserId && targetUserId !== user.id) {
+    if (effectiveUserId !== user.id) {
       const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
       const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
       
